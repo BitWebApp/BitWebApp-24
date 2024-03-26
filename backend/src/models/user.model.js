@@ -1,4 +1,8 @@
 import mongoose, { Schema } from "mongoose";
+import { Placement } from "./placement.model";
+import { Project } from "./project.model";
+import { Award } from "./award.model";
+import { Internship } from "./internship.model";
 
 const userSchema = new Schema(
   {
@@ -54,6 +58,42 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    placementOne: {
+      type: Schema.Types.ObjectId,
+      ref: Placement,
+    },
+    placementTwo: {
+      type: Schema.Types.ObjectId,
+      ref: Placement,
+    },
+    placementThree: {
+      type: Schema.Types.ObjectId,
+      ref: Placement,
+    },
+    proj: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: Project,
+      },
+    ],
+    awards: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: Award,
+      },
+    ],
+    higherEd: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: HigherEducation,
+      },
+    ],
+    internShips: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: Internship,
+      },
+    ],
   },
   { timestamps: true }
 );

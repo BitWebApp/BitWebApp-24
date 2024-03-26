@@ -24,6 +24,10 @@ const projectSchema = new Schema(
     guide: {
       type: String,
     },
+    doc: {
+      type: String,
+      required: [true, "Add supporting docs!"],
+    },
   },
   { timestamps: true }
 );
