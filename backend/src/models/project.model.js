@@ -8,7 +8,7 @@ const projectSchema = new Schema(
     },
     projectName: {
       type: String,
-      required: [true, "Enter Name of ur project!"],
+      required: [true, "Enter Name of your project!"],
     },
     domain: {
       type: String,
