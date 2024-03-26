@@ -3,6 +3,7 @@ import { Placement } from "./placement.model";
 import { Project } from "./project.model";
 import { Award } from "./award.model";
 import { Internship } from "./internship.model";
+import { Exam } from "./exam.model";
 
 const userSchema = new Schema(
   {
@@ -92,6 +93,12 @@ const userSchema = new Schema(
       {
         type: Schema.Types.ObjectId,
         ref: Internship,
+      },
+    ],
+    exams: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: Exam,
       },
     ],
   },
