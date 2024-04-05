@@ -4,6 +4,8 @@ import { Project } from "./project.model";
 import { Award } from "./award.model";
 import { Internship } from "./internship.model";
 import { Exam } from "./exam.model";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const userSchema = new Schema(
   {
@@ -101,7 +103,15 @@ const userSchema = new Schema(
         ref: Exam,
       },
     ],
+    cgpa: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 12);
+});
+
 export const User = mongoose.model("User", userSchema);
