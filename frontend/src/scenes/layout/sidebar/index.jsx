@@ -76,7 +76,7 @@ const SideBar = () => {
                   textTransform="capitalize"
                   color={colors.greenAccent[500]}
                 >
-                  Argon
+                  BIT-WEB-APP
                 </Typography>
               </Box>
             )}
