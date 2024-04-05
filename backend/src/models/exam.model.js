@@ -3,7 +3,7 @@ const examSchema = new Schema(
   {
     name: {
       type: Schema.Types.ObjectId,
-      ref: User,
+      ref: "User",
     },
     examRoll: {
       type: String,
@@ -11,7 +11,7 @@ const examSchema = new Schema(
     },
     rollNumber: {
       type: Schema.Types.ObjectId,
-      ref: User,
+      ref: "User",
     },
     examName: {
       type: String,

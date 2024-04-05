@@ -1,9 +1,9 @@
 import mongoose, { Schema } from "mongoose";
-import { Placement } from "./placement.model";
-import { Project } from "./project.model";
-import { Award } from "./award.model";
-import { Internship } from "./internship.model";
-import { Exam } from "./exam.model";
+import { Placement } from "./placement.model.js";
+import { Project } from "./project.model.js";
+import { Award } from "./award.model.js";
+import { Internship } from "./internship.model.js";
+import { Exam } from "./exam.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -33,29 +33,33 @@ const userSchema = new Schema(
       type: String,
       required: [true, "Roll Number is required!"],
     },
+    email: {
+      type: String,
+      required: [true, "Email is required!"],
+      unique: true,
+      lowercase: true,
+    },
     idCard: {
       type: String,
       required: [true, "Id card is required for verification!"],
     },
     branch: {
       type: String,
-      required: [true, "Branch is required!"],
+      default: "",
     },
     section: {
       type: String,
+      default: "",
     },
     image: {
       type: String,
+      default: "",
     },
     mobileNumber: {
       type: String,
       minLength: [10, "Enter 10 digits of your mobile number!"],
       maxLength: [10, "Enter 10 digits of your mobile number!"],
-    },
-    emailAddress: {
-      type: String,
-      unique: true,
-      lowercase: true,
+      default: "0000000000",
     },
     isVerified: {
       type: Boolean,
@@ -63,47 +67,51 @@ const userSchema = new Schema(
     },
     placementOne: {
       type: Schema.Types.ObjectId,
-      ref: Placement,
+      ref: "Placement",
     },
     placementTwo: {
       type: Schema.Types.ObjectId,
-      ref: Placement,
+      ref: "Placement",
     },
     placementThree: {
       type: Schema.Types.ObjectId,
-      ref: Placement,
+      ref: "Placement",
     },
     proj: [
       {
         type: Schema.Types.ObjectId,
-        ref: Project,
+        ref: "Project",
       },
     ],
     awards: [
       {
         type: Schema.Types.ObjectId,
-        ref: Award,
+        ref: "Award",
       },
     ],
     higherEd: [
       {
         type: Schema.Types.ObjectId,
-        ref: HigherEducation,
+        ref: "HigherEducation",
       },
     ],
     internShips: [
       {
         type: Schema.Types.ObjectId,
-        ref: Internship,
+        ref: "Internship",
       },
     ],
     exams: [
       {
         type: Schema.Types.ObjectId,
-        ref: Exam,
+        ref: "Exam",
       },
     ],
     cgpa: {
+      type: String,
+      default: "",
+    },
+    refreshToken: {
       type: String,
     },
   },
@@ -113,5 +121,36 @@ userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 12);
 });
+
+userSchema.methods.isPasswordCorrect = async function (password) {
+  return await bcrypt.compare(password, this.password);
+};
+
+userSchema.methods.generateAccessToken = function () {
+  return jwt.sign(
+    {
+      _id: this._id,
+      email: this.email,
+      username: this.username,
+      fullName: this.fullName,
+    },
+    process.env.ACCESS_TOKEN_SECRET,
+    {
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+    }
+  );
+};
+
+userSchema.methods.generateRefreshToken = function () {
+  return jwt.sign(
+    {
+      _id: this._id,
+    },
+    process.env.REFRESH_TOKEN_SECRET,
+    {
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
+    }
+  );
+};
 
 export const User = mongoose.model("User", userSchema);
