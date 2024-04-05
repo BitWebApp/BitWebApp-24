@@ -1,1 +1,1 @@
-export const DB_NAME = "bitwebapp"
+export const DB_NAME = "bitwebapp";
