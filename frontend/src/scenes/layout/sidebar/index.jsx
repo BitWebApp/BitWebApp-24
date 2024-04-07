@@ -4,19 +4,12 @@ import { useContext, useState } from "react";
 import { tokens } from "../../../theme";
 import { Menu, MenuItem, Sidebar } from "react-pro-sidebar";
 import {
-  BarChartOutlined,
   CalendarTodayOutlined,
-  ContactsOutlined,
   DashboardOutlined,
-  DonutLargeOutlined,
   HelpOutlineOutlined,
-  MapOutlined,
   MenuOutlined,
-  PeopleAltOutlined,
   PersonOutlined,
-  ReceiptOutlined,
-  TimelineOutlined,
-  WavesOutlined,
+
 } from "@mui/icons-material";
 import avatar from "../../../assets/images/avatar.png";
 import logo from "../../../assets/images/logo.png";
@@ -110,7 +103,7 @@ const SideBar = () => {
               fontWeight="500"
               color={colors.greenAccent[500]}
             >
-              VP Fancy Admin
+             
             </Typography>
           </Box>
         </Box>
@@ -140,9 +133,9 @@ const SideBar = () => {
           color={colors.gray[300]}
           sx={{ m: "15px 0 5px 20px" }}
         >
-          {!collapsed ? "Data" : " "}
+          {!collapsed ? "" : " "}
         </Typography>{" "}
-        <Menu
+        {/* <Menu
           menuItemStyles={{
             button: {
               ":hover": {
@@ -152,26 +145,26 @@ const SideBar = () => {
               },
             },
           }}
-        >
-          <Item
+        > */}
+          {/* <Item
             title="Manage Team"
             path="/team"
             colors={colors}
             icon={<PeopleAltOutlined />}
-          />
-          <Item
+          /> */}
+          {/* <Item
             title="Contacts Information"
             path="/contacts"
             colors={colors}
             icon={<ContactsOutlined />}
-          />
-          <Item
+          /> */}
+          {/* <Item
             title="Invoices Balances"
             path="/invoices"
             colors={colors}
             icon={<ReceiptOutlined />}
           />
-        </Menu>
+        </Menu> */}
         <Typography
           variant="h6"
           color={colors.gray[300]}
@@ -209,14 +202,14 @@ const SideBar = () => {
             icon={<HelpOutlineOutlined />}
           />
         </Menu>
-        <Typography
+        {/* <Typography
           variant="h6"
           color={colors.gray[300]}
           sx={{ m: "15px 0 5px 20px" }}
         >
           {!collapsed ? "Charts" : " "}
-        </Typography>
-        <Menu
+        </Typography> */}
+        {/* <Menu
           menuItemStyles={{
             button: {
               ":hover": {
@@ -257,7 +250,7 @@ const SideBar = () => {
             colors={colors}
             icon={<WavesOutlined />}
           />
-        </Menu>
+        </Menu> */}
       </Box>
     </Sidebar>
   );
