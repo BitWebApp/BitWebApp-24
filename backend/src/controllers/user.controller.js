@@ -67,14 +67,13 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-  const { email, username, password } = req.body;
-  console.log(email);
-  if (!username && !email) {
-    throw new ApiError(400, "username or email is req");
+  console.log(req.body);
+  const { username, password } = req.body;
+  console.log(username);
+  if (!username) {
+    throw new ApiError(400, "username is req");
   }
-  const user = await User.findOne({
-    $or: [{ username }, { email }],
-  });
+  const user = await User.findOne({ username: username.toLowerCase() });
   if (!user) {
     throw new ApiError(404, "User does not exists");
   }
@@ -108,4 +107,62 @@ const loginUser = asyncHandler(async (req, res) => {
       )
     );
 });
-export { registerUser };
+const logoutUser = asyncHandler(async (req, res) => {
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $unset: { refreshToken: 1 },
+    },
+    {
+      new: true,
+    }
+  );
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "User logged out successfully!"));
+});
+
+const updateUser1 = asyncHandler(async (req, res) => {
+  const {
+    fullName,
+    rollNumber,
+    email,
+    branch,
+    section,
+    mobileNumber,
+    semester,
+  } = req.body;
+  if (
+    !fullName ||
+    !rollNumber ||
+    !email ||
+    !branch ||
+    !section ||
+    !mobileNumber ||
+    !semester
+  ) {
+    throw new ApiError(400, "All fields are required");
+  }
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        fullName,
+        rollNumber,
+        email,
+        branch,
+        section,
+        mobileNumber,
+        semester,
+      },
+    },
+    { new: true }
+  ).select("-password");
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "User details updated successfully!"));
+});
+
+export { registerUser, loginUser, logoutUser, updateUser1 };

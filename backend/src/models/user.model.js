@@ -61,6 +61,10 @@ const userSchema = new Schema(
       maxLength: [10, "Enter 10 digits of your mobile number!"],
       default: "0000000000",
     },
+    semester: {
+      type: String,
+      default: "",
+    },
     isVerified: {
       type: Boolean,
       default: false,
