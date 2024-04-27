@@ -5,6 +5,7 @@ import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { Placement } from "../models/placement.model.js";
 
 const generateAcessAndRefreshToken = async (userId) => {
   try {
@@ -165,4 +166,154 @@ const updateUser1 = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "User details updated successfully!"));
 });
 
-export { registerUser, loginUser, logoutUser, updateUser1 };
+const updatePlacementOne = asyncHandler(async (req, res) => {
+  const { company, ctc, date } = req.body;
+  console.log("company", company);
+  if (!company || !ctc || !date) {
+    throw new ApiError(400, "All fields are required");
+  }
+  const idLocalPath = req.files?.doc[0]?.path;
+  if (!idLocalPath) {
+    throw new ApiError(400, "doc file is required:");
+  }
+  const doc = await uploadOnCloudinary(idLocalPath);
+  if (!doc) {
+    throw new ApiError(400, "doc file is required:");
+  }
+
+  const placement = await Placement.create({
+    student: req.user._id,
+    company,
+    ctc,
+    date,
+    doc: doc.url,
+  });
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        placementOne: placement._id,
+      },
+    },
+    { new: true }
+  );
+  if (!updatedUser) {
+    throw new ApiError(
+      500,
+      "Something went wrong while updating the placement details"
+    );
+  }
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        updatedUser,
+        "Placement details updated successfully!"
+      )
+    );
+});
+const updatePlacementTwo = asyncHandler(async (req, res) => {
+  const { company, ctc, date } = req.body;
+  console.log("company", company);
+  if (!company || !ctc || !date) {
+    throw new ApiError(400, "All fields are required");
+  }
+  const idLocalPath = req.files?.doc[0]?.path;
+  if (!idLocalPath) {
+    throw new ApiError(400, "doc file is required:");
+  }
+  const doc = await uploadOnCloudinary(idLocalPath);
+  if (!doc) {
+    throw new ApiError(400, "doc file is required:");
+  }
+
+  const placement = await Placement.create({
+    student: req.user._id,
+    company,
+    ctc,
+    date,
+    doc: doc.url,
+  });
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        placementTwo: placement._id,
+      },
+    },
+    { new: true }
+  );
+  if (!updatedUser) {
+    throw new ApiError(
+      500,
+      "Something went wrong while updating the placement details"
+    );
+  }
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        updatedUser,
+        "Placement details updated successfully!"
+      )
+    );
+});
+const updatePlacementThree = asyncHandler(async (req, res) => {
+  const { company, ctc, date } = req.body;
+  console.log("company", company);
+  if (!company || !ctc || !date) {
+    throw new ApiError(400, "All fields are required");
+  }
+  const idLocalPath = req.files?.doc[0]?.path;
+  if (!idLocalPath) {
+    throw new ApiError(400, "doc file is required:");
+  }
+  const doc = await uploadOnCloudinary(idLocalPath);
+  if (!doc) {
+    throw new ApiError(400, "doc file is required:");
+  }
+
+  const placement = await Placement.create({
+    student: req.user._id,
+    company,
+    ctc,
+    date,
+    doc: doc.url,
+  });
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        placementThree: placement._id,
+      },
+    },
+    { new: true }
+  );
+  if (!updatedUser) {
+    throw new ApiError(
+      500,
+      "Something went wrong while updating the placement details"
+    );
+  }
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        updatedUser,
+        "Placement details updated successfully!"
+      )
+    );
+});
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  updateUser1,
+  updatePlacementOne,
+  updatePlacementTwo,
+  updatePlacementThree,
+};
