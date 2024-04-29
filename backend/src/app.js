@@ -17,6 +17,9 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
 
+import academicsRouter from "./route/academic.routes.js"
+app.use("/api/v1/academics", academicsRouter);
+
 import examRouter from "./routes/exam.routes.js";
 import higherEducationRouter from "./routes/higher-education.routes.js";
 
