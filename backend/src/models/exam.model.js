@@ -18,15 +18,15 @@ const examSchema = new Schema(
       required: [true, "Exam name required!"],
     },
     docs: {
-      type: String,
-      required: [true, "Add supporting docs!"],
+      type: [String],
+      required: [false, "Add supporting docs!"],
     },
     isSelected: {
       type: Boolean,
       required: [true, "Plz select result!"],
     },
     score: {
-      type: String,
+      type: Number,
       required: [true, "Enter score!"],
     },
   },

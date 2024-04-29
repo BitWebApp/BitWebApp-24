@@ -6,7 +6,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173", // Replace YOUR_FRONTEND_PORT with the port of your frontend application
+    origin: process.env.CORS_ORIGIN,
     credentials: true,
   })
 );
@@ -16,7 +16,8 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
 
-// Import exam routes
+
+// Imported exam routes
 import examRouter from "./routes/exam.routes.js";
 app.use("/api/v1/exam", examRouter);
 
