@@ -4,7 +4,7 @@ import {
   getAcademicRecords, 
   updateAcademicRecords, 
   deleteAcademicRecord
-} from "../controller/academic.controller.js";
+} from "../controllers/academic.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
