@@ -18,7 +18,7 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 import examRouter from "./routes/exam.routes.js";
-import higherEducationRouter from "./routes/higherEducation.routes.js";
+import higherEducationRouter from "./routes/higher-education.routes.js";
 
 app.use("/api/v1/exam", examRouter);
 app.use("/api/v1/higher-education", higherEducationRouter);
