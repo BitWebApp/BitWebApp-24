@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createHigherEducation, getHigherEducations, getHigherEducationById, updateHigherEducation, deleteHigherEducation } from "../controllers/higherEducation.controller.js";
+import { createHigherEducation, getHigherEducations, getHigherEducationById, updateHigherEducation, deleteHigherEducation } from "../controllers/higher-education.controller.js";
 import { uploadMultiple } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
