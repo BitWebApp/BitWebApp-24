@@ -9,9 +9,9 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.route("/academic/create").post(verifyJWT, createAcademicRecord);
-router.route("/academic/records").get(verifyJWT, getAcademicRecords);
-router.route("/academic/update/:id").patch(verifyJWT, updateAcademicRecords);
-router.route("/academic/update/:id").delete(verifyJWT, deleteAcademicRecord);
+router.route("/create").post(verifyJWT, createAcademicRecord);
+router.route("/records").get(verifyJWT, getAcademicRecords);
+router.route("/update/:id").patch(verifyJWT, updateAcademicRecords);
+router.route("/update/:id").delete(verifyJWT, deleteAcademicRecord);
 
 export default router;
