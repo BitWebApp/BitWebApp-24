@@ -19,9 +19,11 @@ app.use(cookieParser());
 
 import examRouter from "./routes/exam.routes.js";
 import higherEducationRouter from "./routes/higher-education.routes.js";
-
+import projectRouter from "./routes/project.routes.js"
+app.use("/api/v1/project", projectRouter);
 app.use("/api/v1/exam", examRouter);
 app.use("/api/v1/higher-education", higherEducationRouter);
+
 
 import userRouter from "./routes/user.routes.js";
 app.use("/api/v1/users", userRouter);
