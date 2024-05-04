@@ -319,7 +319,6 @@ const getPlacementDetails = asyncHandler(async (req, res) => {
       fullName: user.fullName,
       rollNumber: user.rollNumber,
       branch: user.branch,
-      batch: user.batch,
       placementOne: user.placementOne
         ? { company: user.placementOne.company, ctc: user.placementOne.ctc }
         : null,
