@@ -7,6 +7,7 @@ import {
   updatePlacementOne,
   updatePlacementTwo,
   updatePlacementThree,
+  getPlacementDetails,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -39,5 +40,7 @@ router
     upload.fields([{ name: "doc", maxCount: 1 }]),
     updatePlacementThree
   );
+
+router.route("/placementDetails").get(verifyJWT, getPlacementDetails);
 
 export default router;
