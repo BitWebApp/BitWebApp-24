@@ -121,10 +121,10 @@ onChange={(e) => setidcard(e.target.value)}
         </div>
         <div className="w-full items-center justify-center flex">
           <p className="text-sm font-normal text-black">
-            Dont have an account?
+            Already have an account?
             <span className="font-semibold underline underline-offset cursor-pointer">
              
-              <Link to="/sg">Sign Up</Link>
+              <Link to="/log">Log in</Link>
             </span>
           </p>
           
