@@ -124,10 +124,10 @@ export default function Signupadmin() {
         </div>
         <div className="w-full items-center justify-center flex">
           <p className="text-sm font-normal text-black">
-            Dont have an account?
+           Already have an account?
             <span className="font-semibold underline underline-offset cursor-pointer">
              
-              <Link to="/sg.a">Sign Up</Link>
+              <Link to="/log.a">Login</Link>
             </span>
           </p>
           
