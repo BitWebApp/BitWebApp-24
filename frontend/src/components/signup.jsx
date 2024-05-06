@@ -32,7 +32,7 @@ export default function Signup() {
         <div className="w-full flex flex-col max-w-[500px]">
           <div className="flex flex-col w-full mb-5">
             <h3 className="text-3xl font-semibold mb-4">Student-Login</h3>
-            <p className="text-base mb-2">Enter Your login details.</p>
+            <p className="text-base mb-2">Enter Your Signup details.</p>
           </div>
           <div className="w-full flex flex-col">
 
@@ -83,15 +83,12 @@ export default function Signup() {
   onChange={(e) => setrollnumber(e.target.value)}
 /> 
 
-<label>Id-card No</label>
+<label>Upload Id-card Image </label>
+<input type="file" accept="image/*" 
+value={idcard}
+onChange={(e) => setidcard(e.target.value)}
+/>
 
-<input
-  type="text"
-  placeholder="Enter Your ID-card No"
-  className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-  value={idcard}
-  onChange={(e) => setidcard(e.target.value)}
-/> 
               <button
                 className="absolute right-4 top-4 text-gray-600 hover:text-gray-800"
                 onClick={togglePasswordVisibility}
