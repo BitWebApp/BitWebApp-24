@@ -308,6 +308,40 @@ const updatePlacementThree = asyncHandler(async (req, res) => {
     );
 });
 
+const getPlacementDetails = asyncHandler(async (req, res) => {
+  try {
+    const users = await User.find().populate([
+      { path: "placementOne", select: "company ctc", model: Placement },
+      { path: "placementTwo", select: "company ctc" },
+      { path: "placementThree", select: "company ctc" },
+    ]);
+    const us = users.map((user) => ({
+      fullName: user.fullName,
+      rollNumber: user.rollNumber,
+      branch: user.branch,
+      placementOne: user.placementOne
+        ? { company: user.placementOne.company, ctc: user.placementOne.ctc }
+        : null,
+      placementTwo: user.placementTwo
+        ? { company: user.placementTwo.company, ctc: user.placementTwo.ctc }
+        : null,
+      placementThree: user.placementThree
+        ? { company: user.placementThree.company, ctc: user.placementThree.ctc }
+        : null,
+    }));
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, us, "Placement details fetched successfully!")
+      );
+  } catch (error) {
+    throw new ApiError(
+      500,
+      "Something went wrong while fetching placement details"
+    );
+  }
+});
+
 export {
   registerUser,
   loginUser,
@@ -316,4 +350,5 @@ export {
   updatePlacementOne,
   updatePlacementTwo,
   updatePlacementThree,
+  getPlacementDetails,
 };
