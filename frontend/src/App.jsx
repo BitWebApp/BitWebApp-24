@@ -3,15 +3,26 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Layout from './components/Layout'
 import Dashboard from './components/Dashboard'
 import Login from './components/Login'
+import Signup from './components/signup'
+import Sidebar from './components/Sidebar';
+import Loginadmin from './components/Loginadmin';
+import Signupadmin from './components/Signupadmin';
+
 export default function App() {
   return (
     <div>
       <Router>
         <Routes>
           <Route path="/log" element={<Login />} />
-          <Route path="/db" element={<Layout />}>
+          <Route path="/db" element={<Layout />} >
+          
             <Route index element={<Dashboard />} />
+
           </Route>
+          <Route path="/sg" element={<Signup />} />
+          <Route path="/sb" element={<Sidebar />} />
+          <Route path="/log.a" element={<Loginadmin />} />
+          <Route path="/sg.a" element={<Signupadmin />} />
         </Routes>
       </Router>
     </div>
