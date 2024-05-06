@@ -7,12 +7,14 @@ import Signup from './components/signup'
 import Sidebar from './components/Sidebar';
 import Loginadmin from './components/Loginadmin';
 import Signupadmin from './components/Signupadmin';
+import LandingPage from './components/LandingPage';
 
 export default function App() {
   return (
     <div>
       <Router>
         <Routes>
+        <Route path="/" element={<LandingPage />} />
           <Route path="/log" element={<Login />} />
           <Route path="/db" element={<Layout />} >
           
