@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 
-export default function Login() {
+export default function Loginadmin() {
   const [email,setEmail]=useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -27,7 +27,7 @@ export default function Login() {
 
         <div className="w-full flex flex-col max-w-[500px]">
           <div className="flex flex-col w-full mb-5">
-            <h3 className="text-3xl font-semibold mb-4">Student-Login</h3>
+            <h3 className="text-3xl font-semibold mb-4">Admin-Login</h3>
             <p className="text-base mb-2">Enter Your login details.</p>
           </div>
           <div className="w-full flex flex-col">
@@ -81,10 +81,10 @@ export default function Login() {
             <button
               className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
             >
-  <Link to="/log">Log In</Link>            </button>
+  <Link to="/log.a">Log In</Link>            </button>
             
             <button className="font-semibold bg-white text-black w-full rounded-md p-4 text-center flex items-center justify-center my-2 border-2 border-black">
-            <Link to="/sg">Sign Up</Link>
+            <Link to="/sg.a">Sign Up</Link>
             </button>
           </div>
         </div>
@@ -93,7 +93,7 @@ export default function Login() {
             Dont have an account?
             <span className="font-semibold underline underline-offset cursor-pointer">
              
-            <Link to="/sg">Sign Up</Link>
+            <Link to="/sg.a">Sign Up</Link>
             </span>
           </p>
         </div>
