@@ -32,7 +32,7 @@ export default function Signupadmin() {
         <div className="w-full flex flex-col max-w-[500px]">
           <div className="flex flex-col w-full mb-5">
             <h3 className="text-3xl font-semibold mb-4">Admin-Signup</h3>
-            <p className="text-base mb-2">Enter Your login details.</p>
+            <p className="text-base mb-2">Enter Your Signup details.</p>
           </div>
           <div className="w-full flex flex-col">
 
