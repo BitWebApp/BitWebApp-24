@@ -17,8 +17,7 @@ export default function Loginadmin() {
     <div className="w-full min-h-screen flex flex-col md:flex-row items-stretch">
       <div className="relative w-full md:w-1/2 flex-shrink-0 hidden md:block">
         <img
-                   src="bitpiccc.jpg"
-
+          src="../static/images/bitpiccc.jpg"
           className="w-full h-full object-cover"
           alt="bit-mesra"
         />

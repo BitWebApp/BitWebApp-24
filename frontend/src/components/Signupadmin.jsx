@@ -21,8 +21,7 @@ export default function Signupadmin() {
     <div className="w-full min-h-screen flex flex-col md:flex-row items-stretch">
       <div className="relative w-full md:w-1/2 flex-shrink-0 hidden md:block">
         <img
-                   src="bitpiccc.jpg"
-          
+          src="/static/images/bitpiccc.jpg"
           className="w-full h-full object-cover"
           alt="bit-mesra"
         />
@@ -45,7 +44,7 @@ export default function Signupadmin() {
               className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
               onChange={(e) => setEmail(e.target.value)}
             />
-                      <label>Username</label>
+              <label>Username</label>
 
             <input
               type="Text"
