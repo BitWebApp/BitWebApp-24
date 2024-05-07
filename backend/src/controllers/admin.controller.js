@@ -25,4 +25,25 @@ const getUnverifiedUsers = asyncHandler(async (req, res) => {
     );
   }
 });
-export { getUnverifiedUsers };
+
+const verifyUser = asyncHandler(async (req, res) => {
+  const { userId } = req.body;
+  if (!userId) {
+    throw new ApiError(400, "userId is required");
+  }
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw new ApiError(400, "Invalid userId");
+  }
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+    user.isVerified = true;
+    await user.save();
+    return res.json(new ApiResponse(200, "User verified successfully"));
+  } catch (error) {
+    throw new ApiError(500, "Something went wrong while verifying user");
+  }
+});
+export { getUnverifiedUsers, verifyUser };
