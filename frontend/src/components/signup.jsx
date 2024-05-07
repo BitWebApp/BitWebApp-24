@@ -18,8 +18,8 @@ export default function Signup() {
   
   return (
  
-    <div className="w-full min-h-screen flex flex-col md:flex-row items-stretch">
-      <div className="relative w-full md:w-1/2 flex-shrink-0 hidden md:block">
+    <div className="flex flex-col md:flex-row items-stretch">
+      <div className="relative w-full md:w-1/2 hidden md:block">
         <img
           src="bitpiccc.jpg"
           className="w-full h-full object-cover"
@@ -27,7 +27,7 @@ export default function Signup() {
         />
       </div>
       <div className="w-full md:w-1/2 bg-white flex flex-col p-6 md:p-20 justify-between">
-        <h3 className="text-xl text-black font-semibold">BIT WEB APP</h3>
+        <h3 className="text-xl text-black font-semibold mb-9">BIT WEB APP</h3>
        
         <div className="w-full flex flex-col max-w-[500px]">
           <div className="flex flex-col w-full mb-5">
@@ -36,7 +36,7 @@ export default function Signup() {
           </div>
           <div className="w-full flex flex-col">
 
-          <label>Email</label>
+          <label className="block text-sm mb-2">Email</label>
           <input
               type="email"
               placeholder="Enter Your Email"
@@ -44,7 +44,7 @@ export default function Signup() {
               className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
               onChange={(e) => setEmail(e.target.value)}
             />
-                      <label>Username</label>
+                        <label className="block text-sm mb-2">Username</label>
 
             <input
               type="Text"
@@ -63,7 +63,7 @@ export default function Signup() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-                           <label>Full-Name</label>
+                             <label className="block text-sm mb-2">Full Name</label>
 
               <input
                 type="text"
@@ -73,7 +73,7 @@ export default function Signup() {
                 onChange={(e) => setfullname(e.target.value)}
               /> 
               
-              <label>Roll-Number</label>
+              <label className="block text-sm mb-2">Roll Number</label>
 
 <input
   type="text"
@@ -83,7 +83,7 @@ export default function Signup() {
   onChange={(e) => setrollnumber(e.target.value)}
 /> 
 
-<label>Upload Id-card Image </label>
+ <label className="block text-sm mb-2">Upload ID-Card Image</label>
 <input type="file" accept="image/*" 
 value={idcard}
 onChange={(e) => setidcard(e.target.value)}
@@ -98,31 +98,30 @@ onChange={(e) => setidcard(e.target.value)}
               </button>
             </div>
           </div>
+          <div className="h-8"></div>
           <div className="w-full flex items-center justify-between">
             <div className="w-full flex items-center">
               <input type="checkbox" className="w-4 h-4 mr-2" />
               <p className="text-sm">Remember Me</p>
        
             </div>
-            <p className="text-sm cursor-pointer underline underline-offset-2 font-medium whitespace-nowrap">
-              Forgot Password
-            </p>
+           
           </div>
 
           <div className="w-full flex flex-col my-4">
-            <button
-              className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
-            >
-  <Link to="/log">Log In</Link>            </button>
-            <button className="font-semibold bg-white text-black w-full rounded-md p-4 text-center flex items-center justify-center my-2 border-2 border-black">
-            <Link to="/sg">Sign Up</Link>
-            </button>
+          <button
+  className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
+  onClick={() => navigate("/db")} 
+>
+  Sign Up
+</button>
+           
           </div>
         </div>
         <div className="w-full items-center justify-center flex">
           <p className="text-sm font-normal text-black">
             Already have an account?
-            <span className="font-semibold underline underline-offset cursor-pointer">
+            <span className="font-semibold underline underline-offset cursor-pointer text-orange-600">
              
               <Link to="/log">Log in</Link>
             </span>

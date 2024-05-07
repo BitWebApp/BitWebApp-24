@@ -61,38 +61,40 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
               />
               <button
-                className="absolute right-4 top-4 text-gray-600 hover:text-gray-800"
+                className="absolute right-4 top-4 text-gray-600 hover:text-red-900  hover:text-black-1500"
                 onClick={togglePasswordVisibility}
               >
                 {showPassword ? "Hide" : "Show"} Password
               </button>
             </div>
           </div>
+          <div className="h-8"></div>
+
           <div className="w-full flex items-center justify-between">
             <div className="w-full flex items-center">
               <input type="checkbox" className="w-4 h-4 mr-2" />
               <p className="text-sm">Remember Me</p>
             </div>
-            <p className="text-sm cursor-pointer underline underline-offset-2 font-medium whitespace-nowrap">
+            <p className="text-sm cursor-pointer underline underline-offset-2 font-medium whitespace-nowrap text-blue-400">
               Forgot Password
             </p>
           </div>
 
           <div className="w-full flex flex-col my-4">
-            <button
-              className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
-            >
-  <Link to="/log">Log In</Link>            </button>
+          <button
+  className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
+  onClick={() => navigate("/db")} 
+>
+  Log In
+</button>
             
-            <button className="font-semibold bg-white text-black w-full rounded-md p-4 text-center flex items-center justify-center my-2 border-2 border-black">
-            <Link to="/sg">Sign Up</Link>
-            </button>
+           
           </div>
         </div>
         <div className="w-full items-center justify-center flex">
           <p className="text-sm font-normal text-black">
             Dont have an account?
-            <span className="font-semibold underline underline-offset cursor-pointer">
+            <span className="font-semibold underline underline-offset cursor-pointer text-orange-600">
              
             <Link to="/sg">Sign Up</Link>
             </span>
