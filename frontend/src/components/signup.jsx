@@ -21,7 +21,7 @@ export default function Signup() {
     <div className="w-full min-h-screen flex flex-col md:flex-row items-stretch">
       <div className="relative w-full md:w-1/2 flex-shrink-0 hidden md:block">
         <img
-          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTqgKUWLNqlCkAjKICJit6mJMGoXYYUXOtpdw&s"
+          src="bitpiccc.jpg"
           className="w-full h-full object-cover"
           alt="bit-mesra"
         />
@@ -31,7 +31,7 @@ export default function Signup() {
        
         <div className="w-full flex flex-col max-w-[500px]">
           <div className="flex flex-col w-full mb-5">
-            <h3 className="text-3xl font-semibold mb-4">Student-Login</h3>
+            <h3 className="text-3xl font-semibold mb-4">Student-Signup</h3>
             <p className="text-base mb-2">Enter Your Signup details.</p>
           </div>
           <div className="w-full flex flex-col">
