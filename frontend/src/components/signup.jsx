@@ -21,7 +21,7 @@ export default function Signup() {
     <div className="flex flex-col md:flex-row items-stretch">
       <div className="relative w-full md:w-1/2 hidden md:block">
         <img
-          src="bitpiccc.jpg"
+          src="images.jpg"
           className="w-full h-full object-cover"
           alt="bit-mesra"
         />
