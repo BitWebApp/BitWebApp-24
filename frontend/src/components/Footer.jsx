@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-
+import { Link } from "react-router-dom";
 function Footer() {
 
   return (
@@ -17,7 +17,9 @@ function Footer() {
             <button
               className="text-white hover:text-gray-300 focus:outline-none"
             >
+                <Link to='/'> 
               Home
+              </Link>
             </button>
           </li>
           <li>
@@ -32,7 +34,9 @@ function Footer() {
             <button
               className="text-white hover:text-gray-300 focus:outline-none"
             >
-              Login
+                 <Link to='sg'> 
+              Signup
+              </Link>
             </button>
           </li>
           <li>
