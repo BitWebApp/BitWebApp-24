@@ -8,6 +8,7 @@ import Sidebar from './components/Sidebar';
 import Loginadmin from './components/Loginadmin';
 import Signupadmin from './components/Signupadmin';
 import LandingPage from './components/LandingPage';
+import Userform from './components/userform';
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/sb" element={<Sidebar />} />
           <Route path="/log.a" element={<Loginadmin />} />
           <Route path="/sg.a" element={<Signupadmin />} />
+          <Route path="/u-form" element={<Userform />} />
         </Routes>
       </Router>
     </div>

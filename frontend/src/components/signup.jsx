@@ -75,6 +75,8 @@ export default function Signup() {
               type="email"
               placeholder="Enter Your Email"
               value={email}
+              required
+              title="Please enter a valid email address"
               className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
               onChange={(e) => setEmail(e.target.value)}
             />
