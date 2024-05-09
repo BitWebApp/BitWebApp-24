@@ -37,6 +37,7 @@ export default function Signup() {
         {
           headers: {
             "Content-Type": "multipart/form-data",
+            Accept: "application/json",
           },
         }
       );
@@ -47,10 +48,28 @@ export default function Signup() {
         navigate("/log");
       }, 2000);
     } catch (error) {
-      toast.error("Error occurred during signup");
-      console.log("Error:", error.message);
+      if (error.response && error.response.data) {
+        const htmlDoc = new DOMParser().parseFromString(
+          error.response.data,
+          "text/html"
+        );
+        const errorElement = htmlDoc.querySelector("body");
+        if (errorElement) {
+          const errorMessage = errorElement.textContent.trim();
+          const errormsg = errorMessage.split("at")[0].trim();
+          console.log(errormsg);
+          toast.error(errormsg);
+        } else {
+          console.log("Error: An unknown error occurred");
+          toast.error("An unknown error occurred");
+        }
+      } else {
+        console.log("Error:", error.message);
+        toast.error("Error occurred during signup");
+      }
+    } finally {
+      setSpin(false);
     }
-    setSpin(false);
   };
 
   return (
