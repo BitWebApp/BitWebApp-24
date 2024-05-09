@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import axios, { isCancel, AxiosError } from "axios";
+import { GridLoader } from "react-spinners";
+import { toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 export default function Signup() {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -10,12 +14,14 @@ export default function Signup() {
   const [fullname, setfullname] = useState("");
   const [rollnumber, setrollnumber] = useState("");
   const [idcard, setidcard] = useState("");
+  const [spin, setSpin] = useState(false);
   const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
   const handleSignup = async () => {
+    setSpin(true);
     try {
       const formData = new FormData();
       formData.append("email", email);
@@ -36,14 +42,18 @@ export default function Signup() {
       );
 
       console.log(response.data);
+      toast.success("Signup successful!");
       navigate("/log");
     } catch (error) {
+      toast.error("Error occurred during signup");
       console.log("Error:", error.message);
     }
+    setSpin(false);
   };
 
   return (
     <div className="flex flex-col md:flex-row items-stretch">
+      <ToastContainer />
       <div className="relative w-full md:w-1/2 hidden md:block">
         <img
           src="images.jpg"
@@ -111,7 +121,6 @@ export default function Signup() {
               <input
                 type="file"
                 accept="image/*"
-                // value={idcard}
                 onChange={(e) => setidcard(e.target.files[0])}
               />
 
@@ -132,12 +141,18 @@ export default function Signup() {
           </div>
 
           <div className="w-full flex flex-col my-4">
-            <button
-              className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
-              onClick={() => handleSignup()}
-            >
-              Sign Up
-            </button>
+            {spin ? (
+              <div className="w-full flex items-center justify-center">
+                <GridLoader color="#000" />
+              </div>
+            ) : (
+              <button
+                className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
+                onClick={() => handleSignup()}
+              >
+                Sign Up
+              </button>
+            )}
           </div>
         </div>
         <div className="w-full items-center justify-center flex">
