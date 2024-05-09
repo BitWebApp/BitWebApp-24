@@ -42,8 +42,10 @@ export default function Signup() {
       );
 
       console.log(response.data);
-      toast.success("Signup successful!");
-      navigate("/log");
+      toast.success("Signup successful! now login using same credentials.");
+      setTimeout(() => {
+        navigate("/log");
+      }, 2000);
     } catch (error) {
       toast.error("Error occurred during signup");
       console.log("Error:", error.message);
