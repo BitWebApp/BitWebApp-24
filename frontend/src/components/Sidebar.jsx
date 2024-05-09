@@ -39,6 +39,7 @@ export default function Sidebar() {
                 </div>
                 <div className='whitespace-pre flex-1 py-[1rem] text-[0.9rem] flex flex-col gap-0.5'>
                     <Link>Demo Link</Link>
+                    
                     <div className={classNames('text-red-500 mt-[2rem] cursor-pointer border-t border-neutral-700', linkclasses)}>
                         <span className="text-xl">
                             <HiOutlineLogout />
@@ -51,6 +52,7 @@ export default function Sidebar() {
                         </span>
                         Collapse 
                     </div>
+                    
                 </div>
             </motion.div>
         </aside> 
