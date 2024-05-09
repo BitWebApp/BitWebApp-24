@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 
 export default function Login() {
-  const [email,setEmail]=useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -12,12 +11,24 @@ export default function Login() {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+  const handleLogin = async() => {
+    axios.post("/api/v1/users/login", {
+      username, password
+    })
+    .then(response => {
+      console.log(response)
+      navigate('/db')
+    })
+    .catch(error => {
+      console.log(error.message)
+    })
+  }
 
   return (
     <div className="w-full min-h-screen flex flex-col md:flex-row items-stretch">
       <div className="relative w-full md:w-1/2 flex-shrink-0 hidden md:block">
         <img
-                src="bitpiccc.jpg"
+                src="/static/images/bitphoto.JPG"
 
           className="w-full h-full object-cover"
           alt="bit-mesra"
@@ -32,19 +43,7 @@ export default function Login() {
             <p className="text-base mb-2">Enter Your login details.</p>
           </div>
           <div className="w-full flex flex-col">
-          <label>Email</label>
-
-            <input
-              type="email"
-              placeholder="Enter Your Email"
-              value={email}
-              required
-              title="Please enter a valid email address"
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-              onChange={(e) => setEmail(e.target.value)}
-            />
-                      <label>Username</label>
-
+            <label>Username</label>
             <input
               type="Text"
               placeholder="Enter Your username"
@@ -54,7 +53,6 @@ export default function Login() {
             />
             <div className="relative">
             <label>Password</label>
-
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter Your Password"
@@ -63,7 +61,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
               />
               <button
-                className="absolute right-4 top-4 text-gray-600 hover:text-red-900  hover:text-black-1500"
+                className="absolute bottom-4 right-4 text-gray-600 hover:text-red-900  hover:text-black-1500"
                 onClick={togglePasswordVisibility}
               >
                 {showPassword ? "Hide" : "Show"} Password
@@ -84,13 +82,11 @@ export default function Login() {
 
           <div className="w-full flex flex-col my-4">
           <button
-  className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
-  onClick={() => navigate("/db")} 
->
-  Log In
-</button>
-            
-           
+            className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
+            onClick={() => handleLogin()} 
+          >
+            Log In
+          </button>
           </div>
         </div>
         <div className="w-full items-center justify-center flex">
