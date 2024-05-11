@@ -1,7 +1,19 @@
 import React from "react";
+import { Link, Routes, Route } from "react-router-dom";
+
 export default function Dashboard() {
-    return (
-        <div className="flex flex-col overflow-visible md:grid md:grid-cols-1 gap-4 md:w-full h-full">
-        </div>
-    );
+  return (
+    <div>
+      <h2>Dashboard</h2>
+      <nav>
+        <ul>
+          <li>
+        
+          </li>
+          
+        </ul>
+      </nav>
+      
+    </div>
+  );
 }
