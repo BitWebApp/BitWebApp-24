@@ -3,10 +3,10 @@ import { Link } from "react-router-dom";
 function Footer() {
 
   return (
-    <div className="grid bg-red-700 p-16 text-gray-400 md:grid-cols-3">
+    <div className="grid bg-red-700 p-16 text-white md:grid-cols-3">
       <div className="text-center leading-10">
         <p>All Rights Reserved</p>
-        <p>Copyright @2024</p>
+        <p>Copyright &copy; 2024</p>
         <a href="https://bitacademicapp.ac.in">
           bitacademicapp.ac.in
         </a>
@@ -22,14 +22,6 @@ function Footer() {
               </Link>
             </button>
           </li>
-          <li>
-            <button
-              className="text-white hover:text-gray-300 focus:outline-none"
-            >
-              Contact Us
-            </button>
-          </li>
-          <li></li>
           <li>
             <button
               className="text-white hover:text-gray-300 focus:outline-none"
