@@ -11,6 +11,10 @@ import Signupadmin from "./components/Signupadmin";
 import LandingPage from "./components/LandingPage";
 import Academicform from "./components/academicform";
 import Awardform from "./components/award-form";
+import PlacementOne from "./components/PlacementOne";
+import PlacementTwo from "./components/PlacementTwo";
+import PlacementThree from "./components/PlacementThree";
+
 export default function App() {
   return (
     <div>
@@ -23,7 +27,9 @@ export default function App() {
             <Route path="user-form" element={<Userform />} /> 
             <Route path="academic-form" element={<Academicform />} /> 
             <Route path="award-form" element={<Awardform />} /> 
-
+            <Route path="placement-one" element={<PlacementOne />} />
+            <Route path="placement-two" element={<PlacementTwo />} />
+            <Route path="placement-three" element={<PlacementThree />} />
           </Route>
         
           <Route path="/sg" element={<Signup />} />
