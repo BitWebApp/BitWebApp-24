@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 
-export default function Userform() {
+export default function Awardform() {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -31,7 +31,7 @@ export default function Userform() {
     <div className="w-full min-h-screen flex bg-gradient-to-b from-blue-200 via-blue-300 to-blue-400 justify-center items=center">
      
       <div className="w-full md:w-1/2 bg-gradient-to-b from-gray-200 via-gray-300 to-gray-400 flex flex-col p-6 md:p-20 justify-between">
-        <h3 className="text-xl text-black font-semibold">BIT WEB APP</h3>
+        <h3 className="text-xl text-black font-semibold">Award Form</h3>
         <div className="w-full flex flex-col max-w-[500px]">
           <div className="flex flex-col w-full mb-5">
             <h3 className="text-3xl font-semibold mb-4">User Form</h3>
