@@ -18,8 +18,8 @@ const additionalLinks = [
 { text: "Academic-Form", icon: <HiOutlineDocumentAdd />,to:"/db/academic-form"
 }, { text: "Award-Form", icon: <HiOutlineDocumentAdd />,to:"/db/award-form"
 }, { text: "Exam-Form", icon: <HiOutlineDocumentAdd />,to:"/db/exam-form"
-}, { text: "Higher Education-Form", icon: <HiOutlineDocumentAdd />,to:"/db/he-form"
-}, { text: "Placement-Form", icon: <HiOutlineDocumentAdd />,to:"/db/placement-form"
+}, { text: "Higher Education-Form", icon: <HiOutlineDocumentAdd />,to:"/db/higher-education"
+}, { text: "Placement-Form", icon: <HiOutlineDocumentAdd />,to:"/db/placement-one"
 }, { text: "Project-Form", icon: <HiOutlineDocumentAdd />,to:"/db/project-form"
 }, { text: "Internship-Form", icon: <HiOutlineDocumentAdd />,to:"/db/internship-form"
 }, 
@@ -55,7 +55,7 @@ export default function Sidebar() {
                     <span className='px-1 ml-1 text-sm text-neutral-100'>BITWEB APP</span>
                 </div>
                 <div className='whitespace-pre flex-1 py-[1rem] text-[0.9rem] flex flex-col gap-0.5'>
-    <Link to="/">Home</Link>
+    <Link className="text-zinc-800 mx-auto border-neutral-700" to="/">Home</Link>
     
     <div className={classNames('text-red-500 mt-[2rem] cursor-pointer border-t border-neutral-700', linkclasses)}>
         <span className="text-xl">
@@ -72,7 +72,7 @@ export default function Sidebar() {
     </div>
   
     {additionalLinks.map((link, index) => (
-    <Link to={link.to} key={index} className={classNames('cursor-pointer border-t border-neutral-700', linkclasses)}>
+    <Link to={link.to} key={index} className={classNames('cursor-pointer border-t text-zinc-800 hover:text-white border-neutral-700', linkclasses)}>
         <span className="text-xl">{link.icon}</span>
         {link.text}
     </Link>
