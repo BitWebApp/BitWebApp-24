@@ -77,7 +77,7 @@ export default function Signup() {
       <ToastContainer />
       <div className="relative w-full md:w-1/2 hidden md:block">
         <img
-          src="images.jpg"
+          src="images.jpg" // image not being shown. Need to check later
           className="w-full h-full object-cover"
           alt="bit-mesra"
         />
