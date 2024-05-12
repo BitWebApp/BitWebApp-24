@@ -32,7 +32,7 @@ export default function Signup() {
       formData.append("idCard", idcard);
 
       const response = await axios.post(
-        "http://localhost:8000/api/v1/users/register",
+        "/api/v1/users/register",
         formData,
         {
           headers: {
@@ -77,7 +77,7 @@ export default function Signup() {
       <ToastContainer />
       <div className="relative w-full md:w-1/2 hidden md:block">
         <img
-          src="images.jpg" // image not being shown. Need to check later
+          src="/static/images/bitphoto.JPG" // no worries image fixed -- kushagra 
           className="w-full h-full object-cover"
           alt="bit-mesra"
         />
