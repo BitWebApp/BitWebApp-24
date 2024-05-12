@@ -47,11 +47,13 @@ function Footer() {
           placeholder="Name"
           className="rounded-md border px-4 py-2 text-center"
           autoComplete="Name"
+          style={{color:'black'}}
         />
         <input
           type="text"
           placeholder="Enter your review"
           className="h-20 rounded-md border px-4 py-2 text-center"
+          style={{color:'black'}}
         />
         <button
           className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
