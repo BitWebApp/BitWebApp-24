@@ -15,6 +15,7 @@ import PlacementOne from "./components/PlacementOne";
 import PlacementTwo from "./components/PlacementTwo";
 import PlacementThree from "./components/PlacementThree";
 import HigherEducation from "./components/HigherEducation";
+import ExamForm from "./components/ExamForm";
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="placement-two" element={<PlacementTwo />} />
             <Route path="placement-three" element={<PlacementThree />} />
             <Route path="higher-education" element={<HigherEducation />} />
+            <Route path="exam-form" element={<ExamForm />} />
           </Route>
         
           <Route path="/sg" element={<Signup />} />
