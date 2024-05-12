@@ -5,7 +5,7 @@ const examSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
-    examRoll: {
+    examRoll: { 
       type: String,
       required: [true, "Registration/Roll Number needed!"],
     },
