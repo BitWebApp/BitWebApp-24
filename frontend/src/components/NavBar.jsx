@@ -1,6 +1,8 @@
 import { useState } from "react"
 import logo from "/src/assets/Birla_Institute_of_Technology_Mesra.png"   
 import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 const NavBar = () => {
     const [dropDown,setDropDown] = useState(false);
@@ -21,7 +23,7 @@ const NavBar = () => {
                     </div>
                     <div className="lg:hidden md:flex flex-col justify-end">
                         <button onClick={toggleDropDown}>
-                            {dropDown ? <div>X</div> : <div>=</div>}    
+                            <FontAwesomeIcon icon={dropDown ? faTimes : faBars} />
                         </button>
 
                     </div>
