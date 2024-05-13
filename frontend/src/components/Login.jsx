@@ -17,6 +17,7 @@ export default function Login() {
     })
     .then(response => {
       console.log(response)
+      localStorage.setItem("user", response.data.data.user);
       navigate('/db')
     })
     .catch(error => {
