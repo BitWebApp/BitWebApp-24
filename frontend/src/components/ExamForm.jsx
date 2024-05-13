@@ -8,7 +8,7 @@ const ExamForm = () => {
     const [score,setScore] = useState()
     const handleSubmit = () => {
         e.preventDefault()
-        axios.post("/api/v1/exam", {
+        axios.post("/api/v1/exam", { 
             name,
             examRoll,
             rollNumber,

@@ -16,7 +16,8 @@ import PlacementTwo from "./components/PlacementTwo";
 import PlacementThree from "./components/PlacementThree";
 import HigherEducation from "./components/HigherEducation";
 import ExamForm from "./components/ExamForm";
-
+import ProjectForm from "./components/ProjectForm";
+import InternshipForm from "./components/InternshipForm";
 export default function App() {
   return (
     <div>
@@ -34,6 +35,8 @@ export default function App() {
             <Route path="placement-three" element={<PlacementThree />} />
             <Route path="higher-education" element={<HigherEducation />} />
             <Route path="exam-form" element={<ExamForm />} />
+            <Route path="project-form" element={<ProjectForm />} />
+            <Route path="internship-form" element={<InternshipForm />} />
           </Route>
         
           <Route path="/sg" element={<Signup />} />
