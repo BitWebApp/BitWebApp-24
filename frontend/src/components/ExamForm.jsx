@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-
+import { Link } from 'react-router-dom'
 const ExamForm = () => {
     const [name,setName] = useState("")
     const [examRoll,setExamRoll] = useState("")
@@ -69,6 +69,9 @@ const ExamForm = () => {
                     className="fileButton"
                 />
                 <button type="submit" onClick={handleSubmit} className="h-10 w-44 rounded-lg border border-black bg-white font-semibold">Upload</button>
+                <span className="font-semibold underline underline-offset cursor-pointer text-blue-600">
+                <Link to="/db">Go back to Dashboard</Link>
+              </span>
             </form>
         </div>
     </div>

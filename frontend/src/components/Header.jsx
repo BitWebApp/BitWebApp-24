@@ -11,14 +11,17 @@ const additionalLinks = [
    
   { text: "User-Form", icon: <HiOutlineDocumentAdd />,to:"/db/user-form"
 }, 
-{ text: "Academic-Form", icon: <HiOutlineDocumentAdd />,to:"/db/user-form"
-}, { text: "Award-Form", icon: <HiOutlineDocumentAdd />,to:"/db/user-form"
-}, { text: "Exam-Form", icon: <HiOutlineDocumentAdd />,to:"/db/user-form"
-}, { text: "Higher Education-Form", icon: <HiOutlineDocumentAdd />,to:"/db/user-form"
-}, { text: "Placement-Form", icon: <HiOutlineDocumentAdd />,to:"/db/user-form"
-}, { text: "Project-Form", icon: <HiOutlineDocumentAdd />,to:"//db/user-form"
-}, { text: "Internship-Form", icon: <HiOutlineDocumentAdd />,to:"/db/user-form"
+{ text: "Academic-Form", icon: <HiOutlineDocumentAdd />,to:"/db/academic-form"
+}, { text: "Award-Form", icon: <HiOutlineDocumentAdd />,to:"/db/award-form"
+}, { text: "Exam-Form", icon: <HiOutlineDocumentAdd />,to:"/db/exam-form"
+}, { text: "Higher Education-Form", icon: <HiOutlineDocumentAdd />,to:"/db/higher-education"
+}, { text: "Placement-Form", icon: <HiOutlineDocumentAdd />,to:"/db/placement-one"
+
+}, { text: "Project-Form", icon: <HiOutlineDocumentAdd />,to:"/db/project-form"
+}, { text: "Internship-Form", icon: <HiOutlineDocumentAdd />,to:"/db/internship-form"
 }, 
+
+
  
 ];
 export default function Header() {
