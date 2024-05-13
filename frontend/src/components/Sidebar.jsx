@@ -14,7 +14,7 @@ const additionalLinks = [
     { text: "Awards & Achievements", icon: <HiBadgeCheck />, to:"/db/award-form" },
     { text: "Examinations", icon: <HiDocumentReport />, to:"/db/exam-form" },
     { text: "Higher Education", icon: <HiAcademicCap />, to:"/db/higher-education" },
-    { text: "Placement Records", icon: <HiOutlineBriefcase />, to:"/db/placement-one" },
+    { text: "Placement Records", icon: <HiOutlineBriefcase />, to:"/db/placement" },
     { text: "Projects", icon: <HiPresentationChartLine />, to:"/db/project-form" },
     { text: "Internships", icon: <HiBriefcase />, to:"/db/internship-form" }
 ];
