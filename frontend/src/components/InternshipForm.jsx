@@ -42,7 +42,7 @@ export default function InternshipForm() {
               <label>Company</label>
               <input
                 type="email"
-                placeholder="Enter Your Email"
+                placeholder="Enter Your Company"
                 value={company}
                 required
               title="Please select the company"
@@ -73,17 +73,17 @@ export default function InternshipForm() {
                   {showPassword ? "Hide" : "Show"} Password
                 </button>
               </div> */}
-              <label>Start Date Information</label>
+              <label>Starting Date </label>
               <input
-                type="text"
+                type="date"
                 placeholder="Enter Your Starting Date"
                 value={startDate}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setStartDate(e.target.value)}
               />
-              <label>End Date Information</label>
+              <label>Ending Date </label>
               <input
-                type="text"
+                type="date"
                 placeholder="Enter Your Roll Number"
                 value={endDate}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"

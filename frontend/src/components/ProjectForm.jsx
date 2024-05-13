@@ -28,7 +28,7 @@ export default function ProjectForm() {
         <h3 className="text-xl text-black font-semibold">BIT WEB APP</h3>
         <div className="w-full flex flex-col max-w-[500px]">
           <div className="flex flex-col w-full mb-5">
-            <h3 className="text-3xl font-semibold mb-4">Academic Form</h3>
+            <h3 className="text-3xl font-semibold mb-4">Project Form</h3>
             <p className="text-base mb-2">Enter Project  details.</p>
           </div>
           <form onSubmit={handleSubmit}>

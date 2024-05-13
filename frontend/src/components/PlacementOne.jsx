@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
+import { Link } from 'react-router-dom';
 
 const PlacementOne = () => {
     const [company,setCompany] = useState("")
@@ -57,7 +57,11 @@ const PlacementOne = () => {
                     type="file"
                     className="fileButton"
                     />
+                
                 <button type="submit" onClick={handleSubmit} className="h-10 w-44 rounded-lg border border-black bg-white font-semibold">Upload</button>
+                <span className="font-semibold underline underline-offset cursor-pointer text-blue-600">
+                <Link to="/db">Go back to Dashboard</Link>
+              </span>
             </form>
         </div>
     </div>

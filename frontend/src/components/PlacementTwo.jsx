@@ -5,7 +5,7 @@ import { GridLoader } from "react-spinners";
 import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import { Link } from "react-router-dom";
 const PlacementTwo = () => {
   const [company, setCompany] = useState("");
   const [ctc, setCTC] = useState("");
@@ -92,6 +92,9 @@ const PlacementTwo = () => {
               Upload
             </button>
           )}
+       <span className="font-semibold underline underline-offset cursor-pointer text-blue-600">
+                <Link to="/db">Go back to Dashboard</Link>
+              </span>
         </form>
       </div>
     </div>
