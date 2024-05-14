@@ -41,6 +41,16 @@ export default function Header() {
     //     setIsAdmin(userRole === "admin");
     // }, []);
     const links = isAdmin ? adminLinks : additionalLinks;
+    const handleLogout = async() => {
+      axios.post("/api/v1/users/logout")
+      .then(response => {
+        console.log(response)
+        localStorage.removeItem("user")
+      })
+      .catch(error => {
+        console.log(error)
+      })
+    }
   return (
     <div className='sticky top-0 z-40 bg-white h-16 px-4 flex w-full py-2 items-center border-b border-gray-200'>
       <div className='flex'>
@@ -72,8 +82,7 @@ export default function Header() {
     {link.text}
   </Link>
 ))}
-
-                    <div className={classNames('text-red-500 mt-[2rem] cursor-pointer border-t border-neutral-700', linkClasses)}>
+                    <div onClick={() => handleLogout()} className={classNames('text-red-500 mt-[2rem] cursor-pointer border-t border-neutral-700', linkClasses)}>
                       <span className="text-xl">
                         <HiOutlineLogout   />
                       </span>

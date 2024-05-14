@@ -16,8 +16,9 @@ export default function Login() {
       username, password
     })
     .then(response => {
-      console.log(response)
-      localStorage.setItem("user", response.data.data.user);
+      console.log(response.data.data.user)
+      localStorage.setItem("user", JSON.stringify(response.data.data.user));
+      console.log(JSON.parse(localStorage.getItem("user")))
       navigate('/db')
     })
     .catch(error => {
@@ -28,9 +29,7 @@ export default function Login() {
   return (
     <div className="w-full min-h-screen flex flex-col md:flex-row items-stretch">
       <div className="relative w-full md:w-1/2 flex-shrink-0 hidden md:block">
-        <img
-                src="/static/images/bitphoto.JPG"
-
+        <img src="/static/images/bitphoto.JPG"
           className="w-full h-full object-cover"
           alt="bit-mesra"
         />

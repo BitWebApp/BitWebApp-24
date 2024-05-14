@@ -65,10 +65,8 @@ export default function Sidebar() {
                 className='relative left-0 top-0 flex h-screen flex-col overflow-y-scroll overflow-x-hidden lg:overflow-y-scroll z-50 bg-black p-3 text-white'
                 style={{ scrollbarWidth: "none" }}
             >
-                <div className='flex gap-2 px-1 py-3'>
-                    <img className="w-1/4" src="/static/images/Birla_Institute_of_Technology_Mesra.png" alt="" />
-                    <span className='px-1 m-auto text-2xl ml-1 text-neutral-100'>BITWEB APP</span>
-                </div>
+                    <img className="w-[50%] m-auto" src="/static/images/Birla_Institute_of_Technology_Mesra.png" alt="" />
+                
                 <div className='whitespace-pre flex-1 py-[1rem] text-[0.9rem] flex flex-col gap-0.5'>
     {links.map((link, index) => (
     <Link to={link.to} key={index} className={classNames('cursor-pointer border-t text-white hover:bg-orange-600 border-neutral-700', linkclasses)}>
