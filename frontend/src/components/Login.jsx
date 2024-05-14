@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 import axios from 'axios'
@@ -7,7 +7,12 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-
+  useEffect(() => {
+    axios.get("/api/v1/users/verify-login")
+    .then(response => {
+      console.log(response)
+    })
+  }, [])
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };

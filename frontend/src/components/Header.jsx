@@ -5,6 +5,7 @@ import { IoMdMenu } from 'react-icons/io';
 import classNames from 'classnames';
 import { useState } from 'react';
 import  { useEffect } from 'react';
+import axios from 'axios';
 import { HiUser, HiAcademicCap, HiOutlineLogout, HiBadgeCheck, HiHome, HiDocumentReport, HiOutlineBriefcase, HiPresentationChartLine, HiBriefcase } from "react-icons/hi";
 const linkClasses = 'flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base';
 const additionalLinks = [
@@ -35,11 +36,10 @@ export default function Header() {
         setIsNavbarOpen(false);
     };
     const [isAdmin, setIsAdmin] = useState(true);
-// useEffect(() => {
-    //     // Retrieve user role from localStorage
-    //     const userRole = localStorage.getItem("userRole");
-    //     setIsAdmin(userRole === "admin");
-    // }, []);
+    useEffect(() => {
+        const user = localStorage.getItem("user");
+        setIsAdmin(user.username === "admin");
+    }, []);
     const links = isAdmin ? adminLinks : additionalLinks;
     const handleLogout = async() => {
       axios.post("/api/v1/users/logout")
@@ -138,7 +138,7 @@ export default function Header() {
               </Menu.Item>
               <Menu.Item>
                 {({ active }) => (
-                  <button className={classNames(
+                  <button onClick={() =>  handleLogout()} className={classNames(
                     active && 'bg-gray-100',
                     "text-gray-700 focus:bg-gray-200 cursor-pointer rounded-sm px-4 w-full py-2"
                   )}>
