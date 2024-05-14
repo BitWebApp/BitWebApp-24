@@ -21,7 +21,7 @@ const additionalLinks = [
 ];
 const adminLinks = [
   { text: "Dashboard", icon: <HiHome />, to:"/db" },
-   { text: "Personal Details", icon: <HiUser />, to:"/db/student-table" },
+   { text: "Student Details", icon: <HiUser />, to:"/db/student-table" },
    { text: "Academic Records", icon: <HiAcademicCap />, to:"/db/academic-table" },
    { text: "Awards & Achievements", icon: <HiBadgeCheck />, to:"/db/award-table" },
    { text: "Examinations", icon: <HiDocumentReport />, to:"/db/exam-table" },

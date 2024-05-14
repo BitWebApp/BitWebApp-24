@@ -3,6 +3,7 @@ import React from 'react';
 export default function StudentTable() {
   return (
     <div className="overflow-x-auto">
+       <h1 className="text-center text-3xl font-bold mb-8">STUDENT DETAILS</h1>
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-black">
           <tr>
