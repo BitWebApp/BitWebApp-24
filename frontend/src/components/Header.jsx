@@ -4,8 +4,9 @@ import { Link } from 'react-router-dom';
 import { IoMdMenu } from 'react-icons/io';
 import classNames from 'classnames';
 import { useState } from 'react';
+import  { useEffect } from 'react';
 import { HiUser, HiAcademicCap, HiOutlineLogout, HiBadgeCheck, HiHome, HiDocumentReport, HiOutlineBriefcase, HiPresentationChartLine, HiBriefcase } from "react-icons/hi";
-const linkClasses = 'flex items-center gap-6 font-light p-2.5 hover:bg-orange-600 hover:no-underline active:bg-neutral rounded-sm text-base';
+const linkClasses = 'flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base';
 const additionalLinks = [
   { text: "Dashboard", icon: <HiHome />, to:"/db" },
   { text: "Personal Details", icon: <HiUser />, to:"/db/user-form" },
@@ -17,11 +18,29 @@ const additionalLinks = [
   { text: "Projects", icon: <HiPresentationChartLine />, to:"/db/project-form" },
   { text: "Internships", icon: <HiBriefcase />, to:"/db/internship-form" }
 ];
+const adminLinks = [
+  { text: "Dashboard", icon: <HiHome />, to:"/db" },
+   { text: "Personal Details", icon: <HiUser />, to:"/db/student-table" },
+   { text: "Academic Records", icon: <HiAcademicCap />, to:"/db/academic-table" },
+   { text: "Awards & Achievements", icon: <HiBadgeCheck />, to:"/db/award-table" },
+   { text: "Examinations", icon: <HiDocumentReport />, to:"/db/exam-table" },
+   { text: "Higher Education", icon: <HiAcademicCap />, to:"/db/higher-education-table" },
+   { text: "Placement Records", icon: <HiOutlineBriefcase />, to:"/db/placement-table" },
+   { text: "Projects", icon: <HiPresentationChartLine />, to:"/db/project-form-table" },
+   { text: "Internships", icon: <HiBriefcase />, to:"/db/internship-form-table" }
+];
 export default function Header() {
     const [isNavbarOpen, setIsNavbarOpen] = useState(false);
     const closeNavbar = () => {
         setIsNavbarOpen(false);
     };
+    const [isAdmin, setIsAdmin] = useState(true);
+// useEffect(() => {
+    //     // Retrieve user role from localStorage
+    //     const userRole = localStorage.getItem("userRole");
+    //     setIsAdmin(userRole === "admin");
+    // }, []);
+    const links = isAdmin ? adminLinks : additionalLinks;
     const handleLogout = async() => {
       axios.post("/api/v1/users/logout")
       .then(response => {
@@ -54,14 +73,15 @@ export default function Header() {
                 leaveFrom="opacity-100 translate-y-0"
                 leaveTo="opacity-0 translate-y-1"
               >
-                <Popover.Panel className="absolute left-0 z-10 mt-2.5 w-full  opacity-100 bg-black">
-                  <div className='whitespace-pre flex-1 py-[1rem] text-[0.9rem] text-white flex flex-col gap-0.5'>
-                  {additionalLinks.map((link, index) => (
-                    <Link to={link.to} key={index} className={classNames('cursor-pointer border-t border-neutral-700', linkClasses)}>
-                      <span className="text-xl">{link.icon}</span>
-                      {link.text}
-                    </Link>
-                  ))}
+                <Popover.Panel className="absolute left-0 z-10 mt-2.5 w-full   bg-black">
+                  <div className='whitespace-pre flex-1 py-[1rem] text-[0.9rem] text-red-700 flex flex-col gap-0.5'>
+                 
+                  {links.map((link, index) => (
+  <Link to={link.to} key={index} className={classNames('cursor-pointer border-t border-neutral-700', linkClasses)}>
+    <span className="text-xl">{link.icon}</span>
+    {link.text}
+  </Link>
+))}
                     <div onClick={() => handleLogout()} className={classNames('text-red-500 mt-[2rem] cursor-pointer border-t border-neutral-700', linkClasses)}>
                       <span className="text-xl">
                         <HiOutlineLogout   />

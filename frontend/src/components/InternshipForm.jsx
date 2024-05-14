@@ -18,9 +18,7 @@ export default function InternshipForm() {
   // const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
+ 
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -28,13 +26,13 @@ export default function InternshipForm() {
   };
 
   return (
-    <div className="w-full min-h-screen flex bg-gradient-to-b from-blue-200 via-blue-300 to-blue-400 justify-center items=center">
+    <div className="w-full min-h-screen flex justify-center items=center">
      
-      <div className="w-full md:w-1/2 bg-gradient-to-b from-gray-200 via-gray-300 to-gray-400 flex flex-col p-6 md:p-20 justify-between">
-        <h3 className="text-xl text-black font-semibold">BIT WEB APP</h3>
-        <div className="w-full flex flex-col max-w-[500px]">
+      <div className="w-full flex flex-col p-10 justify-between">
+      <h3 className="text-xl text-black font-semibold">BIT WEB APP</h3>
+        <div className="w-full flex flex-col ">
           <div className="flex flex-col w-full mb-5">
-            <h3 className="text-3xl font-semibold mb-4">Academic Form</h3>
+            <h3 className="text-3xl font-semibold mb-4">Internship Form</h3>
             <p className="text-base mb-2">Enter Your  details.</p>
           </div>
           <form onSubmit={handleSubmit}>

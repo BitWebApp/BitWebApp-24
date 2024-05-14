@@ -10,7 +10,7 @@ export default function Signupadmin() {
   const [fullname,setfullname]=useState("");
   const [rollnumber,setrollnumber]=useState("");
   const [idcard,setidcard]=useState("");
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
