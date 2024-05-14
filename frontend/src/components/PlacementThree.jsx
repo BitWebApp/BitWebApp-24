@@ -101,4 +101,4 @@ const PlacementThree = () => {
   )
 }
 
-export default PlacementThree
+export default PlacementThree;

@@ -4,11 +4,12 @@ import { Link } from "react-router-dom";
 import classNames from "classnames";
 import { HiUser, HiAcademicCap, HiOutlineLogout, HiBadgeCheck, HiHome, HiDocumentReport, HiOutlineBriefcase, HiPresentationChartLine, HiBriefcase } from "react-icons/hi";
 import { motion } from "framer-motion";
+import  { useEffect } from 'react';
 import { IoIosArrowBack } from "react-icons/io";
 
 const linkclasses = 'flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base';
 const additionalLinks = [
-    { text: "Dashboard", icon: <HiHome />, to:"/" },
+    { text: "Dashboard", icon: <HiHome />, to:"/db" },
     { text: "Personal Details", icon: <HiUser />, to:"/db/user-form" },
     { text: "Academic Records", icon: <HiAcademicCap />, to:"/db/academic-form" },
     { text: "Awards & Achievements", icon: <HiBadgeCheck />, to:"/db/award-form" },
@@ -18,7 +19,17 @@ const additionalLinks = [
     { text: "Projects", icon: <HiPresentationChartLine />, to:"/db/project-form" },
     { text: "Internships", icon: <HiBriefcase />, to:"/db/internship-form" }
 ];
-
+const adminLinks = [
+   { text: "Dashboard", icon: <HiHome />, to:"/db" },
+    { text: "Personal Details", icon: <HiUser />, to:"/db/student-table" },
+    { text: "Academic Records", icon: <HiAcademicCap />, to:"/db/academic-table" },
+    { text: "Awards & Achievements", icon: <HiBadgeCheck />, to:"/db/award-table" },
+    { text: "Examinations", icon: <HiDocumentReport />, to:"/db/exam-table" },
+    { text: "Higher Education", icon: <HiAcademicCap />, to:"/db/higher-education-table" },
+    { text: "Placement Records", icon: <HiOutlineBriefcase />, to:"/db/placement-table" },
+    { text: "Projects", icon: <HiPresentationChartLine />, to:"/db/project-form-table" },
+    { text: "Internships", icon: <HiBriefcase />, to:"/db/internship-form-table" }
+];
 export default function Sidebar() {
 
     const Sidebar_animation = {
@@ -36,6 +47,16 @@ export default function Sidebar() {
         },
     };
     const [isOpen, setIsOpen] = useState(true);
+    const [isAdmin, setIsAdmin] = useState(true);
+
+
+    // useEffect(() => {
+    //     // Retrieve user role from localStorage
+    //     const userRole = localStorage.getItem("userRole");
+    //     setIsAdmin(userRole === "admin");
+    // }, []);
+
+    const links = isAdmin ? adminLinks : additionalLinks;
     return (
         <aside>
             <motion.div
@@ -49,7 +70,7 @@ export default function Sidebar() {
                     <span className='px-1 m-auto text-2xl ml-1 text-neutral-100'>BITWEB APP</span>
                 </div>
                 <div className='whitespace-pre flex-1 py-[1rem] text-[0.9rem] flex flex-col gap-0.5'>
-    {additionalLinks.map((link, index) => (
+    {links.map((link, index) => (
     <Link to={link.to} key={index} className={classNames('cursor-pointer border-t text-white hover:bg-orange-600 border-neutral-700', linkclasses)}>
         <span className="text-xl">{link.icon}</span>
         {link.text}
@@ -70,11 +91,7 @@ export default function Sidebar() {
     </div>
 
 
-</div>
-
-  
-   
-                
+</div>         
             </motion.div>
         </aside> 
     );
