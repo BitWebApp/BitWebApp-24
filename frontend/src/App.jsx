@@ -17,6 +17,7 @@ import PlacementThree from "./components/PlacementThree";
 import HigherEducation from "./components/HigherEducation";
 import ExamForm from "./components/ExamForm";
 import ProjectForm from "./components/ProjectForm";
+import Placement from "./components/Placement";
 import InternshipForm from "./components/InternshipForm";
 export default function App() {
   return (
@@ -30,9 +31,11 @@ export default function App() {
             <Route path="user-form" element={<Userform />} /> 
             <Route path="academic-form" element={<Academicform />} /> 
             <Route path="award-form" element={<Awardform />} /> 
-            <Route path="placement-one" element={<PlacementOne />} />
-            <Route path="placement-two" element={<PlacementTwo />} />
-            <Route path="placement-three" element={<PlacementThree />} />
+            <Route path="placement" element={<Placement />} >
+              <Route path="placement-one" element={<PlacementOne />} />
+              <Route path="placement-two" element={<PlacementTwo />} />
+              <Route path="placement-three" element={<PlacementThree />} />
+            </Route>
             <Route path="higher-education" element={<HigherEducation />} />
             <Route path="exam-form" element={<ExamForm />} />
             <Route path="project-form" element={<ProjectForm />} />
