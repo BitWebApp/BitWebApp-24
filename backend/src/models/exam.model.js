@@ -9,10 +9,6 @@ const examSchema = new Schema(
       type: String,
       required: [true, "Registration/Roll Number needed!"],
     },
-    rollNumber: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-    },
     examName: {
       type: String,
       required: [true, "Exam name required!"],
