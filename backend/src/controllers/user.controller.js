@@ -134,37 +134,44 @@ const updateUser1 = asyncHandler(async (req, res) => {
     section,
     mobileNumber,
     semester,
+    cgpa
   } = req.body;
-  if (
-    !fullName ||
-    !rollNumber ||
-    !email ||
-    !branch ||
-    !section ||
-    !mobileNumber ||
-    !semester
-  ) {
-    throw new ApiError(400, "All fields are required");
+
+  const updateFields = {};
+
+  if (fullName) updateFields.fullName = fullName;
+  if (rollNumber) updateFields.rollNumber = rollNumber;
+  if (email) updateFields.email = email;
+  if (branch) updateFields.branch = branch;
+  if (section) updateFields.section = section;
+  if (mobileNumber) updateFields.mobileNumber = mobileNumber;
+  if (semester) updateFields.semester = semester;
+  if(cgpa) updateFields.cgpa = cgpa;
+
+  if (Object.keys(updateFields).length === 0) {
+    throw new ApiError(400, "At least one field is required for update");
   }
+
   const user = await User.findByIdAndUpdate(
     req.user?._id,
-    {
-      $set: {
-        fullName,
-        rollNumber,
-        email,
-        branch,
-        section,
-        mobileNumber,
-        semester,
-      },
-    },
+    { $set: updateFields },
     { new: true }
   ).select("-password");
-  return res
-    .status(200)
-    .json(new ApiResponse(200, user, "User details updated successfully!"));
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      user,
+      "User details updated successfully!"
+    )
+  );
 });
+const getCurrentUser = asyncHandler(async (req, res) => {
+  const _id = req?.user?._id
+  const user = await User.findById({_id})
+  if(!user) throw new ApiError(404, "user not found")
+  res.status(200).json(new ApiResponse(200, user, "user fetched"))
+})
 
 const updatePlacementOne = asyncHandler(async (req, res) => {
   const { company, ctc, date } = req.body;
@@ -350,5 +357,5 @@ export {
   updatePlacementOne,
   updatePlacementTwo,
   updatePlacementThree,
-  getPlacementDetails,
+  getPlacementDetails, getCurrentUser
 };

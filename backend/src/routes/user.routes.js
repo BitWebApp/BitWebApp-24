@@ -8,6 +8,7 @@ import {
   updatePlacementTwo,
   updatePlacementThree,
   getPlacementDetails,
+  getCurrentUser,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -19,6 +20,7 @@ router
 router.route("/login").post(loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/update").patch(verifyJWT, updateUser1);
+router.route("/get-user").get(verifyJWT, getCurrentUser);
 router
   .route("/pone")
   .patch(

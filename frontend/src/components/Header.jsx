@@ -1,12 +1,11 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useState, useEffect } from 'react';
 import { Popover, Transition, Menu } from '@headlessui/react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { IoMdMenu } from 'react-icons/io';
 import classNames from 'classnames';
-import { useState } from 'react';
-import  { useEffect } from 'react';
 import axios from 'axios';
 import { HiUser, HiAcademicCap, HiOutlineLogout, HiBadgeCheck, HiHome, HiDocumentReport, HiOutlineBriefcase, HiPresentationChartLine, HiBriefcase } from "react-icons/hi";
+
 const linkClasses = 'flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base';
 const additionalLinks = [
   { text: "Dashboard", icon: <HiHome />, to:"/db" },
@@ -30,29 +29,49 @@ const adminLinks = [
    { text: "Projects", icon: <HiPresentationChartLine />, to:"/db/project-form-table" },
    { text: "Internships", icon: <HiBriefcase />, to:"/db/internship-form-table" }
 ];
+
 export default function Header() {
     const [isNavbarOpen, setIsNavbarOpen] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(true);
+    const [currentTime, setCurrentTime] = useState(null);
+    const [user, setUser] = useState()
+    useEffect(() => {
+        const user = JSON.parse(localStorage.getItem("user"));
+        setUser(user)
+        setIsAdmin(user.username === "admin");
+    }, []);
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        const newTime = new Date();
+        const clock = newTime.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", day: 'numeric', month: 'short', weekday:'long', year: 'numeric' ,hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        setCurrentTime(clock)
+      }, 1000)
+      return () => clearInterval(interval)
+    }, []);
+  
+
     const closeNavbar = () => {
         setIsNavbarOpen(false);
     };
-    const [isAdmin, setIsAdmin] = useState(true);
-    useEffect(() => {
-        const user = localStorage.getItem("user");
-        setIsAdmin(user.username === "admin");
-    }, []);
+
+    const navigate = useNavigate();
     const links = isAdmin ? adminLinks : additionalLinks;
-    const handleLogout = async() => {
+
+    const handleLogout = async () => {
       axios.post("/api/v1/users/logout")
       .then(response => {
         console.log(response)
         localStorage.removeItem("user")
+        navigate("/")
       })
       .catch(error => {
         console.log(error)
       })
     }
+
   return (
-    <div className='sticky top-0 z-40 bg-white h-16 px-4 flex w-full py-2 items-center border-b border-gray-200'>
+    <div className='sticky top-0 z-40 bg-white h-16 px-4 flex w-full py-2 items-center border-b border-black'>
       <div className='flex'>
         <Popover className="navbar">
           {({ open }) => (
@@ -75,13 +94,12 @@ export default function Header() {
               >
                 <Popover.Panel className="absolute left-0 z-10 mt-2.5 w-full   bg-black">
                   <div className='whitespace-pre flex-1 py-[1rem] text-[0.9rem] text-red-700 flex flex-col gap-0.5'>
-                 
-                  {links.map((link, index) => (
-  <Link to={link.to} key={index} className={classNames('cursor-pointer border-t border-neutral-700', linkClasses)}>
-    <span className="text-xl">{link.icon}</span>
-    {link.text}
-  </Link>
-))}
+                    {links.map((link, index) => (
+                      <Link to={link.to} key={index} className={classNames('cursor-pointer border-t border-neutral-700', linkClasses)}>
+                        <span className="text-xl">{link.icon}</span>
+                        {link.text}
+                      </Link>
+                    ))}
                     <div onClick={() => handleLogout()} className={classNames('text-red-500 mt-[2rem] cursor-pointer border-t border-neutral-700', linkClasses)}>
                       <span className="text-xl">
                         <HiOutlineLogout   />
@@ -95,17 +113,19 @@ export default function Header() {
                       Collapse
                     </div>
                   </div>
-                  
                 </Popover.Panel>
               </Transition>
             </>
           )}
         </Popover>
         <div className='flex h-full m-auto rounded-sm'>
-          Welcome
+          Welcome, {user?.fullName.toUpperCase()}
         </div>
       </div>
       <div className='ml-auto flex items-center gap-2 mr-2'>
+        <div className="text-gray-600 mr-4">
+          {currentTime}
+        </div>
         <Menu as="div" className="relative">
           <div className='inline-flex'>
             <Menu.Button className="ml-2 inline-flex rounded-full bg-grey-200 focus:outline-none focus:ring-2 focus:ring-neutral-400">
@@ -126,7 +146,7 @@ export default function Header() {
             <Menu.Items className="origin-top-right z-10 absolute right-0 mt-2 w-48 rounded-sm shadow-md p-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
               <Menu.Item>
                 {({ active }) => (
-                  <Link to="/db/profile">
+                  <Link to="/db/user-form">
                   <button className={classNames(
                     active && 'bg-gray-100',
                     "text-gray-700 focus:bg-gray-200 cursor-pointer rounded-sm px-4 w-full py-2"

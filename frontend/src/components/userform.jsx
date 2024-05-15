@@ -1,78 +1,84 @@
-import React, { useState } from 'react';
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
+import axios from 'axios';
+import Swal from 'sweetalert2'
 export default function Userform() {
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [rollNumber, setRollNumber] = useState("");
-  const [idCard, setIdCard] = useState("");
+  const [email, setEmail] = useState("");
   const [branch, setBranch] = useState("");
   const [section, setSection] = useState("");
-  const [image, setImage] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
   const [semester, setSemester] = useState("");
   const [cgpa, setCgpa] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+  useEffect(() => {
+    axios.get("/api/v1/users/get-user")
+      .then(response => {
+        console.log(response)
+        const userData = response.data.data;
+        setFullName(userData.fullName);
+        setEmail(userData.email);
+        setBranch(userData.branch);
+        setSection(userData.section);
+        setMobileNumber(userData.mobileNumber);
+        setSemester(userData.semester);
+        setCgpa(userData.cgpa);
+        setUser(userData);
+      })
+      .catch(error => {
+        console.log(error)
+      })
+  }, []);
+
+  const handleUpdate = () => {
+    console.log("Updating user details...");
+    axios.patch(`/api/v1/users/update`, {
+      fullName,
+      email,
+      branch,
+      section,
+      mobileNumber,
+      semester,
+      cgpa
+    })
+      .then(response => {
+        console.log(response);
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: response.data.message
+        })
+      })
+      .catch(error => {
+        console.log(error);
+      });
+    setIsEditMode(false);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-  
+  const handleCancelEdit = () => {
+    setFullName(user.fullName);
+    setEmail(user.email);
+    setBranch(user.branch);
+    setSection(user.section);
+    setMobileNumber(user.mobileNumber);
+    setSemester(user.semester);
+    setCgpa(user.cgpa);
+    setIsEditMode(false);
   };
 
   return (
-    <div className="w-full min-h-screen flex justify-center items=center">
-     
-    <div className="w-full flex flex-col p-10 justify-between">
-      <h3 className="text-xl text-black font-semibold">BIT WEB APP</h3>
-      <div className="w-full flex flex-col">
-        <div className="flex flex-col w-full mb-5">
-          <h3 className="text-3xl font-semibold mb-4">User Form</h3>
-          <p className="text-base mb-2">Enter Your  details.</p>
-        </div>
-          <form onSubmit={handleSubmit}>
+    <div className="w-full min-h-screen flex justify-center items-center">
+      <div className="w-full flex flex-col p-10 justify-between">
+        <h3 className="text-xl text-black font-semibold">BIT WEB APP</h3>
+        <div className="w-full flex flex-col">
+          <div className="flex flex-col w-full mb-5">
+            <h3 className="text-3xl font-semibold mb-4">Your Profile</h3>
+            <p className="text-base mb-2">Enter Your details.</p>
+          </div>
+          <form onSubmit={e => e.preventDefault()}>
             <div className="w-full flex flex-col">
-              <label>Email</label>
-              <input
-                type="email"
-                placeholder="Enter Your Email"
-                value={email}
-                required
-              title="Please enter a valid email address"
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <label>Username</label>
-              <input
-                type="text"
-                placeholder="Enter Your username"
-                value={username}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setUsername(e.target.value)}
-              />
-              <div className="relative">
-                <label>Password</label>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter Your Password"
-                  className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <button
-                  className="absolute right-4 top-4 text-gray-600 hover:text-red-900 hover:text-black-1500"
-                  onClick={togglePasswordVisibility}
-                >
-                  {showPassword ? "Hide" : "Show"} Password
-                </button>
-              </div>
               <label>Full Name</label>
               <input
                 type="text"
@@ -80,23 +86,17 @@ export default function Userform() {
                 value={fullName}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setFullName(e.target.value)}
+                disabled={!isEditMode}
               />
-              <label>Roll Number</label>
+              <label>Email</label>
               <input
-                type="text"
-                placeholder="Enter Your Roll Number"
-                value={rollNumber}
+                type="email"
+                placeholder="Enter Your Email"
+                value={email}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setRollNumber(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={!isEditMode}
               />
-              <label className="block text-l mb-2">Upload ID-Card Image</label>
-              <input
-                type="file"
-                accept="image/*"
-                value={idCard}
-                onChange={(e) => setIdCard(e.target.files[0])}
-              />
-              <div className="h-5"></div>
               <label>Branch</label>
               <input
                 type="text"
@@ -104,6 +104,7 @@ export default function Userform() {
                 value={branch}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setBranch(e.target.value)}
+                disabled={!isEditMode}
               />
               <label>Section</label>
               <input
@@ -112,16 +113,8 @@ export default function Userform() {
                 value={section}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setSection(e.target.value)}
+                disabled={!isEditMode}
               />
-              <label>Upload Your Image</label>
-              <input
-                type="file"
-                accept="image/*"
-                value={image}
-                onChange={(e) => setImage(e.target.files[0])}
-              />
-                            <div className="h-5"></div>
-
               <label>Mobile Number</label>
               <input
                 type="text"
@@ -129,6 +122,7 @@ export default function Userform() {
                 value={mobileNumber}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setMobileNumber(e.target.value)}
+                disabled={!isEditMode}
               />
               <label>Semester</label>
               <input
@@ -137,6 +131,7 @@ export default function Userform() {
                 value={semester}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setSemester(e.target.value)}
+                disabled={!isEditMode}
               />
               <label>CGPA</label>
               <input
@@ -145,25 +140,38 @@ export default function Userform() {
                 value={cgpa}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setCgpa(e.target.value)}
+                disabled={!isEditMode}
               />
             </div>
             <div className="h-8"></div>
             <div className="w-full flex items-center justify-between">
-            
-              
-            </div>
-            <div className="w-full flex flex-col my-4">
-              <button
-                className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
-               
-              >
-                Submit
-              </button>
+              {isEditMode ? (
+                <>
+                  <button
+                    className="bg-black text-white rounded-md p-2 text-center flex items-center justify-center my-2 hover:bg-black/90"
+                    onClick={handleUpdate}
+                  >
+                    Save
+                  </button>
+                  <button
+                    className="bg-red-500 text-white rounded-md p-2 text-center flex items-center justify-center my-2 hover:bg-red-600"
+                    onClick={handleCancelEdit}
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  className="bg-blue-500 text-white rounded-md p-2 text-center flex items-center justify-center my-2 hover:bg-blue-600"
+                  onClick={() => setIsEditMode(true)}
+                >
+                  Edit
+                </button>
+              )}
             </div>
           </form>
           <div className="w-full items-center justify-center flex">
             <p className="text-sm font-normal text-black">
-           
               <span className="font-semibold underline underline-offset cursor-pointer text-blue-600">
                 <Link to="/db">Go back to Dashboard</Link>
               </span>
