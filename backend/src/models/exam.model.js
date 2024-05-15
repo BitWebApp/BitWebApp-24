@@ -21,7 +21,7 @@ const examSchema = new Schema(
       type: [String],
       required: [false, "Add supporting docs!"],
     },
-    isSelected: {
+    isSel: {
       type: Boolean,
       required: [true, "Plz select result!"],
     },
