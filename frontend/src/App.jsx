@@ -52,8 +52,7 @@ export default function App() {
           <Route path="Student-Table" element={<StudentTable />} />
           <Route path="academic-table" element={<AcademicTable />} />
           <Route path="award-table" element={<AwardTable />} />
-          <Route path="placement-Table" element={<PlacementTable />}>
-          </Route>
+          <Route path="placement-Table" element={<PlacementTable />} />
           <Route path="higher-education-table" element={<HigherEduTable />} />
           <Route path="exam-form" element={<ExamForm />} />
           <Route path="project-form-table" element={<ProjectTable />} />
