@@ -2,7 +2,7 @@ import { useState } from "react"
 import logo from "/src/assets/Birla_Institute_of_Technology_Mesra.png"   
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faTimes } from '@fortawesome/free-solid-svg-icons'; devicePixelRatio
 
 const NavBar = () => {
     const [dropDown,setDropDown] = useState(false);
@@ -19,7 +19,7 @@ const NavBar = () => {
                     </div>
                     <div className="hidden lg:flex justify-center space-x-8 items-center">
                         <Link to="/log" className="hover:bg-slate-200 px-2 py-3 border rounded-md">Student Login</Link>
-                        <Link to="/sg" className="hover:bg-orange-200 px-2 py-3 border rounded-md">Admin Login</Link>  
+                        <Link to="/log.a" className="hover:bg-orange-200 px-2 py-3 border rounded-md">Admin Login</Link>  
                     </div>
                     <div className="lg:hidden md:flex flex-col justify-end">
                         <button onClick={toggleDropDown}>
@@ -31,8 +31,8 @@ const NavBar = () => {
                 {dropDown && (
                     <div className="fixed right-0 z-20 bg-neutral-100 w-full p-10 flex flex-col justify-center items-center lg:hidden">
                         <div className="flex flex-col space-y-6">
-                            <a href="#" className="hover:bg-slate-200 px-2 py-3 border rounded-md">Student Login</a>
-                            <a href="#" className="hover:bg-orange-200 px-2 py-3 border rounded-md">Admin Login</a>
+                        <Link to="/log" className="hover:bg-slate-200 px-2 py-3 border rounded-md">Student Login</Link>
+                        <Link to="/log.a" className="hover:bg-orange-900 px-2 py-3 border rounded-md">Admin Login</Link>  
                         </div>
                     </div>
                     
