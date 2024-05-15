@@ -19,7 +19,7 @@ const NavBar = () => {
                     </div>
                     <div className="hidden lg:flex justify-center space-x-8 items-center">
                         <Link to="/log" className="hover:bg-slate-200 px-2 py-3 border rounded-md">Student Login</Link>
-                        <Link to="/sg" className="hover:bg-orange-200 px-2 py-3 border rounded-md">Admin Login</Link>  
+                        <Link to="/log" className="hover:bg-orange-200 px-2 py-3 border rounded-md">Admin Login</Link>  
                     </div>
                     <div className="lg:hidden md:flex flex-col justify-end">
                         <button onClick={toggleDropDown}>
