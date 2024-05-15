@@ -65,7 +65,6 @@ export default function InternshipForm() {
               <label className="block text-l mb-2">Upload suitable Docs</label>
               <input
                 type="file"
-                accept="image/*"
                 value={idCard}
                 onChange={(e) => setIdCard(e.target.files[0])}
               />
