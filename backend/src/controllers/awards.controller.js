@@ -1,8 +1,8 @@
-import { asyncHandler } from "../utils/asyncHandler";
-import { ApiError } from "../utils/ApiError";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { uploadOnCloudinary } from "../utils/Cloudinary.js"
-import {Award} from "../models/award.model.js"
+import { uploadOnCloudinary } from "../utils/Cloudinary.js";
+import {Award} from "../models/award.model.js";
 
 const addAward = asyncHandler(async(req, res) => {
     const { title, description, date, student} = req.body;
