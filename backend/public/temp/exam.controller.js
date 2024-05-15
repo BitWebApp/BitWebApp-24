@@ -43,7 +43,7 @@ const createExam = asyncHandler(async (req, res) => {
 });
 
 const getExams = asyncHandler(async (req, res) => {
-  const exams = await Exam.find({ name: req.user._id }).populate('name', 'rollNumber fullName');
+  const exams = await Exam.find({ name: req.user._id }).populate('name', 'rollNumber');
 
   res.status(200).json({
     success: true,
@@ -82,7 +82,6 @@ const deleteExam = asyncHandler(async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 const getExamById = asyncHandler(async (req, res) => {
   const exam = await Exam.findById(req.params.id);
@@ -160,14 +159,7 @@ const updateExam = asyncHandler(async (req, res) => {
   }
 });
 
-const getAllExams = asyncHandler(async (req, res) => {
-  const exams = await Exam.find().populate('name', 'rollNumber fullName');
 
-  res.status(200).json({
-    success: true,
-    data: exams,
-  });
-});
 
-export { createExam, getExams, getExamById, deleteExam , updateExam, getAllExams}
+export { createExam, getExams, getExamById, deleteExam , updateExam};
 
