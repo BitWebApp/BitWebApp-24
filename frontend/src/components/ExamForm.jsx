@@ -7,11 +7,12 @@ const ExamForm = () => {
     const [examName, setExamName] = useState("NET");
     const [academicYear, setAcademicYear] = useState("");
     const [docs, setDocs] = useState([]);
-    const [isSelected, setIsSelected] = useState(true);
+    const [isSel, setIsSel] = useState(true);
     const [score, setScore] = useState("");
     const [loading, setLoading] = useState(false);
     const [tempExamName, setTempExamName] = useState("");
-    // Fetch exams
+    const [examId, setExamId] = useState("");
+
     const fetchExams = async () => {
         try {
             const response = await axios.get("/api/v1/exam");
@@ -25,50 +26,72 @@ const ExamForm = () => {
         fetchExams();
     }, []);
 
-    const handleSubmit = async (e) => {
+    const handleEdit = (exam) => {
+        setExamId(exam._id); 
+        setExamRoll(exam.examRoll);
+        setExamName(exam.examName);
+        setAcademicYear(exam.academicYear);
+        setIsSel(exam.isSel);
+        setScore(exam.score);
+        setDocs([]); 
+      
+        if (exam.examName === "Other equivalent examination") {
+          setTempExamName("Other equivalent examination");
+        } else {
+          setTempExamName(""); 
+        }
+      };
+      
+      const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const formData = new FormData();
-            formData.append("examRoll", examRoll);
-            formData.append("examName", examName);
-            formData.append("academicYear", academicYear);
-            formData.append("isSelected", isSelected);
-            formData.append("score", score);
-            docs.forEach((doc) => {
-                formData.append("files", doc);
-            });
-
-            const token = localStorage.getItem("accessToken"); 
-            const config = {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                    "Authorization": `Bearer ${token}` 
-                },
-            };
-
-            const response = await axios.post("/api/v1/exam", formData, config);
-
-            setExamRoll("");
-            setExamName("NET");
-            setAcademicYear("");
-            setDocs([]);
-            setIsSelected(true);
-            setScore("");
-
-            fetchExams(); // Fetch exams after successful submission
-            console.log(response);
+          const formData = new FormData();
+          formData.append("examRoll", examRoll);
+          formData.append("examName", examName);
+          formData.append("academicYear", academicYear);
+          formData.append("isSel", isSel);
+          formData.append("score", score);
+          docs.forEach((doc) => {
+            formData.append("files", doc);
+          });
+      
+          const token = localStorage.getItem("accessToken");
+          const config = {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${token}`,
+            },
+          };
+      
+          let response;
+          if (examId) {
+            response = await axios.put(`/api/v1/exam/${examId}`, formData, config);
+          } else {
+            response = await axios.post("/api/v1/exam", formData, config);
+          }
+      
+          setExamRoll("");
+          setExamName("NET");
+          setAcademicYear("");
+          setDocs([]);
+          setIsSel(false);
+          setScore("");
+          setExamId(""); 
+      
+          fetchExams(); 
+          console.log(response);
         } catch (error) {
-            console.log(error.message);
+          console.log(error.message);
         } finally {
-            setLoading(false);
+          setLoading(false);
         }
-    };
+      };
 
     const handleFileChange = (e) => {
         const files = e.target.files;
-        const newDocs = Array.from(files); // Convert FileList to array
-        setDocs([...docs, ...newDocs]); // Concatenate new files with existing files
+        const newDocs = Array.from(files); 
+        setDocs([...docs, ...newDocs]); 
     };
     
     const handleDelete = async (id) => {
@@ -79,6 +102,8 @@ const ExamForm = () => {
             console.log(error.message);
         }
     };
+
+    
 
     return (
         <div className='flex flex-col items-center'>
@@ -93,13 +118,13 @@ const ExamForm = () => {
                         onChange={(e) => setExamRoll(e.target.value)}
                     />
                    <select 
-                        value={tempExamName} // Use tempExamName here instead of examName
+                        value={tempExamName} 
                         onChange={(e) => {
                             const selectedExamName = e.target.value;
                             if(selectedExamName !== 'Other equivalent examination') {
-                                setExamName(selectedExamName); // Update examName if selectedExamName is not "Other equivalent examination"
+                                setExamName(selectedExamName); 
                             }
-                            setTempExamName(selectedExamName); // Update tempExamName always
+                            setTempExamName(selectedExamName); 
                         }}
                         className="inputClass"
                     >
@@ -120,8 +145,8 @@ const ExamForm = () => {
                         <input 
                             type="text"
                             placeholder="Enter Other Exam Name"
-                            value={examName} // Use examName here
-                            onChange={(e) => setExamName(e.target.value)} // Update examName directly
+                            value={examName} 
+                            onChange={(e) => setExamName(e.target.value)} 
                             className="inputClass"
                         />
                 )}
@@ -171,7 +196,8 @@ const ExamForm = () => {
                                 <td>{exam.examName}</td>
                                 <td>{exam.academicYear}</td>
                                 <td>
-                                    <button onClick={() => handleDelete(exam._id)}>Delete</button>
+                                    <div><button onClick={() => handleEdit(exam)}>Edit</button></div>
+                                    <div><button onClick={() => handleDelete(exam._id)}>Delete</button></div>
                                 </td>
                             </tr>
                         ))}
