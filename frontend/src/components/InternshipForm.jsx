@@ -5,18 +5,9 @@ import { Link } from 'react-router-dom';
 export default function InternshipForm() {
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
-  // const [password, setPassword] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [idCard, setIdCard] = useState("");
-  // const [branch, setBranch] = useState("");
-  // const [section, setSection] = useState("");
-  // const [image, setImage] = useState("");
-  // const [mobileNumber, setMobileNumber] = useState("");
-  // const [semester, setSemester] = useState("");
-  // const [cgpa, setCgpa] = useState("");
-  // const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
 
  
 
@@ -35,7 +26,7 @@ export default function InternshipForm() {
             <h3 className="text-3xl font-semibold mb-4">Internship Form</h3>
             <p className="text-base mb-2">Enter Your  details.</p>
           </div>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={() => handleSubmit()}>
             <div className="w-full flex flex-col">
               <label>Company</label>
               <input
@@ -55,23 +46,7 @@ export default function InternshipForm() {
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setRole(e.target.value)}
               />
-              {/* <div className="relative">
-                <label>Password</label>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter Your Password"
-                  className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <button
-                  className="absolute right-4 top-4 text-gray-600 hover:text-red-900 hover:text-black-1500"
-                  onClick={togglePasswordVisibility}
-                >
-                  {showPassword ? "Hide" : "Show"} Password
-                </button>
-              </div> */}
-              <label>Starting Date </label>
+              <label>Start Date </label>
               <input
                 type="date"
                 placeholder="Enter Your Starting Date"
@@ -79,7 +54,7 @@ export default function InternshipForm() {
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setStartDate(e.target.value)}
               />
-              <label>Ending Date </label>
+              <label>End Date </label>
               <input
                 type="date"
                 placeholder="Enter Your Roll Number"

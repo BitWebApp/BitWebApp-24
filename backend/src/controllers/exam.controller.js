@@ -4,9 +4,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { Exam } from "../models/exam.model.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/Cloudinary.js";
 //
-const createExam = asyncHandler(async (req, res) => 
-  {
-  const { rollNumber, name, examName, otherExamName, examRoll, academicYear, isSelected, score } = req.body;
+const createExam = asyncHandler(async (req, res) => {
+  const { rollNumber, examName, otherExamName, examRoll, academicYear, isSel, score } = req.body;
 
   if (!req.files || !req.files.length) {
     throw new ApiError(400, "File upload required");
@@ -24,21 +23,31 @@ const createExam = asyncHandler(async (req, res) =>
       throw new Error("Failed to upload file to Cloudinary");
     }
   }
+
   const exam = await Exam.create({
-    rollNumber,
-    name,
+    name: req.user._id, // Assuming the authenticated user is stored in req.user
+    rollNumber: rollNumber, // Assuming the roll number is sent in the request body
     examName,
     otherExamName,
     examRoll,
     academicYear,
     docs: docsURL,
-    isSelected,
+    isSel,
     score,
   });
 
   res.status(201).json({
     success: true,
     data: exam,
+  });
+});
+
+const getExams = asyncHandler(async (req, res) => {
+  const exams = await Exam.find({ name: req.user._id }).populate('name', 'rollNumber');
+
+  res.status(200).json({
+    success: true,
+    data: exams,
   });
 });
 
@@ -74,15 +83,6 @@ const deleteExam = asyncHandler(async (req, res) => {
   }
 });
 
-const getExams = asyncHandler(async (req, res) => {
-  const exams = await Exam.find();
-
-  res.status(200).json({
-    success: true,
-    data: exams,
-  });
-});
-
 const getExamById = asyncHandler(async (req, res) => {
   const exam = await Exam.findById(req.params.id);
 
@@ -96,23 +96,37 @@ const getExamById = asyncHandler(async (req, res) => {
   });
 });
 
-
 const updateExam = asyncHandler(async (req, res) => {
-  const { examRoll, examName, isSelected, score } = req.body;
   const { id } = req.params;
+  const { rollNumber, examName, otherExamName, examRoll, academicYear, isSel, score } = req.body;
 
   try {
-    let exam = await Exam.findById(id);
+    const exam = await Exam.findById(id);
 
     if (!exam) {
       throw new ApiError(404, "Exam not found");
     }
 
-    // Update fields
-    exam.examRoll = examRoll;
+    exam.rollNumber = rollNumber;
     exam.examName = examName;
-    exam.isSelected = isSelected;
+    exam.otherExamName = otherExamName;
+    exam.examRoll = examRoll;
+    exam.academicYear = academicYear;
+    exam.isSel = isSel;
     exam.score = score;
+
+    if (req.files && req.files.length) {
+      for (const file of req.files) {
+        try {
+          const cloudinaryResponse = await uploadOnCloudinary(file.path);
+          console.log("Uploaded file to Cloudinary:", cloudinaryResponse);
+          exam.docs.push(cloudinaryResponse.secure_url); // Append new file URLs to existing docs array
+        } catch (error) {
+          console.error("Error uploading file to Cloudinary:", error);
+          throw new Error("Failed to upload file to Cloudinary");
+        }
+      }
+    }
 
     await exam.save();
 
@@ -125,6 +139,8 @@ const updateExam = asyncHandler(async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+
 
 
 export { createExam, getExams, getExamById, deleteExam , updateExam};

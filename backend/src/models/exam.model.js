@@ -21,7 +21,7 @@ const examSchema = new Schema(
       type: [String],
       required: [false, "Add supporting docs!"],
     },
-    isSelected: {
+    isSel: {
       type: Boolean,
       required: [true, "Plz select result!"],
     },
@@ -29,6 +29,10 @@ const examSchema = new Schema(
       type: Number,
       required: [true, "Enter score!"],
     },
+    academicYear: {
+      type: String,
+      required:[true, "Enter Year!"],
+    }
   },
   { timestamps: true }
 );

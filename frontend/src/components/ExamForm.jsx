@@ -5,14 +5,14 @@ const ExamForm = () => {
     const [exams, setExams] = useState([]);
     const [examRoll, setExamRoll] = useState("");
     const [examName, setExamName] = useState("NET");
-    const [otherExamName, setOtherExamName] = useState("");
     const [academicYear, setAcademicYear] = useState("");
     const [docs, setDocs] = useState([]);
-    const [isSelected, setIsSelected] = useState(true);
+    const [isSel, setIsSel] = useState(true);
     const [score, setScore] = useState("");
     const [loading, setLoading] = useState(false);
+    const [tempExamName, setTempExamName] = useState("");
+    const [examId, setExamId] = useState("");
 
-    // Fetch exams
     const fetchExams = async () => {
         try {
             const response = await axios.get("/api/v1/exam");
@@ -26,52 +26,72 @@ const ExamForm = () => {
         fetchExams();
     }, []);
 
-    const handleSubmit = async (e) => {
+    const handleEdit = (exam) => {
+        setExamId(exam._id); 
+        setExamRoll(exam.examRoll);
+        setExamName(exam.examName);
+        setAcademicYear(exam.academicYear);
+        setIsSel(exam.isSel);
+        setScore(exam.score);
+        setDocs([]); 
+      
+        if (exam.examName === "Other equivalent examination") {
+          setTempExamName("Other equivalent examination");
+        } else {
+          setTempExamName(""); 
+        }
+      };
+      
+      const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const formData = new FormData();
-            formData.append("examRoll", examRoll);
-            formData.append("examName", examName);
-            formData.append("otherExamName", otherExamName);
-            formData.append("academicYear", academicYear);
-            formData.append("isSelected", isSelected);
-            formData.append("score", score);
-            docs.forEach((doc) => {
-                formData.append("files", doc);
-            });
-
-            const token = localStorage.getItem("accessToken"); 
-            const config = {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                    "Authorization": `Bearer ${token}` 
-                },
-            };
-
-            const response = await axios.post("/api/v1/exam", formData, config);
-
-            setExamRoll("");
-            setExamName("NET");
-            setOtherExamName("");
-            setAcademicYear("");
-            setDocs([]);
-            setIsSelected(true);
-            setScore("");
-
-            fetchExams(); // Fetch exams after successful submission
-            console.log(response);
+          const formData = new FormData();
+          formData.append("examRoll", examRoll);
+          formData.append("examName", examName);
+          formData.append("academicYear", academicYear);
+          formData.append("isSel", isSel);
+          formData.append("score", score);
+          docs.forEach((doc) => {
+            formData.append("files", doc);
+          });
+      
+          const token = localStorage.getItem("accessToken");
+          const config = {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${token}`,
+            },
+          };
+      
+          let response;
+          if (examId) {
+            response = await axios.put(`/api/v1/exam/${examId}`, formData, config);
+          } else {
+            response = await axios.post("/api/v1/exam", formData, config);
+          }
+      
+          setExamRoll("");
+          setExamName("NET");
+          setAcademicYear("");
+          setDocs([]);
+          setIsSel(false);
+          setScore("");
+          setExamId(""); 
+      
+          fetchExams(); 
+          console.log(response);
         } catch (error) {
-            console.log(error.message);
+          console.log(error.message);
         } finally {
-            setLoading(false);
+          setLoading(false);
         }
-    };
+      };
 
     const handleFileChange = (e) => {
         const files = e.target.files;
-        const newDocs = Array.from(files); // Convert FileList to array
-        setDocs([...docs, ...newDocs]); // Concatenate new files with existing files
+        const newDocs = Array.from(files); 
+        setDocs([...docs, ...newDocs]); 
     };
     
     const handleDelete = async (id) => {
@@ -83,104 +103,110 @@ const ExamForm = () => {
         }
     };
 
+    
+
     return (
         <div className='flex flex-col items-center'>
-    <span className="font-bold underline underline-offset-8 my-10 text-3xl">Exam Form</span>
-    <div className='w-[25rem] h-auto flex flex-col justify-between items-center bg-lime-100 rounded-lg border-2 border-black ' >
-        <form className='w-full py-5 px-10 space-y-4 flex flex-col items-center' onSubmit={handleSubmit}>
-            {/* Form inputs */}
-            <input 
-                type="text"
-                placeholder="Exam Roll No."
-                className="inputClass"
-                value={examRoll}
-                onChange={(e) => setExamRoll(e.target.value)}
-            />
-            <select 
-                value={examName}
-                onChange={(e) => setExamName(e.target.value)}
-                className="inputClass"
-            >
-                <option value="NET">NET</option>
-                <option value="SLET">SLET</option>
-                <option value="GATE">GATE</option>
-                <option value="GMAT">GMAT</option>
-                <option value="CAT">CAT</option>
-                <option value="JAM">JAM</option>
-                <option value="GRE">GRE</option>
-                <option value="IELET">IELET</option>
-                <option value="TOEFL">TOEFL</option>
-                <option value="Civil Services">Civil Services</option>
-                <option value="State Government Examinations">State Govt. Exams</option>
-                <option value="Other equivalent examination">Other equivalent examination</option>
-            </select>
-            {examName === "Other equivalent examination" && (
-                <input 
-                    type="text"
-                    placeholder="Other Exam Name"
-                    className="inputClass"
-                    value={otherExamName}
-                    onChange={(e) => setOtherExamName(e.target.value)}
-                    //
-                />
-            )}
-            <input 
-                type="text"
-                placeholder="Academic Year"
-                className="inputClass"
-                value={academicYear}
-                onChange={(e) => setAcademicYear(e.target.value)}
-            />
-            <input 
-                type="number"
-                placeholder="Score"
-                className="inputClass"
-                value={score}
-                onChange={(e) => setScore(e.target.value)}
-            />
-            <span className='font-bold underline-offset-4 underline'>Supporting Docs:</span>
-            <input 
-                type="file"
-                className="fileButton"
-                onChange={handleFileChange}
-                multiple
-            />
-            <button type="submit" className="h-10 w-44 rounded-lg border border-black bg-white font-semibold">
-                {"Upload"}
-            </button>
-        </form>
-    </div>
-    <div>
-        <h2>Existing Exams:</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Roll Number</th>
-                    <th>Name</th>
-                    <th>Exam Name</th>
-                    <th>Academic Year</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {exams.map((exam, index) => (
-                    <tr key={index}>
-                        <td>{exam.examRoll}</td>
-                        <td>{exam.name}</td>
-                        <td>{exam.displayExamName}</td>
-                        <td>{exam.academicYear}</td>
-                        <td>
-                            <button onClick={() => handleDelete(exam._id)}>Delete</button>
-                        </td>
-                    </tr>
-                ))}
-            </tbody>
-        </table>
-    </div>
-</div>
+            <span className="font-bold underline underline-offset-8 my-10 text-3xl">Exam Form</span>
+            <div className='w-[25rem] h-auto flex flex-col justify-between items-center bg-lime-100 rounded-lg border-2 border-black ' >
+                <form className='w-full py-5 px-10 space-y-4 flex flex-col items-center' onSubmit={handleSubmit}>
+                    <input 
+                        type="text"
+                        placeholder="Exam Roll No."
+                        className="inputClass"
+                        value={examRoll}
+                        onChange={(e) => setExamRoll(e.target.value)}
+                    />
+                   <select 
+                        value={tempExamName} 
+                        onChange={(e) => {
+                            const selectedExamName = e.target.value;
+                            if(selectedExamName !== 'Other equivalent examination') {
+                                setExamName(selectedExamName); 
+                            }
+                            setTempExamName(selectedExamName); 
+                        }}
+                        className="inputClass"
+                    >
+                        <option value="NET">NET</option>
+                        <option value="SLET">SLET</option>
+                        <option value="GATE">GATE</option>
+                        <option value="GMAT">GMAT</option>
+                        <option value="CAT">CAT</option>
+                        <option value="JAM">JAM</option>
+                        <option value="GRE">GRE</option>
+                        <option value="IELET">IELET</option>
+                        <option value="TOEFL">TOEFL</option>
+                        <option value="Civil Services">Civil Services</option>
+                        <option value="State Government Examinations">State Govt. Exams</option>
+                        <option value="Other equivalent examination">Other equivalent examination</option>
+                    </select>
+                    {tempExamName === "Other equivalent examination" && (
+                        <input 
+                            type="text"
+                            placeholder="Enter Other Exam Name"
+                            value={examName} 
+                            onChange={(e) => setExamName(e.target.value)} 
+                            className="inputClass"
+                        />
+                )}
 
+
+                    <input 
+                        type="text"
+                        placeholder="Academic Year"
+                        className="inputClass"
+                        value={academicYear}
+                        onChange={(e) => setAcademicYear(e.target.value)}
+                    />
+                    <input 
+                        type="number"
+                        placeholder="Score"
+                        className="inputClass"
+                        value={score}
+                        onChange={(e) => setScore(e.target.value)}
+                    />
+                    <span className='font-bold underline-offset-4 underline'>Supporting Docs:</span>
+                    <input 
+                        type="file"
+                        className="fileButton"
+                        onChange={handleFileChange}
+                        multiple
+                    />
+                    <button type="submit" className="h-10 w-44 rounded-lg border border-black bg-white font-semibold">
+                        {"Upload"}
+                    </button>
+                </form>
+            </div>
+            <div>
+                <h2>Existing Exams:</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Roll Number</th>
+                            <th>Exam Name</th>
+                            <th>Academic Year</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {exams.map((exam, index) => (
+                            <tr key={index}>
+                                <td>{exam.examRoll}</td>
+                                <td>{exam.examName}</td>
+                                <td>{exam.academicYear}</td>
+                                <td>
+                                    <div><button onClick={() => handleEdit(exam)}>Edit</button></div>
+                                    <div><button onClick={() => handleDelete(exam._id)}>Delete</button></div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
     );
 };
 
 export default ExamForm;
-

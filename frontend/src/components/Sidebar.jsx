@@ -10,7 +10,6 @@ import { IoIosArrowBack } from "react-icons/io";
 const linkclasses = 'flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base';
 const additionalLinks = [
     { text: "Dashboard", icon: <HiHome />, to:"/db" },
-    { text: "Personal Details", icon: <HiUser />, to:"/db/user-form" },
     { text: "Academic Records", icon: <HiAcademicCap />, to:"/db/academic-form" },
     { text: "Awards & Achievements", icon: <HiBadgeCheck />, to:"/db/award-form" },
     { text: "Examinations", icon: <HiDocumentReport />, to:"/db/exam-form" },
@@ -50,11 +49,10 @@ export default function Sidebar() {
     const [isAdmin, setIsAdmin] = useState(true);
 
 
-    // useEffect(() => {
-    //    
-    //     const userRole = localStorage.getItem("userRole");
-    //     setIsAdmin(userRole === "admin");
-    // }, []);
+    useEffect(() => {
+        const user = localStorage.getItem("user");
+        setIsAdmin(user.username === "admin");
+    }, []);
 
     const links = isAdmin ? adminLinks : additionalLinks;
     return (
