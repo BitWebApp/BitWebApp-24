@@ -1,21 +1,23 @@
-import { useState } from "react"
-import logo from "/src/assets/Birla_Institute_of_Technology_Mesra.png"   
+import { useState } from "react";
+import logo from "/src/assets/Birla_Institute_of_Technology_Mesra.png";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { faUserTie } from "@fortawesome/free-solid-svg-icons";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 const NavBar = () => {
-    const [dropDown,setDropDown] = useState(false);
+    const [dropDown, setDropDown] = useState(false);
+
     const toggleDropDown = () => {
-        setDropDown(!dropDown)
+        setDropDown(!dropDown);
     }
+
     return (
         <nav className="sticky top-0 z-30 py-3 border bg-stone-300 ">
             <div className="container relative px-4 mx-auto text-sm">
-                <div className="flex justify-between items-center ">
+                <div className="flex justify-between items-center">
                     <div className="flex items-center flex-shrink-0">
-                        <img className="h-10 w-10 mr-2"src={logo} alt="bit" />
+                        <img className="h-10 w-10 mr-2" src={logo} alt="bit" />
                         <span className="text-xl font-bold">BIT WEB APP</span>
                     </div>
                     <div className="hidden lg:flex justify-center space-x-8 items-center">
@@ -32,7 +34,6 @@ const NavBar = () => {
                         <button onClick={toggleDropDown}>
                             <FontAwesomeIcon icon={dropDown ? faTimes : faBars} />
                         </button>
-
                     </div>
                 </div>
                 {dropDown && (
@@ -51,7 +52,7 @@ const NavBar = () => {
                 )}
             </div>
         </nav>
-    )
+    );
 }
 
-export default NavBar
+export default NavBar;
