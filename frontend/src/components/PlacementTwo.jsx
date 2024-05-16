@@ -6,14 +6,15 @@ import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Link } from "react-router-dom";
+
 const PlacementTwo = () => {
   const [company, setCompany] = useState("");
   const [ctc, setCTC] = useState("");
   const [date, setDate] = useState("");
   const [file, setFile] = useState("");
   const [spin, setSpin] = useState(false);
-
   const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSpin(true);
@@ -40,25 +41,26 @@ const PlacementTwo = () => {
       setSpin(false);
     }
   };
+
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center px-4 sm:px-0">
       <ToastContainer />
-      <span className="font-bold underline underline-offset-8 my-10 text-3xl">
+      <span className="font-bold underline underline-offset-8 my-10 text-2xl sm:text-3xl">
         Placement Record Data - 2
       </span>
-      <div className="w-[25rem] h-auto flex flex-col justify-between items-center bg-lime-100 rounded-lg border-2 border-black ">
-        <form className="w-full py-5 px-10 space-y-4 flex flex-col items-center">
+      <div className="w-full max-w-md h-auto flex flex-col justify-between items-center bg-lime-100 rounded-lg border-2 border-black">
+        <form className="w-full py-5 px-4 sm:px-10 space-y-4 flex flex-col items-center">
           <input
             type="text"
             placeholder="Company Name"
-            className="inputClass"
+            className="inputClass w-full"
             value={company}
             onChange={(e) => setCompany(e.target.value)}
           />
           <input
             type="text"
             placeholder="CTC"
-            className="inputClass"
+            className="inputClass w-full"
             value={ctc}
             onChange={(e) => setCTC(e.target.value)}
           />
@@ -66,7 +68,7 @@ const PlacementTwo = () => {
           <input
             type="date"
             placeholder="Date"
-            className="inputClass"
+            className="inputClass w-full"
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
@@ -75,7 +77,7 @@ const PlacementTwo = () => {
           </span>
           <input
             type="file"
-            className="fileButton"
+            className="fileButton w-full"
             accept="image/*"
             onChange={(e) => setFile(e.target.files[0])}
           />
@@ -92,9 +94,9 @@ const PlacementTwo = () => {
               Upload
             </button>
           )}
-       <span className="font-semibold underline underline-offset cursor-pointer text-blue-600">
-                <Link to="/db">Go back to Dashboard</Link>
-              </span>
+          <span className="font-semibold underline underline-offset cursor-pointer text-blue-600">
+            <Link to="/db">Go back to Dashboard</Link>
+          </span>
         </form>
       </div>
     </div>

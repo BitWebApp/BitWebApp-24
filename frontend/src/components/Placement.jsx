@@ -1,30 +1,30 @@
-import { Link } from "react-router-dom"
-import { Routes, Route } from "react-router-dom"
-import PlacementOne from "./PlacementOne"
-import PlacementTwo from "./PlacementTwo"
-import PlacementThree from "./PlacementThree"
+import { Link } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
+import PlacementOne from "./PlacementOne";
+import PlacementTwo from "./PlacementTwo";
+import PlacementThree from "./PlacementThree";
 
 const Placement = () => {
   return (
     <div>
-      <h1 className="mx-auto text-center text-5xl underline underline-offset-4">
+      <h1 className="mx-auto text-center text-3xl sm:text-5xl underline underline-offset-4">
         PLACEMENT RECORDS
       </h1>
-      <nav className="flex justify-center gap-5 my-10">
+      <nav className="flex flex-col sm:flex-row justify-center gap-5 my-10">
         <Link
-          className="border-black font-bold border py-3 px-5 rounded-lg bg-slate-300 hover:bg-slate-400"
+          className="border-black font-bold text-center border py-3 px-5 rounded-lg bg-slate-300 hover:bg-slate-400 w-full sm:w-auto"
           to="/db/placement/placement-one"
         >
           Placement One
         </Link>
         <Link
-          className="border-black font-bold border py-3 px-5 rounded-lg bg-slate-300 hover:bg-slate-400"
+          className="border-black font-bold text-center border py-3 px-5 rounded-lg bg-slate-300 hover:bg-slate-400 w-full sm:w-auto"
           to="/db/placement/placement-two"
         >
           Placement Two
         </Link>
         <Link
-          className="border-black font-bold border py-3 px-5 rounded-lg bg-slate-300 hover:bg-slate-400"
+          className="border-black font-bold text-center border py-3 px-5 rounded-lg bg-slate-300 hover:bg-slate-400 w-full sm:w-auto"
           to="/db/placement/placement-three"
         >
           Placement Three
@@ -36,7 +36,7 @@ const Placement = () => {
         <Route path="placement-three" element={<PlacementThree />} />
       </Routes>
     </div>
-  )
-}
+  );
+};
 
-export default Placement
+export default Placement;

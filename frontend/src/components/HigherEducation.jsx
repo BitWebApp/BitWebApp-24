@@ -1,76 +1,77 @@
-import React, { useState } from "react"
-import axios from "axios"
-import { Link } from "react-router-dom"
-import { useNavigate } from "react-router-dom"
-import { GridLoader } from "react-spinners"
-import { toast } from "react-toastify"
-import { ToastContainer } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
+import React, { useState } from "react";
+import axios from "axios";
+import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { GridLoader } from "react-spinners";
+import { toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const HigherEducation = () => {
-  const [institute, setInstitute] = useState("")
-  const [degree, setDegree] = useState("")
-  const [startDate, setStartDate] = useState("")
-  const [endDate, setEndDate] = useState("")
-  const [field, setField] = useState("")
-  const [file, setFile] = useState("")
-  const [spin, setSpin] = useState(false)
-  const navigate = useNavigate()
+  const [institute, setInstitute] = useState("");
+  const [degree, setDegree] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [field, setField] = useState("");
+  const [file, setFile] = useState("");
+  const [spin, setSpin] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setSpin(true)
+    e.preventDefault();
+    setSpin(true);
     try {
-      const formData = new FormData()
-      formData.append("institute", institute)
-      formData.append("degree", degree)
-      formData.append("startDate", startDate)
-      formData.append("endDate", endDate)
-      formData.append("field", field)
-      formData.append("doc", file)
+      const formData = new FormData();
+      formData.append("institute", institute);
+      formData.append("degree", degree);
+      formData.append("startDate", startDate);
+      formData.append("endDate", endDate);
+      formData.append("field", field);
+      formData.append("doc", file);
       const response = await axios.get("/api/v1/higher-education", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Accept: "application/json",
         },
-      })
-      console.log(response.data)
-      toast.success("Data uploaded successfully!")
+      });
+      console.log(response.data);
+      toast.success("Data uploaded successfully!");
       setTimeout(() => {
-        navigate("/db")
-      }, 2000)
+        navigate("/db");
+      }, 2000);
     } catch (err) {
-      console.log(err)
+      console.log(err);
     } finally {
-      setSpin(false)
+      setSpin(false);
     }
-  }
+  };
+
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center px-4 sm:px-0">
       <ToastContainer />
-      <span className="font-bold underline underline-offset-8 my-10 text-3xl">
+      <span className="font-bold underline underline-offset-8 my-10 text-2xl sm:text-3xl">
         Higher Education Record Data
       </span>
-      <div className="w-[25rem] h-auto flex flex-col justify-between items-center bg-lime-100 rounded-lg border-2 border-black ">
-        <form className="w-full py-5 px-10 space-y-4 flex flex-col items-center">
+      <div className="w-full max-w-md h-auto flex flex-col justify-between items-center bg-lime-100 rounded-lg border-2 border-black">
+        <form className="w-full py-5 px-4 sm:px-10 space-y-4 flex flex-col items-center">
           <input
             type="text"
             placeholder="Institution"
-            className="inputClass"
+            className="inputClass w-full"
             value={institute}
             onChange={(e) => setInstitute(e.target.value)}
           />
           <input
             type="text"
             placeholder="Degree"
-            className="inputClass"
+            className="inputClass w-full"
             value={degree}
             onChange={(e) => setDegree(e.target.value)}
           />
           <input
             type="text"
             placeholder="Field of study"
-            className="inputClass"
+            className="inputClass w-full"
             value={field}
             onChange={(e) => setField(e.target.value)}
           />
@@ -78,7 +79,7 @@ const HigherEducation = () => {
           <input
             type="date"
             placeholder="Date"
-            className="inputClass"
+            className="inputClass w-full"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
           />
@@ -86,7 +87,7 @@ const HigherEducation = () => {
           <input
             type="date"
             placeholder="Date"
-            className="inputClass"
+            className="inputClass w-full"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
           />
@@ -95,7 +96,7 @@ const HigherEducation = () => {
           </span>
           <input
             type="file"
-            className="fileButton"
+            className="fileButton w-full"
             accept="image/*"
             onChange={(e) => setFile(e.target.files[0])}
           />
@@ -120,7 +121,7 @@ const HigherEducation = () => {
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default HigherEducation
+export default HigherEducation;

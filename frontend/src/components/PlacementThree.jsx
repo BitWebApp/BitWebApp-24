@@ -1,64 +1,66 @@
-import React, { useState } from "react"
-import axios from "axios"
-import { useNavigate } from "react-router-dom"
-import { Link } from "react-router-dom"
-import { GridLoader } from "react-spinners"
-import { toast } from "react-toastify"
-import { ToastContainer } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
+import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { GridLoader } from "react-spinners";
+import { toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const PlacementThree = () => {
-  const [company, setCompany] = useState("")
-  const [ctc, setCTC] = useState("")
-  const [date, setDate] = useState("")
-  const [file, setFile] = useState("")
-  const [spin, setSpin] = useState(false)
-  const navigate = useNavigate()
+  const [company, setCompany] = useState("");
+  const [ctc, setCTC] = useState("");
+  const [date, setDate] = useState("");
+  const [file, setFile] = useState("");
+  const [spin, setSpin] = useState(false);
+  const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setSpin(true)
+    e.preventDefault();
+    setSpin(true);
     try {
-      const formData = new FormData()
-      formData.append("company", company)
-      formData.append("ctc", ctc)
-      formData.append("date", date)
-      formData.append("doc", file)
+      const formData = new FormData();
+      formData.append("company", company);
+      formData.append("ctc", ctc);
+      formData.append("date", date);
+      formData.append("doc", file);
       const response = await axios.patch("/api/v1/users/pthree", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Accept: "application/json",
         },
-      })
-      console.log(response.data)
-      toast.success("Data uploaded successfully")
+      });
+      console.log(response.data);
+      toast.success("Data uploaded successfully");
       setTimeout(() => {
-        navigate("/db")
-      }, 2000)
+        navigate("/db");
+      }, 2000);
     } catch (err) {
-      console.log(err)
+      console.log(err);
     } finally {
-      setSpin(false)
+      setSpin(false);
     }
-  }
+  };
+
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center px-4 sm:px-0">
       <ToastContainer />
-      <span className="font-bold underline underline-offset-8 my-10 text-3xl">
+      <span className="font-bold underline underline-offset-8 my-10 text-2xl sm:text-3xl">
         Placement Record Data - 3
       </span>
-      <div className="w-[25rem] h-auto flex flex-col justify-between items-center bg-lime-100 rounded-lg border-2 border-black ">
-        <form className="w-full py-5 px-10 space-y-4 flex flex-col items-center">
+      <div className="w-full max-w-md h-auto flex flex-col justify-between items-center bg-lime-100 rounded-lg border-2 border-black">
+        <form className="w-full py-5 px-4 sm:px-10 space-y-4 flex flex-col items-center">
           <input
             type="text"
             placeholder="Company Name"
-            className="inputClass"
+            className="inputClass w-full"
             value={company}
             onChange={(e) => setCompany(e.target.value)}
           />
           <input
             type="text"
             placeholder="CTC"
-            className="inputClass"
+            className="inputClass w-full"
             value={ctc}
             onChange={(e) => setCTC(e.target.value)}
           />
@@ -66,7 +68,7 @@ const PlacementThree = () => {
           <input
             type="date"
             placeholder="Date"
-            className="inputClass"
+            className="inputClass w-full"
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
@@ -75,7 +77,7 @@ const PlacementThree = () => {
           </span>
           <input
             type="file"
-            className="fileButton"
+            className="fileButton w-full"
             accept="image/*"
             onChange={(e) => setFile(e.target.files[0])}
           />
@@ -98,7 +100,7 @@ const PlacementThree = () => {
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default PlacementThree;
