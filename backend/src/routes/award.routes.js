@@ -4,3 +4,4 @@ import { addAward, getAwardByStudentId } from "../controllers/awards.controller.
 const router = Router()
 router.route("/addaward").post(verifyJWT, addAward)
 router.route("/getawardbyId").post(verifyJWT, getAwardByStudentId)
+export default router;

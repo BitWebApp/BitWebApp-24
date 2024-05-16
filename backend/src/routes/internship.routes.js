@@ -7,3 +7,5 @@ router.route("/addinternship").post(verifyJWT, addInternship)
 router.route("/addinterndocs").post(verifyJWT, addInternDocs)
 router.route("/get-all-interns").post(verifyJWT, getAllInternshipData)
 router.route("/get-internship-for-student").post(verifyJWT, getInternshipDataforStudent)
+
+export default router;
