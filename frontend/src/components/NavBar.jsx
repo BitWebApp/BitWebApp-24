@@ -32,7 +32,7 @@ const NavBar = () => {
                     </div>
                     <div className="lg:hidden md:flex flex-col justify-end">
                         <button onClick={toggleDropDown}>
-                            <FontAwesomeIcon icon={dropDown ? faTimes : faBars} />
+                            <FontAwesomeIcon icon={dropDown ? faTimes : faBars} className="text-white" />
                         </button>
                     </div>
                 </div>

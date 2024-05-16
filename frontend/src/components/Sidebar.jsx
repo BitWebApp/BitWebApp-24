@@ -50,8 +50,8 @@ export default function Sidebar() {
 
 
     useEffect(() => {
-        const user = localStorage.getItem("user");
-        setIsAdmin(user.username === "admin");
+        const user = JSON.parse(localStorage.getItem("user"));
+                setIsAdmin(user.username === "admin");
     }, []);
 
     const links = isAdmin ? adminLinks : additionalLinks;
