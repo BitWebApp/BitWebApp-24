@@ -12,7 +12,7 @@ const NavBar = () => {
     }
 
     return (
-        <nav className="sticky top-0 z-30 py-3 bg-gradient-to-r from-gray-800 to-gray-900 text-white">
+        <nav className="sticky top-0 z-30 py-3 bg-gray-900 text-white">
             <div className="container relative px-4 mx-auto text-sm">
                 <div className="flex justify-between items-center">
                     <div className="flex items-center flex-shrink-0">
@@ -20,11 +20,11 @@ const NavBar = () => {
                         <span className="text-xl font-bold">BIT WEB APP</span>
                     </div>
                     <div className="hidden lg:flex justify-center space-x-8 items-center">
-                        <Link to="/log" className="text-white hover:text-gray-100">
-                            <div className="px-4 py-2 bg-gray-700 hover:bg-gray-800 rounded-md">Student Login</div>
+                        <Link to="/log" className="text-gray-200 hover:text-white">
+                            <div className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-md">Student Login</div>
                         </Link>
-                        <Link to="/sg" className="text-white hover:text-gray-100">
-                            <div className="px-4 py-2 bg-gray-700 hover:bg-gray-800 rounded-md">Admin Login</div>
+                        <Link to="/sg" className="text-gray-200 hover:text-white">
+                            <div className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-md">Admin Login</div>
                         </Link>
                     </div>
                     <div className="lg:hidden md:flex flex-col justify-end">

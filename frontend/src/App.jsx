@@ -27,7 +27,7 @@ import ExamTable from "./components/examtable";
 import HigherEduTable from "./components/higher-eduTable";
 import ProjectTable from "./components/project-table";
 import InternTable from "./components/intern-table";
-
+import { FocusTrap } from "@headlessui/react";
 
 export default function App() {
   return (
