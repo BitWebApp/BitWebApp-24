@@ -6,29 +6,15 @@ import { HiUser, HiAcademicCap, HiOutlineLogout, HiBadgeCheck, HiHome, HiDocumen
 import { motion } from "framer-motion";
 import  { useEffect } from 'react';
 import { IoIosArrowBack } from "react-icons/io";
-
+import useLinks from "./admin/user-links";
+import axios from 'axios';
+import { useNavigate } from "react-router-dom";
 const linkclasses = 'flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base';
-const additionalLinks = [
-    { text: "Dashboard", icon: <HiHome />, to:"/db" },
-    { text: "Academic Records", icon: <HiAcademicCap />, to:"/db/academic-form" },
-    { text: "Awards & Achievements", icon: <HiBadgeCheck />, to:"/db/award-form" },
-    { text: "Examinations", icon: <HiDocumentReport />, to:"/db/exam-form" },
-    { text: "Higher Education", icon: <HiAcademicCap />, to:"/db/higher-education" },
-    { text: "Placement Records", icon: <HiOutlineBriefcase />, to:"/db/placement" },
-    { text: "Projects", icon: <HiPresentationChartLine />, to:"/db/project-form" },
-    { text: "Internships", icon: <HiBriefcase />, to:"/db/internship-form" }
-];
-const adminLinks = [
-   { text: "Dashboard", icon: <HiHome />, to:"/db" },
-    { text: "Student Details", icon: <HiUser />, to:"/db/student-table" },
-    { text: "Academic Records", icon: <HiAcademicCap />, to:"/db/academic-table" },
-    { text: "Awards & Achievements", icon: <HiBadgeCheck />, to:"/db/award-table" },
-    { text: "Examinations", icon: <HiDocumentReport />, to:"/db/exam-table" },
-    { text: "Higher Education", icon: <HiAcademicCap />, to:"/db/higher-education-table" },
-    { text: "Placement Records", icon: <HiOutlineBriefcase />, to:"/db/placement-table" },
-    { text: "Projects", icon: <HiPresentationChartLine />, to:"/db/project-form-table" },
-    { text: "Internships", icon: <HiBriefcase />, to:"/db/internship-form-table" }
-];
+
+
+
+
+
 export default function Sidebar() {
 
     const Sidebar_animation = {
@@ -46,15 +32,29 @@ export default function Sidebar() {
         },
     };
     const [isOpen, setIsOpen] = useState(true);
-    const [isAdmin, setIsAdmin] = useState(true);
+    // const [isAdmin, setIsAdmin] = useState(true);
 
 
-    useEffect(() => {
-        const user = localStorage.getItem("user");
-        setIsAdmin(user.username === "admin");
-    }, []);
+    // useEffect(() => {
+    //     const user = JSON.parse(localStorage.getItem("user"));
+    //             setIsAdmin(user.username === "admin");
+    // }, []);
 
-    const links = isAdmin ? adminLinks : additionalLinks;
+    // const links = isAdmin ? adminLinks : additionalLinks;
+    const links = useLinks();
+    const navigate = useNavigate();
+    const handleLogout = async () => {
+        axios.post("/api/v1/users/logout")
+        .then(response => {
+          console.log(response)
+          localStorage.removeItem("user")
+          navigate("/")
+        })
+        .catch(error => {
+          console.log(error)
+        })
+      }
+
     return (
         <aside>
             <motion.div
@@ -72,7 +72,7 @@ export default function Sidebar() {
         {link.text}
     </Link>
 ))}
-    <div className={classNames('text-red-500 mt-[2rem] cursor-pointer border-t border-neutral-700', linkclasses)}>
+    <div onClick={() =>  handleLogout()} className={classNames('text-red-500 mt-[2rem] cursor-pointer border-t border-neutral-700', linkclasses)}>
         <span className="text-xl">
             <HiOutlineLogout />
         </span>
