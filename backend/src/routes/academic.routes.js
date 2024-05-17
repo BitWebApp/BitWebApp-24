@@ -4,7 +4,6 @@ import {
   getStudentAcademicRecords,
   updateAcademicRecords, 
   deleteAcademicRecord,
-  getAdminAcademicRecords
 } from "../controllers/academic.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
