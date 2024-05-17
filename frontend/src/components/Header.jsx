@@ -5,41 +5,19 @@ import { IoMdMenu } from 'react-icons/io';
 import classNames from 'classnames';
 import axios from 'axios';
 import { HiUser, HiAcademicCap, HiOutlineLogout, HiBadgeCheck, HiHome, HiDocumentReport, HiOutlineBriefcase, HiPresentationChartLine, HiBriefcase } from "react-icons/hi";
-
+import useLinks from './admin/user-links';
 const linkClasses = 'flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base';
-const additionalLinks = [
-  { text: "Dashboard", icon: <HiHome />, to:"/db" },
-  { text: "Personal Details", icon: <HiUser />, to:"/db/user-form" },
-  { text: "Academic Records", icon: <HiAcademicCap />, to:"/db/academic-form" },
-  { text: "Awards & Achievements", icon: <HiBadgeCheck />, to:"/db/award-form" },
-  { text: "Examinations", icon: <HiDocumentReport />, to:"/db/exam-form" },
-  { text: "Higher Education", icon: <HiAcademicCap />, to:"/db/higher-education" },
-  { text: "Placement Records", icon: <HiOutlineBriefcase />, to:"/db/placement" },
-  { text: "Projects", icon: <HiPresentationChartLine />, to:"/db/project-form" },
-  { text: "Internships", icon: <HiBriefcase />, to:"/db/internship-form" }
-];
-const adminLinks = [
-  { text: "Dashboard", icon: <HiHome />, to:"/db" },
-   { text: "Student Details", icon: <HiUser />, to:"/db/student-table" },
-   { text: "Academic Records", icon: <HiAcademicCap />, to:"/db/academic-table" },
-   { text: "Awards & Achievements", icon: <HiBadgeCheck />, to:"/db/award-table" },
-   { text: "Examinations", icon: <HiDocumentReport />, to:"/db/exam-table" },
-   { text: "Higher Education", icon: <HiAcademicCap />, to:"/db/higher-education-table" },
-   { text: "Placement Records", icon: <HiOutlineBriefcase />, to:"/db/placement-table" },
-   { text: "Projects", icon: <HiPresentationChartLine />, to:"/db/project-form-table" },
-   { text: "Internships", icon: <HiBriefcase />, to:"/db/internship-form-table" }
-];
 
 export default function Header() {
     const [isNavbarOpen, setIsNavbarOpen] = useState(false);
     const [isAdmin, setIsAdmin] = useState(true);
     const [currentTime, setCurrentTime] = useState(null);
     const [user, setUser] = useState()
-    useEffect(() => {
-        const user = JSON.parse(localStorage.getItem("user"));
-        setUser(user)
-        setIsAdmin(user.username === "admin");
-    }, []);
+    // useEffect(() => {
+    //     const user = JSON.parse(localStorage.getItem("user"));
+    //     setUser(user)
+    //     setIsAdmin(user.username === "admin");
+    // }, []);
 
     useEffect(() => {
       const interval = setInterval(() => {
@@ -50,13 +28,14 @@ export default function Header() {
       return () => clearInterval(interval)
     }, []);
   
+    const links = useLinks();
 
     const closeNavbar = () => {
         setIsNavbarOpen(false);
     };
 
     const navigate = useNavigate();
-    const links = isAdmin ? adminLinks : additionalLinks;
+    // const links = isAdmin ? adminLinks : additionalLinks;
 
     const handleLogout = async () => {
       axios.post("/api/v1/users/logout")

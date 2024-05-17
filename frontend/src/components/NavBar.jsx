@@ -13,6 +13,8 @@ const NavBar = () => {
     }
 
     return (
+        <nav className="sticky top-0 z-30 py-3 bg-gray-900 text-white">
+=======
         <nav className="sticky top-0 z-30 py-3 border bg-stone-300 ">
             <div className="container relative px-4 mx-auto text-sm">
                 <div className="flex justify-between items-center">
@@ -21,6 +23,12 @@ const NavBar = () => {
                         <span className="text-xl font-bold">BIT WEB APP</span>
                     </div>
                     <div className="hidden lg:flex justify-center space-x-8 items-center">
+                        <Link to="/log" className="text-gray-200 hover:text-white">
+                            <div className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-md">Student Login</div>
+                        </Link>
+                        <Link to="/sg" className="text-gray-200 hover:text-white">
+                            <div className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-md">Admin Login</div>
+=======
                         <Link to="/log" className="hover:bg-blue-600 hover:text-white transition px-2 py-3 border rounded-md ">
                             <FontAwesomeIcon icon={faUser} className="mx-2" />
                             Student Login

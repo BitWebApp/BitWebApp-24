@@ -28,7 +28,6 @@ import HigherEduTable from "./components/higher-eduTable";
 import ProjectTable from "./components/project-table";
 import InternTable from "./components/intern-table";
 
-
 export default function App() {
   return (
     <Router>
