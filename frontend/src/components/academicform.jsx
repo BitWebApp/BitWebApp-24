@@ -2,44 +2,46 @@ import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { toast } from 'react-toastify';
 
 export default function Academicform() {
   const [semester, setSemester] = useState("");
-  const [cgpa, setCgpa] = useState("");
-  const [userid, setUserid] = useState("");
-  const [spin, setSpin] = useState(false);
-
+  const [gpa, setGpa] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSpin(true);
-    const tokenString=localStorage.getItem('user');
-    const token = JSON.parse(tokenString);
-    console.log(token._id);
+    console.log("Submit button clicked");
     try {
-      const formData = {
-        userId: token._id,
+      const userData = JSON.parse(localStorage.getItem('user'));
+      console.log("User Data:", userData);
+      
+      const userId = userData._id; 
+      console.log("User ID:", userId);
+      console.log("Semester:", semester);
+      console.log("GPA:", gpa);
+
+      const response = await axios.post('/api/v1/academics/create', {
+        userId: userId,
         semester: semester,
-        gpa: cgpa
-      };
-      const response = await axios.post("/api/v1/academics/create", formData, {
+        gpa: gpa,
+      }, {
         headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
       });
-      console.log(response.data);
-      toast.success("Data uploaded successfully!");
-      setTimeout(() => {
-        navigate("/db"); 
-      }, 2000);
-    } catch (err) {
-      console.log(err);
-      toast.error("Error uploading data!");
-    } finally {
-      setSpin(false);
+
+      console.log("Response:", response);
+
+      if (response.data.success) {
+        console.log("Navigate to academic table");
+        navigate('/db/academic-table');
+      } else {
+        console.error("Failed to create academic record");
+        alert('Failed to create academic record. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error creating academic record:', error);
+      alert('Failed to create academic record. Please try again.');
     }
   };
 
@@ -54,15 +56,6 @@ export default function Academicform() {
           </div>
           <form onSubmit={handleSubmit}>
             <div className="w-full flex flex-col">
-              {/* <label>UserId</label>
-              <input
-                type="text"
-                placeholder="Enter Your UserId"
-                value={userid}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setUserid(e.target.value)}
-                required
-              /> */}
               <label>Semester</label>
               <input
                 type="text"
@@ -72,21 +65,21 @@ export default function Academicform() {
                 onChange={(e) => setSemester(e.target.value)}
                 required
               />
-              <label>CGPA</label>
+              <label>GPA</label>
               <input
                 type="text"
-                placeholder="Enter Your CGPA"
-                value={cgpa}
+                placeholder="Enter Your GPA"
+                value={gpa}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setCgpa(e.target.value)}
+                onChange={(e) => setGpa(e.target.value)}
                 required
               />
             </div>
             <div className="h-8"></div>
+            <div className="w-full flex items-center justify-between"></div>
             <div className="w-full flex flex-col my-4">
               <button
                 className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
-                type="submit"
               >
                 Submit
               </button>
