@@ -1,17 +1,18 @@
 import { Router } from "express";
 import { 
   createAcademicRecord, 
-  getAcademicRecords, 
+  getStudentAcademicRecords,
   updateAcademicRecords, 
-  deleteAcademicRecord
+  deleteAcademicRecord,
+  getAdminAcademicRecords
 } from "../controllers/academic.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
 router.route("/create").post(verifyJWT, createAcademicRecord);
-router.route("/records").get(verifyJWT, getAcademicRecords);
+router.route("/studentRecords").get(verifyJWT, getStudentAcademicRecords);
 router.route("/update/:id").patch(verifyJWT, updateAcademicRecords);
-router.route("/update/:id").delete(verifyJWT, deleteAcademicRecord);
+router.route("/delete/:id").delete(verifyJWT, deleteAcademicRecord);
 
 export default router;
