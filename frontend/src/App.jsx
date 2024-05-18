@@ -34,6 +34,7 @@ import ProjectTable from "./components/project-table";
 import InternTable from "./components/intern-table";
 import axios from "axios";
 import PropTypes from "prop-types";
+import VerifyUsers from "./components/VerifyUsers";
 
 export default function App() {
   return (
@@ -75,6 +76,7 @@ export default function App() {
         <Route path="/sb" element={<Sidebar />} />
         <Route path="/log.a" element={<Loginadmin />} />
         <Route path="/sg.a" element={<Signupadmin />} />
+        <Route path="/verify-users" element={<VerifyUsers />} />
       </Routes>
     </Router>
   );
