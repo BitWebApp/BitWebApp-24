@@ -1,5 +1,10 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+} from "react-router-dom";
 import Layout from "./components/Layout";
 import Dashboard from "./components/Dashboard";
 import Login from "./components/Login";
@@ -27,6 +32,8 @@ import ExamTable from "./components/examtable";
 import HigherEduTable from "./components/higher-eduTable";
 import ProjectTable from "./components/project-table";
 import InternTable from "./components/intern-table";
+import axios from "axios";
+import PropTypes from "prop-types";
 
 export default function App() {
   return (
@@ -34,7 +41,14 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/log" element={<Login />} />
-        <Route path="/db" element={<Layout />}>
+        <Route
+          path="/db"
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<Dashboard />} />
           <Route path="user-form" element={<Userform />} />
           <Route path="academic-form" element={<Academicform />} />
@@ -65,3 +79,36 @@ export default function App() {
     </Router>
   );
 }
+
+function ProtectedRoute({ children }) {
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
+  useEffect(() => {
+    const checkUser = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get("/api/v1/users/get-user");
+        if (response.status == 200) {
+          setIsAuthenticated(true);
+        }
+      } catch (err) {
+        console.log("Error fetching user!", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkUser();
+  }, []);
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  if (!isAuthenticated) {
+    navigate("/log");
+    return null;
+  }
+  return children;
+}
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
