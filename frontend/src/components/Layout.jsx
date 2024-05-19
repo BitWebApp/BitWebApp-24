@@ -23,10 +23,10 @@ export default function Layout() {
         <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
           <Header />
           <main>
-            <div className="mx-auto p-4 md:p-6 2xl:p-10 h-screen">
+            <div className="min-h-screen flex flex-col space-y-10 p-4">
               <Outlet />
+              <Footer />
             </div>
-            <Footer />
           </main>
         </div>
       </div>
