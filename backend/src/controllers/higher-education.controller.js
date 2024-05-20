@@ -6,22 +6,44 @@ import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 const createHigherEducation = asyncHandler(async (req, res) => {
   const { institution, degree, fieldOfStudy, startDate, endDate } = req.body;
 
-  if (!req.files || !req.files.length) {
-    throw new ApiError(400, "File upload required");
+  const doc = req.file.path
+  console.log('File path:', doc);
+
+  if (!req.file || !req.file.path) {
+    throw new ApiError(400, "Invalid file path");
   }
 
-  const docURLs = [];
+  // if (!req.files || !req.files.length) {
+  //   throw new ApiError(400, "File upload required");
+  // }
 
-  for (const file of req.files) {
-    try {
-      const cloudinaryResponse = await uploadOnCloudinary(file.path);
-      console.log("Uploaded file to Cloudinary:", cloudinaryResponse);
-      docURLs.push(cloudinaryResponse.secure_url);
-    } catch (error) {
-      console.error("Error uploading file to Cloudinary:", error);
-      throw new Error("Failed to upload file to Cloudinary");
-    }
+  if(!doc){
+    throw new ApiError(400,"File Upload required")
   }
+
+  // const docURLs = [];
+
+  let url = "";
+
+  try {
+    const cloudinaryResponse = await uploadOnCloudinary(doc);
+    console.log("Uploaded file to Cloudinary:", cloudinaryResponse);
+    url = cloudinaryResponse.secure_url;
+  } catch (error) {
+    console.error("Error uploading file to Cloudinary:", error);
+    throw new Error("Failed to upload file to Cloudinary");
+  }
+
+  // for (const file of req.files) {
+  //   try {
+  //     const cloudinaryResponse = await uploadOnCloudinary(file.path);
+  //     console.log("Uploaded file to Cloudinary:", cloudinaryResponse);
+  //     docURLs.push(cloudinaryResponse.secure_url);
+  //   } catch (error) {
+  //     console.error("Error uploading file to Cloudinary:", error);
+  //     throw new Error("Failed to upload file to Cloudinary");
+  //   }
+  // }
 
   const higherEducation = await HigherEducation.create({
     institution,
@@ -29,7 +51,7 @@ const createHigherEducation = asyncHandler(async (req, res) => {
     fieldOfStudy,
     startDate,
     endDate,
-    docs: docURLs,
+    doc: url,
   });
 
   res.status(201).json({

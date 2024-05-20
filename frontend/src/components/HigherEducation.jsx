@@ -8,12 +8,12 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const HigherEducation = () => {
-  const [institute, setInstitute] = useState("");
+  const [institution, setInstitution] = useState("");
   const [degree, setDegree] = useState("");
+  const [fieldOfStudy, setFieldOfStudy] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [field, setField] = useState("");
-  const [file, setFile] = useState("");
+  const [doc, setDoc] = useState("");
   const [spin, setSpin] = useState(false);
   const navigate = useNavigate();
 
@@ -22,13 +22,13 @@ const HigherEducation = () => {
     setSpin(true);
     try {
       const formData = new FormData();
-      formData.append("institute", institute);
+      formData.append("institution", institution);
       formData.append("degree", degree);
+      formData.append("fieldOfStudy", fieldOfStudy);
       formData.append("startDate", startDate);
       formData.append("endDate", endDate);
-      formData.append("field", field);
-      formData.append("doc", file);
-      const response = await axios.get("/api/v1/higher-education", formData, {
+      formData.append("doc", doc);
+      const response = await axios.post("/api/v1/higher-education", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Accept: "application/json",
@@ -58,8 +58,8 @@ const HigherEducation = () => {
             type="text"
             placeholder="Institution"
             className="inputClass w-full"
-            value={institute}
-            onChange={(e) => setInstitute(e.target.value)}
+            value={institution}
+            onChange={(e) => setInstitution(e.target.value)}
           />
           <input
             type="text"
@@ -70,10 +70,10 @@ const HigherEducation = () => {
           />
           <input
             type="text"
-            placeholder="Field of study"
+            placeholder="Field of Study"
             className="inputClass w-full"
-            value={field}
-            onChange={(e) => setField(e.target.value)}
+            value={fieldOfStudy}
+            onChange={(e) => setFieldOfStudy(e.target.value)}
           />
           <span className="font-bold underline text-md">Start Date:</span>
           <input
@@ -98,7 +98,7 @@ const HigherEducation = () => {
             type="file"
             className="fileButton w-full"
             accept="image/*"
-            onChange={(e) => setFile(e.target.files[0])}
+            onChange={(e) => setDoc(e.target.files[0])}
           />
 
           {spin ? (
