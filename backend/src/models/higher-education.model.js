@@ -2,6 +2,10 @@ import mongoose, { Schema } from "mongoose";
 
 const higherEducationSchema = new Schema(
   {
+    name: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
     institution: {
       type: String,
       required: [true, "Institution name is required!"],
@@ -22,12 +26,8 @@ const higherEducationSchema = new Schema(
       type: Date,
       required: [true, "End date is required!"],
     },
-    student: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-    },
-    doc: {
-      type: String,
+    docs: {
+      type: [String], 
       required: [true, "Add supporting docs!"],
     },
   },
@@ -36,7 +36,4 @@ const higherEducationSchema = new Schema(
   }
 );
 
-export const HigherEducation = mongoose.model(
-  "HigherEducation",
-  higherEducationSchema
-);
+export const HigherEducation = mongoose.model("HigherEducation", higherEducationSchema);

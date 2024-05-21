@@ -1,20 +1,20 @@
 import { Router } from "express";
-import {
-  createHigherEducation,
+import { createHigherEducation, 
   getHigherEducations,
+  getAllHigherEducations,
   getHigherEducationById,
   updateHigherEducation,
-  deleteHigherEducation,
-} from "../controllers/higher-education.controller.js";
-// import { uploadMultiple } from "../middlewares/multer.middleware.js";
+  deleteHigherEducation } from "../controllers/higher-education.controller.js";
+import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-// router.post("/", verifyJWT, uploadMultiple, createHigherEducation);
+router.post("/", verifyJWT, upload.array('files'), createHigherEducation);
 router.get("/", verifyJWT, getHigherEducations);
+router.get("/all", verifyJWT, getAllHigherEducations); 
 router.get("/:id", verifyJWT, getHigherEducationById);
-router.put("/:id", verifyJWT, updateHigherEducation);
+router.put("/:id", verifyJWT, upload.array('files'), updateHigherEducation);
 router.delete("/:id", verifyJWT, deleteHigherEducation);
 
 export default router;
