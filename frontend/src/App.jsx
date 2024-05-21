@@ -35,7 +35,7 @@ import InternTable from "./components/intern-table";
 import axios from "axios";
 import PropTypes from "prop-types";
 import VerifyUsers from "./components/VerifyUsers";
-
+import { HashLoader, SyncLoader } from "react-spinners";
 export default function App() {
   return (
     <Router>
@@ -103,7 +103,15 @@ function ProtectedRoute({ children }) {
     checkUser();
   }, []);
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="h-screen w-full flex flex-col justify-center items-center">
+        <HashLoader size={150} />
+        <div className="text-xl py-10 flex font-bold font">
+          LOADING
+          <SyncLoader className="translate-y-3" size={5} speedMultiplier={0.75}/>
+        </div>
+      </div>
+    )
   }
   if (!isAuthenticated) {
     navigate("/log");
