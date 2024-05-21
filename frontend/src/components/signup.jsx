@@ -43,7 +43,7 @@ export default function Signup() {
       );
 
       console.log(response.data);
-      toast.success("Signup successful! now login using same credentials.");
+      toast.success("Signup successful! Login using same credentials.");
       setTimeout(() => {
         navigate("/log");
       }, 2000);
@@ -77,7 +77,7 @@ export default function Signup() {
       <ToastContainer />
       <div className="relative w-full md:w-1/2 hidden md:block">
         <img
-          src="/static/images/bitphoto.JPG" // no worries image fixed -- kushagra 
+          src="/static/images/bitphoto.JPG"  
           className="w-full h-full object-cover"
           alt="bit-mesra"
         />

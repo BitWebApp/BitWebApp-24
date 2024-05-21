@@ -1,7 +1,6 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-
 const app = express();
 
 app.use(
@@ -31,5 +30,10 @@ app.use("/api/v1/users", userRouter);
 
 import adminRouter from "./routes/admin.routes.js";
 app.use("/api/v1/admin", adminRouter);
+import awardRouter from "./routes/award.routes.js";
+app.use("/api/v1/awards",awardRouter);
+
+import InternShipRouter from "./routes/internship.routes.js"
+app.use("api/v1/intern",InternShipRouter);
 
 export { app };

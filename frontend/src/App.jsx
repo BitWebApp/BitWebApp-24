@@ -1,5 +1,10 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+} from "react-router-dom";
 import Layout from "./components/Layout";
 import Dashboard from "./components/Dashboard";
 import Login from "./components/Login";
@@ -27,15 +32,24 @@ import ExamTable from "./components/examtable";
 import HigherEduTable from "./components/higher-eduTable";
 import ProjectTable from "./components/project-table";
 import InternTable from "./components/intern-table";
-
-
+import axios from "axios";
+import PropTypes from "prop-types";
+import VerifyUsers from "./components/VerifyUsers";
+import { HashLoader, SyncLoader } from "react-spinners";
 export default function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/log" element={<Login />} />
-        <Route path="/db" element={<Layout />}>
+        <Route
+          path="/db"
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<Dashboard />} />
           <Route path="user-form" element={<Userform />} />
           <Route path="academic-form" element={<Academicform />} />
@@ -52,8 +66,7 @@ export default function App() {
           <Route path="Student-Table" element={<StudentTable />} />
           <Route path="academic-table" element={<AcademicTable />} />
           <Route path="award-table" element={<AwardTable />} />
-          <Route path="placement-Table" element={<PlacementTable />}>
-          </Route>
+          <Route path="placement-Table" element={<PlacementTable />} />
           <Route path="higher-education-table" element={<HigherEduTable />} />
           <Route path="exam-form" element={<ExamForm />} />
           <Route path="project-form-table" element={<ProjectTable />} />
@@ -63,7 +76,49 @@ export default function App() {
         <Route path="/sb" element={<Sidebar />} />
         <Route path="/log.a" element={<Loginadmin />} />
         <Route path="/sg.a" element={<Signupadmin />} />
+        <Route path="/verify-users" element={<VerifyUsers />} />
       </Routes>
     </Router>
   );
 }
+
+function ProtectedRoute({ children }) {
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
+  useEffect(() => {
+    const checkUser = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get("/api/v1/users/get-user");
+        if (response.status == 200) {
+          setIsAuthenticated(true);
+        }
+      } catch (err) {
+        console.log("Error fetching user!", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkUser();
+  }, []);
+  if (loading) {
+    return (
+      <div className="h-screen w-full flex flex-col justify-center items-center">
+        <HashLoader size={150} />
+        <div className="text-xl py-10 flex font-bold font">
+          LOADING
+          <SyncLoader className="translate-y-3" size={5} speedMultiplier={0.75}/>
+        </div>
+      </div>
+    )
+  }
+  if (!isAuthenticated) {
+    navigate("/log");
+    return null;
+  }
+  return children;
+}
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
