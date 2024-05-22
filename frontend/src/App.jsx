@@ -36,6 +36,8 @@ import axios from "axios";
 import PropTypes from "prop-types";
 import VerifyUsers from "./components/VerifyUsers";
 import { HashLoader, SyncLoader } from "react-spinners";
+import AdminAcademicRecords from "./components/AdminAcademicRecords";
+
 export default function App() {
   return (
     <Router>
@@ -53,6 +55,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="user-form" element={<Userform />} />
           <Route path="academic-form" element={<Academicform />} />
+          <Route path="admin-academic-form" element={<AdminAcademicRecords />} />
           <Route path="award-form" element={<Awardform />} />
           <Route path="placement" element={<Placement />}>
             <Route path="placement-one" element={<PlacementOne />} />
