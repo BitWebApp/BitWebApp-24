@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 export default function AcademicTable() {
@@ -6,6 +7,7 @@ export default function AcademicTable() {
   const [selectedSemester, setSelectedSemester] = useState('');
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [updatedGPA, setUpdatedGPA] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchAcademicRecords();
@@ -80,40 +82,47 @@ export default function AcademicTable() {
     setUpdatedGPA(record.gpa);
   };
 
+  const handleAdd = () => {
+    navigate('/db/academic-form');
+  };
+
   return (
     <div className="overflow-x-auto">
-      <h1 className="text-center text-3xl font-bold mb-8">ACADEMIC RECORDS</h1>
-      <div className="flex justify-between mb-4">
-        <button onClick={handleDelete} disabled={!selectedRecord} className="bg-red-500 text-white px-4 py-2 rounded-md disabled:bg-gray-300">Delete</button>
-        <div>
-          <input type="number" value={updatedGPA} onChange={(e) => setUpdatedGPA(e.target.value)} className="mr-2" />
-          <button onClick={handleUpdate} disabled={!selectedRecord} className="bg-blue-500 text-white px-4 py-2 rounded-md disabled:bg-gray-300">Update</button>
-        </div>
-      </div>
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-black">
-          <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">#</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Semester</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">GPA</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {academicRecords.length > 0 ? (
-            academicRecords.map((record, index) => (
-              <tr key={record._id} onClick={() => handleRowClick(record)} className={record.semester === selectedSemester ? 'bg-gray-200' : ''}>
-                <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{record.semester}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{record.gpa}</td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="3" className="text-center py-4">No academic records found.</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+  <h1 className="text-center text-3xl font-bold mb-8">ACADEMIC RECORDS</h1>
+  <div className="flex justify-between mb-4">
+    <button onClick={handleDelete} disabled={!selectedRecord} className="bg-red-500 text-white px-4 py-2 rounded-md disabled:bg-gray-300">Delete</button>
+    <div>
+      <input type="number" value={updatedGPA} onChange={(e) => setUpdatedGPA(e.target.value)} className="mr-2" />
+      <button onClick={handleUpdate} disabled={!selectedRecord} className="bg-blue-500 text-white px-4 py-2 rounded-md disabled:bg-gray-300">Update</button>
     </div>
+  </div>
+  <table className="min-w-full divide-y divide-gray-200">
+    <thead className="bg-black">
+      <tr>
+        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">#</th>
+        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Semester</th>
+        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">GPA</th>
+      </tr>
+    </thead>
+    <tbody className="bg-white divide-y divide-gray-200">
+      {academicRecords.length > 0 ? (
+        academicRecords.map((record, index) => (
+          <tr key={record._id} onClick={() => handleRowClick(record)} className={record.semester === selectedSemester ? 'bg-gray-200' : ''}>
+            <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
+            <td className="px-6 py-4 whitespace-nowrap">{record.semester}</td>
+            <td className="px-6 py-4 whitespace-nowrap">{record.gpa}</td>
+          </tr>
+        ))
+      ) : (
+        <tr>
+          <td colSpan="3" className="text-center py-4">No academic records found.</td>
+        </tr>
+      )}
+    </tbody>
+  </table>
+  <div className="flex justify-center mt-8">
+    <button onClick={handleAdd} className="bg-green-500 text-white px-4 py-2 rounded-md">Add</button>
+  </div>
+</div>
   );
 }
