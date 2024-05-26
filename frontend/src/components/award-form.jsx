@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import Cliploader from "react-spinners/ClipLoader"
 const AwardForm = () => {
   const [awards, setAwards] = useState([]);
   const [title, setTitle] = useState('');
@@ -46,10 +46,9 @@ const AwardForm = () => {
     }
   };
 
-  
-
   return (
     <div className="w-full min-h-screen flex justify-center items-center">
+      <ToastContainer />
       <div className="w-full flex flex-col p-6 justify-between">
         <div className="w-full flex flex-col">
           <div className="flex flex-col w-full mb-5">
@@ -100,9 +99,9 @@ const AwardForm = () => {
               />
               <button
                 type="submit"
-                className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
+                className={loading ? "bg-black text-white w-full rounded-md p-4 text-center flex items-center opacity-70 justify-center my-2 hover:bg-black/90" :"bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"}
               >
-                SUBMIT
+                {loading ? <Cliploader color="gray" /> : "SUBMIT"}
               </button>
             </div>
           </form>
