@@ -45,7 +45,7 @@ const PlacementOne = () => {
   return (
     <div className="flex flex-col items-center px-4 sm:px-0">
       <ToastContainer />
-      <span className="font-bold underline underline-offset-8 my-10 text-2xl sm:text-2xl">
+      <span className="font-bold underline underline-offset-8 my-10 text-2xl sm:text-3xl">
         Placement Record Data - 1
       </span>
       <div className="w-full max-w-md h-auto flex flex-col justify-between items-center bg-lime-100 rounded-lg border-2 border-black">
