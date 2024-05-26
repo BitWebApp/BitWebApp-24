@@ -88,7 +88,7 @@ export default function Academicform() {
           <div className="w-full items-center justify-center flex">
             <p className="text-sm font-normal text-black">
               <span className="font-semibold underline underline-offset cursor-pointer text-blue-600">
-                <Link to="/db">Go back to Dashboard</Link>
+                <Link to="/db/academic-table">See Records</Link>
               </span>
             </p>
           </div>
