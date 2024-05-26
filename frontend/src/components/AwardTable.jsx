@@ -10,7 +10,7 @@ export default function AwardTable() {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get("/api/v1/awards");
+      const response = await axios.get("/api/v1/awards/all");
       setAwardData(response.data.data);
     } catch (error) {
       console.error("Error fetching award data:", error);
