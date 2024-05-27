@@ -85,13 +85,12 @@ export default function Academicform() {
               </button>
             </div>
           </form>
-          <div className="w-full justify-between flex">
-            <span className="font-semibold underline underline-offset cursor-pointer text-blue-600 text-lg">
-                <Link to="/db">Go back to Dashboard</Link>
-            </span>
-            <span className="font-bold underline underline-offset cursor-pointer text-violet-700 text-lg">
-                <Link to="/db/academic-table">View Academic Records</Link>
-            </span>
+          <div className="w-full items-center justify-center flex">
+            <p className="text-sm font-normal text-black">
+              <span className="font-semibold underline underline-offset cursor-pointer text-blue-600">
+                <Link to="/db/academic-table">See Records</Link>
+              </span>
+            </p>
           </div>
         </div>
       </div>
