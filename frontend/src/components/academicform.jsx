@@ -46,7 +46,7 @@ export default function Academicform() {
   };
 
   return (
-    <div className="w-full min-h-screen flex justify-center items=center">
+    <div className="w-full min-h-screen flex justify-center items-center">
       <div className="w-full flex flex-col p-10 justify-between">
         <h3 className="text-xl text-black font-semibold">BIT WEB APP</h3>
         <div className="w-full flex flex-col">
@@ -85,16 +85,13 @@ export default function Academicform() {
               </button>
             </div>
           </form>
-          <div className="w-full items-center justify-center flex">
-            <p className="text-sm font-normal text-black text-center">
-              <span className="font-semibold underline underline-offset cursor-pointer text-blue-600 text-base">
+          <div className="w-full justify-between flex">
+            <span className="font-semibold underline underline-offset cursor-pointer text-blue-600 text-lg">
                 <Link to="/db">Go back to Dashboard</Link>
-              </span>
-              <br /><br />
-              <span className="font-bold underline underline-offset cursor-pointer text-violet-700 text-lg">
+            </span>
+            <span className="font-bold underline underline-offset cursor-pointer text-violet-700 text-lg">
                 <Link to="/db/academic-table">View Academic Records</Link>
-              </span>
-            </p>
+            </span>
           </div>
         </div>
       </div>

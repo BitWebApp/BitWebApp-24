@@ -29,7 +29,7 @@ export  default function useLinks() {
     const adminLinks = [
         { text: "Dashboard", icon: <HiHome />, to: "/db" },
         { text: "Student Details", icon: <HiUser />, to: "/db/student-table" },
-        { text: "Academic Records", icon: <HiAcademicCap />, to: "/db/academic-table" },
+        { text: "Academic Records", icon: <HiAcademicCap />, to: "/db/admin-academic-form" },
         { text: "Awards & Achievements", icon: <HiBadgeCheck />, to: "/db/award-table" },
         { text: "Examinations", icon: <HiDocumentReport />, to: "/db/exam-table" },
         { text: "Higher Education", icon: <HiAcademicCap />, to: "/db/higher-education-table" },
