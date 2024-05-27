@@ -46,7 +46,7 @@ export default function Academicform() {
   };
 
   return (
-    <div className="w-full min-h-screen flex justify-center items=center">
+    <div className="w-full min-h-screen flex justify-center items-center">
       <div className="w-full flex flex-col p-10 justify-between">
         <h3 className="text-xl text-black font-semibold">BIT WEB APP</h3>
         <div className="w-full flex flex-col">

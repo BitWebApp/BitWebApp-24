@@ -4,6 +4,7 @@ import {
   getStudentAcademicRecords,
   updateAcademicRecords, 
   deleteAcademicRecord,
+  getAdminAcademicRecords,
 } from "../controllers/academic.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -13,5 +14,6 @@ router.route("/create").post(verifyJWT, createAcademicRecord);
 router.route("/studentRecords").get(verifyJWT, getStudentAcademicRecords);
 router.route("/update/:id").patch(verifyJWT, updateAcademicRecords);
 router.route("/delete/:id").delete(verifyJWT, deleteAcademicRecord);
+router.route("/adminRecords").get(verifyJWT, getAdminAcademicRecords);
 
 export default router;
