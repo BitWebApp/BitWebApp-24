@@ -1,32 +1,137 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
-import { uploadOnCloudinary } from "../utils/Cloudinary.js";
-import {Award} from "../models/award.model.js";
+import { Award } from "../models/award.model.js";
+import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/Cloudinary.js";
 
-const addAward = asyncHandler(async(req, res) => {
-    const { title, description, date, student} = req.body;
-    if (!title || !description || !date || !student) {
-        return next(new ApiError(400, "All fields are required"));
+const createAward = asyncHandler(async (req, res) => {
+  const { title, description, date, student } = req.body;
+  if (!req.file) {
+    throw new ApiError(400, "File upload required");
+  }
+
+  const uploadedDocPath = await uploadOnCloudinary(req.file.path);
+  if (!uploadedDocPath) {
+    throw new ApiError(400, "Failed to upload file to Cloudinary");
+  }
+
+  const award = await Award.create({
+    student: req.user._id,
+    title,
+    description,
+    date,
+    doc: uploadedDocPath.secure_url,
+  });
+  res.status(201).json({
+    success: true,
+    data: award,
+  });
+});
+
+const getAwards = asyncHandler(async (req, res) => {
+  const awards = await Award.find({ student: req.user._id }).populate("student", "fullName");
+
+  res.status(200).json({
+    success: true,
+    data: awards,
+  });
+});
+
+const deleteAward = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedAward = await Award.findByIdAndDelete(id);
+
+    if (!deletedAward) {
+      throw new ApiError(404, "Award not found");
     }
-    const docPath = req.files?.doc[0]?.path
-    if(!docPath)
-    throw new ApiError(400, "Document is required")
-    const uploadedDocPath = await uploadOnCloudinary(docPath)
-    if(!uploadedDocPath)
-    throw new ApiError(400, "not able to upload something went wrong")
-    const award = await Award.create({
-        student,
-        title,
-        description,
-        date,
-        doc: uploadedDocPath.url
-    })
-    res.status(200).json(new ApiResponse(200, {award}, "Award added successfully"))
-})
-const getAwardByStudentId = asyncHandler(async(req, res) => {
-    const {studentid} = req.body
-    const response = await Award.findOne({student: studentid})
-    res.status(200).json(new ApiResponse(200, {response}, "Award data fetched"))
-})
-export {addAward, getAwardByStudentId}
+
+    const docURL = deletedAward.doc;
+    if (docURL) {
+      try {
+        const publicId = docURL.split("/").pop().split(".")[0];
+        await deleteFromCloudinary(publicId);
+      } catch (error) {
+        console.error("Error deleting file from Cloudinary:", error);
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {},
+    });
+  } catch (error) {
+    console.error("Error deleting Award", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+const getAwardById = asyncHandler(async (req, res) => {
+  const award = await Award.findById(req.params.id);
+
+  if (!award) {
+    throw new ApiError(404, "Award not found");
+  }
+
+  res.status(200).json({
+    success: true,
+    data: award,
+  });
+});
+
+const getAllAwards = asyncHandler(async (req, res) => {
+  const awards = await Award.find().populate("student", "fullName");
+
+  res.status(200).json({
+    success: true,
+    data: awards,
+  });
+});
+
+const updateAward = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { title, description, date, student } = req.body;
+
+  try {
+    const award = await Award.findById(id);
+
+    if (!award) {
+      throw new ApiError(404, "Award not found");
+    }
+
+    award.title = title;
+    award.description = description;
+    award.date = date;
+    award.student = student;
+
+    const docURL = award.doc;
+    if (docURL) {
+      try {
+        const publicId = docURL.split("/").pop().split(".")[0];
+        await deleteFromCloudinary(publicId);
+      } catch (error) {
+        console.error("Error deleting file from Cloudinary:", error);
+      }
+    }
+
+    if (req.file) {
+      const uploadedDocPath = await uploadOnCloudinary(req.file.path);
+      if (!uploadedDocPath) {
+        throw new ApiError(400, "Failed to upload file to Cloudinary");
+      }
+      award.doc = uploadedDocPath.secure_url;
+    }
+
+    await award.save();
+
+    res.status(200).json({
+      success: true,
+      data: award,
+    });
+  } catch (error) {
+    console.error("Error updating Award:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+export { createAward, getAwards, getAllAwards, getAwardById, updateAward, deleteAward };

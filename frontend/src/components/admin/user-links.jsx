@@ -17,7 +17,7 @@ export  default function useLinks() {
 
     const additionalLinks = [
         { text: "Dashboard", icon: <HiHome />, to: "/db" },
-        { text: "Academic Records", icon: <HiAcademicCap />, to: "/db/academic-form" },
+        { text: "Academic Records", icon: <HiAcademicCap />, to: "/db/academic-table" },
         { text: "Awards & Achievements", icon: <HiBadgeCheck />, to: "/db/award-form" },
         { text: "Examinations", icon: <HiDocumentReport />, to: "/db/exam-form" },
         { text: "Higher Education", icon: <HiAcademicCap />, to: "/db/higher-education" },
