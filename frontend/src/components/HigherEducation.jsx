@@ -284,6 +284,7 @@ const HigherEducation = () => {
                   <td className="px-6 py-4 whitespace-nowrap">{higherEducation.fieldOfStudy}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{new Date(higherEducation.startDate).toLocaleDateString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{new Date(higherEducation.endDate).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap"><a href={higherEducation.docs}>Doc</a></td>
                   <td className="px-6 py-4 whitespace-nowrap space-x-2">
                     <button
                       onClick={() => handleEdit(higherEducation)}
