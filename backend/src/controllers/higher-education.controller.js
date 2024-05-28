@@ -1,6 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { HigherEducation } from "../models/higher-education.model.js";
+import { User } from "../models/user.model.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/Cloudinary.js";
 
 const createHigherEducation = asyncHandler(async (req, res) => {
@@ -31,6 +32,8 @@ const createHigherEducation = asyncHandler(async (req, res) => {
     endDate,
     docs: docsURL,
   });
+
+  await User.findByIdAndUpdate(req.user._id, { $push: { higherEd: higherEducation._id } });
 
   res.status(201).json({ 
     success: true, 
@@ -68,6 +71,8 @@ const deleteHigherEducation = asyncHandler(async (req, res) => {
         }
       }
     }
+
+    await User.findByIdAndUpdate(deletedHigherEducation.name, { $pull: { higherEd: id } });
 
     res.status(200).json({
       success: true,
@@ -147,10 +152,8 @@ const updateHigherEducation = asyncHandler(async (req, res)=>{
       }
     }
 
-    // Set exam.docs to the new documents array
     higherEducation.docs = newHigherEducationDocs;
 
-    // Save the updated exam object
     await higherEducation.save();
 
     res.status(200).json({
