@@ -1,6 +1,7 @@
 // exam.controller.js
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
+import { User } from "../models/user.model.js";
 import { Exam } from "../models/exam.model.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/Cloudinary.js";
 //
@@ -35,6 +36,8 @@ const createExam = asyncHandler(async (req, res) => {
     isSel,
     score,
   });
+
+  await User.findByIdAndUpdate(req.user._id, { $push: { exams: exam._id } });
 
   res.status(201).json({
     success: true,
@@ -72,6 +75,8 @@ const deleteExam = asyncHandler(async (req, res) => {
         }
       }
     }
+
+    await User.findByIdAndUpdate(deletedExam.name, { $pull: { exams: id } });
 
     res.status(200).json({
       success: true,

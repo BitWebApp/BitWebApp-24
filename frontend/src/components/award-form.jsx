@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Cliploader from "react-spinners/ClipLoader"
+import Cliploader from "react-spinners/ClipLoader";
+
 const AwardForm = () => {
   const [awards, setAwards] = useState([]);
   const [title, setTitle] = useState('');

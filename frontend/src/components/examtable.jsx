@@ -18,7 +18,7 @@ export default function ExamTable() {
     };
 
     fetchExams();
-  }, []);
+  }, [sortConfigs]);
 
   const handleRowSelect = (id) => {
     const selectedIndex = selectedRows.indexOf(id);
@@ -42,7 +42,12 @@ export default function ExamTable() {
 
   const handleSortOptionChange = (key, e) => {
     const sortType = e.target.value;
-    handleSort(key, sortType);
+    if (sortType === "Sort By") {
+      const newSortConfigs = sortConfigs.filter((config) => config.key !== key);
+      setSortConfigs(newSortConfigs);
+    } else {
+      handleSort(key, sortType);
+    }
   };
 
   const handleSort = (key, sortType) => {
@@ -72,6 +77,11 @@ export default function ExamTable() {
       for (const part of key) {
         aValue = aValue[part];
         bValue = bValue[part];
+      }
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
       }
 
       if (aValue < bValue) {
@@ -120,7 +130,7 @@ export default function ExamTable() {
                 Student
                 <div>
                   <select value={getSortDirection('name.fullName')} onChange={(e) => handleSortOptionChange('name.fullName', e)}>
-                    <option disabled>Sort By</option>
+                    <option value="Sort By">Sort By</option>
                     <option value="ascending">Ascending</option>
                     <option value="descending">Descending</option>
                   </select>
@@ -130,7 +140,7 @@ export default function ExamTable() {
                 Roll No
                 <div>
                   <select value={getSortDirection('name.rollNumber')} onChange={(e) => handleSortOptionChange('name.rollNumber', e)}>
-                    <option disabled>Sort By</option>
+                    <option value="Sort By">Sort By</option>
                     <option value="ascending">Ascending</option>
                     <option value="descending">Descending</option>
                   </select>
@@ -140,7 +150,7 @@ export default function ExamTable() {
                 Exam Name
                 <div>
                   <select value={getSortDirection('examName')} onChange={(e) => handleSortOptionChange('examName', e)}>
-                    <option disabled>Sort By</option>
+                    <option value="Sort By">Sort By</option>
                     <option value="ascending">Ascending</option>
                     <option value="descending">Descending</option>
                   </select>
@@ -150,7 +160,7 @@ export default function ExamTable() {
                 Score
                 <div>
                   <select value={getSortDirection('score')} onChange={(e) => handleSortOptionChange('score', e)}>
-                    <option disabled>Sort By</option>
+                    <option value="Sort By">Sort By</option>
                     <option value="ascending">Ascending</option>
                     <option value="descending">Descending</option>
                   </select>
@@ -163,30 +173,30 @@ export default function ExamTable() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredExams.map((exam) => (
-              <tr key={exam._id} className={selectedRows.includes(exam._id) ? 'bg-gray-100' : ''}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <input
-                    type="checkbox"
-                    onChange={() => handleRowSelect(exam._id)}
-                    checked={selectedRows.includes(exam._id)}
-                  />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">{exam.name.fullName}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{exam.name.rollNumber}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{exam.examName}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{exam.score}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {exam.docs.map((doc, index) => (
-                    <div key={index}>
-                      <a href={doc} target="_blank" rel="noopener noreferrer">Document {index + 1}</a>
-                    </div>
-                  ))}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+             <tr key={exam._id} className={selectedRows.includes(exam._id) ? 'bg-gray-100' : ''}>
+             <td className="px-6 py-4 whitespace-nowrap">
+               <input
+                 type="checkbox"
+                 onChange={() => handleRowSelect(exam._id)}
+                 checked={selectedRows.includes(exam._id)}
+               />
+             </td>
+             <td className="px-6 py-4 whitespace-nowrap">{exam.name.fullName}</td>
+             <td className="px-6 py-4 whitespace-nowrap">{exam.name.rollNumber}</td>
+             <td className="px-6 py-4 whitespace-nowrap">{exam.examName}</td>
+             <td className="px-6 py-4 whitespace-nowrap">{exam.score}</td>
+             <td className="px-6 py-4 whitespace-nowrap">
+               {exam.docs.map((doc, index) => (
+                 <div key={index}>
+                   <a href={doc} target="_blank" rel="noopener noreferrer">Document {index + 1}</a>
+                 </div>
+               ))}
+             </td>
+           </tr>
+         ))}
+       </tbody>
+     </table>
+   </div>
+ </div>
+);
 }
