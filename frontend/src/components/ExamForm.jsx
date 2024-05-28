@@ -70,13 +70,20 @@ const ExamForm = () => {
                 },
             };
 
-            let response;
-            if (examId) {
-                response = await axios.put(`/api/v1/exam/${examId}`, formData, config);
-            } else {
-                response = await axios.post("/api/v1/exam", formData, config);
+            try {
+                let response;
+                if (examId) {
+                    response = await axios.put(`/api/v1/exam/${examId}`, formData, config);
+                } else {
+                    response = await axios.post("/api/v1/exam", formData, config);
+                }
+                toast.success("exam details added")
+                setTimeout(() => {
+                    window.location.reload()
+                }, 2000)
+            } catch (error) {
+                toast.error("Something went wrong")
             }
-
             setExamRoll("");
             setExamName("NET");
             setAcademicYear("");
@@ -84,7 +91,6 @@ const ExamForm = () => {
             setIsSel(false);
             setScore("");
             setExamId("");
-
             fetchExams();
             console.log(response);
         } catch (error) {

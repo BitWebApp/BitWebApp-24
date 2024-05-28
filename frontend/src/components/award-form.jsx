@@ -40,6 +40,9 @@ const AwardForm = () => {
     try {
       await axios.post('/api/v1/awards', formData);
       toast.success('Award created successfully!');
+      setTimeout(() => {
+        window.location.reload()
+      }, 2000)
     } catch (error) {
       toast.error('An error occurred while saving the award');
     } finally {
