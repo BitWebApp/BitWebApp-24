@@ -103,6 +103,7 @@ const getAllHigherEducations = asyncHandler(async (req, res)=>{
   });
 });
 
+
 const updateHigherEducation = asyncHandler(async (req, res)=>{
   const { id } = req.params;
   const { institution, degree, fieldOfStudy, startDate, endDate } = req.body;

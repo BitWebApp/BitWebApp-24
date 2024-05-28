@@ -10,7 +10,7 @@ const HigherEduTable = () => {
   useEffect(() => {
     const fetchHigherEducations = async () => {
       try {
-        const response = await axios.get("/api/v1/higher-education");
+        const response = await axios.get("/api/v1/higher-education/all");
         setHigherEducations(response.data.data);
       } catch (error) {
         console.error("Error fetching higher educations:", error);
@@ -18,7 +18,7 @@ const HigherEduTable = () => {
     };
 
     fetchHigherEducations();
-  }, []);
+  }, [sortConfigs]); // Re-fetch data when sort configs change
 
   const handleRowSelect = (id) => {
     const selectedIndex = selectedRows.indexOf(id);
@@ -42,7 +42,12 @@ const HigherEduTable = () => {
 
   const handleSortOptionChange = (key, e) => {
     const sortType = e.target.value;
-    handleSort(key, sortType);
+    if (sortType === "Sort By") {
+      const newSortConfigs = sortConfigs.filter((config) => config.key !== key);
+      setSortConfigs(newSortConfigs);
+    } else {
+      handleSort(key, sortType);
+    }
   };
 
   const handleSort = (key, sortType) => {
@@ -65,10 +70,13 @@ const HigherEduTable = () => {
 
   const sortedHigherEducations = [...higherEducations].sort((a, b) => {
     for (const config of sortConfigs) {
-      if (a[config.key] < b[config.key]) {
+      const aValue = typeof a[config.key] === "string" ? a[config.key].toLowerCase() : a[config.key];
+      const bValue = typeof b[config.key] === "string" ? b[config.key].toLowerCase() : b[config.key];
+
+      if (aValue < bValue) {
         return config.direction === 'ascending' ? -1 : 1;
       }
-      if (a[config.key] > b[config.key]) {
+      if (aValue > bValue) {
         return config.direction === 'ascending' ? 1 : -1;
       }
     }
@@ -112,7 +120,7 @@ const HigherEduTable = () => {
                 Institution
                 <div>
                   <select value={getSortDirection('institution')} onChange={(e) => handleSortOptionChange('institution', e)}>
-                    <option disabled>Sort By</option>
+                    <option value="Sort By">Sort By</option>
                     <option value="ascending">Ascending</option>
                     <option value="descending">Descending</option>
                   </select>
@@ -122,7 +130,7 @@ const HigherEduTable = () => {
                 Degree
                 <div>
                   <select value={getSortDirection('degree')} onChange={(e) => handleSortOptionChange('degree', e)}>
-                    <option disabled>Sort By</option>
+                    <option value="Sort By">Sort By</option>
                     <option value="ascending">Ascending</option>
                     <option value="descending">Descending</option>
                   </select>
@@ -132,68 +140,67 @@ const HigherEduTable = () => {
                 Field of Study
                 <div>
                   <select value={getSortDirection('fieldOfStudy')} onChange={(e) => handleSortOptionChange('fieldOfStudy', e)}>
-                    <option disabled>Sort By</option>
+                    <option value="Sort By">Sort By</option>
                     <option value="ascending">Ascending</option>
                     <option value="descending">Descending</option>
-                  </select>
-                </div>
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Start Date
-                <div>
-                  <select value={getSortDirection('startDate')} onChange={(e) => handleSortOptionChange('startDate', e)}>
-                    <option disabled>Sort By</option>
-                    <option value="ascending">Ascending</option>
-                    <option value="descending">Descending</option>
-                  </select>
-                </div>
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                End Date
-                <div>
-                  <select value={getSortDirection('endDate')} onChange={(e) => handleSortOptionChange('endDate', e)}>
-                    <option disabled>Sort By</option>
-                    <option value="ascending">Ascending</option>
-                    <option value="descending">Descending</option>
-                  </select>
-                </div>
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Supporting Doc
-              </th>
+                 
+                    </select>
+              </div>
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Start Date
+              <div>
+                <select value={getSortDirection('startDate')} onChange={(e) => handleSortOptionChange('startDate', e)}>
+                  <option value="Sort By">Sort By</option>
+                  <option value="ascending">Ascending</option>
+                  <option value="descending">Descending</option>
+                </select>
+              </div>
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              End Date
+              <div>
+                <select value={getSortDirection('endDate')} onChange={(e) => handleSortOptionChange('endDate', e)}>
+                  <option value="Sort By">Sort By</option>
+                  <option value="ascending">Ascending</option>
+                  <option value="descending">Descending</option>
+                </select>
+              </div>
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Supporting Doc
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {filteredHigherEducations.map((record) => (
+            <tr key={record._id} className={selectedRows.includes(record._id) ? 'bg-gray-100' : ''}>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <input
+                  type="checkbox"
+                  onChange={() => handleRowSelect(record._id)}
+                  checked={selectedRows.includes(record._id)}
+                />
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">{record.institution}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{record.degree}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{record.fieldOfStudy}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{record.startDate.substring(0, 10)}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{record.endDate.substring(0, 10)}</td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                {record.docs.map((doc, index) => (
+                  <div key={index}>
+                    <a href={doc} target="_blank" rel="noopener noreferrer">View Document {index + 1}</a>
+                  </div>
+                ))}
+              </td>
             </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredHigherEducations.map((record) => (
-              <tr key={record._id} className={selectedRows.includes(record._id) ? 'bg-gray-100' : ''}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <input
-                    type="checkbox"
-                    onChange={() => handleRowSelect(record._id)}
-                    checked={selectedRows.includes(record._id)}
-                  />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">{record.institution}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{record.degree}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{record.fieldOfStudy}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{record.startDate}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{record.endDate}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {record.docs.map((doc, index) => (
-                    <div key={index}>
-                      <a href={doc} target="_blank" rel="noopener noreferrer">View Document {index + 1}</a>
-                    </div>
-                  ))}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-      </div>
+          ))}
+        </tbody>
+      </table>
     </div>
-  );
+  </div>
+);
 };
 
 export default HigherEduTable;
-
