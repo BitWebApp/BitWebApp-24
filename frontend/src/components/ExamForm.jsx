@@ -17,12 +17,7 @@ const ExamForm = () => {
     const [examId, setExamId] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedRows, setSelectedRows] = useState([]);
-    const [sortConfigs, setSortConfigs] = useState({
-        examRoll: null,
-        examName: "",
-        academicYear: null,
-        score: null,
-    });
+    const [sortConfigs, setSortConfigs] = useState([]);
 
     const fetchExams = async () => {
         try {
@@ -116,43 +111,37 @@ const ExamForm = () => {
 
     const handleSortOptionChange = async (field, e) => {
         const direction = e.target.value;
-        await setSortConfigs((prevConfigs) => ({
-            ...prevConfigs,
-            [field]: direction === 'Sort By' ? null : direction,
-        }));
-        fetchExams(); 
+        const newConfig = direction === 'Sort By' ? null : { field, direction };
+        await setSortConfigs((prevConfigs) => {
+            const otherConfigs = prevConfigs.filter(config => config.field !== field);
+            return newConfig ? [...otherConfigs, newConfig] : otherConfigs;
+        });
     };
-    
-    
+
     const getSortDirection = (field) => {
-        return sortConfigs[field];
+        const config = sortConfigs.find(config => config.field === field);
+        return config ? config.direction : 'Sort By';
     };
-    
-    const sortedExams = exams.sort((a, b) => {
-        for (const field in sortConfigs) {
-            if (typeof a[field] === 'string' && typeof b[field] === 'string') {
-                const valueA = a[field].toLowerCase();
-                const valueB = b[field].toLowerCase();
-                const comparison = valueA.localeCompare(valueB);
-                
-                if (sortConfigs[field] === 'ascending') {
-                    if (comparison !== 0) return comparison;
-                } else if (sortConfigs[field] === 'descending') {
-                    if (comparison !== 0) return -comparison;
+
+    const sortExams = (exams, configs) => {
+        return exams.sort((a, b) => {
+            for (const config of configs) {
+                const { field, direction } = config;
+                let comparison = 0;
+                if (typeof a[field] === 'string' && typeof b[field] === 'string') {
+                    comparison = a[field].localeCompare(b[field]);
+                } else {
+                    comparison = a[field] > b[field] ? 1 : (a[field] < b[field] ? -1 : 0);
                 }
-            } else {
-                if (sortConfigs[field] === 'ascending') {
-                    if (a[field] > b[field]) return 1;
-                    if (a[field] < b[field]) return -1;
-                } else if (sortConfigs[field] === 'descending') {
-                    if (a[field] < b[field]) return 1;
-                    if (a[field] > b[field]) return -1;
-                }
+                if (direction === 'descending') comparison *= -1;
+                if (comparison !== 0) return comparison;
             }
-        }
-        return 0;
-    });
-    
+            return 0;
+        });
+    };
+
+    const sortedExams = sortExams([...exams], sortConfigs);
+
     const filteredExams = sortedExams.filter((exam) =>
         Object.values(exam).some((value) =>
             typeof value === 'string' ?
@@ -160,7 +149,16 @@ const ExamForm = () => {
             value.toString().includes(searchQuery)
         )
     );
-    
+
+    const handleRowSelect = (id) => {
+        setSelectedRows((prevSelectedRows) => {
+            if (prevSelectedRows.includes(id)) {
+                return prevSelectedRows.filter((rowId) => rowId !== id);
+            } else {
+                return [...prevSelectedRows, id];
+            }
+        });
+    };
 
     return (
         <div className="w-full min-h-screen flex flex-col items-center">
@@ -262,83 +260,80 @@ const ExamForm = () => {
                 </div>
             </div>
             <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-4 text-center">EXAMINATION DETAILS</h1>
-            <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="mb-4 px-4 py-2 border rounded w-full"
-            />
-            <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <input type="checkbox" />
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Exam Name
-                                <div>
-                                <select value={getSortDirection('examName')||''} onChange={(e) => handleSortOptionChange('examName', e)}>
-                                    <option value="Sort By">Sort By</option>
-                                    <option value="ascending">Ascending</option>
-                                    <option value="descending">Descending</option>
-                                </select>
-
-                                </div>
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Score
-                                <div>
-                                <select value={getSortDirection('score')||''} onChange={(e) => handleSortOptionChange('score', e)}>
-                                    <option value="Sort By">Sort By</option>
-                                    <option value="ascending">Ascending</option>
-                                    <option value="descending">Descending</option>
-                                </select>
-
-                                </div>
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Supporting Doc
-                            </th>
-
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {filteredExams.map((exam) => (
-                            <tr key={exam._id} className={selectedRows.includes(exam._id) ? 'bg-gray-100' : ''}>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <input
-                                        type="checkbox"
-                                        onChange={() => handleRowSelect(exam._id)}
-                                        checked={selectedRows.includes(exam._id)}
-                                    />
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">{exam.examName}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{exam.score}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    {exam.docs.map((doc, index) => (
-                                        <div key={index}>
-                                            <a href={doc} target="_blank" rel="noopener noreferrer">Document {index + 1}</a>
-                                        </div>
-                                    ))}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <button className="bg-blue-500 text-white px-2 py-1 rounded mr-2" onClick={() => handleEdit(exam)}>Edit</button>
-                                    <button className="bg-red-500 text-white px-2 py-1 rounded" onClick={() => handleDelete(exam._id)}>Delete</button>
-                                </td>
+                <h1 className="text-3xl font-bold mb-4 text-center">EXAMINATION DETAILS</h1>
+                <input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="mb-4 px-4 py-2 border rounded w-full"
+                />
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <input type="checkbox" />
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Exam Name
+                                    <div>
+                                        <select value={getSortDirection('examName')||''} onChange={(e) => handleSortOptionChange('examName', e)}>
+                                            <option value="Sort By">Sort By</option>
+                                            <option value="ascending">Ascending</option>
+                                            <option value="descending">Descending</option>
+                                        </select>
+                                    </div>
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Score
+                                    <div>
+                                        <select value={getSortDirection('score')||''} onChange={(e) => handleSortOptionChange('score', e)}>
+                                            <option value="Sort By">Sort By</option>
+                                            <option value="ascending">Ascending</option>
+                                            <option value="descending">Descending</option>
+                                        </select>
+                                    </div>
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Supporting Doc
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {filteredExams.map((exam) => (
+                                <tr key={exam._id} className={selectedRows.includes(exam._id) ? 'bg-gray-100' : ''}>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <input
+                                            type="checkbox"
+                                            onChange={() => handleRowSelect(exam._id)}
+                                            checked={selectedRows.includes(exam._id)}
+                                        />
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">{exam.examName}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">{exam.score}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        {exam.docs.map((doc, index) => (
+                                            <div key={index}>
+                                                <a href={doc} target="_blank" rel="noopener noreferrer">Document {index + 1}</a>
+                                            </div>
+                                        ))}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button className="bg-blue-500 text-white px-2 py-1 rounded mr-2" onClick={() => handleEdit(exam)}>Edit</button>
+                                        <button className="bg-red-500 text-white px-2 py-1 rounded" onClick={() => handleDelete(exam._id)}>Delete</button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        
         </div>
-    </div>
-)}
+    );
+}
 
 export default ExamForm;
