@@ -79,7 +79,7 @@ const updateAcademicRecords = asyncHandler(async (req, res) => {
     return res.status(200).json(
       new ApiResponse(200, updatedAcademicRecord, "Academic record updated successfully.")
     );
-  });
+});
   
 
 // Delete an academic record
@@ -114,42 +114,42 @@ const deleteAcademicRecord = asyncHandler(async (req, res) => {
     return res.status(200).json(
       new ApiResponse(200, null, "Academic record deleted successfully.")
     );
-  });
+});
 
-  const getAdminAcademicRecords = asyncHandler(async (req, res) => {
-    try {
-      // Fetch all academic records and populate the necessary fields from the User model
-      const records = await Academics.find().populate('name', 'fullName rollNumber branch section');
-  
-      console.log('Fetched Records:', records); // Debugging
-  
-      if (!records || records.length === 0) {
-        return res.status(404).json(new ApiResponse(404, [], 'No academic records found.'));
-      }
-  
-      // Filter out records with null name and format the records for the frontend
-      const formattedRecords = records
-        .filter(record => record.name !== null && typeof record.name === 'object')
-        .map(record => {
-          return record.academicRecords.map(academicRecord => ({
-            userId: record.name._id,
-            rollNumber: record.name.rollNumber,
-            fullName: record.name.fullName,
-            branch: record.name.branch,
-            section: record.name.section,
-            semester: academicRecord.semester,
-            gpa: academicRecord.gpa,
-          }));
-        }).flat();
-  
-      console.log('Formatted Records:', formattedRecords); // Debugging
-  
-      return res.status(200).json(new ApiResponse(200, formattedRecords, 'Academic records fetched successfully.'));
-    } catch (error) {
-      console.error('Error fetching academic records:', error);
-      return res.status(500).json(new ApiResponse(500, null, 'An error occurred while fetching academic records.'));
+const getAdminAcademicRecords = asyncHandler(async (req, res) => {
+  try {
+    // Fetch all academic records and populate the necessary fields from the User model
+    const records = await Academics.find().populate('name', 'fullName rollNumber branch section');
+
+    console.log('Fetched Records:', records); // Debugging
+
+    if (!records || records.length === 0) {
+      return res.status(404).json(new ApiResponse(404, [], 'No academic records found.'));
     }
-  });
+
+    // Filter out records with null name and format the records for the frontend
+    const formattedRecords = records
+      .filter(record => record.name !== null && typeof record.name === 'object')
+      .map(record => {
+        return record.academicRecords.map(academicRecord => ({
+          userId: record.name._id,
+          rollNumber: record.name.rollNumber,
+          fullName: record.name.fullName,
+          branch: record.name.branch,
+          section: record.name.section,
+          semester: academicRecord.semester,
+          gpa: academicRecord.gpa,
+        }));
+      }).flat();
+
+    console.log('Formatted Records:', formattedRecords); // Debugging
+
+    return res.status(200).json(new ApiResponse(200, formattedRecords, 'Academic records fetched successfully.'));
+  } catch (error) {
+    console.error('Error fetching academic records:', error);
+    return res.status(500).json(new ApiResponse(500, null, 'An error occurred while fetching academic records.'));
+  }
+});
   
 export { 
     createAcademicRecord, 

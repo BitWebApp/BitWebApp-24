@@ -34,6 +34,6 @@ import awardRouter from "./routes/award.routes.js";
 app.use("/api/v1/awards",awardRouter);
 
 import InternShipRouter from "./routes/internship.routes.js"
-app.use("api/v1/intern",InternShipRouter);
+app.use("/api/v1/intern",InternShipRouter);
 
 export { app };

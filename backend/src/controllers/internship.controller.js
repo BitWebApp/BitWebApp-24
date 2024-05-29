@@ -2,26 +2,57 @@ import { Internship } from "../models/internship.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { uploadOnCloudinary } from "../utils/Cloudinary.js"
-
-const addInternship = asyncHandler(async(req, res) => {
-    const {studentid, company, role, startDate, endDate} = req.body
-    if (
-        [studentid, company, role, startDate, endDate].some((field) => field?.trim() === "")){
-        throw new ApiError(400, "All fields are required:");
+import { uploadOnCloudinary } from "../utils/Cloudinary.js"; // Make sure you have a utility function to upload files to Cloudinary
+import {User} from "../models/user.model.js"
+const addInternship = asyncHandler(async (req, res) => {
+    const { studentid, company, role, startDate, endDate } = req.body;
+  
+    // Check if all required fields are present and not empty
+    if ([studentid, company, role, startDate, endDate].some(field => !field || field.trim() === "")) {
+      throw new ApiError(400, "All fields are required");
     }
-    const internRecord = await Internship.create({
-        student: studentid,
-        company,
-        role, 
-        startDate,
-        endDate
-    })
-    const createdInternRecord = await Internship.findById(internRecord._id)
-    if(!createdInternRecord)
-    throw new ApiError(500, "Something went wrong")
-    return res.status(200).json(new ApiResponse(200, createdInternRecord, "Intern record created successfully"))
-})
+  
+    // Handle document upload if provided
+    let docUrl = null;
+    if (req.file) { // Use req.file instead of req.files
+      const docLocalPath = req.file.path;
+      const uploadedDoc = await uploadOnCloudinary(docLocalPath);
+      if (!uploadedDoc) {
+        throw new ApiError(400, "Document upload failed");
+      }
+      docUrl = uploadedDoc.url;
+    }
+  
+    // Create the internship record
+    const createdInternRecord = await Internship.create({
+      student: studentid,
+      company,
+      role,
+      startDate,
+      endDate,
+      doc: docUrl,
+    });
+  
+    if (!createdInternRecord) {
+      throw new ApiError(500, "Something went wrong");
+    }
+  
+    // Find the student and update their internship list
+    const student = await User.findById(studentid);
+    if (!student) {
+      throw new ApiError(404, "Student not found");
+    }
+  
+    // Ensure internShip is an array
+    if (!student.internShip) {
+      student.internShip = [];
+    }
+  
+    student.internShip.push(createdInternRecord._id);
+    await student.save();
+  
+    return res.status(200).json(new ApiResponse(200, createdInternRecord, "Intern record created successfully"));
+  });
 const addInternDocs = asyncHandler(async(req, res) => {
     const {_id} = req.body
     const internRecord = await Internship.findById(_id)

@@ -32,12 +32,13 @@ export default function InternshipForm() {
       const response = await axios.post("/api/v1/intern/addinternship", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
+          Accept: "application/json",
         },
       });
       console.log('Response:', response.data); // Log the response here
       toast.success("Data uploaded successfully!");
       setTimeout(() => {
-        navigate("/db");
+        window.location.reload()
       }, 2000);
     } catch (err) {
       console.error('Error:', err); // Log the error here
