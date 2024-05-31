@@ -8,10 +8,10 @@ export default function Layout() {
 
   useEffect(() => {
     function handleResize() {
-      setIsSmallScreen(window.innerWidth < 768); // Adjust the breakpoint as needed
+      setIsSmallScreen(window.innerWidth < 768);
     }
     window.addEventListener("resize", handleResize);
-    handleResize(); // Initial check
+    handleResize();
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 

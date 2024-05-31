@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ExcelJS from 'exceljs';
 
 export default function Internshiptable() {
   const [internData, setInternData] = useState([]);
@@ -50,6 +51,56 @@ export default function Internshiptable() {
     return newDate;
   };
 
+  const exportToExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Internships');
+
+    worksheet.columns = [
+      { header: '#', key: 'index', width: 5 },
+      { header: 'Roll Number', key: 'rollNumber', width: 15 },
+      { header: 'Company', key: 'company', width: 20 },
+      { header: 'Role', key: 'role', width: 20 },
+      { header: 'Starting Date', key: 'startDate', width: 15 },
+      { header: 'Ending Date', key: 'endDate', width: 15 },
+      { header: 'Supporting Doc', key: 'doc', width: 30 },
+    ];
+
+    // Group data by roll number
+    const groupedData = filteredData.reduce((acc, record) => {
+      if (!acc[record.student.rollNumber]) {
+        acc[record.student.rollNumber] = [];
+      }
+      acc[record.student.rollNumber].push(record);
+      return acc;
+    }, {});
+
+    let index = 1;
+    for (const rollNumber in groupedData) {
+      groupedData[rollNumber].forEach(record => {
+        worksheet.addRow({
+          index: index++,
+          rollNumber: record.student.rollNumber,
+          company: record.company,
+          role: record.role,
+          startDate: formatDate(record.startDate),
+          endDate: formatDate(record.endDate),
+          doc: record.doc,
+        });
+      });
+    }
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Internship_Report.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="overflow-x-auto">
       <ToastContainer />
@@ -73,6 +124,13 @@ export default function Internshiptable() {
           className="mr-2 p-2 border border-gray-300 rounded"
         />
       </div>
+
+      <button
+        onClick={exportToExcel}
+        className="mb-4 p-2 bg-blue-500 text-white rounded"
+      >
+        Export to Excel
+      </button>
 
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-black">
