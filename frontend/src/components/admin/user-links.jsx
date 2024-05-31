@@ -35,7 +35,8 @@ export  default function useLinks() {
         { text: "Higher Education", icon: <HiAcademicCap />, to: "/db/higher-education-table" },
         { text: "Placement Records", icon: <HiOutlineBriefcase />, to: "/db/placement-table" },
         { text: "Projects", icon: <HiPresentationChartLine />, to: "/db/project-form-table" },
-        { text: "Internships", icon: <HiBriefcase />, to: "/db/internship-form-table" }
+        { text: "Approve Internships", icon: <HiBriefcase />, to: "/db/internship-form-table" },
+        { text: "Internship Records", icon: <HiBriefcase />, to: "/db/internship-table" }
     ];
 
     return isAdmin ? adminLinks : additionalLinks;

@@ -8,10 +8,12 @@ const internshipSchema = new Schema(
     },
     company: {
       type: String,
+      uppercase: true,
       required: [true, "Company name is required!"],
     },
     role: {
       type: String,
+      uppercase: true,
       required: [true, "Role is required!"],
     },
     startDate: {

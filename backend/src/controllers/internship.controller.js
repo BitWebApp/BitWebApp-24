@@ -74,6 +74,10 @@ const getAllInternshipData = asyncHandler(async(req, res) => {
     const response = await Internship.find({verified: false}).populate('student')
     res.status(200).json(new ApiResponse(200, {response}, "All Intern Data fetched"))
 })
+const getAllVerifiedInternshipData = asyncHandler(async(req, res) => {
+  const response = await Internship.find({verified: true}).populate('student')
+  res.status(200).json(new ApiResponse(200, {response}, "All Intern Data fetched"))
+})
 const getInternshipDataforStudent = asyncHandler(async(req, res) => {
     const {student_id} = req.body
     const response = await Internship.find({student: student_id}, {verfied: true}).populate('student')
@@ -86,4 +90,4 @@ const verifyIntern = asyncHandler(async(req, res) => {
   await intern.save()
   res.status(200).json(new ApiResponse(200, "Verified Successfully"))
 })
-export {addInternship, addInternDocs, getAllInternshipData, getInternshipDataforStudent, verifyIntern}
+export {addInternship, addInternDocs, getAllInternshipData, getInternshipDataforStudent, verifyIntern, getAllVerifiedInternshipData}

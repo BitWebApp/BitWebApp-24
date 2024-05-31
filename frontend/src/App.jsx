@@ -32,6 +32,7 @@ import ExamTable from "./components/examtable";
 import HigherEduTable from "./components/higher-eduTable";
 import ProjectTable from "./components/project-table";
 import InternTable from "./components/intern-table";
+import Internshiptable from "./components/internshiptable";
 import axios from "axios";
 import PropTypes from "prop-types";
 import VerifyUsers from "./components/VerifyUsers";
@@ -74,6 +75,7 @@ export default function App() {
           <Route path="exam-form" element={<ExamForm />} />
           <Route path="project-form-table" element={<ProjectTable />} />
           <Route path="internship-form-table" element={<InternTable />} />
+          <Route path="internship-table" element={<Internshiptable />} />
         </Route>
         <Route path="/sg" element={<Signup />} />
         <Route path="/sb" element={<Sidebar />} />
