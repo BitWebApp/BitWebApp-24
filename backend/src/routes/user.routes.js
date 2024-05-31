@@ -11,7 +11,7 @@ import {
   getCurrentUser,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
 const router = Router();
 router
   .route("/register")
@@ -43,6 +43,6 @@ router
     updatePlacementThree
   );
 
-router.route("/placementDetails").get(verifyJWT, getPlacementDetails);
+router.route("/placementDetails").get(verifyAdmin, getPlacementDetails);
 
 export default router;
