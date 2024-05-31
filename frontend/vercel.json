@@ -3,6 +3,7 @@
         {
             "source": "/api/:path(.*)",
             "destination": "https://bitwebapp-24.onrender.com/api/:path"
+            
         },
         {
             "source": "/(.*)",
