@@ -33,7 +33,7 @@ const NavBar = () => {
               Student Login
             </Link>
             <Link
-              to="/sg"
+              to="/log.a"
               className="hover:bg-red-700 hover:text-white transition px-2 py-3 border rounded-md"
             >
               <FontAwesomeIcon icon={faUserTie} className="mx-2" />
