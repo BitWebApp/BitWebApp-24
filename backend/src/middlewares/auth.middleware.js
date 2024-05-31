@@ -32,6 +32,7 @@ const verifyAdmin = asyncHandler(async (req, res, next) => {
     const token =
       req.cookies?.accessToken ||
       req.header("Authorization")?.replace("Bearer ", "");
+    console.log(token);
     if (!token) {
       throw new ApiError(401, "Unauthorized request!");
     }
@@ -43,12 +44,12 @@ const verifyAdmin = asyncHandler(async (req, res, next) => {
       "-password -refreshToken"
     );
     if (!admin) {
-      throw new ApiError(401, "Invalid Access Token");
+      throw new ApiError(401, "Invalid Access Token!");
     }
     req.admin = admin;
     next();
   } catch (error) {
-    throw new ApiError(401, error?.message || "Invalid Access Token");
+    throw new ApiError(401, error?.message || "Invalid Access Token!!");
   }
 });
 

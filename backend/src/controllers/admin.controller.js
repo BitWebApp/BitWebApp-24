@@ -128,4 +128,27 @@ const loginAdmin = asyncHandler(async (req, res) => {
     );
 });
 
-export { getUnverifiedUsers, verifyUser, registerAdmin, loginAdmin };
+const logoutAdmin = asyncHandler(async (req, res) => {
+  await Admin.findByIdAndUpdate(
+    req.admin._id,
+    {
+      $unset: { refreshToken: 1 },
+    },
+    {
+      new: true,
+    }
+  );
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Admin logged out successfully!"));
+});
+
+export {
+  getUnverifiedUsers,
+  verifyUser,
+  registerAdmin,
+  loginAdmin,
+  logoutAdmin,
+};
