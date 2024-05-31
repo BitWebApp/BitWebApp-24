@@ -13,7 +13,7 @@ export default function ExamTable() {
         const response = await axios.get("/api/v1/exam/all");
         setExams(response.data.data);
       } catch (error) {
-        console.log(error.message);
+        console.error('Error fetching exams:', error);
       }
     };
 
@@ -75,9 +75,11 @@ export default function ExamTable() {
       let bValue = b;
 
       for (const part of key) {
-        aValue = aValue[part];
-        bValue = bValue[part];
+        aValue = aValue ? aValue[part] : null;
+        bValue = bValue ? bValue[part] : null;
       }
+
+      if (aValue === null || bValue === null) continue;
 
       if (typeof aValue === 'string' && typeof bValue === 'string') {
         aValue = aValue.toLowerCase();
@@ -97,8 +99,8 @@ export default function ExamTable() {
   const filteredExams = sortedExams.filter((exam) => {
     const query = searchQuery.toLowerCase();
     return (
-      exam.name.fullName.toLowerCase().includes(query) ||
-      exam.name.rollNumber.toLowerCase().includes(query) ||
+      (exam.name?.fullName?.toLowerCase().includes(query) || '') ||
+      (exam.name?.rollNumber?.toLowerCase().includes(query) || '') ||
       exam.examName.toLowerCase().includes(query) ||
       exam.score.toString().toLowerCase().includes(query)
     );
@@ -174,29 +176,29 @@ export default function ExamTable() {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredExams.map((exam) => (
              <tr key={exam._id} className={selectedRows.includes(exam._id) ? 'bg-gray-100' : ''}>
-             <td className="px-6 py-4 whitespace-nowrap">
-               <input
-                 type="checkbox"
-                 onChange={() => handleRowSelect(exam._id)}
-                 checked={selectedRows.includes(exam._id)}
-               />
-             </td>
-             <td className="px-6 py-4 whitespace-nowrap">{exam.name.fullName}</td>
-             <td className="px-6 py-4 whitespace-nowrap">{exam.name.rollNumber}</td>
-             <td className="px-6 py-4 whitespace-nowrap">{exam.examName}</td>
-             <td className="px-6 py-4 whitespace-nowrap">{exam.score}</td>
-             <td className="px-6 py-4 whitespace-nowrap">
-               {exam.docs.map((doc, index) => (
-                 <div key={index}>
-                   <a href={doc} target="_blank" rel="noopener noreferrer">Document {index + 1}</a>
-                 </div>
-               ))}
-             </td>
-           </tr>
-         ))}
-       </tbody>
-     </table>
+               <td className="px-6 py-4 whitespace-nowrap">
+                 <input
+                   type="checkbox"
+                   onChange={() => handleRowSelect(exam._id)}
+                   checked={selectedRows.includes(exam._id)}
+                 />
+               </td>
+               <td className="px-6 py-4 whitespace-nowrap">{exam.name?.fullName}</td>
+               <td className="px-6 py-4 whitespace-nowrap">{exam.name?.rollNumber}</td>
+               <td className="px-6 py-4 whitespace-nowrap">{exam.examName}</td>
+               <td className="px-6 py-4 whitespace-nowrap">{exam.score}</td>
+               <td className="px-6 py-4 whitespace-nowrap">
+                 {exam.docs.map((doc, index) => (
+                   <div key={index}>
+                     <a href={doc} target="_blank" rel="noopener noreferrer">Document {index + 1}</a>
+                   </div>
+                 ))}
+               </td>
+             </tr>
+           ))}
+         </tbody>
+       </table>
+     </div>
    </div>
- </div>
-);
+ );
 }
