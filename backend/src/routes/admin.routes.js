@@ -7,6 +7,7 @@ import {
   registerAdmin,
   verifyUser,
   logoutAdmin,
+  getCurrendAdmin,
 } from "../controllers/admin.controller.js";
 const router = Router();
 
@@ -19,5 +20,7 @@ router.route("/register").post(registerAdmin);
 router.route("/login").post(loginAdmin);
 
 router.route("/logout").post(verifyAdmin, logoutAdmin);
+
+router.route("/get-admin").get(verifyAdmin, getCurrendAdmin);
 
 export default router;

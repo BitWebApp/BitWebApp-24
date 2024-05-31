@@ -134,7 +134,7 @@ const updateUser1 = asyncHandler(async (req, res) => {
     section,
     mobileNumber,
     semester,
-    cgpa
+    cgpa,
   } = req.body;
 
   const updateFields = {};
@@ -146,7 +146,7 @@ const updateUser1 = asyncHandler(async (req, res) => {
   if (section) updateFields.section = section;
   if (mobileNumber) updateFields.mobileNumber = mobileNumber;
   if (semester) updateFields.semester = semester;
-  if(cgpa) updateFields.cgpa = cgpa;
+  if (cgpa) updateFields.cgpa = cgpa;
 
   if (Object.keys(updateFields).length === 0) {
     throw new ApiError(400, "At least one field is required for update");
@@ -158,20 +158,16 @@ const updateUser1 = asyncHandler(async (req, res) => {
     { new: true }
   ).select("-password");
 
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      user,
-      "User details updated successfully!"
-    )
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "User details updated successfully!"));
 });
 const getCurrentUser = asyncHandler(async (req, res) => {
-  const _id = req?.user?._id
-  const user = await User.findById({_id})
-  if(!user) throw new ApiError(404, "user not found")
-  res.status(200).json(new ApiResponse(200, user, "user fetched"))
-})
+  const _id = req?.user?._id;
+  const user = await User.findById({ _id });
+  if (!user) throw new ApiError(404, "user not found");
+  res.status(200).json(new ApiResponse(200, user, "user fetched"));
+});
 
 const updatePlacementOne = asyncHandler(async (req, res) => {
   const { company, ctc, date } = req.body;
@@ -357,5 +353,6 @@ export {
   updatePlacementOne,
   updatePlacementTwo,
   updatePlacementThree,
-  getPlacementDetails, getCurrentUser
+  getPlacementDetails,
+  getCurrentUser,
 };

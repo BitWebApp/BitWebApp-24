@@ -145,10 +145,18 @@ const logoutAdmin = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Admin logged out successfully!"));
 });
 
+const getCurrendAdmin = asyncHandler(async (req, res) => {
+  const _id = req?.admin?._id;
+  const admin = await Admin.findById({ _id });
+  if (!admin) throw new ApiError(404, "admin not found");
+  res.status(200).json(new ApiResponse(200, admin, "admin fetched"));
+});
+
 export {
   getUnverifiedUsers,
   verifyUser,
   registerAdmin,
   loginAdmin,
   logoutAdmin,
+  getCurrendAdmin,
 };
