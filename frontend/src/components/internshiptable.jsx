@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import ExcelJS from 'exceljs';
+// import ExcelJS from 'exceljs';
 
 export default function Internshiptable() {
   const [internData, setInternData] = useState([]);
