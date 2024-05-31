@@ -89,7 +89,7 @@ const deleteAcademicRecord = asyncHandler(async (req, res) => {
   
     console.log('Delete request received for userId:', userId, 'semester:', semester);
   
-    const userExists = await Academics.exists({ name: userId });
+    const userExists = await Academics.exists({ name: userId }); 
     if (!userExists) {
       console.error('User not found for userId:', userId);
       return res.status(404).json(
