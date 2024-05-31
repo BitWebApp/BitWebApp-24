@@ -80,7 +80,7 @@ const getAllVerifiedInternshipData = asyncHandler(async(req, res) => {
 })
 const getInternshipDataforStudent = asyncHandler(async(req, res) => {
     const {student_id} = req.body
-    const response = await Internship.find({student: student_id}, {verfied: true})
+    const response = await Internship.find({student: student_id}, {verfied: true}).populate('student')
     res.status(200).json(new ApiResponse(200, {response}, "All Intern Data fetched"))
 })
 const verifyIntern = asyncHandler(async(req, res) => {
