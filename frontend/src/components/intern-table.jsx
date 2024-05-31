@@ -5,7 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 export default function InternTable() {
   const [internData, setInternData] = useState([]);
-
+  
   useEffect(() => {
     fetchData();
   }, []);
