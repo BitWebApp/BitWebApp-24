@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 
 export default function InternshipForm() {
   const [company, setCompany] = useState("");
@@ -50,6 +50,7 @@ export default function InternshipForm() {
 
   return (
     <div className="w-full min-h-screen flex justify-center items-center">
+      <ToastContainer />
       <div className="w-full flex flex-col p-10 justify-between">
         <h3 className="text-xl text-black font-semibold">BIT WEB APP</h3>
         <div className="w-full flex flex-col">

@@ -26,6 +26,10 @@ const internshipSchema = new Schema(
       type: String,
       required: [true, "Add supporting docs!"],
     },
+    verified: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true }
 );

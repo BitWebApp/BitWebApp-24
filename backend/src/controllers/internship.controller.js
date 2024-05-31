@@ -31,6 +31,7 @@ const addInternship = asyncHandler(async (req, res) => {
       startDate,
       endDate,
       doc: docUrl,
+      verified: false
     });
   
     if (!createdInternRecord) {
@@ -44,11 +45,11 @@ const addInternship = asyncHandler(async (req, res) => {
     }
   
     // Ensure internShip is an array
-    if (!student.internShip) {
-      student.internShip = [];
+    if (!student.internShips) {
+      student.internShips = [];
     }
   
-    student.internShip.push(createdInternRecord._id);
+    student.internShips.push(createdInternRecord._id);
     await student.save();
   
     return res.status(200).json(new ApiResponse(200, createdInternRecord, "Intern record created successfully"));
@@ -70,12 +71,19 @@ const addInternDocs = asyncHandler(async(req, res) => {
     res.status(200).json(new ApiResponse(200, newInternRecord, "Document added successfully"))
 })
 const getAllInternshipData = asyncHandler(async(req, res) => {
-    const response = await Internship.find().populate('student')
+    const response = await Internship.find({verified: false}).populate('student')
     res.status(200).json(new ApiResponse(200, {response}, "All Intern Data fetched"))
 })
 const getInternshipDataforStudent = asyncHandler(async(req, res) => {
     const {student_id} = req.body
-    const response = await Internship.find({student: student_id}).populate('student')
+    const response = await Internship.find({student: student_id}, {verfied: true}).populate('student')
     res.status(200).json(new ApiResponse(200, {response}, "All Intern Data fetched"))
 })
-export {addInternship, addInternDocs, getAllInternshipData, getInternshipDataforStudent}
+const verifyIntern = asyncHandler(async(req, res) => {
+  const {internid} = req.body
+  const intern = await Internship.findById({_id: internid})
+  intern.verified = true;
+  await intern.save()
+  res.status(200).json(new ApiResponse(200, "Verified Successfully"))
+})
+export {addInternship, addInternDocs, getAllInternshipData, getInternshipDataforStudent, verifyIntern}
