@@ -11,6 +11,7 @@ export default function ExamTable() {
   const fetchExams = async () => {
     try {
       const response = await axios.get("/api/v1/exam/all");
+      console.log(response.data.data);
       setExams(response.data.data);
     } catch (error) {
       console.log(error.message);
@@ -31,7 +32,7 @@ export default function ExamTable() {
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Supporting-Doc</th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-white divide-y divide-gray-200"> 
         {exams.map((exam, index) => (
   <tr key={exam._id} className="hover:bg-gray-50">
     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{index + 1}</td>

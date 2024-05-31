@@ -88,7 +88,7 @@ const getExamById = asyncHandler(async (req, res) => {
   const exam = await Exam.findById(req.params.id);
 
   if (!exam) {
-    throw new ApiError(404, "Exam not found");
+    throw new ApiError(404, "Exam not found"); 
   }
 
   res.status(200).json({
