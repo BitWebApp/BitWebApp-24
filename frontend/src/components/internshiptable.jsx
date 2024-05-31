@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-// import ExcelJS from 'exceljs';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import ExcelJS from "exceljs";
 
 export default function Internshiptable() {
   const [internData, setInternData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [filters, setFilters] = useState({
-    company: '',
-    role: '',
-    startDate: '',
-    endDate: '',
+    company: "",
+    role: "",
+    startDate: "",
+    endDate: "",
   });
 
   useEffect(() => {
@@ -20,11 +20,11 @@ export default function Internshiptable() {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('/api/v1/intern/get-verified-interns');
+      const response = await axios.get("/api/v1/intern/get-verified-interns");
       setInternData(response.data.data.response);
       setFilteredData(response.data.data.response);
     } catch (error) {
-      console.error('Error fetching internship data:', error);
+      console.error("Error fetching internship data:", error);
     }
   };
 
@@ -37,10 +37,14 @@ export default function Internshiptable() {
   const filterData = (filters) => {
     let data = internData;
     if (filters.company) {
-      data = data.filter(record => record.company.toLowerCase().includes(filters.company.toLowerCase()));
+      data = data.filter((record) =>
+        record.company.toLowerCase().includes(filters.company.toLowerCase())
+      );
     }
     if (filters.role) {
-      data = data.filter(record => record.role.toLowerCase().includes(filters.role.toLowerCase()));
+      data = data.filter((record) =>
+        record.role.toLowerCase().includes(filters.role.toLowerCase())
+      );
     }
     setFilteredData(data);
   };
@@ -53,16 +57,16 @@ export default function Internshiptable() {
 
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Internships');
+    const worksheet = workbook.addWorksheet("Internships");
 
     worksheet.columns = [
-      { header: '#', key: 'index', width: 5 },
-      { header: 'Roll Number', key: 'rollNumber', width: 15 },
-      { header: 'Company', key: 'company', width: 20 },
-      { header: 'Role', key: 'role', width: 20 },
-      { header: 'Starting Date', key: 'startDate', width: 15 },
-      { header: 'Ending Date', key: 'endDate', width: 15 },
-      { header: 'Supporting Doc', key: 'doc', width: 30 },
+      { header: "#", key: "index", width: 5 },
+      { header: "Roll Number", key: "rollNumber", width: 15 },
+      { header: "Company", key: "company", width: 20 },
+      { header: "Role", key: "role", width: 20 },
+      { header: "Starting Date", key: "startDate", width: 15 },
+      { header: "Ending Date", key: "endDate", width: 15 },
+      { header: "Supporting Doc", key: "doc", width: 30 },
     ];
 
     // Group data by roll number
@@ -76,7 +80,7 @@ export default function Internshiptable() {
 
     let index = 1;
     for (const rollNumber in groupedData) {
-      groupedData[rollNumber].forEach(record => {
+      groupedData[rollNumber].forEach((record) => {
         worksheet.addRow({
           index: index++,
           rollNumber: record.student.rollNumber,
@@ -90,11 +94,13 @@ export default function Internshiptable() {
     }
 
     const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'Internship_Report.xlsx';
+    a.download = "Internship_Report.xlsx";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -104,7 +110,9 @@ export default function Internshiptable() {
   return (
     <div className="overflow-x-auto">
       <ToastContainer />
-      <h1 className="text-center text-3xl font-bold mb-8">INTERNSHIP RECORDS</h1>
+      <h1 className="text-center text-3xl font-bold mb-8">
+        INTERNSHIP RECORDS
+      </h1>
 
       <div className="mb-4">
         <input
@@ -135,25 +143,46 @@ export default function Internshiptable() {
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-black">
           <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
+            >
               #
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
+            >
               Roll Number
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
+            >
               Company
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
+            >
               Role
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
+            >
               Starting Date
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
+            >
               Ending Date
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
+            >
               Supporting-Doc
             </th>
           </tr>
@@ -161,14 +190,28 @@ export default function Internshiptable() {
         <tbody className="bg-white divide-y divide-gray-200">
           {filteredData.map((record, index) => (
             <tr key={index} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{index + 1}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record.student.rollNumber}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record.company}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record.role}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(record.startDate)}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(record.endDate)}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                {index + 1}
+              </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <a href={record.doc} target="_blank" rel="noopener noreferrer">View</a>
+                {record.student.rollNumber}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record.company}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record.role}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {formatDate(record.startDate)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {formatDate(record.endDate)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <a href={record.doc} target="_blank" rel="noopener noreferrer">
+                  View
+                </a>
               </td>
             </tr>
           ))}

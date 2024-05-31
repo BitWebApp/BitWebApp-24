@@ -49,16 +49,34 @@ export default function Sidebar() {
   const links = useLinks();
   const navigate = useNavigate();
   const handleLogout = async () => {
-    axios
-      .post("/api/v1/users/logout")
-      .then((response) => {
-        console.log(response);
+    // axios
+    //   .post("/api/v1/users/logout")
+    //   .then((response) => {
+    //     console.log(response);
+    //     localStorage.removeItem("user");
+    //     navigate("/");
+    //   })
+    //   .catch((error) => {
+    //     console.log(error);
+    //   });
+    try {
+      const response = await axios.post("/api/v1/users/logout");
+      console.log(response);
+      localStorage.removeItem("user");
+      navigate("/");
+    } catch (error) {
+      console.log(error);
+      try {
+        const resp = await axios.post("/api/v1/admin/logout");
+        console.log(resp);
         localStorage.removeItem("user");
         navigate("/");
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+      } catch (err) {
+        console.log(err);
+      }
+    } finally {
+      navigate("/");
+    }
   };
 
   return (

@@ -56,7 +56,10 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="user-form" element={<Userform />} />
           <Route path="academic-form" element={<Academicform />} />
-          <Route path="admin-academic-form" element={<AdminAcademicRecords />} />
+          <Route
+            path="admin-academic-form"
+            element={<AdminAcademicRecords />}
+          />
           <Route path="award-form" element={<Awardform />} />
           <Route path="placement" element={<Placement />}>
             <Route path="placement-one" element={<PlacementOne />} />
@@ -104,6 +107,19 @@ function ProtectedRoute({ children }) {
       } finally {
         setLoading(false);
       }
+      if (!isAuthenticated) {
+        setLoading(true);
+        try {
+          const response = await axios.get("/api/v1/admin/get-admin");
+          if (response.status == 200) {
+            setIsAuthenticated(true);
+          }
+        } catch (err) {
+          console.log("Error fetching admin!", err);
+        } finally {
+          setLoading(false);
+        }
+      }
     };
     checkUser();
   }, []);
@@ -113,10 +129,14 @@ function ProtectedRoute({ children }) {
         <HashLoader size={150} />
         <div className="text-xl py-10 flex font-bold font">
           LOADING
-          <SyncLoader className="translate-y-3" size={5} speedMultiplier={0.75}/>
+          <SyncLoader
+            className="translate-y-3"
+            size={5}
+            speedMultiplier={0.75}
+          />
         </div>
       </div>
-    )
+    );
   }
   if (!isAuthenticated) {
     navigate("/log");
