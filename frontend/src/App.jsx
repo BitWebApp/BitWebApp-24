@@ -80,11 +80,12 @@ export default function App() {
           <Route path="internship-form-table" element={<InternTable />} />
           <Route path="internship-table" element={<Internshiptable />} />
         </Route>
+        <Route path="verify-users" element={<VerifyUsers />} />
         <Route path="/sg" element={<Signup />} />
         <Route path="/sb" element={<Sidebar />} />
         <Route path="/log.a" element={<Loginadmin />} />
         <Route path="/sg.a" element={<Signupadmin />} />
-        <Route path="/verify-users" element={<VerifyUsers />} />
+        
       </Routes>
     </Router>
   );

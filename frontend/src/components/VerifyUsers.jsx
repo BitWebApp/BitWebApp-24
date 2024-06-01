@@ -17,6 +17,7 @@ const UnverifiedUsers = () => {
       }
     }
     fetchUnverifiedUsers()
+    console.log("hello", users)
   }, [])
 
   const handleCheckboxChange = (userId) => {

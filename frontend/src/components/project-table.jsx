@@ -133,27 +133,6 @@ export default function ProjectTable() {
           />
         </div>
       </div>
-      <h1 className="text-center text-3xl font-bold mb-8">PROJECT DETAILS</h1>
-      <div className="mb-4 flex justify-between">
-        <div>
-          <label>Filter by Domain:</label>
-          <input
-            type="text"
-            value={domainFilter}
-            onChange={(e) => setDomainFilter(e.target.value)}
-            className="ml-2 p-2 border border-gray-300 rounded"
-          />
-        </div>
-        <div>
-          <label>Filter by Tech Stack:</label>
-          <input
-            type="text"
-            value={techStackFilter}
-            onChange={(e) => setTechStackFilter(e.target.value)}
-            className="ml-2 p-2 border border-gray-300 rounded"
-          />
-        </div>
-      </div>
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-black">
           <tr>

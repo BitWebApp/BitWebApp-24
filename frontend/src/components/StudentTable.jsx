@@ -13,11 +13,8 @@ const StudentTable = () => {
         const userString = localStorage.getItem("user");
         const user = JSON.parse(userString);
         const studentId = user._id;
-        const response = await axios.post(
+        const response = await axios.get(
           "/api/v1/intern/get-internship-for-student",
-          {
-            student_id : studentId,
-          }
         );
         console.log(response);
         setStudents(response.data.data.response);

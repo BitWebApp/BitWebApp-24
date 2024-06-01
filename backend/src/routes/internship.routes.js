@@ -14,11 +14,11 @@ router
   .route("/addinternship")
   .post(verifyJWT, upload.single("doc"), addInternship);
 router.route("/addinterndocs").post(verifyJWT, addInternDocs);
-router.route("/get-all-interns").get(verifyJWT, getAllInternshipData);
+router.route("/get-all-interns").get(verifyAdmin, getAllInternshipData);
 router
   .route("/get-internship-for-student")
   .post(verifyJWT, getInternshipDataforStudent);
-router.route("/verify-intern").post(verifyJWT, verifyIntern);
+router.route("/verify-intern").post(verifyAdmin, verifyIntern);
 router
   .route("/get-verified-interns")
   .get(verifyAdmin, getAllVerifiedInternshipData);

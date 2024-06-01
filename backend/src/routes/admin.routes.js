@@ -11,9 +11,9 @@ import {
 } from "../controllers/admin.controller.js";
 const router = Router();
 
-router.route("/unverifiedUsers").get(verifyJWT, getUnverifiedUsers);
+router.route("/unverifiedUsers").get(verifyAdmin, getUnverifiedUsers);
 
-router.route("/verifyUser").patch(verifyJWT, verifyUser);
+router.route("/verifyUser").patch(verifyAdmin, verifyUser);
 
 router.route("/register").post(registerAdmin);
 
