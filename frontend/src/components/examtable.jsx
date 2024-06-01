@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
+import ExcelJS from "exceljs";
 export default function ExamTable() {
   const [exams, setExams] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
@@ -106,6 +106,43 @@ export default function ExamTable() {
     );
   });
 
+  const exportToExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Exam Records");
+
+    worksheet.columns = [
+      { header: "Student", key: "name.fullName", width: 25 },
+      { header: "Roll No", key: "name.rollNumber", width: 20 },
+      { header: "Exam Name", key: "examName", width: 25 },
+      { header: "Score", key: "score", width: 15 },
+      { header: "Supporting Docs", key: "docs", width: 30 },
+    ];
+
+    filteredExams.forEach((record, index) => {
+      worksheet.addRow({
+        name: record.name.fullName,
+        rollNumber: record.name.rollNumber,
+        examName: record.examName,
+        score: record.score,
+        docs: record.docs.map((doc) => doc).join(", "),
+      });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Exam_Report.xlsx";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+
   const getSortDirection = (key) => {
     const config = sortConfigs.find(config => config.key === key);
     return config ? config.direction : 'Sort By';
@@ -119,8 +156,14 @@ export default function ExamTable() {
         placeholder="Search..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        className="mb-4 px-4 py-2 border rounded w-full"
+        className="mb-4 px-4 py-2 border rounded"
       />
+      <button
+        onClick={exportToExcel}
+        className="mb-4 mx-4 p-2 bg-blue-500 text-white rounded"
+      >
+        Export to Excel
+      </button>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
