@@ -3,7 +3,7 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ClipLoader from "react-spinners/ClipLoader";
-
+import Swal from 'sweetalert2';
 const ExamForm = () => {
     const [exams, setExams] = useState([]);
     const [examRoll, setExamRoll] = useState("");
@@ -18,6 +18,7 @@ const ExamForm = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedRows, setSelectedRows] = useState([]);
     const [sortConfigs, setSortConfigs] = useState([]);
+    const [isFinalSubmitted, setIsFinalSubmitted] = useState(false);
 
     const fetchExams = async () => {
         try {
@@ -33,6 +34,15 @@ const ExamForm = () => {
     }, []);
 
     const handleEdit = (exam) => {
+        if (isFinalSubmitted) {
+            Swal.fire({
+                title: 'Action Denied',
+                text: 'You cannot edit records after final submission.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
         setExamId(exam._id);
         setExamRoll(exam.examRoll);
         setExamName(exam.examName);
@@ -77,12 +87,12 @@ const ExamForm = () => {
                 } else {
                     response = await axios.post("/api/v1/exam", formData, config);
                 }
-                toast.success("exam details added")
+                toast.success("Exam details added");
                 setTimeout(() => {
-                    window.location.reload()
-                }, 2000)
+                    window.location.reload();
+                }, 2000);
             } catch (error) {
-                toast.error("Something went wrong")
+                toast.error("Something went wrong");
             }
             setExamRoll("");
             setExamName("NET");
@@ -107,6 +117,15 @@ const ExamForm = () => {
     };
 
     const handleDelete = async (id) => {
+        if (isFinalSubmitted) {
+            Swal.fire({
+                title: 'Action Denied',
+                text: 'You cannot delete records after final submission.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
         try {
             await axios.delete(`/api/v1/exam/${id}`);
             fetchExams();
@@ -165,7 +184,42 @@ const ExamForm = () => {
             }
         });
     };
-
+    const handleFinalSubmit = () => {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to modify your data after this submission!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, submit it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire(
+                    'Submitted!',
+                    'Your exam records have been submitted.',
+                    'success'
+                );
+                setIsFinalSubmitted(true);
+                // Optionally, notify the backend about the final submission
+                notifyFinalSubmission();
+            }
+        });
+    };
+    const notifyFinalSubmission = async () => {
+        try {
+            const token = localStorage.getItem("accessToken");
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            };
+            await axios.post("/api/v1/exam/finalSubmit", {}, config);
+            fetchExams(); // Refresh exams after final submission
+        } catch (error) {
+            console.error('Error notifying final submission:', error);
+        }
+    };
     return (
         <div className="w-full min-h-screen flex flex-col items-center">
             <ToastContainer />
@@ -198,7 +252,7 @@ const ExamForm = () => {
                                 }}
                                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                             >
-                                <option value="NET">NET</option>
+                                 <option value="NET">NET</option>
                                 <option value="SLET">SLET</option>
                                 <option value="GATE">GATE</option>
                                 <option value="GMAT">GMAT</option>
@@ -263,6 +317,7 @@ const ExamForm = () => {
                             </button>
                         </div>
                     </form>
+                    
                 </div>
             </div>
             <div className="container mx-auto px-4 py-8">
@@ -300,6 +355,7 @@ const ExamForm = () => {
                                             <option value="descending">Descending</option>
                                         </select>
                                     </div>
+                                    
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Supporting Doc
@@ -334,10 +390,19 @@ const ExamForm = () => {
                                     </td>
                                 </tr>
                             ))}
+                              <button
+            onClick={handleFinalSubmit}
+            className="bg-red-500 text-white px-4 py-2 mt-4 rounded-md shadow hover:bg-red-600 focus:outline-none"
+            disabled={isFinalSubmitted}
+        >
+            {isFinalSubmitted ? "Final Submission Done" : "Final Submit"}
+        </button>
                         </tbody>
                     </table>
                 </div>
+                
             </div>
+            
         </div>
     );
 }

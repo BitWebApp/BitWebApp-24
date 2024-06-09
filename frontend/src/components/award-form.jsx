@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Cliploader from "react-spinners/ClipLoader";
+import Swal from 'sweetalert2';
 
 const AwardForm = () => {
   const [awards, setAwards] = useState([]);
@@ -26,8 +27,7 @@ const AwardForm = () => {
     fetchAwards();
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setLoading(true);
 
     const formData = new FormData();
@@ -41,13 +41,30 @@ const AwardForm = () => {
       await axios.post('/api/v1/awards', formData);
       toast.success('Award created successfully!');
       setTimeout(() => {
-        window.location.reload()
-      }, 2000)
+        window.location.reload();
+      }, 2000);
     } catch (error) {
       toast.error('An error occurred while saving the award');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFinalSubmit = (e) => {
+    e.preventDefault();
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to update this data after submission!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, submit it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        handleSubmit();
+      }
+    });
   };
 
   return (
@@ -60,7 +77,7 @@ const AwardForm = () => {
             <p className="text-base mb-2">Enter Your details.</p>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleFinalSubmit}>
             <div className="w-full flex flex-col">
               <label>Award Name</label>
               <input
@@ -103,9 +120,9 @@ const AwardForm = () => {
               />
               <button
                 type="submit"
-                className={loading ? "bg-black text-white w-full rounded-md p-4 text-center flex items-center opacity-70 justify-center my-2 hover:bg-black/90" :"bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"}
+                className={loading ? "bg-black text-white w-full rounded-md p-4 text-center flex items-center opacity-70 justify-center my-2 hover:bg-black/90" : "bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"}
               >
-                {loading ? <Cliploader color="gray" /> : "SUBMIT"}
+                {loading ? <Cliploader color="gray" /> : "FINAL SUBMIT"}
               </button>
             </div>
           </form>
