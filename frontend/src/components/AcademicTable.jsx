@@ -37,47 +37,47 @@ export default function AcademicTable() {
     }
   };
 
-  const handleDelete = async () => {
-    try {
-      const userData = JSON.parse(localStorage.getItem('user'));
-      const userId = userData._id;  
-      await axios.delete(`/api/v1/academics/delete/${userId}`, { 
-        data: { semester: selectedRecord.semester },
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
-      fetchAcademicRecords();
-      setSelectedRecord(null);
-    } catch (error) {
-      console.error('Error deleting academic record:', error);
-    }
-  };
+  // const handleDelete = async () => {
+  //   try {
+  //     const userData = JSON.parse(localStorage.getItem('user'));
+  //     const userId = userData._id;  
+  //     await axios.delete(`/api/v1/academics/delete/${userId}`, { 
+  //       data: { semester: selectedRecord.semester },
+  //       headers: {
+  //         Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+  //       }
+  //     });
+  //     fetchAcademicRecords();
+  //     setSelectedRecord(null);
+  //   } catch (error) {
+  //     console.error('Error deleting academic record:', error);
+  //   }
+  // };
 
-  const handleUpdate = async () => {
-    try {
-      const userData = JSON.parse(localStorage.getItem('user'));
-      const userId = userData._id;  
-      const response = await axios.patch(`/api/v1/academics/update/${userId}`, { 
-        semester: selectedRecord.semester, 
-        gpa: updatedGPA 
-      }, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
+  // const handleUpdate = async () => {
+  //   try {
+  //     const userData = JSON.parse(localStorage.getItem('user'));
+  //     const userId = userData._id;  
+  //     const response = await axios.patch(`/api/v1/academics/update/${userId}`, { 
+  //       semester: selectedRecord.semester, 
+  //       gpa: updatedGPA 
+  //     }, {
+  //       headers: {
+  //         Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+  //       }
+  //     });
 
-      if (response.data.success) {
-        fetchAcademicRecords();
-        setSelectedRecord(null);
-        setUpdatedGPA('');
-      } else {
-        console.error('Failed to update academic record');
-      }
-    } catch (error) {
-      console.error('Error updating academic record:', error);
-    }
-  };
+  //     if (response.data.success) {
+  //       fetchAcademicRecords();
+  //       setSelectedRecord(null);
+  //       setUpdatedGPA('');
+  //     } else {
+  //       console.error('Failed to update academic record');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error updating academic record:', error);
+  //   }
+  // };
 
   const handleRowClick = (record) => {
     if (!isFinalSubmitted) { // Prevent selection if final submission is made
@@ -86,6 +86,11 @@ export default function AcademicTable() {
       setUpdatedGPA(record.gpa);
     }
   };
+  // const handleRowClick = (record) => {
+  //   setSelectedRecord(record);
+  //   setSelectedSemester(record.semester);
+  //   setUpdatedGPA(record.gpa);
+  // };
 
   const handleAdd = () => {
     if (!isFinalSubmitted) { 
@@ -146,6 +151,30 @@ export default function AcademicTable() {
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">#</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Semester</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">GPA</th>
+=======
+  <h1 className="text-center text-3xl font-bold mb-8">ACADEMIC RECORDS</h1>
+  {/* <div className="flex justify-between mb-4">
+    <button onClick={handleDelete} disabled={!selectedRecord} className="bg-red-500 text-white px-4 py-2 rounded-md disabled:bg-gray-300">Delete</button>
+    <div>
+      <input type="number" value={updatedGPA} onChange={(e) => setUpdatedGPA(e.target.value)} className="mr-2" />
+      <button onClick={handleUpdate} disabled={!selectedRecord} className="bg-blue-500 text-white px-4 py-2 rounded-md disabled:bg-gray-300">Update</button>
+    </div>
+  </div> */}
+  <table className="min-w-full divide-y divide-gray-200">
+    <thead className="bg-black">
+      <tr>
+        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">#</th>
+        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Semester</th>
+        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">GPA</th>
+      </tr>
+    </thead>
+    <tbody className="bg-white divide-y divide-gray-200">
+      {academicRecords.length > 0 ? (
+        academicRecords.map((record, index) => (
+          <tr key={record._id} className={record.semester === selectedSemester ? 'bg-gray-200' : ''}>
+            <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
+            <td className="px-6 py-4 whitespace-nowrap">{record.semester}</td>
+            <td className="px-6 py-4 whitespace-nowrap">{record.gpa}</td>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">

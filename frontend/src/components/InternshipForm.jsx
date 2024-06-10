@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import Swal from 'sweetalert2';
+=======
+import { ClipLoader } from 'react-spinners';
 
 const handleFinalSubmit = () => {
   Swal.fire({
@@ -136,7 +138,7 @@ export default function InternshipForm() {
                 type="submit"
                 className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
               >
-                Submit
+                {spin ? <ClipLoader /> : "Submit"}
               </button>
             </div>
           </form>

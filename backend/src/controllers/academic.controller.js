@@ -53,69 +53,6 @@ const getStudentAcademicRecords = asyncHandler(async (req, res) => {
     );
 });
 
-
-// Update academic records
-const updateAcademicRecords = asyncHandler(async (req, res) => {
-    const { semester, gpa } = req.body;
-    const userId = req.params.id;
-  
-    if (!semester || !gpa) {
-      throw new ApiError(400, "Semester and GPA are required fields.");
-    }
-  
-    const userExists = await Academics.exists({ name: userId });
-    if (!userExists) {
-      return res.status(404).json(
-        new ApiResponse(404, null, "User not found.")
-      );
-    }
-  
-    const updatedAcademicRecord = await Academics.findOneAndUpdate(
-      { name: userId, "academicRecords.semester": semester },
-      { $set: { "academicRecords.$.gpa": gpa } },
-      { new: true }
-    ).select("-__v");
-  
-    return res.status(200).json(
-      new ApiResponse(200, updatedAcademicRecord, "Academic record updated successfully.")
-    );
-});
-  
-
-// Delete an academic record
-const deleteAcademicRecord = asyncHandler(async (req, res) => {
-    const { semester } = req.body;
-    const userId = req.params.id;
-  
-    console.log('Delete request received for userId:', userId, 'semester:', semester);
-  
-    const userExists = await Academics.exists({ name: userId }); 
-    if (!userExists) {
-      console.error('User not found for userId:', userId);
-      return res.status(404).json(
-        new ApiResponse(404, null, "User not found.")
-      );
-    }
-  
-    const recordExists = await Academics.exists({ name: userId, "academicRecords.semester": semester });
-    if (!recordExists) {
-      console.error('Academic record not found for userId:', userId, 'semester:', semester);
-      return res.status(404).json(
-        new ApiResponse(404, null, "Academic record not found.")
-      );
-    }
-  
-    await Academics.findOneAndUpdate(
-      { name: userId },
-      { $pull: { academicRecords: { semester } } }
-    );
-  
-    console.log('Academic record deleted for userId:', userId, 'semester:', semester);
-    return res.status(200).json(
-      new ApiResponse(200, null, "Academic record deleted successfully.")
-    );
-});
-
 const getAdminAcademicRecords = asyncHandler(async (req, res) => {
   try {
     // Fetch all academic records and populate the necessary fields from the User model
@@ -154,7 +91,100 @@ const getAdminAcademicRecords = asyncHandler(async (req, res) => {
 export { 
     createAcademicRecord, 
     getStudentAcademicRecords,
-    updateAcademicRecords, 
-    deleteAcademicRecord,
     getAdminAcademicRecords
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// FOR REFERENCE IN FUTURE, JUST IN CASE: UPDATE AND DELETE FUNCTIONALITY
+
+// Update academic records
+// const updateAcademicRecords = asyncHandler(async (req, res) => {
+//     const { semester, gpa } = req.body;
+//     const userId = req.params.id;
+  
+//     if (!semester || !gpa) {
+//       throw new ApiError(400, "Semester and GPA are required fields.");
+//     }
+  
+//     const userExists = await Academics.exists({ name: userId });
+//     if (!userExists) {
+//       return res.status(404).json(
+//         new ApiResponse(404, null, "User not found.")
+//       );
+//     }
+  
+//     const updatedAcademicRecord = await Academics.findOneAndUpdate(
+//       { name: userId, "academicRecords.semester": semester },
+//       { $set: { "academicRecords.$.gpa": gpa } },
+//       { new: true }
+//     ).select("-__v");
+  
+//     return res.status(200).json(
+//       new ApiResponse(200, updatedAcademicRecord, "Academic record updated successfully.")
+//     );
+// });
+  
+
+// Delete an academic record
+// const deleteAcademicRecord = asyncHandler(async (req, res) => {
+//     const { semester } = req.body;
+//     const userId = req.params.id;
+  
+//     console.log('Delete request received for userId:', userId, 'semester:', semester);
+  
+//     const userExists = await Academics.exists({ name: userId }); 
+//     if (!userExists) {
+//       console.error('User not found for userId:', userId);
+//       return res.status(404).json(
+//         new ApiResponse(404, null, "User not found.")
+//       );
+//     }
+  
+//     const recordExists = await Academics.exists({ name: userId, "academicRecords.semester": semester });
+//     if (!recordExists) {
+//       console.error('Academic record not found for userId:', userId, 'semester:', semester);
+//       return res.status(404).json(
+//         new ApiResponse(404, null, "Academic record not found.")
+//       );
+//     }
+  
+//     await Academics.findOneAndUpdate(
+//       { name: userId },
+//       { $pull: { academicRecords: { semester } } }
+//     );
+  
+//     console.log('Academic record deleted for userId:', userId, 'semester:', semester);
+//     return res.status(200).json(
+//       new ApiResponse(200, null, "Academic record deleted successfully.")
+//     );
+// });
+
+// router.route("/update/:id").patch(verifyJWT, updateAcademicRecords);
+// router.route("/delete/:id").delete(verifyJWT, deleteAcademicRecord);
