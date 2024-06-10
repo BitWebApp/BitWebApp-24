@@ -138,6 +138,7 @@ import { useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { ClipLoader } from 'react-spinners';
 
 export default function ProjectForm() {
   const [projectName, setProjectName] = useState("");
@@ -306,7 +307,7 @@ export default function ProjectForm() {
                   type="submit"
                   className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
                 >
-                  {editId ? 'Update' : 'Submit'}
+                  {spin ? <ClipLoader /> : editId ? 'Update' : 'Submit'}
                 </button>
               </div>
             </form>

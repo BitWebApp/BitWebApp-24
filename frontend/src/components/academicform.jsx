@@ -2,16 +2,19 @@ import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { ClipLoader } from 'react-spinners';
 
 export default function Academicform() {
   const [semester, setSemester] = useState("");
   const [gpa, setGpa] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Submit button clicked");
     try {
+      setLoading(true);
       const userData = JSON.parse(localStorage.getItem('user'));
       console.log("User Data:", userData);
       
@@ -42,6 +45,9 @@ export default function Academicform() {
     } catch (error) {
       console.error('Error creating academic record:', error);
       alert('Failed to create academic record. Please try again.');
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -81,7 +87,7 @@ export default function Academicform() {
               <button
                 className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
               >
-                Submit
+                {loading ? <ClipLoader/> : "Submit"}
               </button>
             </div>
           </form>

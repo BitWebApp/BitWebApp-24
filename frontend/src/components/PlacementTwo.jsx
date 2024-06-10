@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { GridLoader } from "react-spinners";
+import { ClipLoader, GridLoader } from "react-spinners";
 import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -91,7 +91,7 @@ const PlacementTwo = () => {
               onClick={handleSubmit}
               className="h-10 w-44 rounded-lg border border-black bg-white font-semibold"
             >
-              Upload
+              {spin ? <ClipLoader/>: "Upload"}
             </button>
           )}
           <span className="font-semibold underline underline-offset cursor-pointer text-blue-600">
