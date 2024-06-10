@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Link } from "react-router-dom";
+import Swal from 'sweetalert2';
 
 const PlacementTwo = () => {
   const [company, setCompany] = useState("");
@@ -14,7 +15,8 @@ const PlacementTwo = () => {
   const [file, setFile] = useState("");
   const [spin, setSpin] = useState(false);
   const navigate = useNavigate();
-
+  const [isFinalSubmitted, setIsFinalSubmitted] = useState(false); 
+  const [finalSubmitLoading, setFinalSubmitLoading] = useState(false); 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSpin(true);
@@ -41,7 +43,32 @@ const PlacementTwo = () => {
       setSpin(false);
     }
   };
-
+  const handleFinalSubmit = () => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to modify your data after this submission!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, submit it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setFinalSubmitLoading(true);
+        // Simulate an API call for final submission
+        setTimeout(() => {
+          Swal.fire(
+            'Submitted!',
+            'Your exam records have been submitted.',
+            'success'
+          );
+          setIsFinalSubmitted(true);
+          localStorage.setItem('isFinalSubmitted', JSON.stringify(true));
+          setFinalSubmitLoading(false);
+        }, 2000); // Simulated delay
+      }
+    });
+  };
   return (
     <div className="flex flex-col items-center px-4 sm:px-0">
       <ToastContainer />
@@ -99,6 +126,13 @@ const PlacementTwo = () => {
           </span>
         </form>
       </div>
+      <button
+        onClick={handleFinalSubmit}
+        className={finalSubmitLoading ? "bg-black text-white w-full rounded-md p-4 text-center flex items-center opacity-70 justify-center my-2 hover:bg-black/90" : "bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"}
+        disabled={isFinalSubmitted}
+      >
+        {finalSubmitLoading ? <ClipLoader color="gray" /> : 'Final Submit'}
+      </button>
     </div>
   );
 };

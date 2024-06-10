@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ClipLoader from "react-spinners/ClipLoader";
+import Swal from 'sweetalert2';
 
 const HigherEducation = () => {
   const [higherEducations, setHigherEducations] = useState([]);
@@ -16,6 +17,8 @@ const HigherEducation = () => {
   const [higherEducationId, setHigherEducationId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortConfigs, setSortConfigs] = useState([]);
+  const [isFinalSubmitted, setIsFinalSubmitted] = useState(false);
+  const [finalSubmitLoading, setFinalSubmitLoading] = useState(false);
 
   const fetchHigherEducations = async () => {
     try {
@@ -28,6 +31,10 @@ const HigherEducation = () => {
 
   useEffect(() => {
     fetchHigherEducations();
+    const finalSubmitState = localStorage.getItem('isFinalSubmitted');
+    if (finalSubmitState) {
+      setIsFinalSubmitted(JSON.parse(finalSubmitState));
+    }
   }, []);
 
   const handleSubmit = async (e) => {
@@ -68,6 +75,15 @@ const HigherEducation = () => {
   };
 
   const handleEdit = (higherEducation) => {
+    if (isFinalSubmitted) {
+      Swal.fire({
+          title: 'Action Denied',
+          text: 'You cannot edit records after final submission.',
+          icon: 'error',
+          confirmButtonText: 'OK'
+      });
+      return;
+    }
     setHigherEducationId(higherEducation._id);
     setInstitute(higherEducation.institution);
     setDegree(higherEducation.degree);
@@ -78,6 +94,15 @@ const HigherEducation = () => {
   };
 
   const handleDelete = async (id) => {
+    if (isFinalSubmitted) {
+      Swal.fire({
+          title: 'Action Denied',
+          text: 'You cannot delete records after final submission.',
+          icon: 'error',
+          confirmButtonText: 'OK'
+      });
+      return;
+    }
     if (window.confirm('Are you sure you want to delete this higher education?')) {
       try {
         await axios.delete(`/api/v1/higher-education/${id}`);
@@ -136,6 +161,33 @@ const HigherEducation = () => {
       value.toString().includes(searchQuery)
     )
   );
+
+  const handleFinalSubmit = () => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to modify your data after this submission!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, submit it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setFinalSubmitLoading(true);
+        // Simulate an API call for final submission
+        setTimeout(() => {
+          Swal.fire(
+            'Submitted!',
+            'Your exam records have been submitted.',
+            'success'
+          );
+          setIsFinalSubmitted(true);
+          localStorage.setItem('isFinalSubmitted', JSON.stringify(true));
+          setFinalSubmitLoading(false);
+        }, 2000); // Simulated delay
+      }
+    });
+  };
 
   return (
     <div className="w-full min-h-screen flex flex-col items-center">
@@ -279,22 +331,23 @@ const HigherEducation = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredHigherEducations.map((higherEducation) => (
                 <tr key={higherEducation._id}>
-                  <td className="px-6 py-4 whitespace-nowrap">{higherEducation.institution}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{higherEducation.degree}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{higherEducation.fieldOfStudy}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{new Date(higherEducation.startDate).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{new Date(higherEducation.endDate).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap"><a href={higherEducation.docs}>Doc</a></td>
-                  <td className="px-6 py-4 whitespace-nowrap space-x-2">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{higherEducation.institution}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{higherEducation.degree}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{higherEducation.fieldOfStudy}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{higherEducation.startDate}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{higherEducation.endDate}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button
                       onClick={() => handleEdit(higherEducation)}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700"
+                      className="text-indigo-600 hover:text-indigo-900"
+                      disabled={isFinalSubmitted}
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(higherEducation._id)}
-                      className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-700"
+                      className="text-red-600 hover:text-red-900 ml-4"
+                      disabled={isFinalSubmitted}
                     >
                       Delete
                     </button>
@@ -305,6 +358,13 @@ const HigherEducation = () => {
           </table>
         </div>
       </div>
+      <button
+        onClick={handleFinalSubmit}
+        className={finalSubmitLoading ? "bg-black text-white w-full rounded-md p-4 text-center flex items-center opacity-70 justify-center my-2 hover:bg-black/90" : "bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"}
+        disabled={isFinalSubmitted}
+      >
+        {finalSubmitLoading ? <ClipLoader color="gray" /> : 'Final Submit'}
+      </button>
     </div>
   );
 };

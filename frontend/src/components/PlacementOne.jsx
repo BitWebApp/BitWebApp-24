@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
-import { GridLoader } from "react-spinners";
-import { toast } from "react-toastify";
-import { ToastContainer } from "react-toastify";
+import { GridLoader, ClipLoader } from "react-spinners";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Swal from 'sweetalert2';
 
 const PlacementOne = () => {
   const [company, setCompany] = useState("");
@@ -13,6 +13,8 @@ const PlacementOne = () => {
   const [date, setDate] = useState("");
   const [file, setFile] = useState("");
   const [spin, setSpin] = useState(false);
+  const [isFinalSubmitted, setIsFinalSubmitted] = useState(false);
+  const [finalSubmitLoading, setFinalSubmitLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -40,6 +42,33 @@ const PlacementOne = () => {
     } finally {
       setSpin(false);
     }
+  };
+
+  const handleFinalSubmit = () => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to modify your data after this submission!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, submit it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setFinalSubmitLoading(true);
+        // Simulate an API call for final submission
+        setTimeout(() => {
+          Swal.fire(
+            'Submitted!',
+            'Your exam records have been submitted.',
+            'success'
+          );
+          setIsFinalSubmitted(true);
+          localStorage.setItem('isFinalSubmitted', JSON.stringify(true));
+          setFinalSubmitLoading(false);
+        }, 2000); // Simulated delay
+      }
+    });
   };
 
   return (
@@ -99,6 +128,13 @@ const PlacementOne = () => {
           </span>
         </form>
       </div>
+      <button
+        onClick={handleFinalSubmit}
+        className={finalSubmitLoading ? "bg-black text-white w-full rounded-md p-4 text-center flex items-center opacity-70 justify-center my-2 hover:bg-black/90" : "bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"}
+        disabled={isFinalSubmitted}
+      >
+        {finalSubmitLoading ? <ClipLoader color="gray" /> : 'Final Submit'}
+      </button>
     </div>
   );
 };

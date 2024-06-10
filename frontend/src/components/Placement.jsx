@@ -29,12 +29,14 @@ const Placement = () => {
         >
           Placement Three
         </Link>
+        
       </nav>
       <Routes>
         <Route path="placement-one" element={<PlacementOne />} />
         <Route path="placement-two" element={<PlacementTwo />} />
         <Route path="placement-three" element={<PlacementThree />} />
       </Routes>
+      
     </div>
   );
 };

@@ -3,7 +3,34 @@ import { useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 
+const handleFinalSubmit = () => {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "You won't be able to modify your data after this submission!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, submit it!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      setFinalSubmitLoading(true);
+      // Simulate an API call for final submission
+      setTimeout(() => {
+        Swal.fire(
+          'Submitted!',
+          'Your exam records have been submitted.',
+          'success'
+        );
+        setIsFinalSubmitted(true);
+        localStorage.setItem('isFinalSubmitted', JSON.stringify(true));
+        setFinalSubmitLoading(false);
+      }, 2000); // Simulated delay
+    }
+  });
+};
 export default function InternshipForm() {
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
@@ -11,7 +38,8 @@ export default function InternshipForm() {
   const [endDate, setEndDate] = useState("");
   const [idCard, setIdCard] = useState(null); // Ensure this is null initially
   const [spin, setSpin] = useState(false);
-
+  const [isFinalSubmitted, setIsFinalSubmitted] = useState(false);
+  const [finalSubmitLoading, setFinalSubmitLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -112,6 +140,7 @@ export default function InternshipForm() {
               </button>
             </div>
           </form>
+          
           <div className="w-full items-center justify-center flex">
             <p className="text-sm font-normal text-black">
               <span className="font-semibold underline underline-offset cursor-pointer text-blue-600">
@@ -119,8 +148,11 @@ export default function InternshipForm() {
               </span>
             </p>
           </div>
+          <button onClick={handleFinalSubmit} className="bg-red-500 text-white px-4 py-2 rounded-md" disabled={isFinalSubmitted}>Final Submit</button>
+          
         </div>
       </div>
     </div>
+    
   );
 }
