@@ -11,7 +11,13 @@ const createHigherEducation = asyncHandler(async (req, res) => {
   }
 
   const docsURL = [];
-  
+  const isDup=await HigherEducation.findOne({
+    name:req.user._id,
+    institution: { $regex: new RegExp(`^${institution}$`, 'i') },
+    degree:{ $regex: new RegExp(`^${degree}$`, 'i') }
+  })
+
+  if(isDup) {throw new Error("exam exists already!")}
   for (const file of req.files) {
     try {
       const cloudinaryResponse = await uploadOnCloudinary(file.path);
@@ -50,41 +56,41 @@ const getHigherEducations = asyncHandler(async (req, res) => {
   });
 });
 
-const deleteHigherEducation = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+// const deleteHigherEducation = asyncHandler(async (req, res) => {
+//   const { id } = req.params;
 
-  try {
-    const deletedHigherEducation = await HigherEducation.findByIdAndDelete(id);  
+//   try {
+//     const deletedHigherEducation = await HigherEducation.findByIdAndDelete(id);  
 
-    if(!deletedHigherEducation){
-      throw new ApiError(404, "Higher Education not found")
-    }
+//     if(!deletedHigherEducation){
+//       throw new ApiError(404, "Higher Education not found")
+//     }
 
-    const docsURL = deletedHigherEducation.docs;
-    if (docsURL && Array.isArray(docsURL) && docsURL.length > 0) {
-      for (const url of docsURL) {
-        try {
-          const publicId = url.split("/").pop().split(".")[0];
-          await deleteFromCloudinary(publicId);
-        } catch (error) {
-          console.error("Error deleting file from Cloudinary:", error);
-        }
-      }
-    }
+//     const docsURL = deletedHigherEducation.docs;
+//     if (docsURL && Array.isArray(docsURL) && docsURL.length > 0) {
+//       for (const url of docsURL) {
+//         try {
+//           const publicId = url.split("/").pop().split(".")[0];
+//           await deleteFromCloudinary(publicId);
+//         } catch (error) {
+//           console.error("Error deleting file from Cloudinary:", error);
+//         }
+//       }
+//     }
 
-    await User.findByIdAndUpdate(deletedHigherEducation.name, { $pull: { higherEd: id } });
+//     await User.findByIdAndUpdate(deletedHigherEducation.name, { $pull: { higherEd: id } });
 
-    res.status(200).json({
-      success: true,
-      data: {},
-    });
+//     res.status(200).json({
+//       success: true,
+//       data: {},
+//     });
 
-  } catch (error) {
-    console.error("Error deleting Higher-education", error);
-    res.status(500).json({ error : "Internal Server Error" })
-  }
+//   } catch (error) {
+//     console.error("Error deleting Higher-education", error);
+//     res.status(500).json({ error : "Internal Server Error" })
+//   }
 
-});
+// });
 
 const getHigherEducationById = asyncHandler(async (req, res)=>{
   const higherEducation = await HigherEducation.findById(req.params.id);
@@ -109,68 +115,68 @@ const getAllHigherEducations = asyncHandler(async (req, res)=>{
 });
 
 
-const updateHigherEducation = asyncHandler(async (req, res)=>{
-  const { id } = req.params;
-  const { institution, degree, fieldOfStudy, startDate, endDate } = req.body;
+// const updateHigherEducation = asyncHandler(async (req, res)=>{
+//   const { id } = req.params;
+//   const { institution, degree, fieldOfStudy, startDate, endDate } = req.body;
 
-  try {
-    const higherEducation = await HigherEducation.findById(id);
+//   try {
+//     const higherEducation = await HigherEducation.findById(id);
 
-    if (!higherEducation) {
-      throw new ApiError(404, "Higher Education not found");
-    }
+//     if (!higherEducation) {
+//       throw new ApiError(404, "Higher Education not found");
+//     }
 
-    higherEducation.institution = institution;
-    higherEducation.degree = degree;
-    higherEducation.fieldOfStudy = fieldOfStudy;
-    higherEducation.startDate = startDate;
-    higherEducation.endDate = endDate;
+//     higherEducation.institution = institution;
+//     higherEducation.degree = degree;
+//     higherEducation.fieldOfStudy = fieldOfStudy;
+//     higherEducation.startDate = startDate;
+//     higherEducation.endDate = endDate;
 
-    const docsURL = higherEducation.docs;
-    if (docsURL && Array.isArray(docsURL) && docsURL.length > 0) {
-      for (const url of docsURL) {
-        try {
-          const publicId = url.split("/").pop().split(".")[0];
-          await deleteFromCloudinary(publicId);
-        } catch (error) {
-          console.error("Error deleting file from Cloudinary:", error);
-        }
-      }
-    }
+//     const docsURL = higherEducation.docs;
+//     if (docsURL && Array.isArray(docsURL) && docsURL.length > 0) {
+//       for (const url of docsURL) {
+//         try {
+//           const publicId = url.split("/").pop().split(".")[0];
+//           await deleteFromCloudinary(publicId);
+//         } catch (error) {
+//           console.error("Error deleting file from Cloudinary:", error);
+//         }
+//       }
+//     }
 
-    const newHigherEducationDocs = [];
-    if (req.files && req.files.length) {
-      for (const file of req.files) {
-        try {
-          const cloudinaryResponse = await uploadOnCloudinary(file.path);
-          console.log("Uploaded file to Cloudinary:", cloudinaryResponse);
-          newHigherEducationDocs.push(cloudinaryResponse.secure_url);
-        } catch (error) {
-          console.error("Error uploading file to Cloudinary:", error);
-          throw new Error("Failed to upload file to Cloudinary");
-        }
-      }
-    }
+//     const newHigherEducationDocs = [];
+//     if (req.files && req.files.length) {
+//       for (const file of req.files) {
+//         try {
+//           const cloudinaryResponse = await uploadOnCloudinary(file.path);
+//           console.log("Uploaded file to Cloudinary:", cloudinaryResponse);
+//           newHigherEducationDocs.push(cloudinaryResponse.secure_url);
+//         } catch (error) {
+//           console.error("Error uploading file to Cloudinary:", error);
+//           throw new Error("Failed to upload file to Cloudinary");
+//         }
+//       }
+//     }
 
-    higherEducation.docs = newHigherEducationDocs;
+//     higherEducation.docs = newHigherEducationDocs;
 
-    await higherEducation.save();
+//     await higherEducation.save();
 
-    res.status(200).json({
-      success: true,
-      data: higherEducation,
-    });
-  } catch (error) {
-    console.error("Error updating Higher Education:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
+//     res.status(200).json({
+//       success: true,
+//       data: higherEducation,
+//     });
+//   } catch (error) {
+//     console.error("Error updating Higher Education:", error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// });
 
 export { 
   createHigherEducation, 
   getHigherEducations, 
   getAllHigherEducations,
   getHigherEducationById,
-  updateHigherEducation,
-  deleteHigherEducation 
+  // updateHigherEducation,
+  // deleteHigherEducation 
 };

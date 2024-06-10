@@ -32,21 +32,21 @@ const ExamForm = () => {
         fetchExams();
     }, []);
 
-    const handleEdit = (exam) => {
-        setExamId(exam._id);
-        setExamRoll(exam.examRoll);
-        setExamName(exam.examName);
-        setAcademicYear(exam.academicYear);
-        setIsSel(exam.isSel);
-        setScore(exam.score);
-        setDocs([]);
+    // const handleEdit = (exam) => {
+    //     setExamId(exam._id);
+    //     setExamRoll(exam.examRoll);
+    //     setExamName(exam.examName);
+    //     setAcademicYear(exam.academicYear);
+    //     setIsSel(exam.isSel);
+    //     setScore(exam.score);
+    //     setDocs([]);
 
-        if (exam.examName === "Other equivalent examination") {
-            setTempExamName("Other equivalent examination");
-        } else {
-            setTempExamName("");
-        }
-    };
+    //     if (exam.examName === "Other equivalent examination") {
+    //         setTempExamName("Other equivalent examination");
+    //     } else {
+    //         setTempExamName("");
+    //     }
+    // };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -106,14 +106,14 @@ const ExamForm = () => {
         setDocs([...docs, ...newDocs]);
     };
 
-    const handleDelete = async (id) => {
-        try {
-            await axios.delete(`/api/v1/exam/${id}`);
-            fetchExams();
-        } catch (error) {
-            console.log(error.message);
-        }
-    };
+    // const handleDelete = async (id) => {
+    //     try {
+    //         await axios.delete(`/api/v1/exam/${id}`);
+    //         fetchExams();
+    //     } catch (error) {
+    //         console.log(error.message);
+    //     }
+    // };
 
     const handleSortOptionChange = async (field, e) => {
         const direction = e.target.value;
@@ -292,6 +292,16 @@ const ExamForm = () => {
                                     </div>
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Exam Roll
+                                    <div>
+                                        <select value={getSortDirection('examRoll')||''} onChange={(e) => handleSortOptionChange('examRoll', e)}>
+                                            <option value="Sort By">Sort By</option>
+                                            <option value="ascending">Ascending</option>
+                                            <option value="descending">Descending</option>
+                                        </select>
+                                    </div>
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Score
                                     <div>
                                         <select value={getSortDirection('score')||''} onChange={(e) => handleSortOptionChange('score', e)}>
@@ -304,9 +314,9 @@ const ExamForm = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Supporting Doc
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Actions
-                                </th>
+                                </th> */}
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -320,6 +330,7 @@ const ExamForm = () => {
                                         />
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">{exam.examName}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">{exam.examRoll}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">{exam.score}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         {exam.docs.map((doc, index) => (
@@ -328,10 +339,10 @@ const ExamForm = () => {
                                             </div>
                                         ))}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <button className="bg-blue-500 text-white px-2 py-1 rounded mr-2" onClick={() => handleEdit(exam)}>Edit</button>
                                         <button className="bg-red-500 text-white px-2 py-1 rounded" onClick={() => handleDelete(exam._id)}>Delete</button>
-                                    </td>
+                                    </td> */}
                                 </tr>
                             ))}
                         </tbody>

@@ -67,28 +67,28 @@ const HigherEducation = () => {
     }
   };
 
-  const handleEdit = (higherEducation) => {
-    setHigherEducationId(higherEducation._id);
-    setInstitute(higherEducation.institution);
-    setDegree(higherEducation.degree);
-    setField(higherEducation.fieldOfStudy);
-    setStartDate(higherEducation.startDate);
-    setEndDate(higherEducation.endDate);
-    setDocs([]);
-  };
+  // const handleEdit = (higherEducation) => {
+  //   setHigherEducationId(higherEducation._id);
+  //   setInstitute(higherEducation.institution);
+  //   setDegree(higherEducation.degree);
+  //   setField(higherEducation.fieldOfStudy);
+  //   setStartDate(higherEducation.startDate);
+  //   setEndDate(higherEducation.endDate);
+  //   setDocs([]);
+  // };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this higher education?')) {
-      try {
-        await axios.delete(`/api/v1/higher-education/${id}`);
-        toast.success('Higher education deleted successfully!');
-        fetchHigherEducations();
-      } catch (error) {
-        console.log(error.message);
-        toast.error('An error occurred while deleting higher education');
-      }
-    }
-  };
+  // const handleDelete = async (id) => {
+  //   if (window.confirm('Are you sure you want to delete this higher education?')) {
+  //     try {
+  //       await axios.delete(`/api/v1/higher-education/${id}`);
+  //       toast.success('Higher education deleted successfully!');
+  //       fetchHigherEducations();
+  //     } catch (error) {
+  //       console.log(error.message);
+  //       toast.error('An error occurred while deleting higher education');
+  //     }
+  //   }
+  // };
 
   const handleFileChange = (e) => {
     const files = e.target.files;
@@ -285,7 +285,7 @@ const HigherEducation = () => {
                   <td className="px-6 py-4 whitespace-nowrap">{new Date(higherEducation.startDate).toLocaleDateString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{new Date(higherEducation.endDate).toLocaleDateString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap"><a href={higherEducation.docs}>Doc</a></td>
-                  <td className="px-6 py-4 whitespace-nowrap space-x-2">
+                  {/* <td className="px-6 py-4 whitespace-nowrap space-x-2">
                     <button
                       onClick={() => handleEdit(higherEducation)}
                       className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700"
@@ -298,7 +298,7 @@ const HigherEducation = () => {
                     >
                       Delete
                     </button>
-                  </td>
+                  </td> */}
                 </tr>
               ))}
             </tbody>
