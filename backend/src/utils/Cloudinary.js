@@ -11,7 +11,7 @@ const uploadOnCloudinary = async (localFilePath) => {
   try {
     if (!localFilePath) return null;
     const response = await cloudinary.uploader.upload(localFilePath, {
-      resource_type: "raw",
+      resource_type: "auto",
     });
     console.log("File uploaded on Cloudinary");
     fs.unlinkSync(localFilePath);
@@ -29,8 +29,8 @@ const deleteFromCloudinary = async (publicId) => {
     }
 
     const deletionResponse = await cloudinary.uploader.destroy(publicId);
-
-    if (deletionResponse.result === "not found") {
+    const del1= await cloudinary.uploader.destroy(publicId,{ resource_type:"raw"});
+    if (deletionResponse.result === "not found" && del1.result==="not found") {
       console.log(`File with public ID ${publicId} not found on Cloudinary`);
     } else if (deletionResponse.result !== "ok") {
       throw new Error(`Failed to delete file from Cloudinary: ${deletionResponse.result}`);

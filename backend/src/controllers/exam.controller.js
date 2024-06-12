@@ -14,6 +14,15 @@ const createExam = asyncHandler(async (req, res) => {
 
   const docsURL = [];
 
+  const isDup=await Exam.findOne({
+    name:req.user._id,
+    examName: { $regex: new RegExp(`^${examName}$`, 'i') }
+  })
+
+  console.log(examName.toLowerCase());
+
+  if(isDup) {throw new Error("exam exists already!")}
+
   for (const file of req.files) {
     try {
       const cloudinaryResponse = await uploadOnCloudinary(file.path);
@@ -37,6 +46,7 @@ const createExam = asyncHandler(async (req, res) => {
     score,
   });
 
+  
   await User.findByIdAndUpdate(req.user._id, { $push: { exams: exam._id } });
 
   res.status(201).json({
@@ -54,39 +64,39 @@ const getExams = asyncHandler(async (req, res) => {
   });
 });
 
-const deleteExam = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+// const deleteExam = asyncHandler(async (req, res) => {
+//   const { id } = req.params;
 
-  try {
-    const deletedExam = await Exam.findByIdAndDelete(id);
+//   try {
+//     const deletedExam = await Exam.findByIdAndDelete(id);
 
-    if (!deletedExam) {
-      throw new ApiError(404, "Exam not found");
-    }
+//     if (!deletedExam) {
+//       throw new ApiError(404, "Exam not found");
+//     }
 
-    const docsURL = deletedExam.docs;
-    if (docsURL && Array.isArray(docsURL) && docsURL.length > 0) {
-      for (const url of docsURL) {
-        try {
-          const publicId = url.split("/").pop().split(".")[0];
-          await deleteFromCloudinary(publicId);
-        } catch (error) {
-          console.error("Error deleting file from Cloudinary:", error);
-        }
-      }
-    }
+//     const docsURL = deletedExam.docs;
+//     if (docsURL && Array.isArray(docsURL) && docsURL.length > 0) {
+//       for (const url of docsURL) {
+//         try {
+//           const publicId = url.split("/").pop().split(".")[0];
+//           await deleteFromCloudinary(publicId);
+//         } catch (error) {
+//           console.error("Error deleting file from Cloudinary:", error);
+//         }
+//       }
+//     }
 
-    await User.findByIdAndUpdate(deletedExam.name, { $pull: { exams: id } });
+//     await User.findByIdAndUpdate(deletedExam.name, { $pull: { exams: id } });
 
-    res.status(200).json({
-      success: true,
-      data: {},
-    });
-  } catch (error) {
-    console.error("Error deleting exam:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
+//     res.status(200).json({
+//       success: true,
+//       data: {},
+//     });
+//   } catch (error) {
+//     console.error("Error deleting exam:", error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// });
 
 
 const getExamById = asyncHandler(async (req, res) => {
@@ -102,68 +112,68 @@ const getExamById = asyncHandler(async (req, res) => {
   });
 });
 
-const updateExam = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { rollNumber, examName, otherExamName, examRoll, academicYear, isSel, score } = req.body;
+// const updateExam = asyncHandler(async (req, res) => {
+//   const { id } = req.params;
+//   const { rollNumber, examName, otherExamName, examRoll, academicYear, isSel, score } = req.body;
 
-  try {
-    const exam = await Exam.findById(id);
+//   try {
+//     const exam = await Exam.findById(id);
 
-    if (!exam) {
-      throw new ApiError(404, "Exam not found");
-    }
+//     if (!exam) {
+//       throw new ApiError(404, "Exam not found");
+//     }
 
-    exam.rollNumber = rollNumber;
-    exam.examName = examName;
-    exam.otherExamName = otherExamName;
-    exam.examRoll = examRoll;
-    exam.academicYear = academicYear;
-    exam.isSel = isSel;
-    exam.score = score;
+//     exam.rollNumber = rollNumber;
+//     exam.examName = examName;
+//     exam.otherExamName = otherExamName;
+//     exam.examRoll = examRoll;
+//     exam.academicYear = academicYear;
+//     exam.isSel = isSel;
+//     exam.score = score;
 
-    // Delete existing documents from Cloudinary
-    const docsURL = exam.docs;
-    if (docsURL && Array.isArray(docsURL) && docsURL.length > 0) {
-      for (const url of docsURL) {
-        try {
-          const publicId = url.split("/").pop().split(".")[0];
-          await deleteFromCloudinary(publicId);
-        } catch (error) {
-          console.error("Error deleting file from Cloudinary:", error);
-        }
-      }
-    }
+//     // Delete existing documents from Cloudinary
+//     const docsURL = exam.docs;
+//     if (docsURL && Array.isArray(docsURL) && docsURL.length > 0) {
+//       for (const url of docsURL) {
+//         try {
+//           const publicId = url.split("/").pop().split(".")[0];
+//           await deleteFromCloudinary(publicId);
+//         } catch (error) {
+//           console.error("Error deleting file from Cloudinary:", error);
+//         }
+//       }
+//     }
 
-    // Upload new documents to Cloudinary
-    const newExamDocs = [];
-    if (req.files && req.files.length) {
-      for (const file of req.files) {
-        try {
-          const cloudinaryResponse = await uploadOnCloudinary(file.path);
-          console.log("Uploaded file to Cloudinary:", cloudinaryResponse);
-          newExamDocs.push(cloudinaryResponse.secure_url);
-        } catch (error) {
-          console.error("Error uploading file to Cloudinary:", error);
-          throw new Error("Failed to upload file to Cloudinary");
-        }
-      }
-    }
+//     // Upload new documents to Cloudinary
+//     const newExamDocs = [];
+//     if (req.files && req.files.length) {
+//       for (const file of req.files) {
+//         try {
+//           const cloudinaryResponse = await uploadOnCloudinary(file.path);
+//           console.log("Uploaded file to Cloudinary:", cloudinaryResponse);
+//           newExamDocs.push(cloudinaryResponse.secure_url);
+//         } catch (error) {
+//           console.error("Error uploading file to Cloudinary:", error);
+//           throw new Error("Failed to upload file to Cloudinary");
+//         }
+//       }
+//     }
 
-    // Set exam.docs to the new documents array
-    exam.docs = newExamDocs;
+//     // Set exam.docs to the new documents array
+//     exam.docs = newExamDocs;
 
-    // Save the updated exam object
-    await exam.save();
+//     // Save the updated exam object
+//     await exam.save();
 
-    res.status(200).json({
-      success: true,
-      data: exam,
-    });
-  } catch (error) {
-    console.error("Error updating exam:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
+//     res.status(200).json({
+//       success: true,
+//       data: exam,
+//     });
+//   } catch (error) {
+//     console.error("Error updating exam:", error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// });
 
 const getAllExams = asyncHandler(async (req, res) => {
   const exams = await Exam.find().populate('name', 'rollNumber fullName');
@@ -174,5 +184,5 @@ const getAllExams = asyncHandler(async (req, res) => {
   });
 });
 
-export { createExam, getExams, getExamById, deleteExam , updateExam, getAllExams}
+export { createExam, getExams, getExamById, getAllExams}// deleteExam , updateExam, }
 
