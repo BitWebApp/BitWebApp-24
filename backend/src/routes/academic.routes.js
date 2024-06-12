@@ -11,5 +11,4 @@ const router = Router();
 router.route("/create").post(verifyJWT, createAcademicRecord);
 router.route("/studentRecords").get(verifyJWT, getStudentAcademicRecords);
 router.route("/adminRecords").get(verifyAdmin, getAdminAcademicRecords);
-
 export default router;

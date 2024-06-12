@@ -15,7 +15,7 @@ export default function AcademicTable() {
 
   const fetchAcademicRecords = async () => {
     try {
-      console.log("Hi, waiting for records to come");
+      // console.log("Hi, waiting for records to come");
       const response = await axios.get('/api/v1/academics/studentRecords', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
@@ -33,6 +33,8 @@ export default function AcademicTable() {
       setAcademicRecords([]);
     }
   };
+
+// COMMENT BELOW *******************************
 
   // const handleDelete = async () => {
   //   try {
@@ -82,6 +84,7 @@ export default function AcademicTable() {
   //   setUpdatedGPA(record.gpa);
   // };
 
+// COMMENT ABOVE ********************************
   const handleAdd = () => {
     navigate('/db/academic-form');
   };
@@ -89,6 +92,8 @@ export default function AcademicTable() {
   return (
     <div className="overflow-x-auto">
   <h1 className="text-center text-3xl font-bold mb-8">ACADEMIC RECORDS</h1>
+
+  {/* COMMENT BELOW */}
   {/* <div className="flex justify-between mb-4">
     <button onClick={handleDelete} disabled={!selectedRecord} className="bg-red-500 text-white px-4 py-2 rounded-md disabled:bg-gray-300">Delete</button>
     <div>
@@ -96,6 +101,8 @@ export default function AcademicTable() {
       <button onClick={handleUpdate} disabled={!selectedRecord} className="bg-blue-500 text-white px-4 py-2 rounded-md disabled:bg-gray-300">Update</button>
     </div>
   </div> */}
+  {/* COMMENT ABOVE */}
+  
   <table className="min-w-full divide-y divide-gray-200">
     <thead className="bg-black">
       <tr>
@@ -107,7 +114,12 @@ export default function AcademicTable() {
     <tbody className="bg-white divide-y divide-gray-200">
       {academicRecords.length > 0 ? (
         academicRecords.map((record, index) => (
-          <tr key={record._id} className={record.semester === selectedSemester ? 'bg-gray-200' : ''}>
+          <tr 
+          key={record._id} 
+          // COMMENT BELOW
+          // onClick={() => handleRowClick(record)} 
+          // COMMENT ABOVE
+          className={record.semester === selectedSemester ? 'bg-gray-200' : ''}>
             <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
             <td className="px-6 py-4 whitespace-nowrap">{record.semester}</td>
             <td className="px-6 py-4 whitespace-nowrap">{record.gpa}</td>
