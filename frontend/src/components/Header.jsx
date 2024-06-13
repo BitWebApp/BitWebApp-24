@@ -13,11 +13,10 @@ export default function Header() {
     const [isAdmin, setIsAdmin] = useState(true);
     const [currentTime, setCurrentTime] = useState(null);
     const [user, setUser] = useState()
-    // useEffect(() => {
-    //     const user = JSON.parse(localStorage.getItem("user"));
-    //     setUser(user)
-    //     setIsAdmin(user.username === "admin");
-    // }, []);
+    useEffect(() => {
+        const user = JSON.parse(localStorage.getItem("user"));
+        setUser(user)
+    }, []);
 
     useEffect(() => {
       const interval = setInterval(() => {
@@ -109,7 +108,7 @@ export default function Header() {
           <div className='inline-flex'>
             <Menu.Button className="ml-2 inline-flex rounded-full bg-grey-200 focus:outline-none focus:ring-2 focus:ring-neutral-400">
               <span className='sr-only'>Open user menu</span>
-              <div className="h-10 w-10 rounded-full bg-black bg-cover bg-no-repeat bg-center" style={{ backgroundImage: '' }}>
+              <div className="h-10 w-10 rounded-full bg-black bg-cover bg-no-repeat bg-center" style={{ backgroundImage: `${user.image}` }}>
               </div>
             </Menu.Button>
           </div>

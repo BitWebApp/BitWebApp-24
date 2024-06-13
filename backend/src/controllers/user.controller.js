@@ -46,7 +46,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
   const idCard = await uploadOnCloudinary(idLocalPath);
   if (!idCard) {
-    throw new ApiError(400, "Avatar file is required:");
+    throw new ApiError(500, "id card file is cannot be uploaded");
   }
   const user = await User.create({
     username: username.toLowerCase(),
@@ -137,6 +137,14 @@ const updateUser1 = asyncHandler(async (req, res) => {
     cgpa,
   } = req.body;
 
+  const imageLocalPath = req.files?.image[0]?.path;
+  if (!imageLocalPath) {
+    throw new ApiError(400, "image path file is required:");
+  }
+  const imagePath = await uploadOnCloudinary(imageLocalPath);
+  if (!imagePath) {
+    throw new ApiError(400, "image file is required:");
+  }
   const updateFields = {};
 
   if (fullName) updateFields.fullName = fullName;
@@ -147,6 +155,7 @@ const updateUser1 = asyncHandler(async (req, res) => {
   if (mobileNumber) updateFields.mobileNumber = mobileNumber;
   if (semester) updateFields.semester = semester;
   if (cgpa) updateFields.cgpa = cgpa;
+  if(imagePath) updateFields.image = imagePath.url
 
   if (Object.keys(updateFields).length === 0) {
     throw new ApiError(400, "At least one field is required for update");
