@@ -12,8 +12,8 @@ export default function SignInPage() {
         username,
         password,
       });
-      localStorage.setItem("user", JSON.stringify(response.data.data.user));
-      console.log(response.data);
+      localStorage.setItem("user", JSON.stringify(response.data.data.admin));
+      console.log(response);
       setTimeout(() => {
         navigate("/db/");
       }, 2000);

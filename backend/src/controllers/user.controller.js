@@ -137,40 +137,56 @@ const updateUser1 = asyncHandler(async (req, res) => {
     cgpa,
   } = req.body;
 
-  const imageLocalPath = req.files?.image[0]?.path;
-  if (!imageLocalPath) {
-    throw new ApiError(400, "image path file is required:");
+  // Check if the image file exists
+  if (!req.files || !req.files.image || !req.files.image[0]) {
+    throw new ApiError(400, "Image path file is required");
   }
-  const imagePath = await uploadOnCloudinary(imageLocalPath);
-  if (!imagePath) {
-    throw new ApiError(400, "image file is required:");
-  }
-  const updateFields = {};
 
-  if (fullName) updateFields.fullName = fullName;
-  if (rollNumber) updateFields.rollNumber = rollNumber;
-  if (email) updateFields.email = email;
-  if (branch) updateFields.branch = branch;
-  if (section) updateFields.section = section;
-  if (mobileNumber) updateFields.mobileNumber = mobileNumber;
-  if (semester) updateFields.semester = semester;
-  if (cgpa) updateFields.cgpa = cgpa;
-  if(imagePath) updateFields.image = imagePath.url
+  const imageLocalPath = req.files.image[0].path;
+  let imagePath;
+
+  try {
+    imagePath = await uploadOnCloudinary(imageLocalPath);
+  } catch (error) {
+    throw new ApiError(400, "Image upload failed: " + error.message);
+  }
+
+  if (!imagePath) {
+    throw new ApiError(400, "Image file is required");
+  }
+
+  const updateFields = {};
+  const fieldsToUpdate = { fullName, rollNumber, email, branch, section, mobileNumber, semester, cgpa, image: imagePath.url };
+  console.log(fieldsToUpdate.image)
+  // Populate updateFields only with provided values
+  Object.keys(fieldsToUpdate).forEach(field => {
+    if (fieldsToUpdate[field]) {
+      updateFields[field] = fieldsToUpdate[field];
+    }
+  });
 
   if (Object.keys(updateFields).length === 0) {
     throw new ApiError(400, "At least one field is required for update");
   }
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user?._id,
+      { $set: updateFields },
+      { new: true }
+    ).select("-password");
+    console.log(user)
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
 
-  const user = await User.findByIdAndUpdate(
-    req.user?._id,
-    { $set: updateFields },
-    { new: true }
-  ).select("-password");
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, user, "User details updated successfully!"));
+    return res
+      .status(200)
+      .json(new ApiResponse(200, user, "User details updated successfully!"));
+  } catch (error) {
+    throw new ApiError(500, "Internal server error: " + error.message);
+  }
 });
+
 const getCurrentUser = asyncHandler(async (req, res) => {
   const _id = req?.user?._id;
   const user = await User.findById({ _id });

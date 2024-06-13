@@ -1,19 +1,31 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function Dashboard() {
   const [rollNumber, setRollNumber] = useState('');
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
 
   const findStudent = async () => {
+    if (!rollNumber && !loggedIn) {
+      setError('Please enter a roll number');
+      return;
+    }
+
+    setLoading(true);
     try {
-      const response = await axios.post("/api/v1/users/getbyroll", { rollNumber });
+      const response = await axios.post("/api/v1/users/getbyroll", {
+        rollNumber
+      });
       setUser(response.data.data);
       setError(null);
     } catch (err) {
       setError('User not found or an error occurred');
       setUser(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -34,6 +46,7 @@ export default function Dashboard() {
         </button>
       </div>
 
+      {loading && <p>Loading...</p>}
       {error && <p className="text-red-500">{error}</p>}
 
       {user && (

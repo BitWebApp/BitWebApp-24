@@ -23,7 +23,7 @@ router
 
 router.route("/login").post(loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
-router.route("/update").patch(verifyJWT, updateUser1);
+router.route("/update").patch(verifyJWT, upload.fields([{name: "image", maxCount:1}]), updateUser1);
 router.route("/get-user").get(verifyJWT, getCurrentUser);
 router
   .route("/pone")
@@ -32,7 +32,7 @@ router
     upload.fields([{ name: "doc", maxCount: 1 }]),
     updatePlacementOne
   );
-router.route("/getbyroll").post(verifyAdmin, getUserbyRoll);
+router.route("/getbyroll").post(getUserbyRoll);
 router
   .route("/ptwo")
   .patch(

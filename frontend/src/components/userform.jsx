@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import Swal from 'sweetalert2'
+import Swal from 'sweetalert2';
+
 export default function Userform() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -12,6 +13,7 @@ export default function Userform() {
   const [cgpa, setCgpa] = useState("");
   const [user, setUser] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [profilePicture, setProfilePicture] = useState(null);
 
   useEffect(() => {
     axios.get("/api/v1/users/get-user")
@@ -34,14 +36,23 @@ export default function Userform() {
 
   const handleUpdate = () => {
     console.log("Updating user details...");
-    axios.patch(`/api/v1/users/update`, {
-      fullName,
-      email,
-      branch,
-      section,
-      mobileNumber,
-      semester,
-      cgpa
+
+    const formData = new FormData();
+    formData.append("fullName", fullName);
+    formData.append("email", email);
+    formData.append("branch", branch);
+    formData.append("section", section);
+    formData.append("mobileNumber", mobileNumber);
+    formData.append("semester", semester);
+    formData.append("cgpa", cgpa);
+    if (profilePicture) {
+      formData.append("image", profilePicture);
+    }
+
+    axios.patch(`/api/v1/users/update`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     })
       .then(response => {
         console.log(response);
@@ -49,7 +60,7 @@ export default function Userform() {
           icon: 'success',
           title: 'Success',
           text: response.data.message
-        })
+        });
       })
       .catch(error => {
         console.log(error);
@@ -65,6 +76,7 @@ export default function Userform() {
     setMobileNumber(user.mobileNumber);
     setSemester(user.semester);
     setCgpa(user.cgpa);
+    setProfilePicture(null);
     setIsEditMode(false);
   };
 
@@ -140,6 +152,13 @@ export default function Userform() {
                 value={cgpa}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setCgpa(e.target.value)}
+                disabled={!isEditMode}
+              />
+              <label>Upload Profile Picture</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setProfilePicture(e.target.files[0])}
                 disabled={!isEditMode}
               />
             </div>
