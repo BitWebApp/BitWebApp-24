@@ -310,21 +310,48 @@ const updatePlacementThree = asyncHandler(async (req, res) => {
       )
     );
 });
+const getPlacementOne = asyncHandler(async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate("placementOne");
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    const placement = user.placementOne;
+    if (!placement) {
+      return res
+        .status(200)
+        .json(new ApiResponse(200, null, "No placement data found"));
+    }
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, placement, "Placement data retrieved successfully")
+      );
+  } catch (error) {
+    throw new ApiError(
+      500,
+      "An error occurred while retrieving placement data"
+    );
+  }
+});
+
 const getUserbyRoll = asyncHandler(async (req, res) => {
   const { rollNumber } = req.body;
-  
+
   // Finding the user by roll number and populating all the fields
   const user = await User.findOne({ rollNumber: rollNumber })
-    .populate('placementOne')
-    .populate('placementTwo')
-    .populate('placementThree')
-    .populate('proj')
-    .populate('awards')
-    .populate('higherEd')
-    .populate('internShips')
-    .populate('exams')
-    .populate('academics')
-    .select("-password -username")
+    .populate("placementOne")
+    .populate("placementTwo")
+    .populate("placementThree")
+    .populate("proj")
+    .populate("awards")
+    .populate("higherEd")
+    .populate("internShips")
+    .populate("exams")
+    .populate("academics")
+    .select("-password -username");
   if (!user) {
     res.status(404).json(new ApiResponse(404, null, "User not found"));
     return;
@@ -376,5 +403,6 @@ export {
   updatePlacementThree,
   getPlacementDetails,
   getCurrentUser,
-  getUserbyRoll
+  getUserbyRoll,
+  getPlacementOne,
 };

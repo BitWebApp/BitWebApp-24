@@ -10,6 +10,7 @@ import {
   getPlacementDetails,
   getCurrentUser,
   getUserbyRoll,
+  getPlacementOne,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
@@ -29,7 +30,7 @@ router
     upload.fields([{ name: "doc", maxCount: 1 }]),
     updatePlacementOne
   );
-router.route("/getbyroll").post(verifyAdmin, getUserbyRoll)
+router.route("/getbyroll").post(verifyAdmin, getUserbyRoll);
 router
   .route("/ptwo")
   .patch(
@@ -46,5 +47,6 @@ router
   );
 
 router.route("/placementDetails").get(verifyAdmin, getPlacementDetails);
+router.route("/placementOne").get(verifyJWT, getPlacementOne);
 
 export default router;
