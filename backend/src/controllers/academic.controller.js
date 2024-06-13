@@ -5,33 +5,45 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 // Create a new academic record
 const createAcademicRecord = asyncHandler(async (req, res) => {
-    const { userId, semester, gpa } = req.body;
-    if (!userId || !semester || !gpa) {
-        throw new ApiError(400, "UserId, Semester, and GPA are required fields.");
-    }
-    try {
-        let academicRecord = await Academics.findOne({ name: userId });
+  const { userId, semester, gpa } = req.body;
+  if (!userId || !semester || !gpa) {
+      throw new ApiError(400, "UserId, Semester, and GPA are required fields.");
+  }
+  try {
+      let academicRecord = await Academics.findOne({ name: userId });
+      console.log("Printing academic Record", academicRecord);
 
-        if (!academicRecord) { // If no record exists, create a new one
-            academicRecord = new Academics({
-                name: userId,
-                academicRecords: [], // Initialize the array
-            });
+      if (!academicRecord) { // If no record exists, create a new one
+          academicRecord = new Academics({
+              name: userId,
+              academicRecords: [], // Initialize the array
+          });
+      }
+      else {
+          // checking if the semester already exists
+          const regex = new RegExp(`^${semester}$`, 'i');
+      const existingRecord = academicRecord.academicRecords.find(record => regex.test(record.semester));
+
+        if (existingRecord) {
+          console.log("Duplicate semester found:", existingRecord);
+          return res.status(400).json({
+            statusCode: 400,
+            success: false,
+            message: "This semester's GPA is already added. Please add another semester's GPA.",
+          });
         }
+      }
 
-        academicRecord.academicRecords.push({ semester, gpa });
-        await academicRecord.save();
+      academicRecord.academicRecords.push({ semester, gpa });
+      await academicRecord.save();
 
-        return res.status(201).json(
-            new ApiResponse(201, academicRecord, "Academic record created successfully")
-        );
-    } catch (error) {
-        console.error("Error creating academic record:", error);
-        throw new ApiError(500, "Internal Server Error");
-        return res.status(500).json(
-            new ApiResponse(500, { success: false }, "Internal Server Error")
-        );
-    }
+      return res.status(201).json(
+          new ApiResponse(201, academicRecord, "Academic record created successfully")
+      );
+  } catch (error) {
+      console.error("Error creating academic record:", error);
+      throw new ApiError(500, "Internal Server Error");
+  }
 });
 
 // Get academic records for the logged-in student
@@ -91,7 +103,7 @@ const getAdminAcademicRecords = asyncHandler(async (req, res) => {
 export { 
     createAcademicRecord, 
     getStudentAcademicRecords,
-    getAdminAcademicRecords
+    getAdminAcademicRecords,
 };
 
 

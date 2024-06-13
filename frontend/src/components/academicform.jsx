@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { ClipLoader } from 'react-spinners';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function Academicform() {
   const [semester, setSemester] = useState("");
@@ -23,6 +25,8 @@ export default function Academicform() {
       console.log("Semester:", semester);
       console.log("GPA:", gpa);
 
+      console.log("Sending CREATE request");
+
       const response = await axios.post('/api/v1/academics/create', {
         userId: userId,
         semester: semester,
@@ -33,19 +37,24 @@ export default function Academicform() {
         }
       });
 
-      console.log("Response:", response);
+      console.log(response);
+
+      console.log("Received CREATE request");
 
       if (response.data.success) {
         console.log("Navigate to academic table");
         navigate('/db/academic-table');
       } else {
         console.error("Failed to create academic record");
-        alert('Failed to create academic record. Please try again.');
+        toast.error(response.data.message || 'Failed to create academic record. Please try again.');
       }
     } catch (error) {
       console.error('Error creating academic record:', error);
-      alert('Failed to create academic record. Please try again.');
-      setLoading(false);
+      if (error.response && error.response.data) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('Failed to create academic record. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -100,6 +109,7 @@ export default function Academicform() {
           </div>
         </div>
       </div>
+      <ToastContainer/>
     </div>
   );
 }
