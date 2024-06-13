@@ -310,7 +310,28 @@ const updatePlacementThree = asyncHandler(async (req, res) => {
       )
     );
 });
+const getUserbyRoll = asyncHandler(async (req, res) => {
+  const { rollNumber } = req.body;
+  
+  // Finding the user by roll number and populating all the fields
+  const user = await User.findOne({ rollNumber: rollNumber })
+    .populate('placementOne')
+    .populate('placementTwo')
+    .populate('placementThree')
+    .populate('proj')
+    .populate('awards')
+    .populate('higherEd')
+    .populate('internShips')
+    .populate('exams')
+    .populate('academics')
+    .select("-password -username")
+  if (!user) {
+    res.status(404).json(new ApiResponse(404, null, "User not found"));
+    return;
+  }
 
+  res.status(200).json(new ApiResponse(200, user, "User data fetched"));
+});
 const getPlacementDetails = asyncHandler(async (req, res) => {
   try {
     const users = await User.find().populate([
@@ -355,4 +376,5 @@ export {
   updatePlacementThree,
   getPlacementDetails,
   getCurrentUser,
+  getUserbyRoll
 };

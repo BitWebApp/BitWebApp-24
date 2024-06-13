@@ -72,14 +72,24 @@ export default function Academicform() {
           <form onSubmit={handleSubmit}>
             <div className="w-full flex flex-col">
               <label>Semester</label>
-              <input
-                type="text"
-                placeholder="Enter Your Semester Number"
+              <select
                 value={semester}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setSemester(e.target.value)}
                 required
-              />
+              >
+                <option value="" disabled>Select Your Semester</option>
+                <option value="1">First Semester</option>
+                <option value="2">Second Semester</option>
+                <option value="3">Third Semester</option>
+                <option value="4">Fourth Semester</option>
+                <option value="5">Fifth Semester</option>
+                <option value="6">Sixth Semester</option>
+                <option value="7">Seventh Semester</option>
+                <option value="8">Eighth Semester</option>
+                <option value="9">Ninth Semester</option>
+                <option value="10">Tenth Semester</option>
+              </select>
               <label>GPA</label>
               <input
                 type="text"
