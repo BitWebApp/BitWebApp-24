@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -13,7 +13,30 @@ const PlacementThree = () => {
   const [date, setDate] = useState("");
   const [file, setFile] = useState("");
   const [spin, setSpin] = useState(false);
+  const [isDataPresent, setIsDataPresent] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("/api/v1/users/placementThree");
+        console.log(response);
+        if (response.data) {
+          setCompany(response.data.data.company);
+          setCTC(response.data.data.ctc);
+          const formattedDate = new Date(response.data.data.date)
+            .toISOString()
+            .split("T")[0];
+          setDate(formattedDate);
+          setIsDataPresent(true);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -56,6 +79,7 @@ const PlacementThree = () => {
             className="inputClass w-full"
             value={company}
             onChange={(e) => setCompany(e.target.value)}
+            disabled={isDataPresent}
           />
           <input
             type="text"
@@ -63,6 +87,7 @@ const PlacementThree = () => {
             className="inputClass w-full"
             value={ctc}
             onChange={(e) => setCTC(e.target.value)}
+            disabled={isDataPresent}
           />
           <span className="font-bold underline text-md">Date of joining:</span>
           <input
@@ -71,6 +96,7 @@ const PlacementThree = () => {
             className="inputClass w-full"
             value={date}
             onChange={(e) => setDate(e.target.value)}
+            disabled={isDataPresent}
           />
           <span className="font-bold underline-offset-4 underline">
             Supporting Docs:
@@ -80,6 +106,7 @@ const PlacementThree = () => {
             className="fileButton w-full"
             accept="image/*"
             onChange={(e) => setFile(e.target.files[0])}
+            disabled={isDataPresent}
           />
           {spin ? (
             <div className="w-full flex items-center justify-center">
@@ -90,8 +117,9 @@ const PlacementThree = () => {
               type="submit"
               onClick={handleSubmit}
               className="h-10 w-44 rounded-lg border border-black bg-white font-semibold"
+              disabled={isDataPresent}
             >
-              {spin? <ClipLoader/> : "Upload"}
+              {spin ? <ClipLoader /> : "Upload"}
             </button>
           )}
           <span className="font-semibold underline underline-offset cursor-pointer text-blue-600">

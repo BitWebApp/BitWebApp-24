@@ -337,6 +337,60 @@ const getPlacementOne = asyncHandler(async (req, res) => {
   }
 });
 
+const getPlacementTwo = asyncHandler(async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate("placementTwo");
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    const placement = user.placementTwo;
+    if (!placement) {
+      return res
+        .status(200)
+        .json(new ApiResponse(200, null, "No placement data found"));
+    }
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, placement, "Placement data retrieved successfully")
+      );
+  } catch (error) {
+    throw new ApiError(
+      500,
+      "An error occurred while retrieving placement data"
+    );
+  }
+});
+
+const getPlacementThree = asyncHandler(async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate("placementThree");
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    const placement = user.placementThree;
+    if (!placement) {
+      return res
+        .status(200)
+        .json(new ApiResponse(200, null, "No placement data found"));
+    }
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, placement, "Placement data retrieved successfully")
+      );
+  } catch (error) {
+    throw new ApiError(
+      500,
+      "An error occurred while retrieving placement data"
+    );
+  }
+});
+
 const getUserbyRoll = asyncHandler(async (req, res) => {
   const { rollNumber } = req.body;
 
@@ -405,4 +459,6 @@ export {
   getCurrentUser,
   getUserbyRoll,
   getPlacementOne,
+  getPlacementTwo,
+  getPlacementThree,
 };

@@ -11,6 +11,8 @@ import {
   getCurrentUser,
   getUserbyRoll,
   getPlacementOne,
+  getPlacementTwo,
+  getPlacementThree,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
@@ -48,5 +50,7 @@ router
 
 router.route("/placementDetails").get(verifyAdmin, getPlacementDetails);
 router.route("/placementOne").get(verifyJWT, getPlacementOne);
+router.route("/placementTwo").get(verifyJWT, getPlacementTwo);
+router.route("/placementThree").get(verifyJWT, getPlacementThree);
 
 export default router;
