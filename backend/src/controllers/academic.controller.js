@@ -2,16 +2,19 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Academics } from "../models/academic.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { User } from "../models/user.model.js";
 
 // Create a new academic record
 const createAcademicRecord = asyncHandler(async (req, res) => {
-  const { userId, semester, gpa } = req.body;
+  const { semester, gpa } = req.body;
+  const userId = req.user._id;  // Obtained from the authenticated user
+
+  console.log("User ID is", userId );
   if (!userId || !semester || !gpa) {
       throw new ApiError(400, "UserId, Semester, and GPA are required fields.");
   }
   try {
       let academicRecord = await Academics.findOne({ name: userId });
-      console.log("Printing academic Record", academicRecord);
 
       if (!academicRecord) { // If no record exists, create a new one
           academicRecord = new Academics({
@@ -21,8 +24,8 @@ const createAcademicRecord = asyncHandler(async (req, res) => {
       }
       else {
           // checking if the semester already exists
-          const regex = new RegExp(`^${semester}$`, 'i');
-      const existingRecord = academicRecord.academicRecords.find(record => regex.test(record.semester));
+        const regex = new RegExp(`^${semester}$`, 'i');
+        const existingRecord = academicRecord.academicRecords.find(record => regex.test(record.semester));
 
         if (existingRecord) {
           console.log("Duplicate semester found:", existingRecord);
@@ -37,8 +40,10 @@ const createAcademicRecord = asyncHandler(async (req, res) => {
       academicRecord.academicRecords.push({ semester, gpa });
       await academicRecord.save();
 
-      return res.status(201).json(
-          new ApiResponse(201, academicRecord, "Academic record created successfully")
+      await User.findByIdAndUpdate(userId, { $push: { academics: academicRecord._id } });
+
+      return res.status(201).json( 
+        new ApiResponse(201, academicRecord, "Academic record created successfully")
       );
   } catch (error) {
       console.error("Error creating academic record:", error);
