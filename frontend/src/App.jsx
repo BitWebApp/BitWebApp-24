@@ -38,6 +38,7 @@ import PropTypes from "prop-types";
 import VerifyUsers from "./components/VerifyUsers";
 import { HashLoader, SyncLoader } from "react-spinners";
 import AdminAcademicRecords from "./components/AdminAcademicRecords";
+import StudentAwardTable from "./components/StudentAwardTable";
 
 export default function App() {
   return (
@@ -79,6 +80,7 @@ export default function App() {
           <Route path="project-form-table" element={<ProjectTable />} />
           <Route path="internship-form-table" element={<InternTable />} />
           <Route path="internship-table" element={<Internshiptable />} />
+          <Route path="student-award-table" element={<StudentAwardTable />} />
         </Route>
         <Route path="verify-users" element={<VerifyUsers />} />
         <Route path="/sg" element={<Signup />} />
