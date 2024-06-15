@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ClipLoader from "react-spinners/ClipLoader";
+import Swal from 'sweetalert2';
 
 const HigherEducation = () => {
   const [higherEducations, setHigherEducations] = useState([]);
@@ -32,63 +33,57 @@ const HigherEducation = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-  
-    const formData = new FormData();
-    formData.append('institution', institute);
-    formData.append('degree', degree);
-    formData.append('fieldOfStudy', field);
-    formData.append('startDate', startDate);
-    formData.append('endDate', endDate);
-    Array.from(docs).forEach((doc) => {
-      formData.append('files', doc);
-    });
-  
-    try {
-      if (higherEducationId) {
-        await axios.put(`/api/v1/higher-education/${higherEducationId}`, formData);
-        toast.success('Higher education updated successfully!');
-      } else {
-        await axios.post('/api/v1/higher-education', formData);
-        toast.success('Higher education created successfully!');
+
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "Do you want to submit the form?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, submit it!',
+      cancelButtonText: 'No, cancel!',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setLoading(true);
+      
+        const formData = new FormData();
+        formData.append('institution', institute);
+        formData.append('degree', degree);
+        formData.append('fieldOfStudy', field);
+        formData.append('startDate', startDate);
+        formData.append('endDate', endDate);
+        Array.from(docs).forEach((doc) => {
+          formData.append('files', doc);
+        });
+      
+        try {
+          if (higherEducationId) {
+            await axios.put(`/api/v1/higher-education/${higherEducationId}`, formData);
+            toast.success('Higher education updated successfully!');
+          } else {
+            await axios.post('/api/v1/higher-education', formData);
+            toast.success('Higher education created successfully!');
+          }
+          fetchHigherEducations();
+          setInstitute('');
+          setDegree('');
+          setField('');
+          setStartDate('');
+          setEndDate('');
+          setDocs([]);
+          setHigherEducationId('');
+          Swal.fire(
+            'Submitted!',
+            'Your form has been submitted.',
+            'success'
+          );
+        } catch (error) {
+          toast.error('An error occurred while saving higher education');
+        } finally {
+          setLoading(false);
+        }
       }
-      fetchHigherEducations();
-      setInstitute('');
-      setDegree('');
-      setField('');
-      setStartDate('');
-      setEndDate('');
-      setDocs([]);
-      setHigherEducationId('');
-    } catch (error) {
-      toast.error('An error occurred while saving higher education');
-    } finally {
-      setLoading(false);
-    }
+    });
   };
-
-  // const handleEdit = (higherEducation) => {
-  //   setHigherEducationId(higherEducation._id);
-  //   setInstitute(higherEducation.institution);
-  //   setDegree(higherEducation.degree);
-  //   setField(higherEducation.fieldOfStudy);
-  //   setStartDate(higherEducation.startDate);
-  //   setEndDate(higherEducation.endDate);
-  //   setDocs([]);
-  // };
-
-  // const handleDelete = async (id) => {
-  //   if (window.confirm('Are you sure you want to delete this higher education?')) {
-  //     try {
-  //       await axios.delete(`/api/v1/higher-education/${id}`);
-  //       toast.success('Higher education deleted successfully!');
-  //       fetchHigherEducations();
-  //     } catch (error) {
-  //       console.log(error.message);
-  //       toast.error('An error occurred while deleting higher education');
-  //     }
-  //   }
-  // };
 
   const handleFileChange = (e) => {
     const files = e.target.files;
@@ -272,33 +267,66 @@ const HigherEducation = () => {
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                  Action
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredHigherEducations.map((higherEducation) => (
-                <tr key={higherEducation._id}>
+                <tr key={higherEducation.id}>
                   <td className="px-6 py-4 whitespace-nowrap">{higherEducation.institution}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{higherEducation.degree}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{higherEducation.fieldOfStudy}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{new Date(higherEducation.startDate).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{new Date(higherEducation.endDate).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap"><a href={higherEducation.docs}>Doc</a></td>
-                  {/* <td className="px-6 py-4 whitespace-nowrap space-x-2">
+                  <td className="px-6 py-4 whitespace-nowrap">{higherEducation.startDate}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{higherEducation.endDate}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <button
-                      onClick={() => handleEdit(higherEducation)}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700"
+                      onClick={() => {
+                        setInstitute(higherEducation.institution);
+                        setDegree(higherEducation.degree);
+                        setField(higherEducation.fieldOfStudy);
+                        setStartDate(higherEducation.startDate);
+                        setEndDate(higherEducation.endDate);
+                        setHigherEducationId(higherEducation.id);
+                      }}
+                      className="text-indigo-600 hover:text-indigo-900"
                     >
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(higherEducation._id)}
-                      className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-700"
+                      onClick={() => {
+                        Swal.fire({
+                          title: 'Are you sure?',
+                          text: "Do you want to delete this entry?",
+                          icon: 'warning',
+                          showCancelButton: true,
+                          confirmButtonText: 'Yes, delete it!',
+                          cancelButtonText: 'No, cancel!',
+                        }).then(async (result) => {
+                          if (result.isConfirmed) {
+                            try {
+                              await axios.delete(`/api/v1/higher-education/${higherEducation.id}`);
+                              fetchHigherEducations();
+                              Swal.fire(
+                                'Deleted!',
+                                'The entry has been deleted.',
+                                'success'
+                              );
+                            } catch (error) {
+                              Swal.fire(
+                                'Failed!',
+                                'There was a problem deleting the entry.',
+                                'error'
+                              );
+                            }
+                          }
+                        });
+                      }}
+                      className="text-red-600 hover:text-red-900 ml-4"
                     >
                       Delete
                     </button>
-                  </td> */}
+                  </td>
                 </tr>
               ))}
             </tbody>
