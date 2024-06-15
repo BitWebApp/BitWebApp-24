@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ClipLoader from "react-spinners/ClipLoader";
+import Swal from 'sweetalert2';
 
 const ExamForm = () => {
     const [exams, setExams] = useState([]);
@@ -32,72 +33,68 @@ const ExamForm = () => {
         fetchExams();
     }, []);
 
-    // const handleEdit = (exam) => {
-    //     setExamId(exam._id);
-    //     setExamRoll(exam.examRoll);
-    //     setExamName(exam.examName);
-    //     setAcademicYear(exam.academicYear);
-    //     setIsSel(exam.isSel);
-    //     setScore(exam.score);
-    //     setDocs([]);
-
-    //     if (exam.examName === "Other equivalent examination") {
-    //         setTempExamName("Other equivalent examination");
-    //     } else {
-    //         setTempExamName("");
-    //     }
-    // };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
-        try {
-            const formData = new FormData();
-            formData.append("examRoll", examRoll);
-            formData.append("examName", examName);
-            formData.append("academicYear", academicYear);
-            formData.append("isSel", isSel);
-            formData.append("score", score);
-            docs.forEach((doc) => {
-                formData.append("files", doc);
-            });
 
-            const token = localStorage.getItem("accessToken");
-            const config = {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                    Authorization: `Bearer ${token}`,
-                },
-            };
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to submit the form?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, submit it!',
+            cancelButtonText: 'No, cancel!',
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                setLoading(true);
+                try {
+                    const formData = new FormData();
+                    formData.append("examRoll", examRoll);
+                    formData.append("examName", examName);
+                    formData.append("academicYear", academicYear);
+                    formData.append("isSel", isSel);
+                    formData.append("score", score);
+                    docs.forEach((doc) => {
+                        formData.append("files", doc);
+                    });
 
-            try {
-                let response;
-                if (examId) {
-                    response = await axios.put(`/api/v1/exam/${examId}`, formData, config);
-                } else {
-                    response = await axios.post("/api/v1/exam", formData, config);
+                    const token = localStorage.getItem("accessToken");
+                    const config = {
+                        headers: {
+                            "Content-Type": "multipart/form-data",
+                            Authorization: `Bearer ${token}`,
+                        },
+                    };
+
+                    let response;
+                    if (examId) {
+                        response = await axios.put(`/api/v1/exam/${examId}`, formData, config);
+                    } else {
+                        response = await axios.post("/api/v1/exam", formData, config);
+                    }
+                    toast.success("Exam details added");
+                    Swal.fire(
+                        'Submitted!',
+                        'Your form has been submitted.',
+                        'success'
+                    )
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } catch (error) {
+                    toast.error("Something went wrong");
+                } finally {
+                    setExamRoll("");
+                    setExamName("NET");
+                    setAcademicYear("");
+                    setDocs([]);
+                    setIsSel(false);
+                    setScore("");
+                    setExamId("");
+                    fetchExams();
+                    setLoading(false);
                 }
-                toast.success("exam details added")
-                setTimeout(() => {
-                    window.location.reload()
-                }, 2000)
-            } catch (error) {
-                toast.error("Something went wrong")
             }
-            setExamRoll("");
-            setExamName("NET");
-            setAcademicYear("");
-            setDocs([]);
-            setIsSel(false);
-            setScore("");
-            setExamId("");
-            fetchExams();
-            console.log(response);
-        } catch (error) {
-            console.log(error.message);
-        } finally {
-            setLoading(false);
-        }
+        });
     };
 
     const handleFileChange = (e) => {
@@ -106,14 +103,6 @@ const ExamForm = () => {
         setDocs([...docs, ...newDocs]);
     };
 
-    // const handleDelete = async (id) => {
-    //     try {
-    //         await axios.delete(`/api/v1/exam/${id}`);
-    //         fetchExams();
-    //     } catch (error) {
-    //         console.log(error.message);
-    //     }
-    // };
 
     const handleSortOptionChange = async (field, e) => {
         const direction = e.target.value;

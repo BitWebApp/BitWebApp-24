@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Cliploader from "react-spinners/ClipLoader";
+import Swal from 'sweetalert2'
 
 const AwardForm = () => {
   const [awards, setAwards] = useState([]);
@@ -28,26 +29,42 @@ const AwardForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
-    const formData = new FormData();
-    formData.append('title', title);
-    formData.append('description', description);
-    formData.append('date', date);
-    formData.append('student', student);
-    formData.append('doc', doc);
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "Do you want to submit the form?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, submit it!',
+      cancelButtonText: 'No, cancel!',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setLoading(true);
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('description', description);
+        formData.append('date', date);
+        formData.append('student', student);
+        formData.append('doc', doc);
 
-    try {
-      await axios.post('/api/v1/awards', formData);
-      toast.success('Award created successfully!');
-      setTimeout(() => {
-        window.location.reload()
-      }, 2000)
-    } catch (error) {
-      toast.error('An error occurred while saving the award');
-    } finally {
-      setLoading(false);
-    }
+        try {
+          await axios.post('/api/v1/awards', formData);
+          Swal.fire({
+            title: 'Success!',
+            text: 'Award created successfully!',
+            icon: 'success',
+            confirmButtonText: 'OK'
+          });
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } catch (error) {
+          Swal.fire('Error!', 'An error occurred while saving the award', 'error');
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   };
 
   return (
