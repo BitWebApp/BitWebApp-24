@@ -8,7 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 export default function Academicform() {
   const [semester, setSemester] = useState("");
-  const [gpa, setGpa] = useState("");
+  const [gpa, setGpa] = useState(""); 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -17,18 +17,7 @@ export default function Academicform() {
     console.log("Submit button clicked");
     try {
       setLoading(true);
-      const userData = JSON.parse(localStorage.getItem('user'));
-      console.log("User Data:", userData);
-      
-      const userId = userData._id; 
-      console.log("User ID:", userId);
-      console.log("Semester:", semester);
-      console.log("GPA:", gpa);
-
-      console.log("Sending CREATE request");
-
       const response = await axios.post('/api/v1/academics/create', {
-        userId: userId,
         semester: semester,
         gpa: gpa,
       }, {
@@ -37,15 +26,12 @@ export default function Academicform() {
         }
       });
 
-      console.log(response);
-
-      console.log("Received CREATE request");
-
       if (response.data.success) {
-        console.log("Navigate to academic table");
+        toast.success("Academic record added successfully!");
+        setSemester("");
+        setGpa("");
         navigate('/db/academic-table');
       } else {
-        console.error("Failed to create academic record");
         toast.error(response.data.message || 'Failed to create academic record. Please try again.');
       }
     } catch (error) {
