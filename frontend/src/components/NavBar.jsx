@@ -22,7 +22,7 @@ const NavBar = () => {
         <div className="flex justify-between items-center">
           <div className="flex items-center flex-shrink-0">
             <img className="h-10 w-10 mr-2" src={logo} alt="bit" />
-            <span className="text-xl font-bold">BIT WEB APP</span>
+            <span className="text-xl font-bold">BITACADEMIA</span>
           </div>
           <div className="hidden lg:flex justify-center space-x-8 items-center">
             <Link
