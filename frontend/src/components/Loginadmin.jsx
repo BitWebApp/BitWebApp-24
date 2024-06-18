@@ -1,12 +1,16 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import { ClipLoader } from "react-spinners";
 
 export default function SignInPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
   const handleLogin = async () => {
+    setLoading(true); // Set loading to true when login starts
     try {
       const response = await axios.post("/api/v1/admin/login", {
         username,
@@ -18,7 +22,9 @@ export default function SignInPage() {
         navigate("/db/");
       }, 2000);
     } catch (error) {
-      throw new Error(error);
+      console.error(error);
+    } finally {
+      setLoading(false); // Set loading to false after the login process is complete
     }
   };
 
@@ -67,8 +73,13 @@ export default function SignInPage() {
             type="button"
             onClick={handleLogin}
             className="w-full p-2 bg-gray-800 text-white rounded hover:bg-gray-900 transition duration-500"
+            disabled={loading} // Disable button when loading
           >
-            Login
+            {loading ? (
+              <ClipLoader size={20} color={"#fff"} />
+            ) : (
+              "Login"
+            )}
           </button>
         </p>
       </form>
