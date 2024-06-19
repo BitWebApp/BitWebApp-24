@@ -267,9 +267,9 @@ const ExamForm = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     <input type="checkbox" />
-                                </th>
+                                </th> */}
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Exam Name
                                     <div>
@@ -311,13 +311,13 @@ const ExamForm = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                             {filteredExams.map((exam) => (
                                 <tr key={exam._id} className={selectedRows.includes(exam._id) ? 'bg-gray-100' : ''}>
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    {/* <td className="px-6 py-4 whitespace-nowrap">
                                         <input
                                             type="checkbox"
                                             onChange={() => handleRowSelect(exam._id)}
                                             checked={selectedRows.includes(exam._id)}
                                         />
-                                    </td>
+                                    </td> */}
                                     <td className="px-6 py-4 whitespace-nowrap">{exam.examName}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">{exam.examRoll}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">{exam.score}</td>

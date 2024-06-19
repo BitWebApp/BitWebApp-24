@@ -266,9 +266,6 @@ const HigherEducation = () => {
                     </select>
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Action
-                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -279,54 +276,6 @@ const HigherEducation = () => {
                   <td className="px-6 py-4 whitespace-nowrap">{higherEducation.fieldOfStudy}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{higherEducation.startDate}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{higherEducation.endDate}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => {
-                        setInstitute(higherEducation.institution);
-                        setDegree(higherEducation.degree);
-                        setField(higherEducation.fieldOfStudy);
-                        setStartDate(higherEducation.startDate);
-                        setEndDate(higherEducation.endDate);
-                        setHigherEducationId(higherEducation.id);
-                      }}
-                      className="text-indigo-600 hover:text-indigo-900"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => {
-                        Swal.fire({
-                          title: 'Are you sure?',
-                          text: "Do you want to delete this entry?",
-                          icon: 'warning',
-                          showCancelButton: true,
-                          confirmButtonText: 'Yes, delete it!',
-                          cancelButtonText: 'No, cancel!',
-                        }).then(async (result) => {
-                          if (result.isConfirmed) {
-                            try {
-                              await axios.delete(`/api/v1/higher-education/${higherEducation.id}`);
-                              fetchHigherEducations();
-                              Swal.fire(
-                                'Deleted!',
-                                'The entry has been deleted.',
-                                'success'
-                              );
-                            } catch (error) {
-                              Swal.fire(
-                                'Failed!',
-                                'There was a problem deleting the entry.',
-                                'error'
-                              );
-                            }
-                          }
-                        });
-                      }}
-                      className="text-red-600 hover:text-red-900 ml-4"
-                    >
-                      Delete
-                    </button>
-                  </td>
                 </tr>
               ))}
             </tbody>

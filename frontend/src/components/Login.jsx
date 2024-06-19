@@ -21,7 +21,7 @@ export default function Login() {
       const response = await axios.post("/api/v1/users/login", {
         username,
         password
-        
+
       });
 
       localStorage.setItem("user", JSON.stringify(response.data.data.user));
@@ -55,6 +55,12 @@ export default function Login() {
     }
   };
 
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter") {
+      handleLogin();
+    }
+  };
+
   return (
     <div className="w-full min-h-screen flex flex-col md:flex-row items-stretch">
       <ToastContainer />
@@ -79,7 +85,7 @@ export default function Login() {
               placeholder="Enter Your username"
               value={username}
               className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-             required
+              required
               onChange={(e) => setUsername(e.target.value)}
             />
             <div className="relative">
@@ -91,6 +97,7 @@ export default function Login() {
                 value={password}
                 required
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={handleKeyDown}
               />
               <button
                 className="absolute bottom-4 right-4 text-gray-600 hover:text-red-900 hover:text-black-1500"
@@ -144,14 +151,14 @@ export default function Login() {
               )}
             </button>
           </div>
-        </div>
-        <div className="w-full items-center justify-center flex">
-          <p className="text-sm font-normal text-black">
-            Don't have an account?
-            <span className="font-semibold underline underline-offset cursor-pointer text-orange-600">
-              <Link to="/sg">Sign Up</Link>
-            </span>
-          </p>
+          <div className="w-full items-center justify-center flex">
+            <p className="text-sm font-normal text-black">
+              Don't have an account?
+              <span className="font-semibold underline underline-offset cursor-pointer text-orange-600">
+                <Link to="/sg">Sign Up</Link>
+              </span>
+            </p>
+          </div>
         </div>
       </div>
     </div>
