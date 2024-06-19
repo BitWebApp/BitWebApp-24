@@ -177,14 +177,14 @@ export default function Signup() {
               </button>
             )}
           </div>
-        </div>
-        <div className="w-full items-center justify-center flex">
+          <div className="w-full items-center justify-center flex">
           <p className="text-sm font-normal text-black">
             Already have an account?
             <span className="font-semibold underline underline-offset cursor-pointer text-orange-600">
               <Link to="/log">Log in</Link>
             </span>
           </p>
+        </div>
         </div>
       </div>
     </div>
