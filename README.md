@@ -36,6 +36,7 @@ Bitacademia is the comprehensive academic platform designed and developed for BI
 - **Responsive Design**: Optimized for various devices, ensuring a seamless experience on desktops, tablets, and smartphones.
 
 ### Developers
+Faculty Incharge - Prof. Suvendu Kanungo, Department of CSE, BIT Mesra.
 1. Kushagra Sahay - Full Stack Developer (Team Leader)
 2. Sumit Kumar - Full Stack Developer (Team Co-Leader)
 3. Akshat Tambi - Full Stack Developer
