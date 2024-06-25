@@ -156,10 +156,20 @@ const updateUser1 = asyncHandler(async (req, res) => {
   }
 
   const updateFields = {};
-  const fieldsToUpdate = { fullName, rollNumber, email, branch, section, mobileNumber, semester, cgpa, image: imagePath.url };
-  console.log(fieldsToUpdate.image)
+  const fieldsToUpdate = {
+    fullName,
+    rollNumber,
+    email,
+    branch,
+    section,
+    mobileNumber,
+    semester,
+    cgpa,
+    image: imagePath.url,
+  };
+  console.log(fieldsToUpdate.image);
   // Populate updateFields only with provided values
-  Object.keys(fieldsToUpdate).forEach(field => {
+  Object.keys(fieldsToUpdate).forEach((field) => {
     if (fieldsToUpdate[field]) {
       updateFields[field] = fieldsToUpdate[field];
     }
@@ -174,7 +184,7 @@ const updateUser1 = asyncHandler(async (req, res) => {
       { $set: updateFields },
       { new: true }
     ).select("-password");
-    console.log(user)
+    console.log(user);
     if (!user) {
       throw new ApiError(404, "User not found");
     }
