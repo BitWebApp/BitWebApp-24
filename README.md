@@ -35,5 +35,14 @@ Bitacademia is the comprehensive academic platform designed and developed for BI
 - **User-Friendly Interface**: Designed with a focus on ease of use, making it simple for all users to navigate and utilize the platform effectively.
 - **Responsive Design**: Optimized for various devices, ensuring a seamless experience on desktops, tablets, and smartphones.
 
+### Developers
+1. Kushagra Sahay - Full Stack Developer (Team Leader)
+2. Sumit Kumar - Full Stack Developer (Team Co-Leader)
+3. Akshat Tambi - Full Stack Developer
+4. Parth Shresth - Frontend Developer
+5. Ankit Verma - Backend Developer
+6. Hritabhash Ray - Frontend Developer
+7. Garvit Raj - Backend Developer
+
 ### Link to website
 https://bitacademia.vercel.app/
