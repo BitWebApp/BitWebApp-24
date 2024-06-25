@@ -7,10 +7,10 @@ import { User } from "../models/user.model.js";
 
 const createProject = asyncHandler(async (req, res) => {
   const { projectName, domain, projectLink, techStack, guide } = req.body;
-  const { _id: userId } = req.user; // Assuming user_id is obtained from the JWT token
+  const { _id: userId } = req.user; 
   console.log("User ID:", userId);
 
-  // Input validation
+  
   if (!projectName || !domain || !techStack || !guide || !projectLink) {
     throw new ApiError(400, "All fields are required");
   }
@@ -78,9 +78,10 @@ const ShowProject = asyncHandler(async (req, res) => {
 const deleteProject = asyncHandler(async (req, res) => {
   // const { id } = req.params;
   // const id=req.user;
-  const { _id: userId } = req.user;
+  const { _id: admin } = req.admin;
+  const {id}=req.params;
   try {
-    const project = await Project.findById(userId);
+    const project = await Project.findById(id);
     if (!project) {
       return res.status(404).json(
         new ApiResponse(404, null, "Project not found")
