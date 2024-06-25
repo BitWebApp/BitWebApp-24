@@ -28,4 +28,12 @@ const addbacklogSubject = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, backlog, "Subject added successfully"));
 });
 
-export { addbacklogSubject };
+const getAllBacklogSubjects = asyncHandler(async (req, res) => {
+  const backlogs = await Backlog.find();
+  if (!backlogs) {
+    throw new ApiError(404, "No subjects found");
+  }
+  return res.status(200).json(new ApiResponse(200, backlogs, "Subjects found"));
+});
+
+export { addbacklogSubject, getAllBacklogSubjects };
