@@ -35,19 +35,22 @@ export default function ProjectForm() {
 
       let response;
       
-        response = await axios.put(`/api/v1/project/edit`, formData, {
+        // response = await axios.put(`/api/v1/project/edit`, formData, {
+        //   // headers: {
+        //   //   "Content-Type": "multipart/form-data",
+        //   //   Authorization: `Bearer ${token}`
+        //   // },
+        //   withCredentials:true
+        // });
+      //  else {
+        response = await axios.post("/api/v1/project/projectCreate", formData, {
           // headers: {
           //   "Content-Type": "multipart/form-data",
           //   Authorization: `Bearer ${token}`
           // },
+          withCredentials:true
+        // })
         });
-      //  else {
-      //   response = await axios.post("/api/v1/project/projectCreate", formData, {
-      //     headers: {
-      //       "Content-Type": "multipart/form-data",
-      //       Authorization: `Bearer ${token}`
-      //     },
-      //   });
       // }
       toast.success("Data uploaded successfully!");
       setTimeout(() => {
@@ -69,7 +72,7 @@ export default function ProjectForm() {
 
   const fetchProject = async () => {
     try {
-    //   const token = localStorage.getItem("accessToken");
+      const token = localStorage.getItem("accessToken");
     //   const useridString=localStorage.getItem('user');
 
     //   const userid_get=JSON.parse(useridString);
@@ -77,7 +80,9 @@ export default function ProjectForm() {
     //  console.log(localStorage);
     //   const userid=userid_get._id;
     
-      const response = await axios.get(`/api/v1/project/show`);
+      const response = await axios.get(`/api/v1/project/show`,{
+        withCredentials:true
+      });
       setProj(response.data.data);
     } catch (error) {
       console.log(error.message, error);
@@ -235,4 +240,3 @@ export default function ProjectForm() {
     </>
   );
 }
-
