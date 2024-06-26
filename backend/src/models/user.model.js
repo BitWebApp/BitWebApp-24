@@ -4,6 +4,7 @@ import { Project } from "./project.model.js";
 import { Award } from "./award.model.js";
 import { Internship } from "./internship.model.js";
 import { Exam } from "./exam.model.js";
+import { Backlog } from "./backlog.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -115,12 +116,18 @@ const userSchema = new Schema(
       {
         type: Schema.Types.ObjectId,
         ref: "Academics",
-      }
+      },
     ],
     cgpa: {
       type: String,
       default: "",
     },
+    backlogs: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Backlog",
+      },
+    ],
     refreshToken: {
       type: String,
     },

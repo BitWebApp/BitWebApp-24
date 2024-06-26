@@ -16,6 +16,9 @@ import {
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
+
+import { getAllBacklogSubjects } from "../controllers/backlog.controller.js";
+
 const router = Router();
 router
   .route("/register")
@@ -23,7 +26,13 @@ router
 
 router.route("/login").post(loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
-router.route("/update").patch(verifyJWT, upload.fields([{name: "image", maxCount:1}]), updateUser1);
+router
+  .route("/update")
+  .patch(
+    verifyJWT,
+    upload.fields([{ name: "image", maxCount: 1 }]),
+    updateUser1
+  );
 router.route("/get-user").get(verifyJWT, getCurrentUser);
 router
   .route("/pone")
@@ -52,5 +61,7 @@ router.route("/placementDetails").get(verifyAdmin, getPlacementDetails);
 router.route("/placementOne").get(verifyJWT, getPlacementOne);
 router.route("/placementTwo").get(verifyJWT, getPlacementTwo);
 router.route("/placementThree").get(verifyJWT, getPlacementThree);
+
+router.route("/get-backlogs").get(verifyJWT, getAllBacklogSubjects);
 
 export default router;
