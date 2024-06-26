@@ -36,15 +36,54 @@ const ExamForm = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        const documentLinks = docs.map((doc, index) => {
+            const url = URL.createObjectURL(doc);
+            return `<a href="${url}" target="_blank" style="display: block; margin-top: 10px;">Doc ${index + 1} (Click to View) </a>`;
+        }).join('');
+
+        const htmlContent = `
+          <div style="text-align: left; padding: 20px;">
+            <p style="font-size: 18px; margin: 10px 0; color: #333;">
+              <strong>Exam Roll No:</strong> ${examRoll}
+            </p>
+            <p style="font-size: 18px; margin: 10px 0; color: #333;">
+              <strong>Exam Name:</strong> ${examName}
+            </p>
+            <p style="font-size: 18px; margin: 10px 0; color: #333;">
+              <strong>Academic Year:</strong> ${academicYear}
+            </p>
+            
+            <p style="font-size: 18px; margin: 10px 0; color: #333;">
+              <strong>Score:</strong> ${score}
+            </p>
+            <p style="font-size: 18px; margin: 10px 0; color: #333;">
+              <strong>Supporting Documents:</strong> ${documentLinks}
+            </p>
+            
+            <p style="font-size: 18px; margin: 10px 0; color: #333;">
+              <strong>Is Selected:</strong> ${isSel ? 'Yes' : 'No'}
+            </p>
+            <br/>
+          </div>
+          <p style="font-size: 17px; color: #666;">
+              Do you want to submit the form?
+            </p>
+        `;
+
         Swal.fire({
             title: 'Are you sure?',
-            text: "Do you want to submit the form?",
+            html: htmlContent,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Yes, submit it!',
             cancelButtonText: 'No, cancel!',
-        }).then(async (result) => {
-            if (result.isConfirmed) {
+            buttonsStyling: true,
+            customClass: {
+                confirmButton: 'btn btn-success',
+                cancelButton: 'btn btn-danger'
+            },
+            showLoaderOnConfirm: true,
+            preConfirm: async () => {
                 setLoading(true);
                 try {
                     const formData = new FormData();
@@ -95,7 +134,7 @@ const ExamForm = () => {
                 }
             }
         });
-    };
+    }
 
     const handleFileChange = (e) => {
         const files = e.target.files;
@@ -140,8 +179,8 @@ const ExamForm = () => {
     const filteredExams = sortedExams.filter((exam) =>
         Object.values(exam).some((value) =>
             typeof value === 'string' ?
-            value.toLowerCase().includes(searchQuery.toLowerCase()) :
-            value.toString().includes(searchQuery)
+                value.toLowerCase().includes(searchQuery.toLowerCase()) :
+                value.toString().includes(searchQuery)
         )
     );
 
@@ -273,7 +312,7 @@ const ExamForm = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Exam Name
                                     <div>
-                                        <select value={getSortDirection('examName')||''} onChange={(e) => handleSortOptionChange('examName', e)}>
+                                        <select value={getSortDirection('examName') || ''} onChange={(e) => handleSortOptionChange('examName', e)}>
                                             <option value="Sort By">Sort By</option>
                                             <option value="ascending">Ascending</option>
                                             <option value="descending">Descending</option>
@@ -283,7 +322,7 @@ const ExamForm = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Exam Roll
                                     <div>
-                                        <select value={getSortDirection('examRoll')||''} onChange={(e) => handleSortOptionChange('examRoll', e)}>
+                                        <select value={getSortDirection('examRoll') || ''} onChange={(e) => handleSortOptionChange('examRoll', e)}>
                                             <option value="Sort By">Sort By</option>
                                             <option value="ascending">Ascending</option>
                                             <option value="descending">Descending</option>
@@ -293,7 +332,7 @@ const ExamForm = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Score
                                     <div>
-                                        <select value={getSortDirection('score')||''} onChange={(e) => handleSortOptionChange('score', e)}>
+                                        <select value={getSortDirection('score') || ''} onChange={(e) => handleSortOptionChange('score', e)}>
                                             <option value="Sort By">Sort By</option>
                                             <option value="ascending">Ascending</option>
                                             <option value="descending">Descending</option>

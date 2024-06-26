@@ -5,45 +5,82 @@ import axios from 'axios';
 import { ClipLoader } from 'react-spinners';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Swal from 'sweetalert2';
 
 export default function Academicform() {
   const [semester, setSemester] = useState("");
-  const [gpa, setGpa] = useState(""); 
+  const [gpa, setGpa] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Submit button clicked");
-    try {
-      setLoading(true);
-      const response = await axios.post('/api/v1/academics/create', {
-        semester: semester,
-        gpa: gpa,
-      }, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
 
-      if (response.data.success) {
-        toast.success("Academic record added successfully!");
-        setSemester("");
-        setGpa("");
-        navigate('/db/academic-table');
-      } else {
-        toast.error(response.data.message || 'Failed to create academic record. Please try again.');
+    const htmlContent = `
+  <div style="text-align: left; padding: 20px;">
+    <p style="font-size: 20px; margin: 10px 0; color: #333;">
+      <strong>Semester:</strong> ${semester}
+    </p>
+    <p style="font-size: 20px; margin: 10px 0; color: #333;">
+      <strong>GPA:</strong> ${gpa}
+    </p>
+    <br/>
+  </div>
+  <p style="font-size: 17px; color: #666;">
+      Do you want to submit the form?
+  </p>
+`;
+
+    Swal.fire({
+      title: 'Are you sure?',
+      html: htmlContent,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, submit it!',
+      cancelButtonText: 'No, cancel!',
+      buttonsStyling: true,
+      customClass: {
+        confirmButton: 'btn btn-success',
+        cancelButton: 'btn btn-danger'
+      },
+      showLoaderOnConfirm: true,
+      preConfirm: async () => {
+        try {
+          setLoading(true);
+          const response = await axios.post('/api/v1/academics/create', {
+            semester: semester,
+            gpa: gpa,
+          }, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+          });
+
+          if (response.data.success) {
+            toast.success("Academic record added successfully!");
+            setSemester("");
+            setGpa("");
+            Swal.fire(
+              'Submitted!',
+              'Your form has been submitted.',
+              'success'
+            );
+            navigate('/db/academic-table');
+          } else {
+            toast.error(response.data.message || 'Failed to create academic record. Please try again.');
+          }
+        } catch (error) {
+          if (error.response && error.response.data) {
+            toast.error(error.response.data.message);
+          } else {
+            toast.error('Failed to create academic record. Please try again.');
+          }
+        } finally {
+          setLoading(false);
+        }
       }
-    } catch (error) {
-      console.error('Error creating academic record:', error);
-      if (error.response && error.response.data) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error('Failed to create academic record. Please try again.');
-      }
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   return (
@@ -90,9 +127,9 @@ export default function Academicform() {
             <div className="w-full flex items-center justify-between"></div>
             <div className="w-full flex flex-col my-4">
               <button
-                className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
+                className={loading ? "bg-black text-white w-full rounded-md p-4 text-center flex items-center opacity-70 justify-center my-2 hover:bg-black/90" : "bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"}
               >
-                {loading ? <ClipLoader/> : "Submit"}
+                {loading ? <ClipLoader color="gray" /> : "Submit"}
               </button>
             </div>
           </form>
@@ -105,7 +142,7 @@ export default function Academicform() {
           </div>
         </div>
       </div>
-      <ToastContainer/>
+      <ToastContainer />
     </div>
   );
 }

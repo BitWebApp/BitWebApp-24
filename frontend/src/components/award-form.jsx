@@ -30,15 +30,46 @@ const AwardForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const documentLink = doc ? `<a href="${URL.createObjectURL(doc)}" target="_blank" style="margin-top: 10px;">(Click to View)</a>` : '';
+
+    const htmlContent = `
+      <div style="text-align: left; padding: 20px;">
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Award Name:</strong> ${title}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Award Description:</strong> ${description}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Date Received:</strong> ${date}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Full Name:</strong> ${student}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Supporting Document:</strong> ${documentLink}
+        </p>
+        <br/>
+      </div>
+      <p style="font-size: 17px; color: #666;">
+          Do you want to submit the form?
+        </p>
+    `;
+
     Swal.fire({
       title: 'Are you sure?',
-      text: "Do you want to submit the form?",
+      html: htmlContent,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, submit it!',
       cancelButtonText: 'No, cancel!',
-    }).then(async (result) => {
-      if (result.isConfirmed) {
+      buttonsStyling: true,
+      customClass: {
+        confirmButton: 'btn btn-success',
+        cancelButton: 'btn btn-danger'
+      },
+      showLoaderOnConfirm: true,
+      preConfirm: async () => {
         setLoading(true);
         const formData = new FormData();
         formData.append('title', title);

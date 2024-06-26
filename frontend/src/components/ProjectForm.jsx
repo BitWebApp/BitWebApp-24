@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
+import Swal from 'sweetalert2';
 
 export default function ProjectForm() {
   const [projectName, setProjectName] = useState("");
@@ -21,48 +22,98 @@ export default function ProjectForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSpin(true);
-    // const token = localStorage.getItem("accessToken");
-    
-    try {
-      const formData = new FormData();
-      formData.append('projectName', projectName);
-      formData.append('domain', domain);
-      formData.append('projectLink', projectLink);
-      formData.append('techStack', techStack);
-      formData.append('guide', guide);
-      formData.append('projectId', idCard);
 
-      let response;
-      
-        response = await axios.put(`/api/v1/project/edit`, formData, {
-          // headers: {
-          //   "Content-Type": "multipart/form-data",
-          //   Authorization: `Bearer ${token}`
-          // },
-        });
-      //  else {
-      //   response = await axios.post("/api/v1/project/projectCreate", formData, {
-      //     headers: {
-      //       "Content-Type": "multipart/form-data",
-      //       Authorization: `Bearer ${token}`
-      //     },
-      //   });
-      // }
-      toast.success("Data uploaded successfully!");
-      setTimeout(() => {
-        navigate("/db");
-      }, 2000);
-    } catch (err) {
-      console.log(err);
-      toast.error("Error uploading data!");
-    } finally {
-      setSpin(false);
-      fetchProject();
-      clearForm();
-    }
+    const documentLink = idCard ? `<a href="${URL.createObjectURL(idCard)}" target="_blank" style=" margin-top: 10px;">(Click to View)</a>` : '';
+
+    const htmlContent = `
+      <div style="text-align: left; padding: 20px;">
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Project Name:</strong> ${projectName}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Domain:</strong> ${domain}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Project Link:</strong> ${projectLink}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Tech Stack:</strong> ${techStack}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Guide:</strong> ${guide}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Project:</strong> ${documentLink}
+        </p>
+        <br/>
+      </div>
+      <p style="font-size: 17px; color: #666;">
+          Do you want to submit the form?
+        </p>
+    `;
+
+    Swal.fire({
+      title: 'Are you sure?',
+      html: htmlContent,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, submit it!',
+      cancelButtonText: 'No, cancel!',
+      buttonsStyling: true,
+      customClass: {
+        confirmButton: 'btn btn-success',
+        cancelButton: 'btn btn-danger'
+      },
+      showLoaderOnConfirm: true,
+      preConfirm: async () => {
+        setSpin(true);
+        try {
+          const formData = new FormData();
+          formData.append('projectName', projectName);
+          formData.append('domain', domain);
+          formData.append('projectLink', projectLink);
+          formData.append('techStack', techStack);
+          formData.append('guide', guide);
+          formData.append('projectId', idCard);
+
+          const token = localStorage.getItem('accessToken');
+          const config = {
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true,
+          };
+          const response = await axios.post("/api/v1/project/projectCreate", formData, config);
+
+          // if (editId) {
+          //   response = await axios.put(`/api/v1/project/edit`, formData, config);
+          // } else {
+          //   response = await axios.post("/api/v1/project/projectCreate", formData, config);
+          // }
+
+          if (response.data.success) {
+            toast.success("Data uploaded successfully!");
+            Swal.fire(
+              'Submitted!',
+              'Your form has been submitted.',
+              'success'
+            );
+            setTimeout(() => {
+              navigate("/db");
+            }, 2000);
+          } else {
+            toast.error(response.data.message || 'Failed to create project record. Please try again.');
+          }
+          
+        } catch (err) {
+          console.log(err);
+          toast.error("Error uploading data!");
+        } finally {
+          setSpin(false);
+          fetchProject();
+          clearForm();
+        }
+      }
+    });
   };
-
   useEffect(() => {
     fetchProject();
   }, []);
@@ -77,7 +128,7 @@ export default function ProjectForm() {
     //  console.log(localStorage);
     //   const userid=userid_get._id;
     
-      const response = await axios.get(`/api/v1/project/show`);
+      const response = await axios.get(`/api/v1/project/show`, { withCredentials: true });
       setProj(response.data.data);
     } catch (error) {
       console.log(error.message, error);
@@ -208,9 +259,9 @@ export default function ProjectForm() {
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Document
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            {/* <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Edit
-            </th>
+            </th> */}
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">

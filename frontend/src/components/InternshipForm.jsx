@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
+import Swal from 'sweetalert2';
 
 export default function InternshipForm() {
   const [company, setCompany] = useState("");
@@ -17,36 +18,79 @@ export default function InternshipForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSpin(true);
-    const tokenString = localStorage.getItem('user');
-    const token = JSON.parse(tokenString);
-    console.log(token._id);
-    try {
-      const formData = new FormData();
-      formData.append('company', company);
-      formData.append('role', role);
-      formData.append('startDate', startDate);
-      formData.append('endDate', endDate);
-      formData.append('doc', idCard);
-      formData.append('studentid',token._id);
 
-      const response = await axios.post("/api/v1/intern/addinternship", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Accept: "application/json",
-        },
-      });
-      console.log('Response:', response.data); // Log the response here
-      toast.success("Data uploaded successfully!");
-      setTimeout(() => {
-        window.location.reload()
-      }, 2000);
-    } catch (err) {
-      console.error('Error:', err); // Log the error here
-      toast.error("Error uploading data!");
-    } finally {
-      setSpin(false);
-    }
+    const documentLink = idCard ? `<a href="${URL.createObjectURL(idCard)}" target="_blank" style="margin-top: 10px;">(Click to View)</a>` : '';
+
+    const htmlContent = `
+      <div style="text-align: left; padding: 20px;">
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Company:</strong> ${company}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Role:</strong> ${role}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Start Date:</strong> ${startDate}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>End Date:</strong> ${endDate}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Supporting Document:</strong> ${documentLink}
+        </p>
+        <br/>
+      </div>
+      <p style="font-size: 17px; color: #666;">
+          Do you want to submit the form?
+        </p>
+    `;
+
+    Swal.fire({
+      title: 'Are you sure?',
+      html: htmlContent,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, submit it!',
+      cancelButtonText: 'No, cancel!',
+      buttonsStyling: true,
+      customClass: {
+        confirmButton: 'btn btn-success',
+        cancelButton: 'btn btn-danger'
+      },
+      showLoaderOnConfirm: true,
+      preConfirm: async () => {
+        setSpin(true);
+      const tokenString = localStorage.getItem('user');
+      const token = JSON.parse(tokenString);
+      console.log(token._id);
+      try {
+        const formData = new FormData();
+        formData.append('company', company);
+        formData.append('role', role);
+        formData.append('startDate', startDate);
+        formData.append('endDate', endDate);
+        formData.append('doc', idCard);
+        formData.append('studentid',token._id);
+
+        const response = await axios.post("/api/v1/intern/addinternship", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Accept: "application/json",
+          },
+        });
+        console.log('Response:', response.data); // Log the response here
+        toast.success("Data uploaded successfully!");
+        setTimeout(() => {
+          window.location.reload()
+        }, 2000);
+      } catch (err) {
+        console.error('Error:', err); // Log the error here
+        toast.error("Error uploading data!");
+      } finally {
+        setSpin(false);
+      }
+      }
+    });
   };
 
   return (
