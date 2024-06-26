@@ -76,18 +76,33 @@ export default function ProjectForm() {
           formData.append('guide', guide);
           formData.append('projectId', idCard);
 
-          let response;
+          const token = localStorage.getItem('accessToken');
+          const config = {
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true,
+          };
+          const response = await axios.post("/api/v1/project/projectCreate", formData, config);
 
-          if (editId) {
-            response = await axios.put(`/api/v1/project/edit`, formData);
+          // if (editId) {
+          //   response = await axios.put(`/api/v1/project/edit`, formData, config);
+          // } else {
+          //   response = await axios.post("/api/v1/project/projectCreate", formData, config);
+          // }
+
+          if (response.data.success) {
+            toast.success("Data uploaded successfully!");
+            Swal.fire(
+              'Submitted!',
+              'Your form has been submitted.',
+              'success'
+            );
+            setTimeout(() => {
+              navigate("/db");
+            }, 2000);
           } else {
-            response = await axios.post("/api/v1/project/projectCreate", formData);
+            toast.error(response.data.message || 'Failed to create project record. Please try again.');
           }
-
-          toast.success("Data uploaded successfully!");
-          setTimeout(() => {
-            navigate("/db");
-          }, 2000);
+          
         } catch (err) {
           console.log(err);
           toast.error("Error uploading data!");
@@ -113,7 +128,7 @@ export default function ProjectForm() {
     //  console.log(localStorage);
     //   const userid=userid_get._id;
     
-      const response = await axios.get(`/api/v1/project/show`);
+      const response = await axios.get(`/api/v1/project/show`, { withCredentials: true });
       setProj(response.data.data);
     } catch (error) {
       console.log(error.message, error);
