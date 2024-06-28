@@ -91,8 +91,9 @@ export default function Academicform() {
             <div className="w-full flex flex-col my-4">
               <button
                 className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
+                type="submit"
               >
-                {loading ? <ClipLoader/> : "Submit"}
+                {loading ? <ClipLoader size={24} color="#ffffff"/> : "Submit"}
               </button>
             </div>
           </form>

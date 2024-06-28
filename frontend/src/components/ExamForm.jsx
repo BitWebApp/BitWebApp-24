@@ -35,7 +35,17 @@ const ExamForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        const duplicate = exams.find(
+            exam =>  exam.examName === examName
+        );
+        if (duplicate) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Duplicate Entry',
+                text: 'You have already entered this exam. One entry per exam is allowed.',
+            });
+            return;
+        }    
         Swal.fire({
             title: 'Are you sure?',
             text: "Do you want to submit the form?",
@@ -229,6 +239,7 @@ const ExamForm = () => {
                             />
                             <label>Upload Supporting Documents</label>
                             <input
+                              required
                                 type="file"
                                 onChange={handleFileChange}
                                 multiple
@@ -236,6 +247,7 @@ const ExamForm = () => {
                             />
                             <div className="flex items-center mt-4">
                                 <input
+                                  required
                                     type="checkbox"
                                     id="isSel"
                                     checked={isSel}
@@ -248,7 +260,7 @@ const ExamForm = () => {
                                 type="submit"
                                 className={loading ? "bg-black text-white w-full rounded-md p-4 text-center flex items-center opacity-70 justify-center my-2 hover:bg-black/90" : "bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"}
                             >
-                                {loading ? <ClipLoader color="gray" /> : "SUBMIT"}
+                                  {loading ? <ClipLoader color="gray" /> : "SUBMIT"}
                             </button>
                         </div>
                     </form>
@@ -328,6 +340,7 @@ const ExamForm = () => {
                                             </div>
                                         ))}
                                     </td>
+                                    
                                     {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <button className="bg-blue-500 text-white px-2 py-1 rounded mr-2" onClick={() => handleEdit(exam)}>Edit</button>
                                         <button className="bg-red-500 text-white px-2 py-1 rounded" onClick={() => handleDelete(exam._id)}>Delete</button>

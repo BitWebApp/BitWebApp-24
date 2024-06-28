@@ -109,7 +109,7 @@ export default function InternshipForm() {
                 type="submit"
                 className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
               >
-                {spin ? <ClipLoader /> : "Submit"}
+                {spin ? <ClipLoader size={24} color="#ffffff"/> : "Submit"}
               </button>
             </div>
           </form>
