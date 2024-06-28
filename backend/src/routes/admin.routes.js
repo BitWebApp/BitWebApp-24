@@ -9,6 +9,7 @@ import {
   logoutAdmin,
   getCurrendAdmin,
 } from "../controllers/admin.controller.js";
+import { addbacklogSubject } from "../controllers/backlog.controller.js";
 const router = Router();
 
 router.route("/unverifiedUsers").get(verifyAdmin, getUnverifiedUsers);
@@ -22,5 +23,7 @@ router.route("/login").post(loginAdmin);
 router.route("/logout").post(verifyAdmin, logoutAdmin);
 
 router.route("/get-admin").get(verifyAdmin, getCurrendAdmin);
+
+router.route("/add-backlog").post(verifyAdmin, addbacklogSubject);
 
 export default router;
