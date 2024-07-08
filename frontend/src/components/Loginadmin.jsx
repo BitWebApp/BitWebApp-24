@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function SignInPage() {
   const [username, setUsername] = useState("");
@@ -18,11 +20,18 @@ export default function SignInPage() {
       });
       localStorage.setItem("user", JSON.stringify(response.data.data.admin));
       console.log(response);
+
+      // Show success toast
+      toast.success('Login Successful! Redirecting to dashboard...');
+
       setTimeout(() => {
         navigate("/db/");
       }, 2000);
     } catch (error) {
       console.error(error);
+
+      // Show error toast
+      toast.error('Login Failed. Please check your credentials.');
     } finally {
       setLoading(false); // Set loading to false after the login process is complete
     }
@@ -30,6 +39,7 @@ export default function SignInPage() {
 
   return (
     <div className="text-center my-20 mx-auto">
+      <ToastContainer />
       <h2 className="text-3xl mb-8">Admin Log In</h2>
       <form
         action="/home"

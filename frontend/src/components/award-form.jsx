@@ -11,21 +11,18 @@ const AwardForm = () => {
   const [date, setDate] = useState('');
   const [description, setDescription] = useState('');
   const [student, setStudent] = useState('');
-  const [proId, setproId] = useState("");
+  const [proId, setProId] = useState('');
   const [doc, setDoc] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortConfigs, setSortConfigs] = useState([]);
  
-  
   const fetchAwards = async () => {
     try {
       const response = await axios.get('/api/v1/awards');
-      console.log(response.data.data);
       setAwards(response.data.data);
     } catch (error) {
       console.error('Error fetching awards:', error.message);
-     
       toast.error('Failed to fetch awards');
     }
   };
@@ -39,13 +36,40 @@ const AwardForm = () => {
 
     Swal.fire({
       title: 'Are you sure?',
-      text: 'Do you want to submit the form?',
+      html: `
+        <div style="text-align: left; padding: 20px;">
+          <p style="font-size: 18px; margin: 10px 0; color: #333;">
+            <strong>Award Name:</strong> ${title}
+          </p>
+          <p style="font-size: 18px; margin: 10px 0; color: #333;">
+            <strong>Award Description:</strong> ${description}
+          </p>
+          <p style="font-size: 18px; margin: 10px 0; color: #333;">
+            <strong>Date Received:</strong> ${date}
+          </p>
+          <p style="font-size: 18px; margin: 10px 0; color: #333;">
+            <strong>Full Name:</strong> ${student}
+          </p>
+          <p style="font-size: 18px; margin: 10px 0; color: #333;">
+            <strong>Supporting Document:</strong> ${doc.length > 0 ? `<a href="${URL.createObjectURL(doc[0])}" target="_blank" style="margin-top: 10px;">(Click to View)</a>` : 'None'}
+          </p>
+          <br/>
+        </div>
+        <p style="font-size: 17px; color: #666;">
+          Do you want to submit the form?
+        </p>
+      `,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, submit it!',
       cancelButtonText: 'No, cancel',
-    }).then(async (result) => {
-      if (result.isConfirmed) {
+      buttonsStyling: true,
+      customClass: {
+        confirmButton: 'btn btn-success',
+        cancelButton: 'btn btn-danger'
+      },
+      showLoaderOnConfirm: true,
+      preConfirm: async () => {
         setLoading(true);
         try {
           const formData = new FormData();
@@ -64,7 +88,7 @@ const AwardForm = () => {
               Authorization: `Bearer ${token}`,
             },
           };
-        
+
           let response;
           if (proId) {
             response = await axios.put(`/api/v1/awards/${proId}`, formData, config);
@@ -93,7 +117,7 @@ const AwardForm = () => {
           setStudent('');
           setDoc([]);
           fetchAwards();
-          setproId("");
+          setProId('');
           setLoading(false);
         }
       }
@@ -204,6 +228,7 @@ const AwardForm = () => {
                     ? 'bg-black text-white w-full rounded-md p-4 text-center flex items-center opacity-70 justify-center my-2 hover:bg-black/90'
                     : 'bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90'
                 }
+                disabled={loading}
               >
                 {loading ? <ClipLoader color="gray" /> : 'SUBMIT'}
               </button>
@@ -262,8 +287,6 @@ const AwardForm = () => {
                       <option value="ascending">Ascending</option>
                       <option value="descending">Descending</option>
                     </select>
-                
-                 
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -276,14 +299,14 @@ const AwardForm = () => {
                 <tr key={award._id}>
                   <td className="px-6 py-4 whitespace-nowrap">{award.title}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{new Date(award.date).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{(award.description)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{award.description}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-  {award.doc ? (
-    <a href={award.doc} target="_blank" rel="noopener noreferrer">View Document</a>
-  ) : (
-    <span>No document available</span>
-  )}
-</td>
+                    {award.doc ? (
+                      <a href={award.doc} target="_blank" rel="noopener noreferrer">View Document</a>
+                    ) : (
+                      <span>No document available</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
