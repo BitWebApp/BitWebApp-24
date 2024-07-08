@@ -91,8 +91,8 @@ export default function Header() {
                 leaveFrom='opacity-100 translate-y-0'
                 leaveTo='opacity-0 translate-y-1'
               >
-                <Popover.Panel className='absolute left-0 z-10 mt-2.5 w-full bg-black'>
-                  <div className='whitespace-pre flex-1 py-[1rem] text-[0.9rem] text-red-700 flex flex-col gap-0.5'>
+                <Popover.Panel className='absolute left-0 z-10 mt-2.5 w-full bg-white'>
+                  <div className='whitespace-pre flex-1 py-[1rem] text-[0.9rem] text-white-700 flex flex-col gap-0.5'>
                     {links.map((link, index) => (
                       <Link to={link.to} key={index} className={classNames('cursor-pointer border-t border-neutral-700', linkClasses)}>
                         <span className='text-xl'>{link.icon}</span>

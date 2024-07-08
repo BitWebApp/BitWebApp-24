@@ -16,10 +16,25 @@ export default function ProjectForm() {
   const [spin, setSpin] = useState(false);
   const [proj, setProj] = useState([]);
   const [editId, setEditId] = useState(null);
-  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortConfigs, setSortConfigs] = useState([]);
+  const [doc, setDoc] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
+  const fetchProject = async () => {
+    try {
+      const response = await axios.get(`/api/v1/project/show`, { withCredentials: true });
+      console.log('API Response:', response.data.data);
+      console.log(response.data.data);
+      setProj(response.data.data);
+      console.log(proj);
+    } catch (error) {
+      console.log(error.message, error);
+      toast.error('Failed to fetch projects');
+    }
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -57,6 +72,7 @@ export default function ProjectForm() {
       html: htmlContent,
       icon: 'warning',
       showCancelButton: true,
+      
       confirmButtonText: 'Yes, submit it!',
       cancelButtonText: 'No, cancel!',
       buttonsStyling: true,
@@ -81,13 +97,8 @@ export default function ProjectForm() {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           };
-          const response = await axios.post("/api/v1/project/projectCreate", formData, config);
 
-          // if (editId) {
-          //   response = await axios.put(`/api/v1/project/edit`, formData, config);
-          // } else {
-          //   response = await axios.post("/api/v1/project/projectCreate", formData, config);
-          // }
+          const response = await axios.post("/api/v1/project/projectCreate", formData, config);
 
           if (response.data.success) {
             toast.success("Data uploaded successfully!");
@@ -97,43 +108,32 @@ export default function ProjectForm() {
               'success'
             );
             setTimeout(() => {
-              navigate("/db");
+              window.location.reload();
             }, 2000);
           } else {
             toast.error(response.data.message || 'Failed to create project record. Please try again.');
           }
-          
+
         } catch (err) {
           console.log(err);
           toast.error("Error uploading data!");
         } finally {
           setSpin(false);
+          // setProj('');
+          setDoc([]);
+          setLoading(false);
           fetchProject();
           clearForm();
         }
       }
     });
   };
+
   useEffect(() => {
     fetchProject();
   }, []);
 
-  const fetchProject = async () => {
-    try {
-    //   const token = localStorage.getItem("accessToken");
-    //   const useridString=localStorage.getItem('user');
-
-    //   const userid_get=JSON.parse(useridString);
-
-    //  console.log(localStorage);
-    //   const userid=userid_get._id;
-    
-      const response = await axios.get(`/api/v1/project/show`, { withCredentials: true });
-      setProj(response.data.data);
-    } catch (error) {
-      console.log(error.message, error);
-    }
-  };
+  
 
   const handleEdit = (project) => {
     setProjectName(project.projectName);
@@ -142,6 +142,11 @@ export default function ProjectForm() {
     setTechStack(project.techStack);
     setGuide(project.guide);
     setEditId(project._id);
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setIdCard(file);
   };
 
   const clearForm = () => {
@@ -154,6 +159,34 @@ export default function ProjectForm() {
     setEditId(null);
   };
 
+  const handleSortOptionChange = (field, e) => {
+    const direction = e.target.value;
+    const newConfig = direction === 'Sort By' ? null : { field, direction };
+    setSortConfigs((prevConfigs) => {
+      const otherConfigs = prevConfigs.filter((config) => config.field !== field);
+      return newConfig ? [...otherConfigs, newConfig] : otherConfigs;
+    });
+  };
+
+  const getSortDirection = (field) => {
+    const config = sortConfigs.find((config) => config.field === field);
+    return config ? config.direction : 'Sort By';
+  };
+
+  const sortProjects = (projects) => {
+    return projects.sort((a, b) => {
+      for (const { field, direction } of sortConfigs) {
+        if (a[field] < b[field]) return direction === 'ascending' ? -1 : 1;
+        if (a[field] > b[field]) return direction === 'ascending' ? 1 : -1;
+      }
+      return 0;
+    });
+  };
+
+  const filteredAndSortedProjects = sortProjects(proj.filter(project =>
+    project.projectName.toLowerCase().includes(searchQuery.toLowerCase())
+  ));
+  console.log(filteredAndSortedProjects);
   return (
     <>
       <div className="w-full min-h-screen flex justify-center items-center">
@@ -211,7 +244,7 @@ export default function ProjectForm() {
                 <input
                   type="file"
                   accept="application/pdf,image/*"
-                  onChange={(e) => setIdCard(e.target.files[0])}
+                  onChange={handleFileChange}
                 />
                 <div className="h-5"></div>
               </div>
@@ -221,7 +254,7 @@ export default function ProjectForm() {
                   type="submit"
                   className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
                 >
-                  {spin ? <ClipLoader /> : editId ? 'Update' : 'Submit'}
+                  {spin ? <ClipLoader size={24} color="#ffffff" /> : editId ? 'Update' : 'Submit'}
                 </button>
               </div>
             </form>
@@ -243,6 +276,16 @@ export default function ProjectForm() {
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Project Name
+              <div>
+                <select
+                  value={getSortDirection('projectName')}
+                  onChange={(e) => handleSortOptionChange('projectName', e)}
+                >
+                  <option value="Sort By">Sort By</option>
+                  <option value="ascending">Ascending</option>
+                  <option value="descending">Descending</option>
+                </select>
+              </div>
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Domain
@@ -259,25 +302,27 @@ export default function ProjectForm() {
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Document
             </th>
-            {/* <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Edit
-            </th> */}
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {proj.length > 0 && proj.map((project, index) => (
-            <tr key={project._id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{index + 1}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.projectName}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.domain}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.projectLink}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.techStack}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.guide}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <a href={project.doc} target="_blank" rel="noopener noreferrer">Click Here</a>
+          {filteredAndSortedProjects.map((project, index) => (
+            <tr key={project._id}>
+              <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{project.projectName}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{project.domain}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{project.projectLink}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{project.techStack}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{project.guide}</td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                {project.document ? (
+                  <a href={project.document} target="_blank" rel="noopener noreferrer">View Document</a>
+                ) : (
+                  <span>No document available</span>
+                )}
               </td>
-              {/* <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button onClick={() => handleEdit(project)} className="text-indigo-600 hover:text-indigo-900">Edit</button>
+              {/* Uncomment this if you need the edit functionality */}
+              {/* <td className="px-6 py-4 whitespace-nowrap">
+                <button onClick={() => handleEdit(project)} className="text-blue-600 hover:text-blue-900">Edit</button>
               </td> */}
             </tr>
           ))}
@@ -286,4 +331,3 @@ export default function ProjectForm() {
     </>
   );
 }
-

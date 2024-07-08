@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from "react-router-dom";
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from "react-router-dom";
 import axios from 'axios';
 import { ClipLoader } from 'react-spinners';
 import { toast, ToastContainer } from 'react-toastify';
@@ -18,19 +17,19 @@ export default function Academicform() {
     console.log("Submit button clicked");
 
     const htmlContent = `
-  <div style="text-align: left; padding: 20px;">
-    <p style="font-size: 20px; margin: 10px 0; color: #333;">
-      <strong>Semester:</strong> ${semester}
-    </p>
-    <p style="font-size: 20px; margin: 10px 0; color: #333;">
-      <strong>GPA:</strong> ${gpa}
-    </p>
-    <br/>
-  </div>
-  <p style="font-size: 17px; color: #666;">
-      Do you want to submit the form?
-  </p>
-`;
+      <div style="text-align: left; padding: 20px;">
+        <p style="font-size: 20px; margin: 10px 0; color: #333;">
+          <strong>Semester:</strong> ${semester}
+        </p>
+        <p style="font-size: 20px; margin: 10px 0; color: #333;">
+          <strong>GPA:</strong> ${gpa}
+        </p>
+        <br/>
+      </div>
+      <p style="font-size: 17px; color: #666;">
+          Do you want to submit the form?
+      </p>
+    `;
 
     Swal.fire({
       title: 'Are you sure?',
@@ -128,8 +127,9 @@ export default function Academicform() {
             <div className="w-full flex flex-col my-4">
               <button
                 className={loading ? "bg-black text-white w-full rounded-md p-4 text-center flex items-center opacity-70 justify-center my-2 hover:bg-black/90" : "bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"}
+                type="submit"
               >
-                {loading ? <ClipLoader color="gray" /> : "Submit"}
+                {loading ? <ClipLoader size={24} color="#ffffff" /> : "Submit"}
               </button>
             </div>
           </form>

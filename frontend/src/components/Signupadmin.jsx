@@ -1,14 +1,19 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { ClipLoader } from 'react-spinners';
 
 export default function SignUpPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
       const response = await axios.post("/api/v1/admin/register", {
@@ -16,16 +21,24 @@ export default function SignUpPage() {
         password,
       });
       console.log(response.data);
+      
+      toast.success('Registration Successful! Redirecting to login...'); 
       setTimeout(() => {
         navigate("/log.a");
-      }, 3000);
+      }, 2000);
+      
     } catch (error) {
       console.error(error);
+      
+      toast.error('Registration Failed. Password too short.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="text-center my-20 mx-auto">
+      <ToastContainer />
       <h2 className="text-2xl font-light">Join us</h2>
       <h5 className="text-lg font-light mb-5">Create your personal account</h5>
       <form
@@ -54,11 +67,11 @@ export default function SignUpPage() {
         </p>
         <p>
           <button
-            id="sub_btn"
             type="submit"
             className="w-full p-2 bg-gray-800 text-white rounded hover:bg-gray-900 transition duration-500"
+            disabled={loading}
           >
-            Register
+            {loading ? <ClipLoader size={24} color="#ffffff" /> : 'Register'}
           </button>
         </p>
       </form>
