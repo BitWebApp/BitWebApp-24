@@ -6,6 +6,7 @@ import { ClipLoader, GridLoader } from "react-spinners";
 import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Swal from 'sweetalert2';
 
 const PlacementTwo = () => {
   const [company, setCompany] = useState("");
@@ -40,29 +41,71 @@ const PlacementTwo = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSpin(true);
-    try {
-      const formData = new FormData();
-      formData.append("company", company);
-      formData.append("ctc", ctc);
-      formData.append("date", date);
-      formData.append("doc", file);
-      const response = await axios.patch("/api/v1/users/ptwo", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Accept: "application/json",
-        },
-      });
-      console.log(response.data);
-      toast.success("Data uploaded successfully");
-      setTimeout(() => {
-        navigate("/db");
-      }, 2000);
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setSpin(false);
-    }
+
+    const documentLink = file ? `<a href="${URL.createObjectURL(file)}" target="_blank" style=" margin-top: 10px;">(Click to View)</a>` : '';
+
+    const htmlContent = `
+      <div style="text-align: left; padding: 20px;">
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Company:</strong> ${company}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>CTC:</strong> ${ctc}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Date:</strong> ${date}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Supporting Document:</strong> ${documentLink}
+        </p>
+        <br/>
+      </div>
+      <p style="font-size: 17px; color: #666;">
+          Do you want to submit the form?
+        </p>
+    `;
+
+    Swal.fire({
+      title: 'Are you sure?',
+      html: htmlContent,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, submit it!',
+      cancelButtonText: 'No, cancel!',
+      buttonsStyling: true,
+      customClass: {
+        confirmButton: 'btn btn-success',
+        cancelButton: 'btn btn-danger'
+      },
+      showLoaderOnConfirm: true,
+      preConfirm: async () => {
+        setSpin(true);
+        try {
+          const formData = new FormData();
+          formData.append("company", company);
+          formData.append("ctc", ctc);
+          formData.append("date", date);
+          if (file) {
+            formData.append("doc", file);
+          }
+          const response = await axios.patch("/api/v1/users/ptwo", formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Accept: "application/json",
+            },
+          });
+          console.log(response.data);
+          toast.success("Data uploaded successfully");
+          setTimeout(() => {
+            navigate("/db");
+          }, 2000);
+        } catch (err) {
+          console.log(err);
+        } finally {
+          setSpin(false);
+        }
+      }
+    });
   };
 
   return (

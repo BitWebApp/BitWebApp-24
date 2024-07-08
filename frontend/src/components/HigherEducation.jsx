@@ -34,17 +34,53 @@ const HigherEducation = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const documentLinks = docs.map((doc, index) => {
+      const url = URL.createObjectURL(doc);
+      return `<a href="${url}" target="_blank" style="display: block; margin-top: 10px;">Document ${index + 1} (Click to View)</a>`;
+    }).join('');
+
+    const htmlContent = `
+      <div style="text-align: left; padding: 20px;">
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Institution:</strong> ${institute}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Degree:</strong> ${degree}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Field of Study:</strong> ${field}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Start Date:</strong> ${startDate}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>End Date:</strong> ${endDate}
+        </p>
+        <p style="font-size: 18px; margin: 10px 0; color: #333;">
+          <strong>Supporting Documents:</strong> ${documentLinks}
+        </p>
+        <br/>
+      </div>
+      <p style="font-size: 17px; color: #666;">
+          Do you want to submit the form?
+        </p>
+    `;
+
     Swal.fire({
       title: 'Are you sure?',
-      text: "Do you want to submit the form?",
+      html: htmlContent,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, submit it!',
       cancelButtonText: 'No, cancel!',
-    }).then(async (result) => {
-      if (result.isConfirmed) {
+      buttonsStyling: true,
+      customClass: {
+        confirmButton: 'btn btn-success',
+        cancelButton: 'btn btn-danger'
+      },
+      showLoaderOnConfirm: true,
+      preConfirm: async () => {
         setLoading(true);
-      
         const formData = new FormData();
         formData.append('institution', institute);
         formData.append('degree', degree);
@@ -54,7 +90,7 @@ const HigherEducation = () => {
         Array.from(docs).forEach((doc) => {
           formData.append('files', doc);
         });
-      
+
         try {
           if (higherEducationId) {
             await axios.put(`/api/v1/higher-education/${higherEducationId}`, formData);
