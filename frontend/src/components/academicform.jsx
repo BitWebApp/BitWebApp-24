@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from "react-router-dom";
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from "react-router-dom";
 import axios from 'axios';
 import { ClipLoader } from 'react-spinners';
 import { toast, ToastContainer } from 'react-toastify';
@@ -82,29 +81,7 @@ export default function Academicform() {
       }
     });
   };
-  const sortAwards = (awards, configs) => {
-    return awards.sort((a, b) => {
-      for (const config of configs) {
-        const { field, direction } = config;
-        let comparison = 0;
-        if (typeof a[field] === 'string' && typeof b[field] === 'string') {
-          comparison = a[field].localeCompare(b[field]);
-        } else {
-          comparison = a[field] > b[field] ? 1 : a[field] < b[field] ? -1 : 0;
-        }
-        if (direction === 'descending') comparison *= -1;
-        if (comparison !== 0) return comparison;
-      }
-      return 0;
-    });
-  };
 
-  const sorteproject = sorteproject([...projects], sortConfigs);
-  const filteredAwards = sortedAwards.filter((award) =>
-    Object.values(award).some((value) =>
-      typeof value === 'string' ? value.toLowerCase().includes(searchQuery.toLowerCase()) : false
-    )
-  );
   return (
     <div className="w-full min-h-screen flex justify-center items-center">
       <div className="w-full flex flex-col p-10 justify-between">
