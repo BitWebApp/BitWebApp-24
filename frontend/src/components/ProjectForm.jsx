@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
+import Swal from 'sweetalert2';
+
 
 export default function ProjectForm() {
   const [projectName, setProjectName] = useState("");
@@ -15,6 +17,8 @@ export default function ProjectForm() {
   const [spin, setSpin] = useState(false);
   const [proj, setProj] = useState([]);
   const [editId, setEditId] = useState(null);
+  const [doc, setDoc] = useState([]);
+
   
 
   const navigate = useNavigate();

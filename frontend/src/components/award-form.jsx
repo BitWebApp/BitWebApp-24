@@ -21,9 +21,11 @@ const AwardForm = () => {
   const fetchAwards = async () => {
     try {
       const response = await axios.get('/api/v1/awards');
+      console.log(response.data.data);
       setAwards(response.data.data);
     } catch (error) {
       console.error('Error fetching awards:', error.message);
+     
       toast.error('Failed to fetch awards');
     }
   };
@@ -275,17 +277,13 @@ const AwardForm = () => {
                   <td className="px-6 py-4 whitespace-nowrap">{award.title}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{new Date(award.date).toLocaleDateString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{(award.description)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap"><td className="px-6 py-4 whitespace-nowrap">
-
-        </td>
-
-                  {/* {award.newDocs.map((doc, index) => (
-  <div key={index}>
-    <a href={doc.url} target="_blank" rel="noopener noreferrer">Document {index + 1}</a>
-  </div>
-
-))}; */}
-                                    </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+  {award.doc ? (
+    <a href={award.doc} target="_blank" rel="noopener noreferrer">View Document</a>
+  ) : (
+    <span>No document available</span>
+  )}
+</td>
                 </tr>
               ))}
             </tbody>
