@@ -1,6 +1,27 @@
-# Bitacademia - Official Academic Website of BIT Mesra
 
-Bitacademia is the comprehensive academic platform designed and developed for BIT Mesra. This website aims to streamline and enhance the academic management experience for students, faculty, and administration. Bitacademia offers a wide array of features tailored to meet the diverse needs of the academic community.
+# BITAcademia - Official Academic Website of BIT Mesra
+
+BITAcademia is the comprehensive academic platform designed and developed for BIT Mesra. This website aims to streamline and enhance the academic management experience for students, faculty, and administration. BITAcademia offers a wide array of features tailored to meet the diverse needs of the academic community.
+
+### Website: https://bitacademia.vercel.app/
+
+## Tools & Technologies Used
+- **React**: For building the user interface.
+- **Express.js**: For handling the server-side logic.
+- **MongoDB**: For database management.
+- **Node.js**: As the runtime environment.
+- **Multer**: For handling multipart/form-data, especially file uploads.
+- **Cloudinary**: For managing media assets.
+- **Tailwind CSS**: For styling and responsive design.
+
+## Technical Overview
+- A responsive academic MERN application built to enhance the management of students’ academic data.
+- Provides dashboards to both students and faculty along with management tools enabling reporting and analytics.
+- Implemented media handling through Cloudinary and Multer.
+- Designed student routes for managing data and admin routes for analytic reporting.
+- Developed RESTful APIs for creating, updating, deleting, and editing records.
+- Implemented a cookie-based authentication system using JWT and bcrypt and facilitated data export using excel.js.
+
 
 ## Features
 
@@ -45,5 +66,3 @@ Faculty Incharge - Prof. Suvendu Kanungo, Department of CSE, BIT Mesra.
 6. Hritabhash Ray - Frontend Developer
 7. Garvit Raj - Backend Developer
 
-### Link to website
-https://bitacademia.vercel.app/
