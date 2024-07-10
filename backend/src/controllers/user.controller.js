@@ -138,24 +138,26 @@ const updateUser1 = asyncHandler(async (req, res) => {
   } = req.body;
 
   // Check if the image file exists
-  if (!req.files || !req.files.image || !req.files.image[0]) {
-    throw new ApiError(400, "Image path file is required");
-  }
-
-  const imageLocalPath = req.files.image[0].path;
-  let imagePath;
-
-  try {
-    imagePath = await uploadOnCloudinary(imageLocalPath);
-  } catch (error) {
-    throw new ApiError(400, "Image upload failed: " + error.message);
-  }
-
-  if (!imagePath) {
-    throw new ApiError(400, "Image file is required");
-  }
+  
 
   const updateFields = {};
+
+  if (req.files && req.files.image && req.files.image[0]) {
+    const imageLocalPath = req.files.image[0].path;
+    let imagePath;
+
+    try {
+      imagePath = await uploadOnCloudinary(imageLocalPath);
+    } catch (error) {
+      throw new ApiError(400, "Image upload failed: " + error.message);
+    }
+  
+    if (!imagePath) {
+      throw new ApiError(400, "Image file is required");
+    }
+    updateFields["image"]=imagePath.url;
+}
+
   const fieldsToUpdate = {
     fullName,
     rollNumber,
@@ -165,9 +167,8 @@ const updateUser1 = asyncHandler(async (req, res) => {
     mobileNumber,
     semester,
     cgpa,
-    image: imagePath.url,
   };
-  console.log(fieldsToUpdate.image);
+
   // Populate updateFields only with provided values
   Object.keys(fieldsToUpdate).forEach((field) => {
     if (fieldsToUpdate[field]) {
