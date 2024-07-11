@@ -110,14 +110,21 @@ export default function Userform() {
                 disabled={!isEditMode}
               />
               <label>Branch</label>
-              <input
-                type="text"
-                placeholder="Enter Your Branch"
+              <select
                 value={branch}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setBranch(e.target.value)}
                 disabled={!isEditMode}
-              />
+              >
+                <option value="">Select Branch</option>
+                <option value="computer science and engineering">Computer Science and Engineering</option>
+                <option value="artificial intelligence and machine learning">Artificial Intelligence and Machine Learning</option>
+                <option value="electronics and communication engineering">Electronics and Communication Engineering</option>
+                <option value="mechanical engineering">Mechanical Engineering</option>
+                <option value="chemical engineering">Chemical Engineering</option>
+                <option value="civil engineering">Civil Engineering</option>
+                <option value="production and industrial engineering">Production and Industrial Engineering</option>
+              </select>
               <label>Section</label>
               <input
                 type="text"
@@ -137,14 +144,18 @@ export default function Userform() {
                 disabled={!isEditMode}
               />
               <label>Semester</label>
-              <input
-                type="text"
-                placeholder="Enter Your Semester Number"
+              <select
                 value={semester}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setSemester(e.target.value)}
                 disabled={!isEditMode}
-              />
+              >
+                <option value="">Select Semester</option>
+                <option value="I">I</option>
+                <option value="II">II</option>
+                <option value="III">III</option>
+                <option value="IV">IV</option>
+              </select>
               <label>CGPA</label>
               <input
                 type="text"
