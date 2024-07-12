@@ -71,7 +71,7 @@ export default function useLinks() {
   const adminLinks = [
     { text: "Dashboard", icon: <HiHome />, to: "/db" },
     { text: "Student Details", icon: <HiUser />, to: "/db/student-table" },
-    { text: "Verify Users", icon: <HiUser />, to: "/db/verify-users" },
+    { text: "Verify Users", icon: <HiUser />, to: "/verify-users" },
     {
       text: "Academic Records",
       icon: <HiAcademicCap />,
