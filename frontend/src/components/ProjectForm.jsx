@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
 import Swal from 'sweetalert2';
 
+
 export default function ProjectForm() {
   const [projectName, setProjectName] = useState("");
   const [domain, setDomain] = useState("");
@@ -108,7 +109,7 @@ export default function ProjectForm() {
   
           const response = await axios.post("/api/v1/project/projectCreate", formData, config);
   
-          if (response.data.success) {
+          if (response.success) {
             toast.success("Data uploaded successfully!");
             Swal.fire(
               'Submitted!',
@@ -273,7 +274,7 @@ export default function ProjectForm() {
           </div>
         </div>
       </div>
-      <table className="min-w-full divide-y divide-gray-200">
+      {/* <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -325,14 +326,11 @@ export default function ProjectForm() {
                   <span>No document available</span>
                 )}
               </td>
-              {/* Uncomment this if you need the edit functionality */}
-              {/* <td className="px-6 py-4 whitespace-nowrap">
-                <button onClick={() => handleEdit(project)} className="text-blue-600 hover:text-blue-900">Edit</button>
-              </td> */}
+              
             </tr>
           ))}
         </tbody>
-      </table>
+      </table> */}
     </>
   );
 }

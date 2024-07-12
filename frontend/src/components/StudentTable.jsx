@@ -70,6 +70,27 @@ const StudentTable = () => {
     setSortConfigs(newSortConfigs);
   };
 
+  const calculateProfileCompletion = (student) => {
+    const fields = [
+      "username",
+      "fullName",
+      "rollNumber",
+      "email",
+      "branch",
+      "section",
+      "semester",
+      "mobileNumber",
+      "placement",
+      "projects",
+      "awards",
+      "isVerified",
+    ];
+    const filledFields = fields.filter(
+      (field) => student[field] && student[field] !== ""
+    );
+    return ((filledFields.length / fields.length) * 100).toFixed(2);
+  };
+
   const sortedStudents = [...students].sort((a, b) => {
     for (const config of sortConfigs) {
       const aValue =
@@ -102,8 +123,7 @@ const StudentTable = () => {
       record.section.toLowerCase().includes(query) ||
       record.semester.toLowerCase().includes(query) ||
       record.mobileNumber.toLowerCase().includes(query) ||
-      (record.placement &&
-        record.placement.toLowerCase().includes(query)) ||
+      (record.placement && record.placement.toLowerCase().includes(query)) ||
       (record.projects &&
         record.projects.some((project) => project.toLowerCase().includes(query))) ||
       (record.awards &&
@@ -130,9 +150,10 @@ const StudentTable = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <input type="checkbox" />
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Profile Completion
               </th>
+
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Username
                 <div>
@@ -289,18 +310,13 @@ const StudentTable = () => {
                   </select>
                 </div>
               </th>
+            
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredStudents.map((student) => (
               <tr key={student._id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <input
-                    type="checkbox"
-                    checked={selectedRows.indexOf(student._id) !== -1}
-                    onChange={() => handleRowSelect(student._id)}
-                  />
-                </td>
+                 <td className="px-6 py-4 whitespace-nowrap">{calculateProfileCompletion(student)}%</td>
                 <td className="px-6 py-4 whitespace-nowrap">{student.username}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{student.fullName}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{student.rollNumber}</td>
@@ -313,6 +329,7 @@ const StudentTable = () => {
                 <td className="px-6 py-4 whitespace-nowrap">{student.projects ? "Yes" : "No"}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{student.awards ? "Yes" : "No"}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{student.isVerified ? "Yes" : "No"}</td>
+             
               </tr>
             ))}
           </tbody>
