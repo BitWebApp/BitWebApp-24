@@ -6,11 +6,22 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isRollNumberValid, setIsRollNumberValid] = useState(true);
 
+  const validateRollNumber = (rollNumber) => {
+    const rollNumberPattern = /^BTECH\/10\d{3}\/\d{2}$/;
+    return rollNumberPattern.test(rollNumber);
+  };
 
   const findStudent = async () => {
-    if (!rollNumber && !loggedIn) {
+    if (!rollNumber) {
       setError('Please enter a roll number');
+      return;
+    }
+
+    if (!validateRollNumber(rollNumber)) {
+      setIsRollNumberValid(false);
+      setError('Invalid roll number format. It should be BTECH/10XXX/YY');
       return;
     }
 
@@ -32,12 +43,25 @@ export default function Dashboard() {
   return (
     <div className="p-6 w-full mx-auto">
       <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <input
-          className="w-full md:flex-1 text-black py-2 px-4 bg-gray-100 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-600"
-          type="text"
-          placeholder="Enter Roll Number"
-          onChange={(e) => setRollNumber(e.target.value.toUpperCase())}
-        />
+        <div className="w-full md:flex-1">
+          <input
+            className={`w-full text-black py-2 px-4 bg-gray-100 border ${
+              isRollNumberValid ? 'border-gray-300' : 'border-red-500'
+            } rounded-md outline-none focus:ring-2 focus:ring-blue-600`}
+            type="text"
+            placeholder="Enter Roll Number (e.g., BTECH/10XXX/YY)"
+            onChange={(e) => {
+              setRollNumber(e.target.value.toUpperCase());
+              setIsRollNumberValid(true);
+              setError(null);
+            }}
+          />
+          {!isRollNumberValid && (
+            <p className="text-red-500 text-xs mt-1">
+              Invalid roll number format. It should be BTECH/10XXX/YY
+            </p>
+          )}
+        </div>
         <button
           className="bg-blue-600 text-white font-bold rounded-md px-6 py-2 hover:bg-blue-700 transition"
           onClick={findStudent}
@@ -47,8 +71,6 @@ export default function Dashboard() {
       </div>
 
       {loading && <p>Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
-
       {user && (
         <div className="border p-6 rounded-lg shadow-lg bg-white mx-auto">
           <h2 className="text-2xl font-bold mb-4 text-center text-blue-600">Student Profile</h2>

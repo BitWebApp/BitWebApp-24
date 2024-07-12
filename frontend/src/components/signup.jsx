@@ -15,12 +15,22 @@ export default function Signup() {
   const [rollnumber, setrollnumber] = useState("");
   const [idcard, setidcard] = useState("");
   const [spin, setSpin] = useState(false);
+  const [isRollNumberValid, setIsRollNumberValid] = useState(true);
   const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+  const validateRollNumber = (rollNumber) => {
+    const rollNumberPattern = /^BTECH\/10\d{3}\/\d{2}$/;
+    return rollNumberPattern.test(rollNumber);
+  };
   const handleSignup = async () => {
+    if (!validateRollNumber(rollnumber)) {
+      setIsRollNumberValid(false);
+      toast.error("Invalid roll number format. It should be BTECH/10XXX/YY");
+      return;
+    }
     setSpin(true);
     try {
       const formData = new FormData();
@@ -129,16 +139,26 @@ export default function Signup() {
                 value={fullname}
                 onChange={(e) => setfullname(e.target.value)}
               />
-
-              <label className="block text-sm mb-2">Roll Number</label>
-
-              <input
-                type="text"
-                placeholder="Enter Your Roll-Number"
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                value={rollnumber}
-                onChange={(e) => setrollnumber(e.target.value)}
-              />
+              <div>
+                <label className="block text-sm mb-2">Roll Number</label>
+                <input
+                  type="text"
+                  placeholder="Enter Your Roll-Number (e.g., BTECH/10XXX/YY)"
+                  className={`w-full text-black py-2 my-2 bg-transparent border-b ${
+                    isRollNumberValid ? 'border-black' : 'border-red-500'
+                  } outline-none focus:outline-none`}
+                  value={rollnumber}
+                  onChange={(e) => {
+                    setrollnumber(e.target.value);
+                    setIsRollNumberValid(true);
+                  }}
+                />
+                {!isRollNumberValid && (
+                  <p className="text-red-500 text-xs mt-1">
+                    Invalid roll number format. It should be BTECH/10XXX/YY
+                  </p>
+                )}
+              </div>
 
               <label className="block text-sm mb-2">Upload ID-Card Image</label>
               <input
