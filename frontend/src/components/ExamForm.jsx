@@ -46,6 +46,16 @@ const ExamForm = () => {
             });
             return;
         }    
+        const htmlContent = `
+        <div style="text-align: left; padding: 20px;">
+            <p><strong>Exam Roll:</strong> ${examRoll}</p>
+            <p><strong>Exam Name:</strong> ${examName}</p>
+            <p><strong>Academic Year:</strong> ${academicYear}</p>
+            <p><strong>Score:</strong> ${score}</p>
+            <p><strong>Cleared:</strong> ${isSel ? 'Yes' : 'No'}</p>
+        </div>
+        <p>Do you want to submit the form?</p>
+    `;
         Swal.fire({
             title: 'Are you sure?',
             html: htmlContent,
