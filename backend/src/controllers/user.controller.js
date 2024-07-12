@@ -482,7 +482,21 @@ const getPlacementDetails = asyncHandler(async (req, res) => {
     );
   }
 });
-
+const getAllUsers = asyncHandler(async(req, res) => {
+  const users = await User.find()
+  .populate('placementOne')
+  .populate('placementTwo')
+  .populate('placementThree')
+  .populate('proj')
+  .populate('awards')
+  .populate('higherEd')
+  .populate('internShips')
+  .populate('exams')
+  .populate('academics')
+  .populate('cgpa')
+  .populate('backlogs');
+  return res.status(200).json(new ApiResponse(200, {users}, "all users fetched"))
+})
 export {
   registerUser,
   loginUser,
@@ -497,4 +511,5 @@ export {
   getPlacementOne,
   getPlacementTwo,
   getPlacementThree,
+  getAllUsers
 };

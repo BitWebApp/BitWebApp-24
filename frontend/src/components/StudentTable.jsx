@@ -10,14 +10,8 @@ const StudentTable = () => {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const userString = localStorage.getItem("user");
-        const user = JSON.parse(userString);
-        const studentId = user._id;
-        const response = await axios.get(
-          "/api/v1/intern/get-internship-for-student",
-        );
-        console.log(response);
-        setStudents(response.data.data.response);
+        const response = await axios.get("/api/v1/users/get-all-users");
+        setStudents(response.data.data.users);
       } catch (error) {
         console.error("Error fetching students:", error);
       }
@@ -100,14 +94,14 @@ const StudentTable = () => {
   const filteredStudents = sortedStudents.filter((record) => {
     const query = searchQuery.toLowerCase();
     return (
-      record.student.username.toLowerCase().includes(query) ||
-      record.student.fullName.toLowerCase().includes(query) ||
-      record.student.student.rollNumber.toLowerCase().includes(query) ||
-      record.student.email.toLowerCase().includes(query) ||
-      record.student.branch.toLowerCase().includes(query) ||
-      record.student.section.toLowerCase().includes(query) ||
-      record.student.semester.toLowerCase().includes(query) ||
-      record.student.mobileNumber.toLowerCase().includes(query)
+      record.username.toLowerCase().includes(query) ||
+      record.fullName.toLowerCase().includes(query) ||
+      record.rollNumber.toLowerCase().includes(query) ||
+      record.email.toLowerCase().includes(query) ||
+      record.branch.toLowerCase().includes(query) ||
+      record.section.toLowerCase().includes(query) ||
+      record.semester.toLowerCase().includes(query) ||
+      record.mobileNumber.toLowerCase().includes(query)
     );
   });
 
@@ -253,42 +247,25 @@ const StudentTable = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredStudents.map((record) => (
-              <tr
-                key={record._id}
-                className={ 
-                  selectedRows.includes(record._id) ? "bg-gray-100" : ""
-                }
-              >
+            {filteredStudents.map((student) => (
+              <tr key={student._id}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <input
                     type="checkbox"
-                    onChange={() => handleRowSelect(record._id)}
-                    checked={selectedRows.includes(record._id)}
+                    checked={selectedRows.indexOf(student._id) !== -1}
+                    onChange={() => handleRowSelect(student._id)}
                   />
                 </td>
+                <td className="px-6 py-4 whitespace-nowrap">{student.username}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{student.fullName}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{student.rollNumber}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{student.email}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{student.branch}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{student.section}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{student.semester}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{student.mobileNumber}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {record.student.username}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {record.student.fullName}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {record.student.rollNumber}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">{record.student.email}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{record.student.branch}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {record.student.section}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {record.student.semester}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {record.student.mobileNumber}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {record.student.isVerified ? "Yes" : "No"}
+                  {student.isVerified ? "Yes" : "No"}
                 </td>
               </tr>
             ))}

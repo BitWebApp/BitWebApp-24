@@ -13,6 +13,7 @@ import {
   getPlacementOne,
   getPlacementTwo,
   getPlacementThree,
+  getAllUsers,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
@@ -61,7 +62,7 @@ router.route("/placementDetails").get(verifyAdmin, getPlacementDetails);
 router.route("/placementOne").get(verifyJWT, getPlacementOne);
 router.route("/placementTwo").get(verifyJWT, getPlacementTwo);
 router.route("/placementThree").get(verifyJWT, getPlacementThree);
-
+router.route("/get-all-users").get(verifyAdmin, getAllUsers)
 router.route("/get-backlogs").get(verifyJWT, getAllBacklogSubjects);
 
 export default router;
