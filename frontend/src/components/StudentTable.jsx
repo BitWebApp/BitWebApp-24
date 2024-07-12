@@ -101,7 +101,13 @@ const StudentTable = () => {
       record.branch.toLowerCase().includes(query) ||
       record.section.toLowerCase().includes(query) ||
       record.semester.toLowerCase().includes(query) ||
-      record.mobileNumber.toLowerCase().includes(query)
+      record.mobileNumber.toLowerCase().includes(query) ||
+      (record.placement &&
+        record.placement.toLowerCase().includes(query)) ||
+      (record.projects &&
+        record.projects.some((project) => project.toLowerCase().includes(query))) ||
+      (record.awards &&
+        record.awards.some((award) => award.toLowerCase().includes(query)))
     );
   });
 
@@ -232,7 +238,46 @@ const StudentTable = () => {
                 </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Is Verified
+                Placement
+                <div>
+                  <select
+                    value={getSortDirection("placement")}
+                    onChange={(e) => handleSortOptionChange("placement", e)}
+                  >
+                    <option value="Sort By">Sort By</option>
+                    <option value="ascending">Ascending</option>
+                    <option value="descending">Descending</option>
+                  </select>
+                </div>
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Projects
+                <div>
+                  <select
+                    value={getSortDirection("projects")}
+                    onChange={(e) => handleSortOptionChange("projects", e)}
+                  >
+                    <option value="Sort By">Sort By</option>
+                    <option value="ascending">Ascending</option>
+                    <option value="descending">Descending</option>
+                  </select>
+                </div>
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Awards
+                <div>
+                  <select
+                    value={getSortDirection("awards")}
+                    onChange={(e) => handleSortOptionChange("awards", e)}
+                  >
+                    <option value="Sort By">Sort By</option>
+                    <option value="ascending">Ascending</option>
+                    <option value="descending">Descending</option>
+                  </select>
+                </div>
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Verified
                 <div>
                   <select
                     value={getSortDirection("isVerified")}
@@ -264,9 +309,10 @@ const StudentTable = () => {
                 <td className="px-6 py-4 whitespace-nowrap">{student.section}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{student.semester}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{student.mobileNumber}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {student.isVerified ? "Yes" : "No"}
-                </td>
+                <td className="px-6 py-4 whitespace-nowrap">{student.placement ? "Yes" : "No"}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{student.projects ? "Yes" : "No"}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{student.awards ? "Yes" : "No"}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{student.isVerified ? "Yes" : "No"}</td>
               </tr>
             ))}
           </tbody>
