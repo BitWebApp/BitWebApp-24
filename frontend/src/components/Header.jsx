@@ -61,11 +61,22 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
-      await axios.post('/api/v1/users/logout');
-      localStorage.removeItem('user');
-      navigate('/');
+      const response = await axios.post("/api/v1/users/logout");
+      console.log(response);
+      localStorage.removeItem("user");
+      navigate("/");
     } catch (error) {
-      console.error(error);
+      console.log(error);
+      try {
+        const resp = await axios.post("/api/v1/admin/logout");
+        console.log(resp);
+        localStorage.removeItem("user");
+        navigate("/");
+      } catch (err) {
+        console.log(err);
+      }
+    } finally {
+      navigate("/");
     }
   };
 

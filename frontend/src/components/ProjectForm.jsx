@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
 import Swal from 'sweetalert2';
 
+
 export default function ProjectForm() {
   const [projectName, setProjectName] = useState("");
   const [domain, setDomain] = useState("");
@@ -18,7 +19,6 @@ export default function ProjectForm() {
   const [editId, setEditId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortConfigs, setSortConfigs] = useState([]);
-  const [doc, setDoc] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -27,19 +27,18 @@ export default function ProjectForm() {
     try {
       const response = await axios.get(`/api/v1/project/show`, { withCredentials: true });
       console.log('API Response:', response.data.data);
-      console.log(response.data.data);
       setProj(response.data.data);
-      console.log(proj);
     } catch (error) {
       console.log(error.message, error);
       toast.error('Failed to fetch projects');
     }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     const documentLink = idCard ? `<a href="${URL.createObjectURL(idCard)}" target="_blank" style=" margin-top: 10px;">(Click to View)</a>` : '';
-
+  
     const htmlContent = `
       <div style="text-align: left; padding: 20px;">
         <p style="font-size: 18px; margin: 10px 0; color: #333;">
@@ -66,13 +65,12 @@ export default function ProjectForm() {
           Do you want to submit the form?
         </p>
     `;
-
+  
     Swal.fire({
       title: 'Are you sure?',
       html: htmlContent,
       icon: 'warning',
       showCancelButton: true,
-      
       confirmButtonText: 'Yes, submit it!',
       cancelButtonText: 'No, cancel!',
       buttonsStyling: true,
@@ -90,17 +88,28 @@ export default function ProjectForm() {
           formData.append('projectLink', projectLink);
           formData.append('techStack', techStack);
           formData.append('guide', guide);
-          formData.append('projectId', idCard);
-
+          if (idCard) {
+            formData.append('project', idCard);
+          }
+  
+          console.log('Form Data:', {
+            projectName,
+            domain,
+            projectLink,
+            techStack,
+            guide,
+            project: idCard,
+          });
+  
           const token = localStorage.getItem('accessToken');
           const config = {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
             withCredentials: true,
           };
-
+  
           const response = await axios.post("/api/v1/project/projectCreate", formData, config);
-
-          if (response.data.success) {
+  
+          if (response.success) {
             toast.success("Data uploaded successfully!");
             Swal.fire(
               'Submitted!',
@@ -113,14 +122,12 @@ export default function ProjectForm() {
           } else {
             toast.error(response.data.message || 'Failed to create project record. Please try again.');
           }
-
+  
         } catch (err) {
-          console.log(err);
+          console.log('Error:', err.response ? err.response.data : err);
           toast.error("Error uploading data!");
         } finally {
           setSpin(false);
-          // setProj('');
-          setDoc([]);
           setLoading(false);
           fetchProject();
           clearForm();
@@ -128,12 +135,11 @@ export default function ProjectForm() {
       }
     });
   };
+  
 
   useEffect(() => {
     fetchProject();
   }, []);
-
-  
 
   const handleEdit = (project) => {
     setProjectName(project.projectName);
@@ -186,7 +192,7 @@ export default function ProjectForm() {
   const filteredAndSortedProjects = sortProjects(proj.filter(project =>
     project.projectName.toLowerCase().includes(searchQuery.toLowerCase())
   ));
-  console.log(filteredAndSortedProjects);
+  
   return (
     <>
       <div className="w-full min-h-screen flex justify-center items-center">
@@ -268,7 +274,7 @@ export default function ProjectForm() {
           </div>
         </div>
       </div>
-      <table className="min-w-full divide-y divide-gray-200">
+      {/* <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -320,14 +326,11 @@ export default function ProjectForm() {
                   <span>No document available</span>
                 )}
               </td>
-              {/* Uncomment this if you need the edit functionality */}
-              {/* <td className="px-6 py-4 whitespace-nowrap">
-                <button onClick={() => handleEdit(project)} className="text-blue-600 hover:text-blue-900">Edit</button>
-              </td> */}
+              
             </tr>
           ))}
         </tbody>
-      </table>
+      </table> */}
     </>
   );
 }
