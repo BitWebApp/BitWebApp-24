@@ -7,7 +7,7 @@
         },
         {
             "source": "/(.*)",
-            "destination": "/"
-   }
+            "destination":"/"
+}
 ]
 }

@@ -33,6 +33,7 @@ const createProject = asyncHandler(async (req, res) => {
   // Handle file upload to Cloudinary
   const projectLocalPath = req.files?.projectId?.[0]?.path;
   if (!projectLocalPath) {
+    // console.error();
     throw new ApiError(400, "Project file is required");
   }
   const projectId = await uploadOnCloudinary(projectLocalPath);
@@ -78,9 +79,10 @@ const ShowProject = asyncHandler(async (req, res) => {
 const deleteProject = asyncHandler(async (req, res) => {
   // const { id } = req.params;
   // const id=req.user;
-  const { _id: userId } = req.user;
+  const userId  = req.admin._id;
+  const {id}=req.params
   try {
-    const project = await Project.findById(userId);
+    const project = await Project.findById(id);
     if (!project) {
       return res.status(404).json(
         new ApiResponse(404, null, "Project not found")
@@ -158,7 +160,7 @@ const editProject = asyncHandler(async (req, res) => {
 const showProjectById=asyncHandler(async(req,res)=>{
   // const {id}=req.params
   // const id=req.user
-  const { _id: userId } = req.user;
+  const userId  = req.admin._id;
   try{
 
   const FindProj=await User.findById(userId).populate('proj');
