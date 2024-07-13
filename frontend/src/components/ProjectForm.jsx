@@ -24,14 +24,14 @@ export default function ProjectForm() {
   const navigate = useNavigate();
 
   const fetchProject = async () => {
-    try {
-      const response = await axios.get(`/api/v1/project/show`, { withCredentials: true });
-      console.log('API Response:', response.data.data);
-      setProj(response.data.data);
-    } catch (error) {
-      console.log(error.message, error);
-      toast.error('Failed to fetch projects');
-    }
+    // try {
+    //   const response = await axios.get(`/api/v1/project/show`, { withCredentials: true });
+    //   console.log('API Response:', response.data.data);
+    //   setProj(response.data.data);
+    // } catch (error) {
+    //   console.log(error.message, error);
+    //   toast.error('Failed to fetch projects');
+    // }
   };
 
   const handleSubmit = async (e) => {
@@ -89,7 +89,7 @@ export default function ProjectForm() {
           formData.append('techStack', techStack);
           formData.append('guide', guide);
           if (idCard) {
-            formData.append('project', idCard);
+            formData.append('projectId', idCard);
           }
   
           console.log('Form Data:', {
@@ -98,7 +98,7 @@ export default function ProjectForm() {
             projectLink,
             techStack,
             guide,
-            project: idCard,
+            projectId: idCard,
           });
   
           const token = localStorage.getItem('accessToken');

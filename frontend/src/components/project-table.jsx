@@ -31,7 +31,9 @@ export default function ProjectTable() {
       const token = localStorage.getItem("accessToken");
       
       console.log(token);
-      const response = await axios.get('/api/v1/project/projectshowing');
+      const response = await axios.get('/api/v1/project/projectshowing',{
+        withCredentials:true
+      });
       console.log(response);
       setProj(response.data.data);
       setFilteredProj(response.data.data);
@@ -42,7 +44,9 @@ export default function ProjectTable() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/v1/project/delete`);
+      await axios.delete(`/api/v1/project/delete/${id}`,{
+        withCredentials:true
+      });
       fetchProject(); // Refresh the project list after deletion
     } catch (error) {
       console.log(error.message);
