@@ -36,4 +36,15 @@ const getAllBacklogSubjects = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, backlogs, "Subjects found"));
 });
 
-export { addbacklogSubject, getAllBacklogSubjects };
+const addBacklogbyUser = asyncHandler(async(req, res) => {
+  const backlogid = req.body
+  const user = req?.user
+  const student = User.findById({_id: user._id})
+  if(!student) throw new ApiError(401, "Student not found")
+  if(student.backlogs.includes(backlogid)) throw new ApiError(400, "Backlog already added")
+  student.backlogs.push(backlogid)
+  student.save();
+})
+
+
+export { addbacklogSubject, getAllBacklogSubjects, addBacklogbyUser };

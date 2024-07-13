@@ -65,12 +65,6 @@ function Footer() {
             </button>
           </li>
           <li>
-            <button className="text-white hover:text-gray-300 focus:outline-none">
-              <Link to="/public-user">See All Active User</Link>
-            </button>
-          </li>
-
-          <li>
             <button className="text-white hover:text-gray-300 focus:outline-none">Features</button>
           </li>
         </ul>

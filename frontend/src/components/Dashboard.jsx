@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 
 export default function Dashboard() {
@@ -48,7 +48,8 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-6 w-full mx-auto">
+    <div className="p-6 w-full mx-auto max-w-screen-lg">
+      <h1 className="text-3xl font-bold text-center mb-6 text-blue-600">Search Student</h1>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="w-full md:flex-1">
           <input
@@ -78,7 +79,8 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {loading && <p>Loading...</p>}
+      {loading && <p className="text-center text-blue-600">Loading...</p>}
+      {error && <p className="text-center text-red-500">{error}</p>}
       {user && (
         <div className="border p-6 rounded-lg shadow-lg bg-white mx-auto">
           <h2 className="text-2xl font-bold mb-4 text-center text-blue-600">Student Profile</h2>
@@ -89,7 +91,7 @@ export default function Dashboard() {
               className="w-32 h-32 rounded-full mr-4 mb-4 md:mb-0"
             />
             <div className="text-center md:text-left">
-              <p className="text-xl font-semibold">{user.fullName}</p>
+              <p className="text-xl font-semibold text-gray-800">{user.fullName}</p>
               <p className="text-gray-600">{user.rollNumber}</p>
               <p className="text-gray-600">{user.email}</p>
               <p className="text-gray-600">{user.mobileNumber}</p>

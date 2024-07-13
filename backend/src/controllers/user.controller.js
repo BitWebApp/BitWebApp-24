@@ -441,6 +441,7 @@ const getUserbyRoll = asyncHandler(async (req, res) => {
     .populate("internShips")
     .populate("exams")
     .populate("academics")
+    .populate("backlogs")
     .select("-password -username");
   if (!user) {
     res.status(404).json(new ApiResponse(404, null, "User not found"));

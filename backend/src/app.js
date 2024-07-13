@@ -39,4 +39,6 @@ app.use("/api/v1/intern",InternShipRouter);
 import reviewRoutes from './routes/review.routes.js';
 app.use('/api/v1', reviewRoutes);
 
+import backlogRoutes from './routes/backlog.routes.js'
+app.use('/api/v1/backlogs', backlogRoutes)
 export { app };

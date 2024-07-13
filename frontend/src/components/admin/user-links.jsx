@@ -45,6 +45,7 @@ export default function useLinks() {
       icon: <HiAcademicCap />,
       to: "/db/academic-table",
     },
+    { text: "Backlogs", icon: <HiAcademicCap />, to: "/db/backlogs" },
     {
       text: "Awards & Achievements",
       icon: <HiBadgeCheck />,
