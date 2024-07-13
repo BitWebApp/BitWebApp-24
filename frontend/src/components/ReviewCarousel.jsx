@@ -26,7 +26,7 @@ const ReviewCarousel = () => {
     },
     {
       name: "Hritabhash",
-      specialties: "I can't imagine my student life without BitWebApp. The convenience of having all my academic records, exam details, and internship information in one place is incredible. The review feature is great for sharing feedback with the admin and peers.",
+      specialties: "I can't imagine my student life without BitWebApp. The convenience of having all my academic records, exam details, and internship information in one place is incredible. The review feature is great for sharing feedback with the admin.",
     },
     {
       name: "Parth",
@@ -85,10 +85,15 @@ const ReviewCarousel = () => {
           }}
         >
           {data.map((e, index) => (
-            <SwiperSlide key={index} className="swiper-slide bg-gray-50 text-black rounded-xl mb-2 cursor-pointer p-3">
-              <div className="flex flex-col justify-center items-center h-[300px] w-full text-center overflow-hidden">
-                <div className="flex-col justify-center items-center">
-                  <h2 className="pt-1 text-xl lg:text-lg">{e.specialties}</h2>
+            <SwiperSlide 
+              key={index} 
+              className="
+                swiper-slide bg-gray-50 text-black rounded-xl mb-2 cursor-pointer p-1 flex flex-col justify-center items-center
+                h-[250px] lg:h-[400px] xl:h-[300px] 2xl:h-[400px]"
+            >
+              <div className="flex flex-col justify-center items-center h-full w-full text-center overflow-hidden">
+                <div className="flex-col justify-center items-center h-full overflow-y-auto p-2">
+                  <h2 className="pt-1 text-xl lg:text-lg overflow-hidden">{e.specialties}</h2>
                   <h1 className="font-medium text-lg md:text-xl lg:text-2xl pt-3 pb-1">{e.name}</h1>
                 </div>
               </div>

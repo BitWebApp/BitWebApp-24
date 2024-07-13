@@ -62,8 +62,8 @@ export default function ProjectForm() {
         <br/>
       </div>
       <p style="font-size: 17px; color: #666;">
-          Do you want to submit the form?
-        </p>
+        Do you want to submit the form?
+      </p>
     `;
   
     Swal.fire({
@@ -109,7 +109,7 @@ export default function ProjectForm() {
   
           const response = await axios.post("/api/v1/project/projectCreate", formData, config);
   
-          if (response.success) {
+          if (response.data.success) {
             toast.success("Data uploaded successfully!");
             Swal.fire(
               'Submitted!',
@@ -117,6 +117,7 @@ export default function ProjectForm() {
               'success'
             );
             setTimeout(() => {
+              toast.success("Data uploaded successfully!");
               window.location.reload();
             }, 2000);
           } else {
@@ -135,6 +136,7 @@ export default function ProjectForm() {
       }
     });
   };
+  
   
 
   useEffect(() => {

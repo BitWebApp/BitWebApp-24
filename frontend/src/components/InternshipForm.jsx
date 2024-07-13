@@ -83,6 +83,8 @@ export default function InternshipForm() {
         setTimeout(() => {
           window.location.reload()
         }, 2000);
+        toast.success("Check the dashboard search to see your update!");
+        
       } catch (err) {
         console.error('Error:', err); // Log the error here
         toast.error("Error uploading data!");
