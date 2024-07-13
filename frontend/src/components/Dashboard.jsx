@@ -40,6 +40,13 @@ export default function Dashboard() {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      findStudent();
+    }
+  };
+
   return (
     <div className="p-6 w-full mx-auto">
       <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -55,6 +62,7 @@ export default function Dashboard() {
               setIsRollNumberValid(true);
               setError(null);
             }}
+            onKeyDown={handleKeyDown}
           />
           {!isRollNumberValid && (
             <p className="text-red-500 text-xs mt-1">
