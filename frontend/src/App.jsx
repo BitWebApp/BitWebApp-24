@@ -46,6 +46,7 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/public-user" element={<Dashboard/>}/>
         <Route path="/log" element={<Login />} />
         <Route
           path="/db"
