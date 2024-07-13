@@ -39,6 +39,7 @@ import VerifyUsers from "./components/VerifyUsers";
 import { HashLoader, SyncLoader } from "react-spinners";
 import AdminAcademicRecords from "./components/AdminAcademicRecords";
 import StudentAwardTable from "./components/StudentAwardTable";
+import Review from "./components/Review";
 
 export default function App() {
   return (
@@ -57,10 +58,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="user-form" element={<Userform />} />
           <Route path="academic-form" element={<Academicform />} />
-          <Route
-            path="admin-academic-form"
-            element={<AdminAcademicRecords />}
-          />
+          <Route path="admin-academic-form" element={<AdminAcademicRecords />} />
           <Route path="award-form" element={<Awardform />} />
           <Route path="placement" element={<Placement />}>
             <Route path="placement-one" element={<PlacementOne />} />
@@ -81,6 +79,7 @@ export default function App() {
           <Route path="internship-form-table" element={<InternTable />} />
           <Route path="internship-table" element={<Internshiptable />} />
           <Route path="student-award-table" element={<StudentAwardTable />} />
+          <Route path="review" element={<Review />} />
         </Route>
         <Route path="verify-users" element={<VerifyUsers />} />
         <Route path="/sg" element={<Signup />} />

@@ -9,6 +9,7 @@ import {
   HiPresentationChartLine,
   HiBriefcase,
   HiOutlineLogout,
+  HiArchive 
 } from "react-icons/hi";
 import axios from "axios";
 
@@ -107,6 +108,11 @@ export default function useLinks() {
       text: "Internship Records",
       icon: <HiBriefcase />,
       to: "/db/internship-table",
+    },
+    {
+      text: "Student Reviews",
+      icon: <HiArchive />,
+      to: "/db/review",
     },
   ];
 
