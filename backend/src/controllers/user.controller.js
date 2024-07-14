@@ -5,8 +5,10 @@ import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { Otp } from "../models/otp.model.js";
 import { Placement } from "../models/placement.model.js";
 import nodemailer from "nodemailer"
+
 const generateAcessAndRefreshToken = async (userId) => {
   try {
     const user = await User.findById(userId);
@@ -23,88 +25,95 @@ const generateAcessAndRefreshToken = async (userId) => {
   }
 };
 
-let otp;
-const verifyMail=asyncHandler(async (req,res)=>{
+const verifyMail = asyncHandler(async (req, res) => {
   try {
     const { email } = req.body;
-    otp=Math.floor(100000 + Math.random() * 900000);
-    const existedUser = await User.findOne({email});
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    const existedUser = await User.findOne({ email });
+
     if (existedUser) {
       throw new ApiError(409, "User with email/username already exists");
     }
-  
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.AUTH_EMAIL,
-      pass: process.env.AUTH_PASSWORD
-    }
-  });
+    await Otp.create({ email, otp });
 
-  const mailOptions = {
-    from: process.env.AUTH_EMAIL,
-    subject: "OTP for verification",
-    html: 
-    `
-      <html>
-      <head>
-        <style>
-          .email-container {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-          }
-          .header {
-            background-color: #f2f2f2;
-            padding: 20px;
-            text-align: center;
-          }
-          .content {
-            padding: 20px;
-          }
-          .footer {
-            background-color: #f2f2f2;
-            padding: 10px;
-            text-align: center;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="email-container">
-          <div class="header">
-            <h1>OTP for verification</h1>
-          </div>
-          <div class="content">
-            <p>Your otp is:${otp}</p>
-          </div>
-          <div class="footer">
-            <p>&copy; BITAcademica 2024</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `
-  };
-
-    mailOptions.to = email;
-    transporter.sendMail(mailOptions, (error) => {
-      if (error) {
-        console.log('Error sending email to:', email, error);
-      } else {
-        console.log('Email sent to:', email);
+    const tOtp=await Otp.findOne({email});
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.AUTH_EMAIL,
+        pass: process.env.AUTH_PASSWORD
       }
     });
 
-  res.status(200).send('Mail sent!');
-} catch (error) {
-  res.status(500).json({ message: 'Server error', error });
-}
-})
+    const mailOptions = {
+      from: process.env.AUTH_EMAIL,
+      to: email,
+      subject: "OTP for verification",
+      html: `
+        <html>
+        <head>
+          <style>
+            .email-container {
+              font-family: Arial, sans-serif;
+              line-height: 1.6;
+            }
+            .header {
+              background-color: #f2f2f2;
+              padding: 20px;
+              text-align: center;
+            }
+            .content {
+              padding: 20px;
+            }
+            .footer {
+              background-color: #f2f2f2;
+              padding: 10px;
+              text-align: center;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="email-container">
+            <div class="header">
+              <h1>OTP for verification</h1>
+            </div>
+            <div class="content">
+              <p>Your otp is: ${tOtp}</p>
+            </div>
+            <div class="footer">
+              <p>&copy; BITAcademica 2024</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    };
+
+    transporter.sendMail(mailOptions, async (error) => {
+      if (error) {
+        console.log('Error sending email to:', email, error);
+      } else {
+        console.log('Email sent to:', email);        
+      }
+    });
+
+    res.status(200).send('Mail sent!');
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+});
 
 const registerUser = asyncHandler(async (req, res) => {
-  //   const { fullName, email, username, password } = req.body;
-  const { username, password, fullName, rollNumber, email,usrOTP } = req.body;
-  if(usrOTP.toString()!==otp.toString()) throw new ApiError("wrong otp, validation failed");
-  console.log("email:", email);
+  const { username, password, fullName, rollNumber, email, usrOTP } = req.body;
+
+  const otpEntry = await Otp.findOne({ email });
+
+  if (!otpEntry || usrOTP.toString() !== otpEntry.otp.toString()) {
+    throw new ApiError("wrong otp, validation failed");
+  }
+
+  await Otp.deleteOne({ email });
+
   if (
     [username, password, fullName, rollNumber, email].some(
       (field) => field?.trim() === ""
@@ -112,20 +121,25 @@ const registerUser = asyncHandler(async (req, res) => {
   ) {
     throw new ApiError(400, "All fields are required:");
   }
+
   const existedUser = await User.findOne({
     $or: [{ username }, { email }],
   });
+
   if (existedUser) {
     throw new ApiError(409, "User with email/username already exists");
   }
+
   const idLocalPath = req.files?.idCard[0]?.path;
   if (!idLocalPath) {
     throw new ApiError(400, "idCard file is required:");
   }
+
   const idCard = await uploadOnCloudinary(idLocalPath);
   if (!idCard) {
     throw new ApiError(500, "id card file is cannot be uploaded");
   }
+
   const user = await User.create({
     username: username.toLowerCase(),
     password,
@@ -134,12 +148,17 @@ const registerUser = asyncHandler(async (req, res) => {
     email,
     idCard: idCard.url,
   });
+
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
+
   if (!createdUser) {
     throw new ApiError(500, "Something went wrong while registering the user");
   }
+
+  
+
   return res
     .status(201)
     .json(new ApiResponse(200, createdUser, "User registered successfully"));
