@@ -4,7 +4,7 @@ const projectSchema = new Schema(
   {
     name: {
       type: Schema.Types.ObjectId, 
-      ref: "User",
+      ref: 'User',
     },
     projectName: {
       type: String,
