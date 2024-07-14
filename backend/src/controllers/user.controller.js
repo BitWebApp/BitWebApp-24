@@ -6,7 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { Placement } from "../models/placement.model.js";
-
+import nodemailer from "nodemailer"
 const generateAcessAndRefreshToken = async (userId) => {
   try {
     const user = await User.findById(userId);
