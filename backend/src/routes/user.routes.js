@@ -14,6 +14,7 @@ import {
   getPlacementTwo,
   getPlacementThree,
   getAllUsers,
+  verifyMail,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
@@ -21,6 +22,8 @@ import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
 import { getAllBacklogSubjects } from "../controllers/backlog.controller.js";
 
 const router = Router();
+router.route("/verifyMail").post(verifyMail);
+
 router
   .route("/register")
   .post(upload.fields([{ name: "idCard", maxCount: 1 }]), registerUser);
