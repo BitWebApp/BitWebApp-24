@@ -7,6 +7,17 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { Placement } from "../models/placement.model.js";
 import nodemailer from "nodemailer"
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
+  auth: {
+      user: process.env.AUTH_EMAIL,
+      pass: process.env.AUTH_PASSWORD
+  }
+});
+
 const generateAcessAndRefreshToken = async (userId) => {
   try {
     const user = await User.findById(userId);
