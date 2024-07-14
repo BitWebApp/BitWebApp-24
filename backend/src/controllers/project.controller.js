@@ -7,7 +7,7 @@ import { User } from "../models/user.model.js";
 
 const createProject = asyncHandler(async (req, res) => {
   const { projectName, domain, projectLink, techStack, guide } = req.body;
-  const { _id: userId } = req.user; // Assuming user_id is obtained from the JWT token
+  const userId  = req.user._id; // Assuming user_id is obtained from the JWT token
   console.log("User ID:", userId);
 
   // Input validation
@@ -40,6 +40,7 @@ const createProject = asyncHandler(async (req, res) => {
 
   // Create new project
   const newProject = await Project.create({
+    name:userId,
     projectName,
     domain,
     techStack,
@@ -65,7 +66,7 @@ const createProject = asyncHandler(async (req, res) => {
 
 const ShowProject = asyncHandler(async (req, res) => {
   try {
-    const showData = await Project.find();
+    const showData = await Project.find().populate('name', 'rollNumber fullName');
     console.log(showData);
     res.status(200).json(
       new ApiResponse(200, showData, "Data shown successfully")
