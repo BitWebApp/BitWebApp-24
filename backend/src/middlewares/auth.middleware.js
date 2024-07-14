@@ -46,6 +46,9 @@ const verifyAdmin = asyncHandler(async (req, res, next) => {
     if (!admin) {
       throw new ApiError(401, "Invalid Access Token!");
     }
+    if (!admin.isAdmin) {
+      throw new ApiError(403, "You are not verified as an admin yet!");
+    }
     req.admin = admin;
     next();
   } catch (error) {

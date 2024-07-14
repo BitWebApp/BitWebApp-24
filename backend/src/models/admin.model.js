@@ -12,6 +12,10 @@ const adminSchema = new Schema(
       required: [true, "Password cannot be empty!"],
       minLength: [6, "Password needs to be have atleast 6 chars!"],
     },
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
     refreshToken: {
       type: String,
     },
