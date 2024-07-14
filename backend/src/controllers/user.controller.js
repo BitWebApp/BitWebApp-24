@@ -23,9 +23,87 @@ const generateAcessAndRefreshToken = async (userId) => {
   }
 };
 
+let otp;
+const verifyMail=asyncHandler(async (req,res)=>{
+  try {
+    const { email } = req.body;
+    otp=Math.floor(100000 + Math.random() * 900000);
+    const existedUser = await User.findOne({email});
+    if (existedUser) {
+      throw new ApiError(409, "User with email/username already exists");
+    }
+  
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.AUTH_EMAIL,
+      pass: process.env.AUTH_PASSWORD
+    }
+  });
+
+  const mailOptions = {
+    from: process.env.AUTH_EMAIL,
+    subject: "OTP for verification",
+    html: 
+    `
+      <html>
+      <head>
+        <style>
+          .email-container {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+          }
+          .header {
+            background-color: #f2f2f2;
+            padding: 20px;
+            text-align: center;
+          }
+          .content {
+            padding: 20px;
+          }
+          .footer {
+            background-color: #f2f2f2;
+            padding: 10px;
+            text-align: center;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="email-container">
+          <div class="header">
+            <h1>OTP for verification</h1>
+          </div>
+          <div class="content">
+            <p>Your otp is:${otp}</p>
+          </div>
+          <div class="footer">
+            <p>&copy; BITAcademica 2024</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+
+    mailOptions.to = email;
+    transporter.sendMail(mailOptions, (error) => {
+      if (error) {
+        console.log('Error sending email to:', email, error);
+      } else {
+        console.log('Email sent to:', email);
+      }
+    });
+
+  res.status(200).send('Mail sent!');
+} catch (error) {
+  res.status(500).json({ message: 'Server error', error });
+}
+})
+
 const registerUser = asyncHandler(async (req, res) => {
   //   const { fullName, email, username, password } = req.body;
-  const { username, password, fullName, rollNumber, email } = req.body;
+  const { username, password, fullName, rollNumber, email,usrOTP } = req.body;
+  if(usrOTP.toString()!==otp.toString()) throw new ApiError("wrong otp, validation failed");
   console.log("email:", email);
   if (
     [username, password, fullName, rollNumber, email].some(
@@ -512,5 +590,6 @@ export {
   getPlacementOne,
   getPlacementTwo,
   getPlacementThree,
-  getAllUsers
+  getAllUsers,
+  verifyMail
 };
