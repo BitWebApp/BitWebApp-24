@@ -30,6 +30,7 @@ export default function Dashboard() {
       const response = await axios.post("/api/v1/users/getbyroll", {
         rollNumber
       });
+      console.log(response)
       setUser(response.data.data);
       setError(null);
     } catch (err) {
@@ -161,6 +162,39 @@ export default function Dashboard() {
               </div>
             ) : (
               <p>No placement details available.</p>
+            )}
+          </div>
+          <div>
+            <h3 className="text-xl font-bold mt-6 mb-2 text-blue-600">Backlogs</h3>
+            {user.backlogs.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border border-gray-200">
+                  <thead>
+                    <tr>
+                      <th className="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Sl No
+                      </th>
+                      <th className="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Subject Code
+                      </th>
+                      <th className="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Subject Name
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {user.backlogs.map((backlog, index) => (
+                      <tr key={backlog._id} className="bg-white border-b hover:bg-gray-100">
+                        <td className="px-4 py-2 border-b border-gray-200">{index + 1}</td>
+                        <td className="px-4 py-2 border-b border-gray-200">{backlog.subjectCode}</td>
+                        <td className="px-4 py-2 border-b border-gray-200">{backlog.subjectName}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p>No backlog details available.</p>
             )}
           </div>
         </div>

@@ -41,6 +41,7 @@ import AdminAcademicRecords from "./components/AdminAcademicRecords";
 import StudentAwardTable from "./components/StudentAwardTable";
 import Review from "./components/Review";
 import AddBacklog from "./components/AddBacklog"
+import BacklogTable from "./components/Backlogtable";
 
 export default function App() {
   return (
@@ -83,6 +84,7 @@ export default function App() {
           <Route path="student-award-table" element={<StudentAwardTable />} />
           <Route path="backlogs" element={<AddBacklog/>} />
           <Route path="review" element={<Review />} />
+          <Route path="backlogs-table" element={<BacklogTable/>} />
         </Route>
         <Route path="verify-users" element={<VerifyUsers />} />
         <Route path="/sg" element={<Signup />} />
