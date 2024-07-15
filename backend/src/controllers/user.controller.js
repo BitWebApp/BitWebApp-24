@@ -133,7 +133,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const otpEntry = await Otp.findOne({ email });
 
   if (!otpEntry || usrOTP.toString() !== otpEntry.otp.toString()) {
-    throw new ApiError("wrong otp, validation failed");
+    throw new ApiError(400, "wrong otp, validation failed");
   }
 
   await Otp.deleteOne({ email });

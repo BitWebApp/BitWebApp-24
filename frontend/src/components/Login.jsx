@@ -21,7 +21,6 @@ export default function Login() {
       const response = await axios.post("/api/v1/users/login", {
         username,
         password
-
       });
 
       localStorage.setItem("user", JSON.stringify(response.data.data.user));
