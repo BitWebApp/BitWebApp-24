@@ -7,7 +7,8 @@ import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export default function Signup() {
+export default function Signup() 
+{
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -21,46 +22,59 @@ export default function Signup() {
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const navigate = useNavigate();
 
-  const togglePasswordVisibility = () => {
+  const togglePasswordVisibility = () => 
+  {
     setShowPassword(!showPassword);
   };
 
-  const validateRollNumber = (rollNumber) => {
+  const validateRollNumber = (rollNumber) => 
+  {
     const rollNumberPattern = /^BTECH\/10\d{3}\/\d{2}$/;
     return rollNumberPattern.test(rollNumber);
   };
-  const validateEmail = (email) => {
+
+  const validateEmail = (email) => 
+  {
+    // return true;
     const emailPattern = /^[a-zA-Z0-9._%+-]+@bitmesra\.ac\.in$/;
     return emailPattern.test(email);
   };
   
-  const handleEmailVerification = async () => {
+  const handleEmailVerification = async () => 
+  {
     try {
       setSpin(true);
-      if (!validateEmail(email)) {
+      if (!validateEmail(email)) 
+      {
         toast.error("Please use a valid college mail address.");
         setSpin(false);
         return;
       }
-      await axios.post("/api/v1/users/verifyMail", { email });  
+      const err=await axios.post("/api/v1/users/verifyMail", { email });  
       toast.success("OTP sent to your email.");
       setIsEmailVerified(true);
-    } catch (error) {
-      toast.error("Failed to send OTP.");
-    } finally {
+    } 
+    catch (error) 
+    {
+      toast.error("Email exists/Invalid Email");
+    } 
+    finally 
+    {
       setSpin(false);
     }
   };
-  
 
-  const handleSignup = async () => {
-    if (!validateRollNumber(rollnumber)) {
+  const handleSignup = async () => 
+  {
+    if (!validateRollNumber(rollnumber)) 
+    {
       setIsRollNumberValid(false);
       toast.error("Invalid roll number format. It should be BTECH/10XXX/YY");
       return;
     }
     setSpin(true);
-    try {
+    try 
+    {
       const formData = new FormData();
       formData.append("email", email);
       formData.append("username", username);
@@ -86,27 +100,37 @@ export default function Signup() {
       setTimeout(() => {
         navigate("/log");
       }, 2000);
-    } catch (error) {
-      if (error.response && error.response.data) {
+    } 
+    catch (error) 
+    {
+      if (error.response && error.response.data) 
+      {
         const htmlDoc = new DOMParser().parseFromString(
           error.response.data,
           "text/html"
         );
         const errorElement = htmlDoc.querySelector("body");
-        if (errorElement) {
+        if (errorElement) 
+        {
           const errorMessage = errorElement.textContent.trim();
           const errormsg = errorMessage.split("at")[0].trim();
           console.log(errormsg);
           toast.error(errormsg);
-        } else {
+        } 
+        else 
+        {
           console.log("Error: An unknown error occurred");
           toast.error("An unknown error occurred");
         }
-      } else {
+      } 
+      else 
+      {
         console.log("Error:", error.message);
         toast.error("Error occurred during signup");
       }
-    } finally {
+    } 
+    finally 
+    {
       setSpin(false);
     }
   };
@@ -135,10 +159,11 @@ export default function Signup() {
               type="email"
               placeholder="Enter Your Email"
               value={email}
+              readOnly={isEmailVerified}
               required
               title="Please enter a valid email address"
               className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => !isEmailVerified && setEmail(e.target.value)}
             />
             {isEmailVerified ? (
               <>
@@ -184,7 +209,8 @@ export default function Signup() {
                         isRollNumberValid ? 'border-black' : 'border-red-500'
                       } outline-none focus:outline-none`}
                       value={rollnumber}
-                      onChange={(e) => {
+                      onChange={(e) => 
+                      {
                         setrollnumber(e.target.value);
                         setIsRollNumberValid(true);
                       }}
