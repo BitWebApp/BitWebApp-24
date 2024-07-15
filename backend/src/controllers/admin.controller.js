@@ -107,6 +107,10 @@ const loginAdmin = asyncHandler(async (req, res) => {
   const loggedInAdmin = await Admin.findById(admin._id).select(
     "-password -refeshToken"
   );
+  if (!admin.isAdmin) {
+    throw new ApiError(403, "You are not verified as an admin yet!");
+  }
+
   const options = {
     httpOnly: true,
     secure: true,

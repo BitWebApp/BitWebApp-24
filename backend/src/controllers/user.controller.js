@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { Otp } from "../models/otp.model.js";
 import { Placement } from "../models/placement.model.js";
-import nodemailer from "nodemailer"
+import nodemailer from "nodemailer";
 
 const generateAcessAndRefreshToken = async (userId) => {
   try {
@@ -36,13 +36,13 @@ const verifyMail = asyncHandler(async (req, res) => {
     }
     await Otp.create({ email, otp });
 
-    const tOtp=await Otp.findOne({email});
+    const tOtp = await Otp.findOne({ email });
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: "gmail",
       auth: {
         user: process.env.AUTH_EMAIL,
-        pass: process.env.AUTH_PASSWORD
-      }
+        pass: process.env.AUTH_PASSWORD,
+      },
     });
 
     const mailOptions = {
@@ -110,21 +110,20 @@ const verifyMail = asyncHandler(async (req, res) => {
           </div>
         </body>
         </html>
-      `
+      `,
     };
-    
 
     transporter.sendMail(mailOptions, async (error) => {
       if (error) {
-        console.log('Error sending email to:', email, error);
+        console.log("Error sending email to:", email, error);
       } else {
-        console.log('Email sent to:', email);        
+        console.log("Email sent to:", email);
       }
     });
 
-    res.status(200).send('Mail sent!');
+    res.status(200).send("Mail sent!");
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 });
 
@@ -182,8 +181,6 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Something went wrong while registering the user");
   }
 
-  
-
   return res
     .status(201)
     .json(new ApiResponse(200, createdUser, "User registered successfully"));
@@ -210,6 +207,9 @@ const loginUser = asyncHandler(async (req, res) => {
   const loggedInUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
+  if (!user.isVerified) {
+    throw new ApiError(403, "You are not verified yet!");
+  }
   const options = {
     httpOnly: true,
     secure: true,
@@ -260,7 +260,6 @@ const updateUser1 = asyncHandler(async (req, res) => {
   } = req.body;
 
   // Check if the image file exists
-  
 
   const updateFields = {};
 
@@ -273,12 +272,12 @@ const updateUser1 = asyncHandler(async (req, res) => {
     } catch (error) {
       throw new ApiError(400, "Image upload failed: " + error.message);
     }
-  
+
     if (!imagePath) {
       throw new ApiError(400, "Image file is required");
     }
-    updateFields["image"]=imagePath.url;
-}
+    updateFields["image"] = imagePath.url;
+  }
 
   const fieldsToUpdate = {
     fullName,
@@ -605,21 +604,23 @@ const getPlacementDetails = asyncHandler(async (req, res) => {
     );
   }
 });
-const getAllUsers = asyncHandler(async(req, res) => {
+const getAllUsers = asyncHandler(async (req, res) => {
   const users = await User.find()
-  .populate('placementOne')
-  .populate('placementTwo')
-  .populate('placementThree')
-  .populate('proj')
-  .populate('awards')
-  .populate('higherEd')
-  .populate('internShips')
-  .populate('exams')
-  .populate('academics')
-  .populate('cgpa')
-  .populate('backlogs');
-  return res.status(200).json(new ApiResponse(200, {users}, "all users fetched"))
-})
+    .populate("placementOne")
+    .populate("placementTwo")
+    .populate("placementThree")
+    .populate("proj")
+    .populate("awards")
+    .populate("higherEd")
+    .populate("internShips")
+    .populate("exams")
+    .populate("academics")
+    .populate("cgpa")
+    .populate("backlogs");
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { users }, "all users fetched"));
+});
 export {
   registerUser,
   loginUser,
@@ -635,5 +636,5 @@ export {
   getPlacementTwo,
   getPlacementThree,
   getAllUsers,
-  verifyMail
+  verifyMail,
 };

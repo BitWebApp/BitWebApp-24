@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function SignInPage() {
   const [username, setUsername] = useState("");
@@ -22,16 +22,31 @@ export default function SignInPage() {
       console.log(response);
 
       // Show success toast
-      toast.success('Login Successful! Redirecting to dashboard...');
+      toast.success("Login Successful! Redirecting to dashboard...");
 
       setTimeout(() => {
         navigate("/db/");
       }, 2000);
     } catch (error) {
-      console.error(error);
-
-      // Show error toast
-      toast.error('Login Failed. Please check your credentials.');
+      if (error.response && error.response.data) {
+        const htmlDoc = new DOMParser().parseFromString(
+          error.response.data,
+          "text/html"
+        );
+        const errorElement = htmlDoc.querySelector("body");
+        if (errorElement) {
+          const errorMessage = errorElement.textContent.trim();
+          const errormsg = errorMessage.split("at")[0].trim();
+          console.log(errormsg);
+          toast.error(errormsg);
+        } else {
+          console.log("Error: An unknown error occurred");
+          toast.error("An unknown error occurred");
+        }
+      } else {
+        console.log("Error:", error.message);
+        toast.error("Error occurred during signup");
+      }
     } finally {
       setLoading(false); // Set loading to false after the login process is complete
     }
@@ -85,11 +100,7 @@ export default function SignInPage() {
             className="w-full p-2 bg-gray-800 text-white rounded hover:bg-gray-900 transition duration-500"
             disabled={loading} // Disable button when loading
           >
-            {loading ? (
-              <ClipLoader size={20} color={"#fff"} />
-            ) : (
-              "Login"
-            )}
+            {loading ? <ClipLoader size={20} color={"#fff"} /> : "Login"}
           </button>
         </p>
       </form>

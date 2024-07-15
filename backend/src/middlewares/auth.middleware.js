@@ -20,6 +20,9 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
     if (!user) {
       throw new ApiError(401, "Invalid Acess Token");
     }
+    if (!user.isVerified) {
+      throw new ApiError(403, "You are not verified yet!");
+    }
     req.user = user;
     next();
   } catch (error) {
