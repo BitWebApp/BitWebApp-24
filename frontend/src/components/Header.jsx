@@ -23,13 +23,13 @@ export default function Header() {
   const [isAdmin, setIsAdmin] = useState(true);
   const [currentTime, setCurrentTime] = useState(null);
   const [user, setUser] = useState();
-  const loggedIn = JSON.parse(localStorage.getItem('user'))
+  const loggedIn = JSON.parse(localStorage.getItem('user'));
+
   useEffect(() => {
-    axios.get("/api/v1/users/get-user")
-    .then(response => {
-      setUser(response.data.data)
-    })
-    console.log(user)
+    axios.get('/api/v1/users/get-user')
+      .then(response => {
+        setUser(response.data.data);
+      });
   }, []);
 
   useEffect(() => {
@@ -61,22 +61,20 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
-      const response = await axios.post("/api/v1/users/logout");
-      console.log(response);
-      localStorage.removeItem("user");
-      navigate("/");
+      const response = await axios.post('/api/v1/users/logout');
+      localStorage.removeItem('user');
+      navigate('/');
     } catch (error) {
-      console.log(error);
+      console.error(error);
       try {
-        const resp = await axios.post("/api/v1/admin/logout");
-        console.log(resp);
-        localStorage.removeItem("user");
-        navigate("/");
+        const resp = await axios.post('/api/v1/admin/logout');
+        localStorage.removeItem('user');
+        navigate('/');
       } catch (err) {
-        console.log(err);
+        console.error(err);
       }
     } finally {
-      navigate("/");
+      navigate('/');
     }
   };
 
@@ -102,21 +100,32 @@ export default function Header() {
                 leaveFrom='opacity-100 translate-y-0'
                 leaveTo='opacity-0 translate-y-1'
               >
-                <Popover.Panel className='absolute left-0 z-10 mt-2.5 w-full bg-white'>
-                  <div className='whitespace-pre flex-1 py-[1rem] text-[0.9rem] text-white-700 flex flex-col gap-0.5'>
+                <Popover.Panel className='absolute left-0 z-10 mt-2.5 w-full bg-black'>
+                  <div className='whitespace-pre flex-1 py-[1rem] text-[0.9rem] text-red-500 flex flex-col gap-0.5'>
                     {links.map((link, index) => (
-                      <Link to={link.to} key={index} className={classNames('cursor-pointer border-t border-neutral-700', linkClasses)}>
+                      <Link
+                        to={link.to}
+                        key={index}
+                        className={classNames('cursor-pointer border-t border-neutral-700', linkClasses)}
+                        onClick={closeNavbar}
+                      >
                         <span className='text-xl'>{link.icon}</span>
                         {link.text}
                       </Link>
                     ))}
-                    <div onClick={handleLogout} className={classNames('text-red-500 mt-[2rem] cursor-pointer border-t border-neutral-700', linkClasses)}>
+                    <div
+                      onClick={() => { handleLogout(); closeNavbar(); }}
+                      className={classNames('text-red-500 mt-[2rem] cursor-pointer border-t border-neutral-700', linkClasses)}
+                    >
                       <span className='text-xl'>
                         <HiOutlineLogout />
                       </span>
                       Logout
                     </div>
-                    <div className={classNames('text-red-500 cursor-pointer border-t border-neutral-700', linkClasses)} onClick={closeNavbar}>
+                    <div
+                      className={classNames('text-red-500 cursor-pointer border-t border-neutral-700', linkClasses)}
+                      onClick={closeNavbar}
+                    >
                       <span className='text-xl'>
                         <HiOutlineLogout />
                       </span>
@@ -129,7 +138,7 @@ export default function Header() {
           )}
         </Popover>
         <div className='flex h-full m-auto rounded-sm'>
-          Welcome, {(user?.fullName) ? user?.fullName?.toUpperCase() : loggedIn?.username?.toUpperCase()}
+          Welcome, {user?.fullName?.toUpperCase() || loggedIn?.username?.toUpperCase()}
         </div>
       </div>
       <div className='ml-auto flex items-center gap-2 mr-2'>
@@ -139,10 +148,8 @@ export default function Header() {
             <Menu.Button className='ml-2 inline-flex rounded-full bg-grey-200 focus:outline-none focus:ring-2 focus:ring-neutral-400'>
               <span className='sr-only'>Open user menu</span>
               <div
-                className={`h-10 w-10 ${user?.isVerified ? `border-green-500` : `border-red-500`} border-2 rounded-full bg-black bg-cover bg-no-repeat bg-center`}
-                style={{
-                  backgroundImage: `url(${user?.image})`,
-                }}
+                className={`h-10 w-10 ${user?.isVerified ? 'border-green-500' : 'border-red-500'} border-2 rounded-full bg-black bg-cover bg-no-repeat bg-center`}
+                style={{ backgroundImage: `url(${user?.image})` }}
               ></div>
             </Menu.Button>
           </div>
@@ -164,6 +171,7 @@ export default function Header() {
                         active && 'bg-gray-100',
                         'text-gray-700 focus:bg-gray-200 cursor-pointer rounded-sm px-4 w-full py-2'
                       )}
+                      onClick={closeNavbar}
                     >
                       Your Profile
                     </button>
@@ -173,7 +181,7 @@ export default function Header() {
               <Menu.Item>
                 {({ active }) => (
                   <button
-                    onClick={handleLogout}
+                    onClick={() => { handleLogout(); closeNavbar(); }}
                     className={classNames(
                       active && 'bg-gray-100',
                       'text-gray-700 focus:bg-gray-200 cursor-pointer rounded-sm px-4 w-full py-2'
