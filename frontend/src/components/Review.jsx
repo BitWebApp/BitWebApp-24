@@ -100,100 +100,18 @@ const AdminReviewRecords = () => {
                     className="px-4 py-2 border rounded w-1/2"
                 />
             </div>
-            <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Name
-                                <div>
-                                    <select
-                                        value={getSortDirection('name')}
-                                        onChange={(e) => handleSortOptionChange('name', e)}
-                                    >
-                                        <option value="default">Default</option>
-                                        <option value="ascending">Ascending</option>
-                                        <option value="descending">Descending</option>
-                                    </select>
-                                    <select
-                                        onChange={(e) => handleFilterChange('name', e.target.value)}
-                                        className="mt-2"
-                                    >
-                                        <option value="all">All</option>
-                                        {reviews.map(review => (
-                                            <option key={review.name} value={review.name}>
-                                                {review.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Roll Number
-                                <div>
-                                    <select
-                                        value={getSortDirection('rollNumber')}
-                                        onChange={(e) => handleSortOptionChange('rollNumber', e)}
-                                    >
-                                        <option value="default">Default</option>
-                                        <option value="ascending">Ascending</option>
-                                        <option value="descending">Descending</option>
-                                    </select>
-                                    <select
-                                        onChange={(e) => handleFilterChange('rollNumber', e.target.value)}
-                                        className="mt-2"
-                                    >
-                                        <option value="all">All</option>
-                                        {reviews.map(review => (
-                                            <option key={review.rollNumber} value={review.rollNumber}>
-                                                {review.rollNumber}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Content
-                                <div>
-                                    <select
-                                        value={getSortDirection('content')}
-                                        onChange={(e) => handleSortOptionChange('content', e)}
-                                    >
-                                        <option value="default">Default</option>
-                                        <option value="ascending">Ascending</option>
-                                        <option value="descending">Descending</option>
-                                    </select>
-                                    <select
-                                        onChange={(e) => handleFilterChange('content', e.target.value)}
-                                        className="mt-2"
-                                    >
-                                        <option value="all">All</option>
-                                        {reviews.map(review => (
-                                            <option key={review.content} value={review.content}>
-                                                {review.content}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {filteredReviews.map((review, index) => (
-                            <tr key={index}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    {review.name}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    {review.rollNumber}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {review.content}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredReviews.map((review, index) => (
+                    <div key={index} className="border rounded shadow-md bg-white overflow-hidden">
+                        <div className="p-4 bg-gray-200 border-b">
+                            <h2 className="text-lg font-medium">{review.name}</h2>
+                            <p className="text-gray-500">{review.rollNumber}</p>
+                        </div>
+                        <div className="p-4">
+                            <p className="text-gray-700">{review.content}</p>
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
     );

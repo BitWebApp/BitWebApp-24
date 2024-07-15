@@ -316,7 +316,7 @@ const StudentTable = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredStudents.map((student) => (
               <tr key={student._id}>
-                 <td className="px-6 py-4 whitespace-nowrap">{calculateProfileCompletion(student)}%</td>
+                 <td className="px-6 py-4 whitespace-nowrap">{Math.ceil(calculateProfileCompletion(student))}%</td>
                 <td className="px-6 py-4 whitespace-nowrap">{student.username}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{student.fullName}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{student.rollNumber}</td>
