@@ -6,6 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { Admin } from "../models/admin.model.js";
+import nodemailer from "nodemailer";
 
 const getUnverifiedUsers = asyncHandler(async (req, res) => {
   try {
@@ -42,6 +43,82 @@ const verifyUser = asyncHandler(async (req, res) => {
     }
     user.isVerified = true;
     await user.save();
+    const email = user.email;
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.AUTH_EMAIL,
+        pass: process.env.AUTH_PASSWORD,
+      },
+    });
+    const mailOptions = {
+      from: process.env.AUTH_EMAIL,
+      to: email,
+      subject: "Verified Successfully",
+      html: `
+        <html>
+        <head>
+          <style>
+            .email-container {
+              font-family: Arial, sans-serif;
+              line-height: 1.6;
+              max-width: 600px;
+              margin: 0 auto;
+              border: 1px solid #dddddd;
+              border-radius: 5px;
+              overflow: hidden;
+            }
+            .header {
+              background-color: #007bff;
+              color: white;
+              padding: 20px;
+              text-align: center;
+              font-size: 24px;
+            }
+            .content {
+              padding: 30px;
+              background-color: #ffffff;
+            }
+            .content p {
+              font-size: 18px;
+              margin: 0 0 15px;
+            }
+            .footer {
+              background-color: #f2f2f2;
+              padding: 15px;
+              text-align: center;
+              font-size: 14px;
+              color: #888888;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="email-container">
+            <div class="header">
+              Congratulations! You are verified successfully
+            </div>
+            <div class="content">
+              <p>Hello,</p>
+              <p>Thank you for choosing BITAcademia. We are pleased to inform you that your verification process is now complete. You can now log in to your account and start exploring our platform.</p>
+              <p>If you did not request this verification, please ignore this email or contact our support team.</p>
+              <p>Best regards,</p>
+              <p>TEAM BITACADEMIA</p>
+            </div>
+            <div class="footer">
+              &copy; BITAcademia 2024. All rights reserved.
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+    transporter.sendMail(mailOptions, async (error) => {
+      if (error) {
+        console.log("Error sending email to:", email, error);
+      } else {
+        console.log("Email sent to:", email);
+      }
+    });
     return res.json(new ApiResponse(200, "User verified successfully"));
   } catch (error) {
     throw new ApiError(500, "Something went wrong while verifying user");
