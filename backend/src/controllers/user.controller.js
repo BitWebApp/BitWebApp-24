@@ -48,7 +48,7 @@ const verifyMail = asyncHandler(async (req, res) => {
     const mailOptions = {
       from: process.env.AUTH_EMAIL,
       to: email,
-      subject: "OTP for verification",
+      subject: "OTP for Verification",
       html: `
         <html>
         <head>
@@ -56,38 +56,63 @@ const verifyMail = asyncHandler(async (req, res) => {
             .email-container {
               font-family: Arial, sans-serif;
               line-height: 1.6;
+              max-width: 600px;
+              margin: 0 auto;
+              border: 1px solid #dddddd;
+              border-radius: 5px;
+              overflow: hidden;
             }
             .header {
-              background-color: #f2f2f2;
+              background-color: #007bff;
+              color: white;
               padding: 20px;
               text-align: center;
+              font-size: 24px;
             }
             .content {
-              padding: 20px;
+              padding: 30px;
+              background-color: #ffffff;
+            }
+            .content p {
+              font-size: 18px;
+              margin: 0 0 15px;
+            }
+            .otp {
+              font-weight: bold;
+              color: #007bff;
+              font-size: 22px;
             }
             .footer {
               background-color: #f2f2f2;
-              padding: 10px;
+              padding: 15px;
               text-align: center;
+              font-size: 14px;
+              color: #888888;
             }
           </style>
         </head>
         <body>
           <div class="email-container">
             <div class="header">
-              <h1>OTP for verification</h1>
+              OTP for Verification
             </div>
             <div class="content">
-              <p>Your otp is: ${tOtp}</p>
+              <p>Hello,</p>
+              <p>Thank you for choosing BITAcademia. To complete your verification process, please use the following One-Time Password (OTP):</p>
+              <p class="otp">${tOtp.otp}</p>
+              <p>If you did not request this OTP, please ignore this email or contact our support team.</p>
+              <p>Best regards,</p>
+              <p>TEAM BITACADEMIA</p>
             </div>
             <div class="footer">
-              <p>&copy; BITAcademica 2024</p>
+              &copy; BITAcademia 2024. All rights reserved.
             </div>
           </div>
         </body>
         </html>
       `
     };
+    
 
     transporter.sendMail(mailOptions, async (error) => {
       if (error) {
