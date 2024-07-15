@@ -35,7 +35,6 @@ export default function Signup()
 
   const validateEmail = (email) => 
   {
-    // return true;
     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailPattern.test(email);
   };
@@ -136,25 +135,24 @@ export default function Signup()
   };
 
   return (
-    <div className="flex flex-col md:flex-row items-stretch">
+    <div className="flex flex-col md:flex-row items-stretch min-h-screen">
       <ToastContainer />
-      <div className="relative w-full md:w-1/2 hidden md:block">
-        <img
-          src="/static/images/bitphoto.JPG"  
+      <div className="relative w-full md:w-1/2 flex-shrink-0 hidden md:flex">
+        <img src="/static/images/bitphoto.JPG"
           className="w-full h-full object-cover"
           alt="bit-mesra"
         />
       </div>
-      <div className="w-full md:w-1/2 bg-white flex flex-col p-6 md:p-20 justify-between">
-        <h3 className="text-xl text-black font-semibold mb-9">BIT WEB APP</h3>
+      <div className="w-full md:w-1/2 bg-white flex flex-col p-6 md:p-20 justify-center">
+        <h3 className="text-xl text-black font-semibold mb-9 text-left">BIT WEB APP</h3>
 
-        <div className="w-full flex flex-col max-w-[500px]">
-          <div className="flex flex-col w-full mb-5">
-            <h3 className="text-3xl font-semibold mb-4">Student-Signup</h3>
-            <p className="text-base mb-2">Enter Your Signup details.</p>
+        
+          <div className="flex flex-col w-full mb-5 text-left">
+            <h3 className="text-3xl font-semibold mb-4 text-left">Student-Signup</h3>
+            <p className="text-base mb-2 text-left">Enter Your Signup details.</p>
           </div>
           <div className="w-full flex flex-col">
-            <label className="block text-sm mb-2">Email</label>
+            <label className="block text-sm mb-2 text-left">Email</label>
             <input
               type="email"
               placeholder="Enter Your Email"
@@ -167,7 +165,7 @@ export default function Signup()
             />
             {isEmailVerified ? (
               <>
-                <label className="block text-sm mb-2">OTP</label>
+                <label className="block text-sm mb-2 text-left">OTP</label>
                 <input
                   type="text"
                   placeholder="Enter OTP"
@@ -175,7 +173,7 @@ export default function Signup()
                   className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                   onChange={(e) => setOtp(e.target.value)}
                 />
-                <label className="block text-sm mb-2">Username</label>
+                <label className="block text-sm mb-2 text-left">Username</label>
                 <input
                   type="Text"
                   placeholder="Enter Your username"
@@ -184,15 +182,24 @@ export default function Signup()
                   onChange={(e) => setUsername(e.target.value)}
                 />
                 <div className="relative">
-                  <label>Password</label>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter Your Password"
-                    className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  <label className="block text-sm mb-2">Full Name</label>
+                  <label className="block text-sm mb-2 text-left">Password</label>
+                  <div className="flex items-center border-b border-black py-2">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter Your Password"
+                      className="w-full text-black bg-transparent outline-none focus:outline-none"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="ml-2 text-black"
+                      onClick={togglePasswordVisibility}
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                  <label className="block text-sm mb-2 text-left">Full Name</label>
                   <input
                     type="text"
                     placeholder="Enter Your Full-Name"
@@ -201,7 +208,7 @@ export default function Signup()
                     onChange={(e) => setfullname(e.target.value)}
                   />
                   <div>
-                    <label className="block text-sm mb-2">Roll Number</label>
+                    <label className="block text-sm mb-2 text-left">Roll Number</label>
                     <input
                       type="text"
                       placeholder="Enter Your Roll-Number (e.g., BTECH/10XXX/YY)"
@@ -221,7 +228,7 @@ export default function Signup()
                       </p>
                     )}
                   </div>
-                  <label className="block text-sm mb-2">Upload IdCard</label>
+                  <label className="block text-sm mb-2 text-left">Upload IdCard</label>
                   <input
                     type="file"
                     placeholder="Upload Your Id Card"
@@ -229,12 +236,6 @@ export default function Signup()
                     className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                     onChange={(e) => setidcard(e.target.files[0])}
                   />
-                  <button
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
-                    onClick={togglePasswordVisibility}
-                  >
-                    {showPassword ? "Hide" : "Show"}
-                  </button>
                 </div>
                 <button
                   className="mt-5 py-3 text-white bg-black hover:bg-gray-900 rounded-md"
@@ -283,7 +284,7 @@ export default function Signup()
               Login here
             </span>
           </Link>
-        </div>
+        
       </div>
     </div>
   );
