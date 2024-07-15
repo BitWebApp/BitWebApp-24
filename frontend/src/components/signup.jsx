@@ -36,7 +36,7 @@ export default function Signup()
   const validateEmail = (email) => 
   {
     // return true;
-    const emailPattern = /^[a-zA-Z0-9._%+-]+@bitmesra\.ac\.in$/;
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailPattern.test(email);
   };
   
