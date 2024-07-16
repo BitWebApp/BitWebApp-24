@@ -104,7 +104,6 @@ export default function Sidebar() {
                 "cursor-pointer border-t text-white hover:bg-orange-600 border-neutral-700",
                 linkclasses
               )}
-              onClick={() => setIsOpen(false)}
             >
               <span className="text-xl">{link.icon}</span>
               {link.text}

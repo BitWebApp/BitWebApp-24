@@ -49,7 +49,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-6 w-full mx-auto max-w-screen-lg">
+    <div className="p-6 w-full bg-gray-300 h-full mx-auto">
       <h1 className="text-3xl font-bold text-center mb-6 text-blue-600">Search Student</h1>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="w-full md:flex-1">

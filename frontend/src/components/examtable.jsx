@@ -150,7 +150,7 @@ export default function ExamTable() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4 text-center">EXAMINATION DETAILS</h1>
+      <h1 className="text-3xl font-bold mb-4 text-center">OTHER EXAMINATION DETAILS</h1>
       <input
         type="text"
         placeholder="Search..."

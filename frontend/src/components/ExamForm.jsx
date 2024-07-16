@@ -186,7 +186,7 @@ const ExamForm = () => {
             <div className="w-full flex flex-col p-6 justify-between">
                 <div className="w-full flex flex-col">
                     <div className="flex flex-col w-full mb-5">
-                        <h3 className="text-3xl font-semibold mb-4">Exam Form</h3>
+                        <h3 className="text-3xl font-semibold mb-4">Other Exam Form</h3>
                         <p className="text-base mb-2">Enter Your details.</p>
                     </div>
                     <form onSubmit={handleSubmit}>

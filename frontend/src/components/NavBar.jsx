@@ -25,6 +25,13 @@ const NavBar = () => {
             <span className="text-xl font-bold">BITACADEMIA</span>
           </div>
           <div className="hidden lg:flex justify-center space-x-8 items-center">
+          <Link
+              to="/public-user"
+              className="hover:bg-blue-600 hover:text-white transition px-2 py-3 border rounded-md "
+            >
+              <FontAwesomeIcon icon={faUser} className="mx-2" />
+              Search Student
+            </Link>
             <Link
               to="/log"
               className="hover:bg-blue-600 hover:text-white transition px-2 py-3 border rounded-md "
