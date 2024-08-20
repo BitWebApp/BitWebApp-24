@@ -10,9 +10,9 @@ export default function LandingPage() {
     <>
       <NavBar />
       <About />
-      <div className="bg-gray-300 m-auto flex justify-center items-center flex-col">
-        <h2 className="text-3xl font-bold mb-8 text-blue-600">Know Your Student</h2>
-        <button className="bg-blue-600 m-3 text-white font-bold rounded-md px-6 py-2 hover:bg-blue-700 transition">
+      <div className="p-5 bg-gray-300 m-auto flex">
+        <h2 className="mx-5 my-auto text-xl md:text-3xl font-bold text-blue-600">Know Your Student</h2>
+        <button className="bg-blue-600 md:m-3 text-white font-bold rounded-md p-3 md:px-6 md:py-2 hover:bg-blue-700 transition">
           <Link to="/public-user">Find a Student</Link>
         </button>
       </div>
