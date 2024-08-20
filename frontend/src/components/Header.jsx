@@ -149,7 +149,7 @@ export default function Header() {
               <span className='sr-only'>Open user menu</span>
               <div
                 className={`h-10 w-10 ${user?.isVerified ? 'border-green-500' : 'border-red-500'} border-2 rounded-full bg-black bg-cover bg-no-repeat bg-center`}
-                style={{ backgroundImage: `url(${user?.image})` }}
+                style={{ backgroundImage: `url(${(user) ? user?.image : "/static/images/profile.png"})` }}
               ></div>
             </Menu.Button>
           </div>

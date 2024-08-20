@@ -29,6 +29,7 @@ const userSchema = new Schema(
     fullName: {
       type: String,
       required: [true, "Full Name is required!"],
+      lowercase: true
     },
     rollNumber: {
       type: String,
