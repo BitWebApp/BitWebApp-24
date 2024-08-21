@@ -34,6 +34,7 @@ const userSchema = new Schema(
     rollNumber: {
       type: String,
       required: [true, "Roll Number is required!"],
+      unique:true
     },
     email: {
       type: String,
