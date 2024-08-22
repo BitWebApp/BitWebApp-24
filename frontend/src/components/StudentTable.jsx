@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import ExcelJS from "exceljs";
 
 const StudentTable = () => {
   const [students, setStudents] = useState([]);
@@ -136,6 +137,59 @@ const StudentTable = () => {
     return config ? config.direction : "Sort By";
   };
 
+  const exportToExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Students");
+
+    // Add headers
+    worksheet.columns = [
+      { header: "Profile Completion", key: "profileCompletion", width: 20 },
+      { header: "Username", key: "username", width: 20 },
+      { header: "Full Name", key: "fullName", width: 20 },
+      { header: "Roll Number", key: "rollNumber", width: 20 },
+      { header: "Email", key: "email", width: 30 },
+      { header: "Branch", key: "branch", width: 15 },
+      { header: "Section", key: "section", width: 15 },
+      { header: "Semester", key: "semester", width: 15 },
+      { header: "Mobile Number", key: "mobileNumber", width: 20 },
+      { header: "Placement", key: "placement", width: 15 },
+      { header: "Projects", key: "projects", width: 15 },
+      { header: "Awards", key: "awards", width: 15 },
+      { header: "Verified", key: "isVerified", width: 15 },
+    ];
+
+    // Add data
+    filteredStudents.forEach((student) => {
+      worksheet.addRow({
+        profileCompletion: Math.ceil(calculateProfileCompletion(student)) + "%",
+        username: student.username,
+        fullName: student.fullName,
+        rollNumber: student.rollNumber,
+        email: student.email,
+        branch: student.branch,
+        section: student.section,
+        semester: student.semester,
+        mobileNumber: student.mobileNumber,
+        placement: student.placement ? "Yes" : "No",
+        projects: student.projects ? "Yes" : "No",
+        awards: student.awards ? "Yes" : "No",
+        isVerified: student.isVerified ? "Yes" : "No",
+      });
+    });
+
+    // Generate buffer
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    // Create a Blob from the buffer and trigger download
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "students.xlsx";
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-4">STUDENT DETAILS</h1>
@@ -146,14 +200,19 @@ const StudentTable = () => {
         onChange={(e) => setSearchQuery(e.target.value)}
         className="mb-4 px-4 py-2 border rounded"
       />
+      <button
+        onClick={exportToExcel}
+        className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
+      >
+        Export to Excel
+      </button>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Profile Completion
               </th>
-
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Username
                 <div>
@@ -247,89 +306,57 @@ const StudentTable = () => {
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Mobile Number
-                <div>
-                  <select
-                    value={getSortDirection("mobileNumber")}
-                    onChange={(e) => handleSortOptionChange("mobileNumber", e)}
-                  >
-                    <option value="Sort By">Sort By</option>
-                    <option value="ascending">Ascending</option>
-                    <option value="descending">Descending</option>
-                  </select>
-                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Placement
-                <div>
-                  <select
-                    value={getSortDirection("placement")}
-                    onChange={(e) => handleSortOptionChange("placement", e)}
-                  >
-                    <option value="Sort By">Sort By</option>
-                    <option value="ascending">Ascending</option>
-                    <option value="descending">Descending</option>
-                  </select>
-                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Projects
-                <div>
-                  <select
-                    value={getSortDirection("projects")}
-                    onChange={(e) => handleSortOptionChange("projects", e)}
-                  >
-                    <option value="Sort By">Sort By</option>
-                    <option value="ascending">Ascending</option>
-                    <option value="descending">Descending</option>
-                  </select>
-                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Awards
-                <div>
-                  <select
-                    value={getSortDirection("awards")}
-                    onChange={(e) => handleSortOptionChange("awards", e)}
-                  >
-                    <option value="Sort By">Sort By</option>
-                    <option value="ascending">Ascending</option>
-                    <option value="descending">Descending</option>
-                  </select>
-                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Verified
-                <div>
-                  <select
-                    value={getSortDirection("isVerified")}
-                    onChange={(e) => handleSortOptionChange("isVerified", e)}
-                  >
-                    <option value="Sort By">Sort By</option>
-                    <option value="ascending">Ascending</option>
-                    <option value="descending">Descending</option>
-                  </select>
-                </div>
               </th>
-            
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredStudents.map((student) => (
-              <tr key={student._id}>
-                 <td className="px-6 py-4 whitespace-nowrap">{Math.ceil(calculateProfileCompletion(student))}%</td>
+              <tr
+                key={student._id}
+                className={`cursor-pointer ${
+                  selectedRows.includes(student._id) ? "bg-gray-100" : ""
+                }`}
+                onClick={() => handleRowSelect(student._id)}
+              >
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {calculateProfileCompletion(student)}%
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">{student.username}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{student.fullName}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{student.rollNumber}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {student.rollNumber}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">{student.email}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{student.branch}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{student.section}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{student.semester}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{student.mobileNumber}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{student.placement ? "Yes" : "No"}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{student.projects ? "Yes" : "No"}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{student.awards ? "Yes" : "No"}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{student.isVerified ? "Yes" : "No"}</td>
-             
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {student.mobileNumber}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {student.placement ? "Yes" : "No"}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {student.projects ? "Yes" : "No"}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {student.awards ? "Yes" : "No"}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {student.isVerified ? "Yes" : "No"}
+                </td>
               </tr>
             ))}
           </tbody>
