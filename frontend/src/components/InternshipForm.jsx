@@ -1,23 +1,40 @@
 import React, { useState } from 'react';
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
 import Swal from 'sweetalert2';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function InternshipForm() {
   
   const [company, setCompany] = useState("");
-  const [newCompany,setNewCompany]=useState("");
+  const [newCompany, setNewCompany] = useState("");
   const [role, setRole] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [idCard, setIdCard] = useState(null); // Ensure this is null initially
+  const [idCard, setIdCard] = useState(null);
   const [spin, setSpin] = useState(false);
 
   const navigate = useNavigate();
-  const companyList=["google","Atlassian","Microsoft","Texas Instruments","Wells Fargo","Visa","Cisco","Intuit","NPCI","Walmart Global Tech","SalesForce","PayPal","Fastenal","Uber","Sprinkler","Others"]
+  
+  const companyList = [
+    "Google", "Microsoft", "Apple", "Amazon", "Meta (Facebook)", "Netflix", 
+    "IBM", "Oracle", "Intel", "Cisco", "NVIDIA", "Qualcomm", "Broadcom", 
+    "Texas Instruments", "Visa", "Mastercard", "PayPal", "Stripe", 
+    "Salesforce", "Wells Fargo", "Uber", "Atlassian", "Fastenal", 
+    "Walmart Global Tech", "Intuit", "Sprinkler", "NPCI", "Others"
+  ];
+
+  const roleList = [
+    "Software Engineer Intern", "Frontend Developer Intern", "Backend Developer Intern", 
+    "Full Stack Developer Intern", "Data Science Intern", "Data Analyst Intern", 
+    "Machine Learning Intern", "Cloud Engineer Intern", "DevOps Intern", 
+    "Cybersecurity Intern", "Information Security Intern", "Product Management Intern", 
+    "Systems Engineer Intern", "R&D Intern", "Quality Assurance Intern", "UI/UX Design Intern"
+  ];
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -62,37 +79,32 @@ export default function InternshipForm() {
       showLoaderOnConfirm: true,
       preConfirm: async () => {
         setSpin(true);
-      const tokenString = localStorage.getItem('user');
-      const token = JSON.parse(tokenString);
-      console.log(token._id);
-      try {
-        const formData = new FormData();
-        formData.append('company', company);
-        formData.append('role', role);
-        formData.append('startDate', startDate);
-        formData.append('endDate', endDate);
-        formData.append('doc', idCard);
-        formData.append('studentid',token._id);
+        const tokenString = localStorage.getItem('user');
+        const token = JSON.parse(tokenString);
+        try {
+          const formData = new FormData();
+          formData.append('company', company);
+          formData.append('role', role);
+          formData.append('startDate', startDate);
+          formData.append('endDate', endDate);
+          formData.append('doc', idCard);
+          formData.append('studentid', token._id);
 
-        const response = await axios.post("/api/v1/intern/addinternship", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Accept: "application/json",
-          },
-        });
-        console.log('Response:', response.data); // Log the response here
-        toast.success("Data uploaded successfully!");
-        setTimeout(() => {
-          window.location.reload()
-        }, 2000);
-        toast.success("Check the dashboard search to see your update!");
-        
-      } catch (err) {
-        console.error('Error:', err); // Log the error here
-        toast.error("Error uploading data!");
-      } finally {
-        setSpin(false);
-      }
+          const response = await axios.post("/api/v1/intern/addinternship", formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Accept: "application/json",
+            },
+          });
+          toast.success("Data uploaded successfully!");
+          setTimeout(() => {
+            window.location.reload()
+          }, 2000);
+        } catch (err) {
+          toast.error("Error uploading data!");
+        } finally {
+          setSpin(false);
+        }
       }
     });
   };
@@ -110,56 +122,38 @@ export default function InternshipForm() {
           <form onSubmit={handleSubmit}>
             <div className="w-full flex flex-col">
               <label>Company</label>
-              {/* <input
-                type="text"
-                placeholder="Enter Your Company"
-                value={company}
-                required
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setCompany(e.target.value)}
-              /> */}
               <select 
-                value={company === '' ? '' : company}
-                onChange={(e)=>{
-                  const select=e.target.value;
+                value={company}
+                onChange={(e) => {
+                  const select = e.target.value;
                   setCompany(select);
                   setNewCompany(select);
                 }} 
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none">
-              {companyList.map((val,index)=>{
-                 return(
-                  <option key={index} value={val}>{val}</option> 
-                 )
-              })}
+                {companyList.map((val, index) => (
+                  <option key={index} value={val}>{val}</option>
+                ))}
               </select>
-              {newCompany==="Others" && (<input
-              type='text'
-              value={company}
-              onChange={(e)=>setCompany(e.target.value)}
-              placeholder="type the company name"
-              
-              
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-              />
-                
+              {newCompany === "Others" && (
+                <input
+                  type="text"
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                  placeholder="Type the company name"
+                  className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
+                />
               )}
               <label>Role</label>
-              {/* <input
-                type="text"
-                placeholder="Enter the role"
-                value={role}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setRole(e.target.value)}
-              /> */}
               <select
-               value={role}
-               onChange={(e)=>setRole(e.target.value)}
-               className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-               >
-                <option value="Data Science Analyst Intern">Data Science Analyst</option>
-                <option value="Software intern">Software Intern</option>
-               </select>
-              <label>Start Date </label>
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
+              >
+                {roleList.map((val, index) => (
+                  <option key={index} value={val}>{val}</option>
+                ))}
+              </select>
+              <label>Start Date</label>
               <input
                 type="date"
                 placeholder="Enter Your Starting Date"
@@ -167,7 +161,7 @@ export default function InternshipForm() {
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setStartDate(e.target.value)}
               />
-              <label>End Date </label>
+              <label>End Date</label>
               <input
                 type="date"
                 placeholder="Enter Your End Date"
@@ -175,32 +169,23 @@ export default function InternshipForm() {
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setEndDate(e.target.value)}
               />
-              <label className="block text-l mb-2">Upload suitable Docs</label>
+              <label className="mt-4">Upload Your ID Card</label>
               <input
                 type="file"
-                accept="application/pdf,image/*"
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setIdCard(e.target.files[0])}
-                required
               />
-              <div className="h-5"></div>
             </div>
-            <div className="h-8"></div>
-            <div className="w-full flex flex-col my-4">
+            <div className="flex flex-row w-full mt-4">
               <button
                 type="submit"
-                className="bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"
+                className="w-full py-2 px-4 text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 transition-all duration-200"
               >
-                {spin ? <ClipLoader size={24} color="#ffffff"/> : "Submit"}
+                {spin ? <ClipLoader color="white" size={20} /> : "Submit"}
               </button>
             </div>
           </form>
-          <div className="w-full items-center justify-center flex">
-            <p className="text-sm font-normal text-black">
-              <span className="font-semibold underline underline-offset cursor-pointer text-blue-600">
-                <Link to="/db">Go back to Dashboard</Link>
-              </span>
-            </p>
-          </div>
         </div>
       </div>
     </div>
