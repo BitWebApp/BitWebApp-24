@@ -5,13 +5,13 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
 import Swal from 'sweetalert2';
-
+import Select from 'react-select';
 
 export default function ProjectForm() {
   const [projectName, setProjectName] = useState("");
-  const [domain, setDomain] = useState("");
+  const [domain, setDomain] = useState([]);
   const [projectLink, setProjectLink] = useState("");
-  const [techStack, setTechStack] = useState("");
+  const [techStack, setTechStack] = useState([]);
   const [guide, setGuide] = useState("");
   const [idCard, setIdCard] = useState(null);
   const [spin, setSpin] = useState(false);
@@ -23,9 +23,21 @@ export default function ProjectForm() {
 
   const navigate = useNavigate();
 
+  const domainList = [
+    "Artificial Intelligence (AI)", "Blockchain Development", "Cloud Computing", "Computer Vision", "Data Science",
+    "Image Processing", "Machine Learning", "Mobile App Development", "Natural Language Processing", "Web Development", "Other"
+  ];
+
+  const techStackList = [
+    "Android (Java/Kotlin)", "ARCore", "ARKit", "Cocos2d", "Django", "Docker", "Ethereum (Solidity, Web3.js)",
+    "Flutter", "Godot", "Hyperledger", "HTML/CSS/JS", "iOS (Swift/Objective-C)", "Kubernetes", "MATLAB",
+    "MEAN", "MERN", "NLTK", "NumPy", "OpenCV", "Pandas", "Pillow", "PyTorch", "Python", "Rails", "R", "React Native",
+    "Rust", "SciPy", "Scikit-learn", "spaCy", "SQL", "Tableau", "TensorFlow", "Transformers", "Other"
+  ];
+
   const fetchProject = async () => {
     // try {
-    //   const response = await axios.get(`/api/v1/project/show`, { withCredentials: true });
+    //   const response = await axios.get('/api/v1/project/show', { withCredentials: true });
     //   console.log('API Response:', response.data.data);
     //   setProj(response.data.data);
     // } catch (error) {
@@ -36,22 +48,22 @@ export default function ProjectForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const documentLink = idCard ? `<a href="${URL.createObjectURL(idCard)}" target="_blank" style=" margin-top: 10px;">(Click to View)</a>` : '';
-  
-    const htmlContent = `
-      <div style="text-align: left; padding: 20px;">
+
+    const htmlContent =
+      `<div style="text-align: left; padding: 20px;">
         <p style="font-size: 18px; margin: 10px 0; color: #333;">
           <strong>Project Name:</strong> ${projectName}
         </p>
         <p style="font-size: 18px; margin: 10px 0; color: #333;">
-          <strong>Domain:</strong> ${domain}
+          <strong>Domain:</strong> ${domain.map(d => d.label).join(', ')}
         </p>
         <p style="font-size: 18px; margin: 10px 0; color: #333;">
           <strong>Project Link:</strong> ${projectLink}
         </p>
         <p style="font-size: 18px; margin: 10px 0; color: #333;">
-          <strong>Tech Stack:</strong> ${techStack}
+          <strong>Tech Stack:</strong> ${techStack.map(ts => ts.label).join(', ')}
         </p>
         <p style="font-size: 18px; margin: 10px 0; color: #333;">
           <strong>Guide:</strong> ${guide}
@@ -63,9 +75,8 @@ export default function ProjectForm() {
       </div>
       <p style="font-size: 17px; color: #666;">
         Do you want to submit the form?
-      </p>
-    `;
-  
+      </p>`;
+
     Swal.fire({
       title: 'Are you sure?',
       html: htmlContent,
@@ -84,31 +95,31 @@ export default function ProjectForm() {
         try {
           const formData = new FormData();
           formData.append('projectName', projectName);
-          formData.append('domain', domain);
+          formData.append('domain', domain.map(d => d.value).join(', '));
           formData.append('projectLink', projectLink);
-          formData.append('techStack', techStack);
+          formData.append('techStack', techStack.map(ts => ts.value).join(', '));
           formData.append('guide', guide);
           if (idCard) {
             formData.append('projectId', idCard);
           }
-  
+
           console.log('Form Data:', {
             projectName,
-            domain,
+            domain: domain.map(d => d.value).join(', '),
             projectLink,
-            techStack,
+            techStack: techStack.map(ts => ts.value).join(', '),
             guide,
             projectId: idCard,
           });
-  
+
           const token = localStorage.getItem('accessToken');
           const config = {
             headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
             withCredentials: true,
           };
-  
+
           const response = await axios.post("/api/v1/project/projectCreate", formData, config);
-  
+
           if (response.data.success) {
             toast.success("Data uploaded successfully!");
             Swal.fire(
@@ -123,7 +134,7 @@ export default function ProjectForm() {
           } else {
             toast.error(response.data.message || 'Failed to create project record. Please try again.');
           }
-  
+
         } catch (err) {
           console.log('Error:', err.response ? err.response.data : err);
           toast.error("Error uploading data!");
@@ -136,8 +147,6 @@ export default function ProjectForm() {
       }
     });
   };
-  
-  
 
   useEffect(() => {
     fetchProject();
@@ -145,9 +154,9 @@ export default function ProjectForm() {
 
   const handleEdit = (project) => {
     setProjectName(project.projectName);
-    setDomain(project.domain);
+    setDomain(project.domain.split(', ').map(d => ({ value: d, label: d })));
     setProjectLink(project.projectLink);
-    setTechStack(project.techStack);
+    setTechStack(project.techStack.split(', ').map(ts => ({ value: ts, label: ts })));
     setGuide(project.guide);
     setEditId(project._id);
   };
@@ -159,9 +168,9 @@ export default function ProjectForm() {
 
   const clearForm = () => {
     setProjectName("");
-    setDomain("");
+    setDomain([]);
     setProjectLink("");
-    setTechStack("");
+    setTechStack([]);
     setGuide("");
     setIdCard(null);
     setEditId(null);
@@ -194,7 +203,7 @@ export default function ProjectForm() {
   const filteredAndSortedProjects = sortProjects(proj.filter(project =>
     project.projectName.toLowerCase().includes(searchQuery.toLowerCase())
   ));
-  
+
   return (
     <>
       <div className="w-full min-h-screen flex justify-center items-center">
@@ -217,12 +226,12 @@ export default function ProjectForm() {
                   onChange={(e) => setProjectName(e.target.value)}
                 />
                 <label>Domain</label>
-                <input
-                  type="text"
-                  placeholder="Enter the domain"
+                <Select
+                  isMulti
+                  options={domainList.map(d => ({ value: d, label: d }))}
                   value={domain}
+                  onChange={setDomain}
                   className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                  onChange={(e) => setDomain(e.target.value)}
                 />
                 <label>Project Link</label>
                 <input
@@ -233,12 +242,12 @@ export default function ProjectForm() {
                   onChange={(e) => setProjectLink(e.target.value)}
                 />
                 <label>Enter Tech Stack</label>
-                <input
-                  type="text"
-                  placeholder="Enter Your Tech Stack"
+                <Select
+                  isMulti
+                  options={techStackList.map(ts => ({ value: ts, label: ts }))}
                   value={techStack}
+                  onChange={setTechStack}
                   className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                  onChange={(e) => setTechStack(e.target.value)}
                 />
                 <label>Enter The Required Guide</label>
                 <input

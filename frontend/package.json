@@ -28,6 +28,7 @@
     "react-multi-carousel": "^2.8.5",
     "react-redux": "^9.1.1",
     "react-router-dom": "^6.23.0",
+    "react-select": "^5.8.0",
     "react-slick": "^0.30.2",
     "react-spinners": "^0.13.8",
     "react-toastify": "^10.0.5",
