@@ -113,8 +113,8 @@ export default function Login() {
               <input type="checkbox" className="w-4 h-4 mr-2" />
               <p className="text-sm">Remember Me</p>
             </div>
-            <p className="text-sm cursor-pointer underline underline-offset-2 font-medium whitespace-nowrap text-blue-400">
-              Forgot Password
+            <p className="text-sm cursor-pointer underline underline-offset-2 font-medium whitespace-nowrap text-red-600">
+            <Link to="/forgot-password">Forgot Password</Link>
             </p>
           </div>
 
@@ -122,7 +122,7 @@ export default function Login() {
             <button
               className={`bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               onClick={handleLogin}
-              disabled={isLoading} // Disable button when loading is true
+              disabled={isLoading} 
             >
               {isLoading ? (
                 <svg
