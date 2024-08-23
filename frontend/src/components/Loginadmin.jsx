@@ -5,110 +5,143 @@ import { ClipLoader } from "react-spinners";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export default function SignInPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+export default function ForgotPassword() {
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
-    setLoading(true); // Set loading to true when login starts
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const isValidPassword = (password) => {
+    return /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(password);
+  };
+
+  const handleSendOtp = async () => {
+    if (!isValidEmail(email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    setLoading(true);
     try {
-      const response = await axios.post("/api/v1/admin/login", {
-        username,
-        password,
-      });
-      localStorage.setItem("user", JSON.stringify(response.data.data.admin));
-      console.log(response);
+      // await axios.post("/api/v1/users/send-otp", { email });
+      toast.success("OTP sent to your email address.");
+      setOtpSent(true);
+    } catch (error) {
+      toast.error("Failed to send OTP. Please check your email.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      // Show success toast
-      toast.success("Login Successful! Redirecting to dashboard...");
+  const handleChangePassword = async () => {
+    if (!isValidPassword(newPassword)) {
+      toast.error("Password must be at least 8 characters long and contain both letters and numbers.");
+      return;
+    }
 
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // await axios.post("/api/v1/users/reset-password", { email, otp, newPassword });
+      toast.success("Password changed successfully! Redirecting to login...");
       setTimeout(() => {
-        navigate("/db/");
+        navigate("/log");
       }, 2000);
     } catch (error) {
-      if (error.response && error.response.data) {
-        const htmlDoc = new DOMParser().parseFromString(
-          error.response.data,
-          "text/html"
-        );
-        const errorElement = htmlDoc.querySelector("body");
-        if (errorElement) {
-          const errorMessage = errorElement.textContent.trim();
-          const errormsg = errorMessage.split("at")[0].trim();
-          console.log(errormsg);
-          toast.error(errormsg);
-        } else {
-          console.log("Error: An unknown error occurred");
-          toast.error("An unknown error occurred");
-        }
-      } else {
-        console.log("Error:", error.message);
-        toast.error("Error occurred during signup");
-      }
+      toast.error("Failed to reset password. Please try again.");
     } finally {
-      setLoading(false); // Set loading to false after the login process is complete
+      setLoading(false);
     }
   };
 
   return (
     <div className="text-center my-20 mx-auto">
       <ToastContainer />
-      <h2 className="text-3xl mb-8">Admin Log In</h2>
-      <form
-        action="/home"
-        className="inline-block bg-gray-100 w-80 border border-gray-300 rounded p-8 mb-4"
-      >
+      <h2 className="text-3xl mb-8">Forgot Password</h2>
+      <form className="inline-block bg-gray-100 w-80 border border-gray-300 rounded p-8 mb-4">
         <p className="mb-4">
-          <label className="block text-left text-sm mb-1">
-            Username or email address
-          </label>
+          <label className="block text-left text-sm mb-1">Email Address</label>
           <input
-            type="text"
-            name="first_name"
+            type="email"
+            name="email"
             required
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded"
+            disabled={otpSent}
           />
         </p>
-        <p className="mb-4">
-          <div className="flex justify-between">
-            <label className="block text-left text-sm mb-1">Password</label>
-            <Link
-              to="/forget-password"
-              className="text-sm text-blue-500 hover:underline"
-            >
-              Forget password?
-            </Link>
-          </div>
-          <input
-            type="password"
-            name="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded mt-1"
-          />
-        </p>
+        {otpSent && (
+          <>
+            <p className="mb-4">
+              <label className="block text-left text-sm mb-1">OTP</label>
+              <input
+                type="text"
+                name="otp"
+                required
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+            </p>
+            <p className="mb-4">
+              <label className="block text-left text-sm mb-1">New Password</label>
+              <input
+                type="password"
+                name="newPassword"
+                required
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+            </p>
+            <p className="mb-4">
+              <label className="block text-left text-sm mb-1">Confirm Password</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+            </p>
+          </>
+        )}
         <p>
           <button
-            id="sub_btn"
             type="button"
-            onClick={handleLogin}
+            onClick={otpSent ? handleChangePassword : handleSendOtp}
             className="w-full p-2 bg-gray-800 text-white rounded hover:bg-gray-900 transition duration-500"
-            disabled={loading} // Disable button when loading
+            disabled={loading}
           >
-            {loading ? <ClipLoader size={20} color={"#fff"} /> : "Login"}
+            {loading ? (
+              <ClipLoader size={20} color={"#fff"} />
+            ) : otpSent ? (
+              "Change Password"
+            ) : (
+              "Get OTP"
+            )}
           </button>
         </p>
       </form>
       <footer className="text-sm">
         <p>
-          First time?{" "}
-          <Link to="/sg.a" className="text-blue-500 hover:underline">
-            Create an account
+          Remember your password?{" "}
+          <Link to="/log" className="text-blue-500 hover:underline">
+            Login here
           </Link>
           .
         </p>
