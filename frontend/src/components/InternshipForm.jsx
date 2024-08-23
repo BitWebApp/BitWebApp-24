@@ -7,7 +7,9 @@ import { ClipLoader } from 'react-spinners';
 import Swal from 'sweetalert2';
 
 export default function InternshipForm() {
+  
   const [company, setCompany] = useState("");
+  const [newCompany,setNewCompany]=useState("");
   const [role, setRole] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -15,7 +17,7 @@ export default function InternshipForm() {
   const [spin, setSpin] = useState(false);
 
   const navigate = useNavigate();
-
+  const companyList=["google","Atlassian","Microsoft","Texas Instruments","Wells Fargo","Visa","Cisco","Intuit","NPCI","Walmart Global Tech","SalesForce","PayPal","Fastenal","Uber","Sprinkler","Others"]
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -108,22 +110,55 @@ export default function InternshipForm() {
           <form onSubmit={handleSubmit}>
             <div className="w-full flex flex-col">
               <label>Company</label>
-              <input
+              {/* <input
                 type="text"
                 placeholder="Enter Your Company"
                 value={company}
                 required
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setCompany(e.target.value)}
+              /> */}
+              <select 
+                value={company === '' ? '' : company}
+                onChange={(e)=>{
+                  const select=e.target.value;
+                  setCompany(select);
+                  setNewCompany(select);
+                }} 
+                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none">
+              {companyList.map((val,index)=>{
+                 return(
+                  <option key={index} value={val}>{val}</option> 
+                 )
+              })}
+              </select>
+              {newCompany==="Others" && (<input
+              type='text'
+              value={company}
+              onChange={(e)=>setCompany(e.target.value)}
+              placeholder="type the company name"
+              
+              
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
               />
+                
+              )}
               <label>Role</label>
-              <input
+              {/* <input
                 type="text"
                 placeholder="Enter the role"
                 value={role}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setRole(e.target.value)}
-              />
+              /> */}
+              <select
+               value={role}
+               onChange={(e)=>setRole(e.target.value)}
+               className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
+               >
+                <option value="Data Science Analyst Intern">Data Science Analyst</option>
+                <option value="Software intern">Software Intern</option>
+               </select>
               <label>Start Date </label>
               <input
                 type="date"
