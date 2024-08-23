@@ -11,6 +11,10 @@ const placementSchema = new Schema(
       type: String,
       required: [true, "Company name is required!"],
     },
+    role: {
+      type: String,
+      required: [true, "Role is required!"],
+    },
     ctc: {
       type: Number,
       required: [true, "Package amount is required!"],
