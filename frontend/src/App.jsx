@@ -5,6 +5,7 @@ import {
   Route,
   useNavigate,
 } from "react-router-dom";
+import ForgotPassword from "./components/forgot-password";
 import Layout from "./components/Layout";
 import Dashboard from "./components/Dashboard";
 import Login from "./components/Login";
@@ -91,7 +92,8 @@ export default function App() {
         <Route path="/sb" element={<Sidebar />} />
         <Route path="/log.a" element={<Loginadmin />} />
         <Route path="/sg.a" element={<Signupadmin />} />
-        
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+
       </Routes>
     </Router>
   );
