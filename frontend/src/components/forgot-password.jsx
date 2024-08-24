@@ -1,76 +1,148 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; 
+import React, { useState } from "react";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import { ClipLoader } from "react-spinners";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-const ForgotPassword = ({ }) => {
-    const [email, setEmail] = useState('');
-    const [previousPassword, setPreviousPassword] = useState('');
-    const [otp, setOtp] = useState('');
+export default function ForgotPassword() {
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        console.log('Email:', email);
-        console.log('Previous Password:', previousPassword);
-        console.log('OTP:', otp);
-    };
+  const handleSendOtp = async () => {
+    setLoading(true);
+    try {
+    //   await axios.post("/api/v1/users/send-otp", { email });
+      toast.success("OTP sent to your email address.");
+      setOtpSent(true);
+    } catch (error) {
+      toast.error("Failed to send OTP. Please check your email.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
-            <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-2xl w-96">
-                <h2 className="text-3xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 mb-6">
-                    Forgot Password
-                </h2>
-                
-                <div className="mb-4">
-                    <label htmlFor="email" className="block text-lg font-semibold text-gray-700 mb-2">Registered Email ID:</label>
-                    <input
-                        type="email"
-                        id="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
-                    />
-                </div>
+  const isValidPassword = (password) => {
+   
+    return /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(password);
+  };
 
-                <div className="mb-4">
-                    <label htmlFor="previousPassword" className="block text-lg font-semibold text-gray-700 mb-2">Previous Password:</label>
-                    <input
-                        type="password"
-                        id="previousPassword"
-                        value={previousPassword}
-                        onChange={(e) => setPreviousPassword(e.target.value)}
-                        required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
-                    />
-                </div>
+  const handleChangePassword = async () => {
+    if (!isValidPassword(newPassword)) {
+      toast.error("Password must be at least 8 characters long and contain both letters and numbers.");
+      return;
+    }
 
-                <div className="mb-4">
-                    <label htmlFor="otp" className="block text-lg font-semibold text-gray-700 mb-2">OTP:</label>
-                    <input
-                        type="text"
-                        id="otp"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                        required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
-                    />
-                </div>
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
 
-                <button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white py-3 rounded-lg shadow-lg hover:shadow-2xl transform hover:scale-105 transition-transform duration-200">
-                    Submit
-                </button>
+    setLoading(true);
+    try {
+    //   await axios.post("/api/v1/users/reset-password", { email, otp, newPassword });
+      toast.success("Password changed successfully! Redirecting to login...");
+      setTimeout(() => {
+        navigate("/log");
+      }, 2000);
+    } catch (error) {
+      toast.error("Failed to reset password. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                <Link to="/log"> 
-                    <button
-                        type="button"
-                        className="w-full mt-4 bg-gray-200 text-gray-800 py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-transform duration-200"
-                    >
-                        Back
-                    </button>
-                </Link>
-            </form>
-        </div>
-    );
-};
-
-export default ForgotPassword;
+  return (
+    <div className="text-center my-20 mx-auto">
+      <ToastContainer />
+      <h2 className="text-3xl mb-8">Forgot Password</h2>
+      <form className="inline-block bg-gray-100 w-80 border border-gray-300 rounded p-8 mb-4">
+        <p className="mb-4">
+          <label className="block text-left text-sm mb-1">Email Address</label>
+          <input
+            type="email"
+            name="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+            disabled={otpSent}
+          />
+        </p>
+        {otpSent && (
+          <>
+            <p className="mb-4">
+              <label className="block text-left text-sm mb-1">OTP</label>
+              <input
+                type="text"
+                name="otp"
+                required
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+            </p>
+            <p className="mb-4">
+              <label className="block text-left text-sm mb-1">New Password</label>
+              <input
+                type="password"
+                name="newPassword"
+                required
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+            </p>
+            <p className="mb-4">
+              <label className="block text-left text-sm mb-1">Confirm Password</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+            </p>
+          </>
+        )}
+        <p>
+          <button
+            type="button"
+            onClick={otpSent ? handleChangePassword : handleSendOtp}
+            className="w-full p-2 bg-gray-800 text-white rounded hover:bg-gray-900 transition duration-500"
+            disabled={loading}
+          >
+            {loading ? (
+              <ClipLoader size={20} color={"#fff"} />
+            ) : otpSent ? (
+              "Change Password"
+            ) : (
+              "Get OTP"
+            )}
+          </button>
+        </p>
+      </form>
+      <footer className="text-sm">
+        <p>
+          Remember your password?{" "}
+          <Link to="/log" className="text-blue-500 hover:underline">
+            Login here
+          </Link>
+          .
+        </p>
+        <p>
+          <Link to="/" className="text-blue-500 hover:underline">
+            Back to Homepage
+          </Link>
+          .
+        </p>
+      </footer>
+    </div>
+  );
+}
