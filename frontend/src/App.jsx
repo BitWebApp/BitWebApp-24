@@ -43,7 +43,8 @@ import StudentAwardTable from "./components/StudentAwardTable";
 import Review from "./components/Review";
 import AddBacklog from "./components/AddBacklog"
 import BacklogTable from "./components/Backlogtable";
-
+import PECourseForm from "./components/PECourseForm";
+import PeCoursesTable from "./components/PEtable";
 export default function App() {
   return (
     <Router>
@@ -83,6 +84,8 @@ export default function App() {
           <Route path="internship-form-table" element={<InternTable />} />
           <Route path="internship-table" element={<Internshiptable />} />
           <Route path="student-award-table" element={<StudentAwardTable />} />
+          <Route path="PE-Form" element={<PECourseForm/>} />
+          <Route path="PE-table" element={<PeCoursesTable/>} />
           <Route path="backlogs" element={<AddBacklog/>} />
           <Route path="review" element={<Review />} />
           <Route path="backlogs-table" element={<BacklogTable/>} />
