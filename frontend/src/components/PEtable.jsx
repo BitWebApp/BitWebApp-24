@@ -9,8 +9,8 @@ const PeCoursesTable = () => {
   useEffect(() => {
     const fetchPeCourses = async () => {
       try {
-        // const response = await axios.get('/api/v1/pe-courses/get-all');
-        // setPeCourses(response.data.data); 
+        const response = await axios.get('/api/v1/pe/my-pe-courses');
+        setPeCourses(response.data.data); 
         setLoading(false);
       } catch (err) {
         setError(err.message);
