@@ -15,10 +15,9 @@ export default function PEForm() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if form has already been submitted
     const isFormSubmitted = localStorage.getItem('peFormSubmitted');
     if (isFormSubmitted) {
-      setFormLocked(true); // Lock the form if submitted previously
+      setFormLocked(true); 
       Swal.fire({
         title: 'Form Locked',
         text: 'You have already submitted the PE form. You cannot submit again.',

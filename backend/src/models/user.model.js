@@ -5,6 +5,7 @@ import { Award } from "./award.model.js";
 import { Internship } from "./internship.model.js";
 import { Exam } from "./exam.model.js";
 import { Backlog } from "./backlog.model.js";
+import { PeCourse } from "./peCourse.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -128,6 +129,12 @@ const userSchema = new Schema(
       {
         type: Schema.Types.ObjectId,
         ref: "Backlog",
+      },
+    ],
+    peCourses: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'PeCourse',
       },
     ],
     refreshToken: {
