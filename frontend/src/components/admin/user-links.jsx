@@ -81,6 +81,11 @@ export default function useLinks() {
       to: "/db/admin-academic-form",
     },
     {
+      text: "PE Courses",
+      icon: <HiAcademicCap />,
+      to: "/db/PE-admin-table",
+    },
+    {
       text: "Awards & Achievements",
       icon: <HiBadgeCheck />,
       to: "/db/award-table",
