@@ -45,6 +45,7 @@ import AddBacklog from "./components/AddBacklog"
 import BacklogTable from "./components/Backlogtable";
 import PECourseForm from "./components/PECourseForm";
 import PeCoursesTable from "./components/PEtable";
+import PEAdminTable from "./components/PE-admin-table"
 export default function App() {
   return (
     <Router>
@@ -86,6 +87,7 @@ export default function App() {
           <Route path="student-award-table" element={<StudentAwardTable />} />
           <Route path="PE-Form" element={<PECourseForm/>} />
           <Route path="PE-table" element={<PeCoursesTable/>} />
+          <Route path="PE-admin-table" element={<PEAdminTable/>}/>
           <Route path="backlogs" element={<AddBacklog/>} />
           <Route path="review" element={<Review />} />
           <Route path="backlogs-table" element={<BacklogTable/>} />
