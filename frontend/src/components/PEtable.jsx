@@ -10,10 +10,17 @@ const PeCoursesTable = () => {
     const fetchPeCourses = async () => {
       try {
         const response = await axios.get('/api/v1/pe/my-pe-courses');
-        setPeCourses(response.data.data); 
-        setLoading(false);
+        console.log('API response full:', response);
+
+        // Check if the response data contains the courses array
+        if (response.data.success && response.data.data && Array.isArray(response.data.data)) {
+          setPeCourses(response.data.data); 
+        } else {
+          setError('No PE courses found.');
+        }
       } catch (err) {
-        setError(err.message);
+        setError(err.response?.status === 500 ? "No PE courses have been added yet." : err.message);
+      } finally {
         setLoading(false);
       }
     };
@@ -22,7 +29,11 @@ const PeCoursesTable = () => {
   }, []);
 
   if (loading) return <p className="text-gray-600">Loading...</p>;
-  if (error) return <p className="text-red-600">Error: {error}</p>;
+  if (error) return <p className="text-red-600">{error}</p>;
+
+  if (peCourses.length === 0) {
+    return <p className="text-gray-600">No PE courses have been added yet.</p>;
+  }
 
   return (
     <div className="container mx-auto mt-8">
