@@ -130,6 +130,12 @@ const userSchema = new Schema(
         ref: "Backlog",
       },
     ],
+    peCourses: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "PeCourse",
+      },
+    ],
     refreshToken: {
       type: String,
     },

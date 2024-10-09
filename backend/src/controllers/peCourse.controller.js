@@ -7,26 +7,43 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 export const addPeCourse = async (req, res) => {
   try {
     const { peCourseId } = req.body;
+    
     const userId = req.user._id;
     const course = await PeCourse.findOne({ courseCode: peCourseId.toString() });
+
+    console.log("PE Course", course);
+    
 
     if (!course) {
       return res.status(404).json({ success: false, message: 'PE Course not found!' });
     }
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).populate('peCourses');
+    console.log('User PE Courses:', user.peCourses);
+
     if (user.branch !== course.branch) {
       return res.status(400).json({ success: false, message: 'You cannot select a PE course from a different branch.' });
     }
-    const isStudentAlreadyEnrolled = user.peCourses?.includes(peCourseId.toString());
+    const isStudentAlreadyEnrolled = user.peCourses.some(
+      (enrolledCourse) => enrolledCourse.toString() === course._id.toString()
+    );
+    
+    console.log("Student Enrolled? ", isStudentAlreadyEnrolled);
+    
     if (isStudentAlreadyEnrolled) {
       return res.status(400).json({ success: false, message: 'You have already selected a PE course.' });
     }
     course.students.push(userId);
+    console.log("User", user);
+    
+    
     await course.save();
 
-    await User.findByIdAndUpdate(userId, {
+    await User.findByIdAndUpdate(userId, { 
       $push: { peCourses: course._id },
     });
+
+    const updatedUser = await User.findById(userId).populate('peCourses');
+    console.log('Updated User PE Courses:', updatedUser.peCourses);
 
     res.status(200).json({ success: true, message: 'PE course added successfully.' });
   } catch (error) {
@@ -77,7 +94,7 @@ export const getUserPeCourses = async (req, res) => {
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found!' });
     }
-
+    
     res.status(200).json({ success: true, data: user.peCourses });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error, try again later.' });
