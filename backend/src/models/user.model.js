@@ -5,7 +5,6 @@ import { Award } from "./award.model.js";
 import { Internship } from "./internship.model.js";
 import { Exam } from "./exam.model.js";
 import { Backlog } from "./backlog.model.js";
-import { PeCourse } from "./peCourse.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -131,12 +130,6 @@ const userSchema = new Schema(
         ref: "Backlog",
       },
     ],
-    peCourses: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'PeCourse',
-      },
-    ],
     refreshToken: {
       type: String,
     },
@@ -156,6 +149,7 @@ userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
       _id: this._id,
+      branch: this.branch,
       email: this.email,
       username: this.username,
       fullName: this.fullName,

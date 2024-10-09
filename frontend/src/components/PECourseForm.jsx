@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from "react-router-dom";
 import axios from 'axios';
-// import jwt_decode from "jwt-decode"; 
 import { ClipLoader } from 'react-spinners';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -11,49 +10,48 @@ export default function PEForm() {
   const [selectedPe, setSelectedPe] = useState("");
   const [loading, setLoading] = useState(false);
   const [peCourses, setPeCourses] = useState([]);
-  const [formLocked, setFormLocked] = useState(false); 
+  const [isSubmitted, setIsSubmitted] = useState(false); 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const isFormSubmitted = localStorage.getItem('peFormSubmitted');
-    if (isFormSubmitted) {
-      setFormLocked(true); 
-      Swal.fire({
-        title: 'Form Locked',
-        text: 'You have already submitted the PE form. You cannot submit again.',
-        icon: 'info',
-        confirmButtonText: 'OK'
-      });
+    const storedUser = localStorage.getItem('user');
+    const user = storedUser ? JSON.parse(storedUser) : null;
+    if (user && user.branch) {
+      console.log('Branch:', user.branch);
+    } else {
+      console.error('No user found in localStorage');
     }
-
-    // const token = localStorage.getItem('jwt'); 
-    // if (token) {
-      // const decoded = jwt_decode(token);
-      // const userBranch = decoded.branch; // Assuming branch is stored as 'branch' in the JWT payload
-
-      // Set PE courses based on branch
-      // if (userBranch === "AIML") {
-      //   setPeCourses([
-      //     { id: "AI315", name: "Advanced Algorithms" },
-      //     { id: "AI317", name: "Information Retrieval" },
-      //     { id: "AI319", name: "Introduction to Compiler Design" }
-      //   ]);
-      // } else if (userBranch === "CS") {
+    const userBranch = user.branch; 
+    if (userBranch) {
+      console.log('Decoded Branch:', userBranch);
+      if (userBranch === "artificial intelligence and machine learning") {
+        setPeCourses([
+          { id: "AI315", name: "Advanced Algorithms" },
+          { id: "AI317", name: "Information Retrieval" },
+          { id: "AI319", name: "Introduction to Compiler Design" }
+        ]);
+      } else if (userBranch === "computer science and engineering") {
         setPeCourses([
           { id: "IT349", name: "Cryptography and Network Security" },
           { id: "IT354", name: "Wireless Sensor Network" },
           { id: "IT353", name: "Blockchain Technology" },
           { id: "CS351", name: "Nature Inspired Computing" }
         ]);
-      // }
-    // }
+      } else {
+        console.error('No PE course available for your branch:', userBranch);
+      }
+    } else {
+      console.error('No branch found');
+    }
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submit button clicked");
 
-    if (formLocked) return; // Prevent form submission if locked
+    if (!selectedPe) {
+      toast.error("Please select a PE course.");
+      return;
+    }
 
     const htmlContent = `
       <div style="text-align: left; padding: 20px;">
@@ -63,7 +61,10 @@ export default function PEForm() {
         <br/>
       </div>
       <p style="font-size: 17px; color: #666;">
-          Do you want to add this PE course? You will not be able to edit your choice further on.
+        <strong>Warning:</strong> This is your final choice. You cannot change it after submission.
+      </p>
+      <p style="font-size: 17px; color: #666;">
+        Do you want to add this PE course? You will not be able to edit your choice further on.
       </p>
     `;
 
@@ -77,7 +78,7 @@ export default function PEForm() {
       buttonsStyling: true,
       customClass: {
         confirmButton: 'btn btn-success',
-        cancelButton: 'btn btn-danger'
+        cancelButton: 'btn btn-danger',
       },
       showLoaderOnConfirm: true,
       preConfirm: async () => {
@@ -89,6 +90,7 @@ export default function PEForm() {
 
           if (response.data.success) {
             toast.success("PE course added successfully!");
+            setIsSubmitted(true);
             setSelectedPe("");
             Swal.fire(
               'Added!',
@@ -96,20 +98,12 @@ export default function PEForm() {
               'success'
             );
 
-            // Lock the form after successful submission
-            localStorage.setItem('peFormSubmitted', 'true'); 
-            setFormLocked(true); // Set form as locked
-
             navigate('/db/PE-table');
           } else {
             toast.error(response.data.message || 'Failed to add the course. Please try again.');
           }
         } catch (error) {
-          if (error.response && error.response.data) {
-            toast.error(error.response.data.message);
-          } else {
-            toast.error('Failed to add the course. Please try again.');
-          }
+          toast.error(error.response?.data?.message || 'Failed to add the course. Please try again.');
         } finally {
           setLoading(false);
         }
@@ -133,25 +127,29 @@ export default function PEForm() {
                 value={selectedPe}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setSelectedPe(e.target.value)}
-                disabled={formLocked} // Disable form if locked
                 required
+                disabled={isSubmitted} 
               >
                 <option value="" disabled>Select PE Course</option>
-                {peCourses.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.id}: {course.name}
-                  </option>
-                ))}
+                {peCourses.length > 0 ? (
+                  peCourses.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.id}: {course.name}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>No PE Courses Available</option>
+                )}
               </select>
             </div>
             <div className="h-8"></div>
             <div className="w-full flex flex-col my-4">
               <button
-                className={loading || formLocked ? "bg-black text-white w-full rounded-md p-4 text-center flex items-center opacity-70 justify-center my-2 hover:bg-black/90" : "bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90"}
+                className={`bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90 ${loading && 'opacity-70'}`}
                 type="submit"
-                disabled={formLocked || loading} // Disable button if locked or loading
+                disabled={loading || isSubmitted} 
               >
-                {loading ? <ClipLoader size={24} color="#ffffff" /> : formLocked ? "Form Locked" : "Add"}
+                {loading ? <ClipLoader size={24} color="#ffffff" /> : "Add"}
               </button>
             </div>
           </form>
