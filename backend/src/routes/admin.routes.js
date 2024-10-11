@@ -14,17 +14,12 @@ import { addbacklogSubject } from "../controllers/backlog.controller.js";
 const router = Router();
 
 router.route("/unverifiedUsers").get(verifyAdmin, getUnverifiedUsers);
-
 router.route("/verifyUser").patch(verifyAdmin, verifyUser);
-
 router.route("/register").post(registerAdmin);
-
 router.route("/login").post(loginAdmin);
-
 router.route("/logout").post(verifyAdmin, logoutAdmin);
-
 router.route("/get-admin").get(verifyAdmin, getCurrendAdmin);
-
 router.route("/add-backlog").post(verifyAdmin, addbacklogSubject);
 router.route("/rejectUser").patch(verifyAdmin, rejectUser);
+
 export default router;

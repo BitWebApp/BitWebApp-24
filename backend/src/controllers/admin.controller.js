@@ -252,6 +252,8 @@ export const rejectUser = asyncHandler(async (req, res) => {
       throw new ApiError(404, "User not found");
     }
     
+    console.clear();
+    console.log("hello");
     const email = user.email;
     const transporter = nodemailer.createTransport({
       service: "gmail",
