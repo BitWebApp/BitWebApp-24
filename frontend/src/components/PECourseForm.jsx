@@ -10,10 +10,12 @@ export default function PEForm() {
   const [selectedPe, setSelectedPe] = useState("");
   const [loading, setLoading] = useState(false);
   const [peCourses, setPeCourses] = useState([]);
-  const [isSubmitted, setIsSubmitted] = useState(false); 
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [userHasPeCourse, setUserHasPeCourse] = useState(false); // Track if the user already has a PE course
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Get user from localStorage
     const storedUser = localStorage.getItem('user');
     const user = storedUser ? JSON.parse(storedUser) : null;
     if (user && user.branch) {
@@ -21,9 +23,10 @@ export default function PEForm() {
     } else {
       console.error('No user found in localStorage');
     }
-    const userBranch = user.branch; 
+
+    const userBranch = user.branch;
     if (userBranch) {
-      console.log('Decoded Branch:', userBranch);
+      // Set available PE courses based on user branch
       if (userBranch === "artificial intelligence and machine learning") {
         setPeCourses([
           { id: "AI315", name: "Advanced Algorithms" },
@@ -40,9 +43,21 @@ export default function PEForm() {
       } else {
         console.error('No PE course available for your branch:', userBranch);
       }
-    } else {
-      console.error('No branch found');
     }
+
+    // Fetch user's selected PE courses
+    const fetchUserPeCourses = async () => {
+      try {
+        const response = await axios.get('/api/v1/pe/my-pe-courses');  // API to get the user's PE courses
+        if (response.data.success && response.data.data.length > 0) {
+          setUserHasPeCourse(true); // User already selected a course
+        }
+      } catch (error) {
+        console.error('Error fetching user PE courses:', error);
+      }
+    };
+
+    fetchUserPeCourses();
   }, []);
 
   const handleSubmit = async (e) => {
@@ -53,33 +68,25 @@ export default function PEForm() {
       return;
     }
 
-    const htmlContent = `
-      <div style="text-align: left; padding: 20px;">
-        <p style="font-size: 20px; margin: 10px 0; color: #333;">
-          <strong>Selected PE Course:</strong> ${selectedPe}
-        </p>
-        <br/>
-      </div>
-      <p style="font-size: 17px; color: #666;">
-        <strong>Warning:</strong> This is your final choice. You cannot change it after submission.
-      </p>
-      <p style="font-size: 17px; color: #666;">
-        Do you want to add this PE course? You will not be able to edit your choice further on.
-      </p>
-    `;
-
     Swal.fire({
       title: 'Are you sure?',
-      html: htmlContent,
+      html: `
+        <div style="text-align: left; padding: 20px;">
+          <p style="font-size: 20px; margin: 10px 0; color: #333;">
+            <strong>Selected PE Course:</strong> ${selectedPe}
+          </p>
+        </div>
+        <p style="font-size: 17px; color: #666;">
+          <strong>Warning:</strong> This is your final choice. You cannot change it after submission.
+        </p>
+        <p style="font-size: 17px; color: #666;">
+          Do you want to add this PE course? You will not be able to edit your choice further on.
+        </p>
+      `,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, add it!',
       cancelButtonText: 'No, cancel!',
-      buttonsStyling: true,
-      customClass: {
-        confirmButton: 'btn btn-success',
-        cancelButton: 'btn btn-danger',
-      },
       showLoaderOnConfirm: true,
       preConfirm: async () => {
         try {
@@ -92,12 +99,7 @@ export default function PEForm() {
             toast.success("PE course added successfully!");
             setIsSubmitted(true);
             setSelectedPe("");
-            Swal.fire(
-              'Added!',
-              'Your PE course has been added.',
-              'success'
-            );
-
+            Swal.fire('Added!', 'Your PE course has been added.', 'success');
             navigate('/db/PE-table');
           } else {
             toast.error(response.data.message || 'Failed to add the course. Please try again.');
@@ -128,12 +130,12 @@ export default function PEForm() {
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setSelectedPe(e.target.value)}
                 required
-                disabled={isSubmitted} 
+                disabled={userHasPeCourse || isSubmitted}  // Disable if user already has a PE course
               >
                 <option value="" disabled>Select PE Course</option>
                 {peCourses.length > 0 ? (
-                  peCourses.map((course) => (
-                    <option key={course.id} value={course.id}>
+                  peCourses.map((course, index) => (
+                    <option key={course.id || index} value={course.id}>
                       {course.id}: {course.name}
                     </option>
                   ))
@@ -147,7 +149,7 @@ export default function PEForm() {
               <button
                 className={`bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90 ${loading && 'opacity-70'}`}
                 type="submit"
-                disabled={loading || isSubmitted} 
+                disabled={loading || userHasPeCourse || isSubmitted}  // Disable if user already has a PE course
               >
                 {loading ? <ClipLoader size={24} color="#ffffff" /> : "Add"}
               </button>
