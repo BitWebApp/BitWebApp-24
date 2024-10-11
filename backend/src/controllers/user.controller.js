@@ -584,6 +584,17 @@ const getPlacementThree = asyncHandler(async (req, res) => {
   }
 });
 
+const fetchBranch = asyncHandler(async (req, res) => 
+  {
+      const user = await User.findById(req.user._id).select("branch");
+      if (!user) 
+      {
+          throw new ApiError(404, "User not found");
+      }
+  
+      return res.status(200).json(new ApiResponse(200, user.branch, "Branch fetched successfully"));
+  });
+
 const getUserbyRoll = asyncHandler(async (req, res) => {
   const { rollNumber } = req.body;
 
@@ -673,4 +684,5 @@ export {
   getPlacementThree,
   getAllUsers,
   verifyMail,
+  fetchBranch
 };

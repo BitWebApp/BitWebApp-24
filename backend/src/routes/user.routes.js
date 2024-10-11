@@ -15,6 +15,7 @@ import {
   getPlacementThree,
   getAllUsers,
   verifyMail,
+  fetchBranch
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
@@ -61,6 +62,7 @@ router
     updatePlacementThree
   );
 
+router.route("/fetchBranch").get(verifyJWT, fetchBranch);
 router.route("/placementDetails").get(verifyAdmin, getPlacementDetails);
 router.route("/placementOne").get(verifyJWT, getPlacementOne);
 router.route("/placementTwo").get(verifyJWT, getPlacementTwo);
