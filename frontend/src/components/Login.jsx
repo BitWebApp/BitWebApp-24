@@ -5,7 +5,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function Login() {
-  const [username, setUsername] = useState("");
+  const [email, setemail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +19,7 @@ export default function Login() {
     setIsLoading(true);
     try {
       const response = await axios.post("/api/v1/users/login", {
-        username,
+        email,
         password
       });
 
@@ -78,14 +78,14 @@ export default function Login() {
             <p className="text-base mb-2">Enter Your login details.</p>
           </div>
           <div className="w-full flex flex-col">
-            <label>Username</label>
+            <label>email</label>
             <input
               type="text"
-              placeholder="Enter Your username"
-              value={username}
+              placeholder="Enter Your email"
+              value={email}
               className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
               required
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => setemail(e.target.value)}
             />
             <div className="relative">
               <label>Password</label>
