@@ -233,6 +233,117 @@ const getCurrendAdmin = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, admin, "admin fetched"));
 });
 
+import { Otp } from "../models/otp.model.js"; 
+
+export const rejectUser = asyncHandler(async (req, res) => {
+  const { userId, reason } = req.body;
+  if (!userId) {
+    throw new ApiError(400, "userId is required");
+  }
+  if (!reason) {
+    throw new ApiError(400, "Rejection reason is required");
+  }
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw new ApiError(400, "Invalid userId");
+  }
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+    
+    const email = user.email;
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.AUTH_EMAIL,
+        pass: process.env.AUTH_PASSWORD,
+      },
+    });
+    const mailOptions = {
+      from: process.env.AUTH_EMAIL,
+      to: email,
+      subject: "Verification Rejected",
+      html: `
+        <html>
+        <head>
+          <style>
+            .email-container {
+              font-family: Arial, sans-serif;
+              line-height: 1.6;
+              max-width: 600px;
+              margin: 0 auto;
+              border: 1px solid #dddddd;
+              border-radius: 5px;
+              overflow: hidden;
+            }
+            .header {
+              background-color: #ff0000;
+              color: white;
+              padding: 20px;
+              text-align: center;
+              font-size: 24px;
+            }
+            .content {
+              padding: 30px;
+              background-color: #ffffff;
+            }
+            .content p {
+              font-size: 18px;
+              margin: 0 0 15px;
+            }
+            .footer {
+              background-color: #f2f2f2;
+              padding: 15px;
+              text-align: center;
+              font-size: 14px;
+              color: #888888;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="email-container">
+            <div class="header">
+              Verification Rejected
+            </div>
+            <div class="content">
+              <p>Hello,</p>
+              <p>We regret to inform you that your verification process has been rejected for the following reason:</p>
+              <p><strong>${reason}</strong></p>
+              <p>Sign Up again with correct details.</p>
+              <p>Best regards,</p>
+              <p>TEAM BITACADEMIA</p>
+            </div>
+            <div class="footer">
+              &copy; BITAcademia 2024. All rights reserved.
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+    transporter.sendMail(mailOptions, async (error) => {
+      if (error) {
+        console.log("Error sending email to:", email, error);
+      } else {
+        console.log("Email sent to:", email);
+      }
+    });
+
+    await User.findByIdAndDelete(userId);
+    try{
+      await Otp.findOneAndDelete({ email });
+    }catch(error){
+      console.log("no otp, ok!");
+    }
+
+    return res.json(new ApiResponse(200, "User rejected and deleted successfully"));
+  } catch (error) {
+    throw new ApiError(500, "Something went wrong while rejecting user");
+  }
+});
+
+
 export {
   getUnverifiedUsers,
   verifyUser,
