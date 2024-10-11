@@ -15,35 +15,36 @@ export default function PEForm() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Get user from localStorage
-    const storedUser = localStorage.getItem('user');
-    const user = storedUser ? JSON.parse(storedUser) : null;
-    if (user && user.branch) {
-      console.log('Branch:', user.branch);
-    } else {
-      console.error('No user found in localStorage');
-    }
-
-    const userBranch = user.branch;
-    if (userBranch) {
-      // Set available PE courses based on user branch
-      if (userBranch === "artificial intelligence and machine learning") {
-        setPeCourses([
-          { id: "AI315", name: "Advanced Algorithms" },
-          { id: "AI317", name: "Information Retrieval" },
-          { id: "AI319", name: "Introduction to Compiler Design" }
-        ]);
-      } else if (userBranch === "computer science and engineering") {
-        setPeCourses([
-          { id: "IT349", name: "Cryptography and Network Security" },
-          { id: "IT354", name: "Wireless Sensor Network" },
-          { id: "IT353", name: "Blockchain Technology" },
-          { id: "CS351", name: "Nature Inspired Computing" }
-        ]);
-      } else {
-        console.error('No PE course available for your branch:', userBranch);
+    // Fetch branch from backend
+    const fetchBranchFromBackend = async () => {
+      try {
+        const response = await axios.get('/api/v1/users/fetchBranch');  // API to get branch
+        if (response.data.success && response.data.data) {
+          const userBranch = response.data.data;
+          // Set available PE courses based on user branch
+          if (userBranch === "artificial intelligence and machine learning") {
+            setPeCourses([
+              { id: "AI315", name: "Advanced Algorithms" },
+              { id: "AI317", name: "Information Retrieval" },
+              { id: "AI319", name: "Introduction to Compiler Design" }
+            ]);
+          } else if (userBranch === "computer science and engineering") {
+            setPeCourses([
+              { id: "IT349", name: "Cryptography and Network Security" },
+              { id: "IT354", name: "Wireless Sensor Network" },
+              { id: "IT353", name: "Blockchain Technology" },
+              { id: "CS351", name: "Nature Inspired Computing" }
+            ]);
+          } else {
+            console.error('No PE course available for your branch:', userBranch);
+          }
+        } else {
+          console.error('Failed to fetch branch from backend');
+        }
+      } catch (error) {
+        console.error('Error fetching branch from backend:', error);
       }
-    }
+    };
 
     // Fetch user's selected PE courses
     const fetchUserPeCourses = async () => {
@@ -57,6 +58,7 @@ export default function PEForm() {
       }
     };
 
+    fetchBranchFromBackend();
     fetchUserPeCourses();
   }, []);
 
