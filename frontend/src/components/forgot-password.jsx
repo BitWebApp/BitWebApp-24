@@ -17,7 +17,7 @@ export default function ForgotPassword() {
   const handleSendOtp = async () => {
     setLoading(true);
     try {
-    //   await axios.post("/api/v1/users/send-otp", { email });
+    const response = await axios.post("/api/v1/users/get-pass-otp", { email });
       toast.success("OTP sent to your email address.");
       setOtpSent(true);
     } catch (error) {
@@ -45,11 +45,11 @@ export default function ForgotPassword() {
 
     setLoading(true);
     try {
-    //   await axios.post("/api/v1/users/reset-password", { email, otp, newPassword });
+      const response = await axios.post("/api/v1/users/changepass", { email, otp, newpassword: newPassword });
       toast.success("Password changed successfully! Redirecting to login...");
-      setTimeout(() => {
-        navigate("/log");
-      }, 2000);
+      // setTimeout(() => {
+      //   navigate("/log");
+      // }, 2000);
     } catch (error) {
       toast.error("Failed to reset password. Please try again.");
     } finally {

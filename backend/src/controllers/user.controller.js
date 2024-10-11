@@ -8,7 +8,7 @@ import mongoose from "mongoose";
 import { Otp } from "../models/otp.model.js";
 import { Placement } from "../models/placement.model.js";
 import nodemailer from "nodemailer";
-
+import bcrypt from "bcrypt" 
 const generateAcessAndRefreshToken = async (userId) => {
   try {
     const user = await User.findById(userId);
@@ -191,7 +191,7 @@ const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   console.log(email);
   if (!email) {
-    throw new ApiError(400, "username is req");
+    throw new ApiError(400, "email is req");
   }
   const user = await User.findOne({ email: email.toLowerCase() });
   if (!user) {
@@ -230,6 +230,147 @@ const loginUser = asyncHandler(async (req, res) => {
       )
     );
 });
+export const otpForgotPass = asyncHandler(async (req, res) => {
+  console.log(req.body);
+  const { email } = req.body;
+  console.log(email);
+  if (!email) {
+    throw new ApiError(400, "email is req");
+  }
+  const user = await User.findOne({ email: email.toLowerCase() });
+  if (!user) {
+    throw new ApiError(404, "User does not exists");
+  }
+  const otp = `${Math.floor(Math.random()*9000+1000)}`
+  await Otp.create({ email, otp });
+
+    const tOtp = await Otp.findOne({ email });
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.AUTH_EMAIL,
+        pass: process.env.AUTH_PASSWORD,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.AUTH_EMAIL,
+      to: email,
+      subject: "Forgot Password",
+      html: `
+        <html>
+        <head>
+          <style>
+            .email-container {
+              font-family: Arial, sans-serif;
+              line-height: 1.6;
+              max-width: 600px;
+              margin: 0 auto;
+              border: 1px solid #dddddd;
+              border-radius: 5px;
+              overflow: hidden;
+            }
+            .header {
+              background-color: #007bff;
+              color: white;
+              padding: 20px;
+              text-align: center;
+              font-size: 24px;
+            }
+            .content {
+              padding: 30px;
+              background-color: #ffffff;
+            }
+            .content p {
+              font-size: 18px;
+              margin: 0 0 15px;
+            }
+            .otp {
+              font-weight: bold;
+              color: #007bff;
+              font-size: 22px;
+            }
+            .footer {
+              background-color: #f2f2f2;
+              padding: 15px;
+              text-align: center;
+              font-size: 14px;
+              color: #888888;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="email-container">
+            <div class="header">
+              OTP for Verification
+            </div>
+            <div class="content">
+              <p>Hello,</p>
+              <p>Thank you for choosing BITAcademia. To reset your password, please use the following One-Time Password (OTP):</p>
+              <p class="otp">${tOtp.otp}</p>
+              <p>If you did not request this OTP, please ignore this email or contact our support team.</p>
+              <p>Best regards,</p>
+              <p>TEAM BITACADEMIA</p>
+            </div>
+            <div class="footer">
+              &copy; BITAcademia 2024. All rights reserved.
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+
+    transporter.sendMail(mailOptions, async (error) => {
+      if (error) {
+        console.log("Error sending email to:", email, error);
+      } else {
+        console.log("Email sent to:", email);
+      }
+    });
+    res.status(200).send("Mail sent!");
+});
+const changepassword = asyncHandler(async(req, res) => {
+  try {
+      console.log("hello")
+      const {email, otp, newpassword} = req.body
+      if(!email || !otp || !newpassword)
+          throw new ApiError(400, "enter all fields")
+      const user = await User.findOne({email})
+      console.log(user)
+      const otpverify = await Otp.find({
+          email
+      })
+      console.log(otpverify)
+      if(otpverify.length<=0){
+          throw new ApiError(401, "Account record doesn't exist or has been verified already. please login")
+      }
+      const hashedOTP = otpverify[0].otp
+      console.log(hashedOTP)
+      const validOTP= otp === hashedOTP
+        console.log(validOTP)
+        if(!validOTP){
+            throw new ApiError("Invalid code. Check your Inbox")
+        }
+        else {
+            const savepass = await bcrypt.hash(newpassword, 12);
+            const response = await User.updateOne({_id: user?._id}, {$set: {password: savepass}})
+            await Otp.deleteMany({email})
+            return res.json({
+                status: "Verified",
+                message: "user email verified successfully",
+                response
+            })
+        }
+    }
+    catch (error) {
+      console.log(error)
+      res.json({
+          status: "Failed",
+          message: error.message
+      })
+  }
+})
 const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
@@ -684,5 +825,6 @@ export {
   getPlacementThree,
   getAllUsers,
   verifyMail,
-  fetchBranch
+  fetchBranch,
+  changepassword
 };

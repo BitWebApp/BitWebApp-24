@@ -15,7 +15,9 @@ import {
   getPlacementThree,
   getAllUsers,
   verifyMail,
-  fetchBranch
+  fetchBranch,
+  otpForgotPass,
+  changepassword
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
@@ -69,5 +71,6 @@ router.route("/placementTwo").get(verifyJWT, getPlacementTwo);
 router.route("/placementThree").get(verifyJWT, getPlacementThree);
 router.route("/get-all-users").get(verifyAdmin, getAllUsers)
 router.route("/get-backlogs").get(verifyJWT, getAllBacklogSubjects);
-
+router.route("/get-pass-otp").post(otpForgotPass);
+router.route("/changepass").post(changepassword);
 export default router;
