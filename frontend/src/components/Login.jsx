@@ -78,7 +78,7 @@ export default function Login() {
             <p className="text-base mb-2">Enter Your login details.</p>
           </div>
           <div className="w-full flex flex-col">
-            <label>email</label>
+            <label>Email</label>
             <input
               type="text"
               placeholder="Enter Your email"
