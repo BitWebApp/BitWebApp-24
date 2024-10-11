@@ -37,7 +37,7 @@ const PeCoursesTable = () => {
 
   return (
     <div className="container mx-auto mt-8">
-      <h1 className="text-2xl font-semibold text-gray-800 mb-4">Professional Elective Courses</h1>
+      <h1 className="text-2xl font-semibold text-gray-800 mb-4">Program Elective Courses</h1>
       <div className="overflow-x-auto shadow-lg rounded-lg">
         <table className="min-w-full bg-white">
           <thead className="bg-gray-800 text-white">
