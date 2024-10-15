@@ -23,6 +23,13 @@ export const addPeCourse = async (req, res) => {
     if (user.branch !== course.branch) {
       return res.status(400).json({ success: false, message: 'You cannot select a PE course from a different branch.' });
     }
+
+    const validSections = ['A', 'B', 'C'];
+      if (!validSections.includes(user.section)) 
+      {
+          return res.status(400).json({ success: false, message: 'You are not eligible to select a PE course from your section.' });
+      }
+
     const isStudentAlreadyEnrolled = user.peCourses.some(
       (enrolledCourse) => enrolledCourse.toString() === course._id.toString()
     );
