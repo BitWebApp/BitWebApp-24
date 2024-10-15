@@ -5,13 +5,19 @@ import ExcelJS from "exceljs";
 const StudentTable = () => {
   const [students, setStudents] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
-  const [sortConfigs, setSortConfigs] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState({
+    section: "",
+    branch: "",
+    search: "",
+  });
+  const [sortConfig, setSortConfig] = useState({ key: "", direction: "" });
 
   useEffect(() => {
     const fetchStudents = async () => {
       try {
+        // Optional: Modify the backend to handle filtering and sorting
         const response = await axios.get("/api/v1/users/get-all-users");
+        console.log(response)
         setStudents(response.data.data.users);
       } catch (error) {
         console.error("Error fetching students:", error);
@@ -19,7 +25,7 @@ const StudentTable = () => {
     };
 
     fetchStudents();
-  }, [sortConfigs]);
+  }, []);
 
   const handleRowSelect = (id) => {
     const selectedIndex = selectedRows.indexOf(id);
@@ -41,34 +47,18 @@ const StudentTable = () => {
     setSelectedRows(newSelected);
   };
 
-  const handleSortOptionChange = (key, e) => {
-    const sortType = e.target.value;
-    if (sortType === "Sort By") {
-      const newSortConfigs = sortConfigs.filter((config) => config.key !== key);
-      setSortConfigs(newSortConfigs);
-    } else {
-      handleSort(key, sortType);
-    }
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleSort = (key, sortType) => {
-    const existingSortIndex = sortConfigs.findIndex(
-      (config) => config.key === key
-    );
-    let newSortConfigs = [];
-
-    if (existingSortIndex !== -1) {
-      newSortConfigs = sortConfigs.map((config, index) => {
-        if (index === existingSortIndex) {
-          return { ...config, direction: sortType };
-        }
-        return config;
-      });
-    } else {
-      newSortConfigs = [...sortConfigs, { key, direction: sortType }];
-    }
-
-    setSortConfigs(newSortConfigs);
+  const handleSortChange = (e) => {
+    const { value } = e.target;
+    const [key, direction] = value.split("-");
+    setSortConfig({ key, direction });
   };
 
   const calculateProfileCompletion = (student) => {
@@ -92,96 +82,189 @@ const StudentTable = () => {
     return ((filledFields.length / fields.length) * 100).toFixed(2);
   };
 
-  const sortedStudents = [...students].sort((a, b) => {
-    for (const config of sortConfigs) {
+  const applyFilters = (data) => {
+    return data.filter((record) => {
+      const { section, branch, search } = filters;
+      const query = search.toLowerCase();
+
+      const matchesSection = section ? record.section === section : true;
+      const matchesBranch = branch ? record.branch === branch : true;
+      const matchesSearch =
+        record.username.toLowerCase().includes(query) ||
+        record.fullName.toLowerCase().includes(query) ||
+        record.rollNumber.toLowerCase().includes(query) ||
+        record.email.toLowerCase().includes(query) ||
+        record.mobileNumber.toLowerCase().includes(query) ||
+        (record.placement &&
+          record.placement.toLowerCase().includes(query)) ||
+        (record.projects &&
+          record.projects.some((project) =>
+            project.toLowerCase().includes(query)
+          )) ||
+        (record.awards &&
+          record.awards.some((award) => award.toLowerCase().includes(query)));
+
+      return matchesSection && matchesBranch && matchesSearch;
+    });
+  };
+
+  const applySort = (data) => {
+    if (!sortConfig.key) return data;
+
+    const sortedData = [...data].sort((a, b) => {
       const aValue =
-        typeof a[config.key] === "string"
-          ? a[config.key].toLowerCase()
-          : a[config.key];
+        typeof a[sortConfig.key] === "string"
+          ? a[sortConfig.key].toLowerCase()
+          : a[sortConfig.key];
       const bValue =
-        typeof b[config.key] === "string"
-          ? b[config.key].toLowerCase()
-          : b[config.key];
+        typeof b[sortConfig.key] === "string"
+          ? b[sortConfig.key].toLowerCase()
+          : b[sortConfig.key];
 
       if (aValue < bValue) {
-        return config.direction === "ascending" ? -1 : 1;
+        return sortConfig.direction === "ascending" ? -1 : 1;
       }
       if (aValue > bValue) {
-        return config.direction === "ascending" ? 1 : -1;
+        return sortConfig.direction === "ascending" ? 1 : -1;
       }
-    }
-    return 0;
-  });
+      return 0;
+    });
 
-  const filteredStudents = sortedStudents.filter((record) => {
-    const query = searchQuery.toLowerCase();
-    return (
-      record.username.toLowerCase().includes(query) ||
-      record.fullName.toLowerCase().includes(query) ||
-      record.rollNumber.toLowerCase().includes(query) ||
-      record.email.toLowerCase().includes(query) ||
-      record.branch.toLowerCase().includes(query) ||
-      record.section.toLowerCase().includes(query) ||
-      record.semester.toLowerCase().includes(query) ||
-      record.mobileNumber.toLowerCase().includes(query) ||
-      (record.placement && record.placement.toLowerCase().includes(query)) ||
-      (record.projects &&
-        record.projects.some((project) => project.toLowerCase().includes(query))) ||
-      (record.awards &&
-        record.awards.some((award) => award.toLowerCase().includes(query)))
-    );
-  });
-
-  const getSortDirection = (key) => {
-    const config = sortConfigs.find((config) => config.key === key);
-    return config ? config.direction : "Sort By";
+    return sortedData;
   };
+
+  const processedStudents = applySort(applyFilters(students));
 
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Students");
-
-    // Add headers
-    worksheet.columns = [
-      { header: "Profile Completion", key: "profileCompletion", width: 20 },
-      { header: "Username", key: "username", width: 20 },
-      { header: "Full Name", key: "fullName", width: 20 },
-      { header: "Roll Number", key: "rollNumber", width: 20 },
-      { header: "Email", key: "email", width: 30 },
-      { header: "Branch", key: "branch", width: 15 },
-      { header: "Section", key: "section", width: 15 },
-      { header: "Semester", key: "semester", width: 15 },
-      { header: "Mobile Number", key: "mobileNumber", width: 20 },
-      { header: "Placement", key: "placement", width: 15 },
-      { header: "Projects", key: "projects", width: 15 },
-      { header: "Awards", key: "awards", width: 15 },
-      { header: "Verified", key: "isVerified", width: 15 },
+  
+    // Define styles
+    const headerFill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFB0C4DE" }, // LightSteelBlue
+    };
+  
+    const titleFont = {
+      name: "Arial",
+      size: 16,
+      bold: true,
+      color: { argb: "FFFFFFFF" }, // White
+    };
+  
+    const headerFont = {
+      name: "Arial",
+      size: 12,
+      bold: true,
+      color: { argb: "FFFFFFFF" }, // White
+    };
+  
+    const cellBorder = {
+      top: { style: "thin" },
+      left: { style: "thin" },
+      bottom: { style: "thin" },
+      right: { style: "thin" },
+    };
+  
+    // Add Title
+    worksheet.mergeCells("A1:M1");
+    const titleCell = worksheet.getCell("A1");
+    titleCell.value = "Student Details Report";
+    titleCell.font = titleFont;
+    titleCell.alignment = { vertical: "middle", horizontal: "center" };
+    titleCell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF4682B4" }, // SteelBlue
+    };
+    titleCell.border = cellBorder;
+  
+    // Define Headers
+    const headers = [
+      "Profile Completion",
+      "Username",
+      "Full Name",
+      "Roll Number",
+      "Email",
+      "Branch",
+      "Section",
+      "Semester",
+      "Mobile Number",
+      "Placement",
+      "Projects",
+      "Awards",
+      "Verified",
     ];
-
-    // Add data
-    filteredStudents.forEach((student) => {
-      worksheet.addRow({
-        profileCompletion: Math.ceil(calculateProfileCompletion(student)) + "%",
-        username: student.username,
-        fullName: student.fullName,
-        rollNumber: student.rollNumber,
-        email: student.email,
-        branch: student.branch,
-        section: student.section,
-        semester: student.semester,
-        mobileNumber: student.mobileNumber,
-        placement: student.placement ? "Yes" : "No",
-        projects: student.projects ? "Yes" : "No",
-        awards: student.awards ? "Yes" : "No",
-        isVerified: student.isVerified ? "Yes" : "No",
-      });
+  
+    // Add Headers to Row 2
+    worksheet.addRow(headers);
+  
+    // Style Headers
+    const headerRow = worksheet.getRow(2);
+    headerRow.font = headerFont;
+    headerRow.fill = headerFill;
+    headerRow.alignment = { vertical: "middle", horizontal: "center" };
+    headerRow.border = cellBorder;
+  
+    // Add Data Rows starting from Row 3
+    processedStudents.forEach((student) => {
+      worksheet.addRow([
+        `${Math.ceil(calculateProfileCompletion(student))}%`,
+        student.username,
+        student.fullName,
+        student.rollNumber,
+        student.email,
+        student.branch,
+        student.section,
+        student.semester,
+        student.mobileNumber,
+        student.placement ? "Yes" : "No",
+        student.projects ? "Yes" : "No",
+        student.awards ? "Yes" : "No",
+        student.isVerified ? "Yes" : "No",
+      ]);
     });
-
-    // Generate buffer
+  
+    // Style Data Rows
+    worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+      if (rowNumber > 2) { // Skip title and header
+        row.eachCell((cell) => {
+          cell.border = cellBorder;
+          cell.alignment = { vertical: "middle", horizontal: "left" };
+          // Optional: Add alternating row colors for better readability
+          if (rowNumber % 2 === 0) {
+            cell.fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: "FFF0F8FF" }, // AliceBlue
+            };
+          }
+        });
+      }
+    });
+  
+    // Adjust Column Widths based on Content
+    worksheet.columns.forEach((column) => {
+      let maxLength = 0;
+      column.eachCell({ includeEmpty: true }, (cell) => {
+        const cellValue = cell.value ? cell.value.toString() : "";
+        maxLength = Math.max(maxLength, cellValue.length);
+      });
+      // Set minimum width to 15 and add some padding
+      column.width = maxLength < 15 ? 15 : maxLength + 5;
+    });
+  
+    // Ensure Grid Lines are Visible
+    worksheet.views = [{ showGridLines: true }];
+  
+    // Generate Buffer
     const buffer = await workbook.xlsx.writeBuffer();
-
+  
     // Create a Blob from the buffer and trigger download
-    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -189,23 +272,99 @@ const StudentTable = () => {
     a.click();
     window.URL.revokeObjectURL(url);
   };
+  
+  
+
+  // Extract unique sections and branches for filter dropdowns
+  const uniqueSections = [...new Set(students.map((s) => s.section))].filter(
+    (s) => s
+  );
+  const uniqueBranches = [...new Set(students.map((s) => s.branch))].filter(
+    (s) => s
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-4">STUDENT DETAILS</h1>
-      <input
-        type="text"
-        placeholder="Search..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="mb-4 px-4 py-2 border rounded"
-      />
+
+      {/* Filter and Sort Controls */}
+      <div className="flex flex-wrap mb-4 gap-4">
+        {/* Search Input */}
+        <input
+          type="text"
+          name="search"
+          placeholder="Search by Name, Roll No, etc..."
+          value={filters.search}
+          onChange={handleFilterChange}
+          className="px-4 py-2 border rounded flex-1 min-w-[200px]"
+        />
+
+        {/* Section Filter */}
+        <select
+          name="section"
+          value={filters.section}
+          onChange={handleFilterChange}
+          className="px-4 py-2 border rounded min-w-[150px]"
+        >
+          <option value="">All Sections</option>
+          {uniqueSections.map((section) => (
+            <option key={section} value={section}>
+              Section {section}
+            </option>
+          ))}
+        </select>
+
+        {/* Branch Filter */}
+        <select
+          name="branch"
+          value={filters.branch}
+          onChange={handleFilterChange}
+          className="px-4 py-2 border rounded min-w-[150px]"
+        >
+          <option value="">All Branches</option>
+          {uniqueBranches.map((branch) => (
+            <option key={branch} value={branch}>
+              {branch}
+            </option>
+          ))}
+        </select>
+
+        {/* Sort Options */}
+        <select
+          value={`${sortConfig.key}-${sortConfig.direction}`}
+          onChange={handleSortChange}
+          className="px-4 py-2 border rounded min-w-[200px]"
+        >
+          <option value="-">Sort By</option>
+          <option value="username-ascending">Username (A-Z)</option>
+          <option value="username-descending">Username (Z-A)</option>
+          <option value="fullName-ascending">Full Name (A-Z)</option>
+          <option value="fullName-descending">Full Name (Z-A)</option>
+          <option value="rollNumber-ascending">Roll Number (Ascending)</option>
+          <option value="rollNumber-descending">Roll Number (Descending)</option>
+          <option value="email-ascending">Email (A-Z)</option>
+          <option value="email-descending">Email (Z-A)</option>
+        </select>
+
+        <button
+          onClick={() =>
+            setFilters({ section: "", branch: "", search: "" })
+          }
+          className="px-4 py-2 bg-gray-500 text-white rounded"
+        >
+          Reset Filters
+        </button>
+      </div>
+
+      {/* Export Button */}
       <button
         onClick={exportToExcel}
         className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
       >
         Export to Excel
       </button>
+
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -215,94 +374,24 @@ const StudentTable = () => {
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Username
-                <div>
-                  <select
-                    value={getSortDirection("username")}
-                    onChange={(e) => handleSortOptionChange("username", e)}
-                  >
-                    <option value="Sort By">Sort By</option>
-                    <option value="ascending">Ascending</option>
-                    <option value="descending">Descending</option>
-                  </select>
-                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Full Name
-                <div>
-                  <select
-                    value={getSortDirection("fullName")}
-                    onChange={(e) => handleSortOptionChange("fullName", e)}
-                  >
-                    <option value="Sort By">Sort By</option>
-                    <option value="ascending">Ascending</option>
-                    <option value="descending">Descending</option>
-                  </select>
-                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Roll Number
-                <div>
-                  <select
-                    value={getSortDirection("rollNumber")}
-                    onChange={(e) => handleSortOptionChange("rollNumber", e)}
-                  >
-                    <option value="Sort By">Sort By</option>
-                    <option value="ascending">Ascending</option>
-                    <option value="descending">Descending</option>
-                  </select>
-                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Email
-                <div>
-                  <select
-                    value={getSortDirection("email")}
-                    onChange={(e) => handleSortOptionChange("email", e)}
-                  >
-                    <option value="Sort By">Sort By</option>
-                    <option value="ascending">Ascending</option>
-                    <option value="descending">Descending</option>
-                  </select>
-                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Branch
-                <div>
-                  <select
-                    value={getSortDirection("branch")}
-                    onChange={(e) => handleSortOptionChange("branch", e)}
-                  >
-                    <option value="Sort By">Sort By</option>
-                    <option value="ascending">Ascending</option>
-                    <option value="descending">Descending</option>
-                  </select>
-                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Section
-                <div>
-                  <select
-                    value={getSortDirection("section")}
-                    onChange={(e) => handleSortOptionChange("section", e)}
-                  >
-                    <option value="Sort By">Sort By</option>
-                    <option value="ascending">Ascending</option>
-                    <option value="descending">Descending</option>
-                  </select>
-                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Semester
-                <div>
-                  <select
-                    value={getSortDirection("semester")}
-                    onChange={(e) => handleSortOptionChange("semester", e)}
-                  >
-                    <option value="Sort By">Sort By</option>
-                    <option value="ascending">Ascending</option>
-                    <option value="descending">Descending</option>
-                  </select>
-                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Mobile Number
@@ -322,7 +411,7 @@ const StudentTable = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredStudents.map((student) => (
+            {processedStudents.map((student) => (
               <tr
                 key={student._id}
                 className={`cursor-pointer ${
@@ -361,6 +450,9 @@ const StudentTable = () => {
             ))}
           </tbody>
         </table>
+        {processedStudents.length === 0 && (
+          <div className="text-center py-4">No students found.</div>
+        )}
       </div>
     </div>
   );
