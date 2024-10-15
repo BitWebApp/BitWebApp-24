@@ -52,6 +52,10 @@ const userSchema = new Schema(
     },
     section: {
       type: String,
+      enum: {
+        values: ['A', 'B', 'C'],
+        message: 'Branch must be either A, B, or C'
+      },
       default: "",
     },
     image: {

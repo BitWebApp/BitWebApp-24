@@ -14,11 +14,12 @@ export default function Userform() {
   const [user, setUser] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [profilePicture, setProfilePicture] = useState(null);
+  const [availableSections, setAvailableSections] = useState([]); // New state for available sections
 
   useEffect(() => {
     axios.get("/api/v1/users/get-user")
       .then(response => {
-        console.log(response)
+        console.log(response);
         const userData = response.data.data;
         setFullName(userData.fullName);
         setEmail(userData.email);
@@ -28,11 +29,21 @@ export default function Userform() {
         setSemester(userData.semester);
         setCgpa(userData.cgpa);
         setUser(userData);
+        setAvailableSectionsBasedOnBranch(userData.branch); // Set sections based on branch
       })
       .catch(error => {
-        console.log(error)
-      })
+        console.log(error);
+      });
   }, []);
+
+  const setAvailableSectionsBasedOnBranch = (branch) => {
+    
+    if (branch === "artificial intelligence and machine learning") {
+      setAvailableSections(["A"]);
+    } else {
+        setAvailableSections(["A", "B", "C"]);
+    }
+  };
 
   const handleUpdate = () => {
     console.log("Updating user details...");
@@ -113,7 +124,10 @@ export default function Userform() {
               <select
                 value={branch}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setBranch(e.target.value)}
+                onChange={(e) => {
+                  setBranch(e.target.value);
+                  setAvailableSectionsBasedOnBranch(e.target.value); // Update available sections based on branch
+                }}
                 disabled={!isEditMode}
               >
                 <option value="">Select Branch</option>
@@ -126,14 +140,17 @@ export default function Userform() {
                 <option value="production and industrial engineering">Production and Industrial Engineering</option>
               </select>
               <label>Section</label>
-              <input
-                type="text"
-                placeholder="Enter Your Section"
+              <select
                 value={section}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setSection(e.target.value)}
                 disabled={!isEditMode}
-              />
+              >
+                <option value="">Select Section</option>
+                {availableSections.map((sec, index) => (
+                  <option key={index} value={sec}>{sec}</option>
+                ))}
+              </select>
               <label>Mobile Number</label>
               <input
                 type="text"
@@ -155,10 +172,10 @@ export default function Userform() {
                 <option value="II">II</option>
                 <option value="III">III</option>
                 <option value="IV">IV</option>
-                   <option value="V">V</option>
-                   <option value="VI">VI</option>
-                   <option value="VII">VII</option>
-                   <option value="VIII">VIII</option>
+                <option value="V">V</option>
+                <option value="VI">VI</option>
+                <option value="VII">VII</option>
+                <option value="VIII">VIII</option>
               </select>
               <label>CGPA</label>
               <input
@@ -207,7 +224,7 @@ export default function Userform() {
           <div className="w-full items-center justify-center flex">
             <p className="text-sm font-normal text-black">
               <span className="font-semibold underline underline-offset cursor-pointer text-blue-600">
-                <Link to="/db">Go back to Dashboard</Link>
+                <Link to="/">Back to Dashboard</Link>
               </span>
             </p>
           </div>
