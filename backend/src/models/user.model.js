@@ -29,12 +29,12 @@ const userSchema = new Schema(
     fullName: {
       type: String,
       required: [true, "Full Name is required!"],
-      lowercase: true
+      lowercase: true,
     },
     rollNumber: {
       type: String,
       required: [true, "Roll Number is required!"],
-      unique:true
+      unique: true,
     },
     email: {
       type: String,
@@ -52,10 +52,6 @@ const userSchema = new Schema(
     },
     section: {
       type: String,
-      enum: {
-        values: ['A', 'B', 'C'],
-        message: 'Branch must be either A, B, or C'
-      },
       default: "",
     },
     image: {
