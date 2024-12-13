@@ -2,81 +2,86 @@ import { useState } from "react";
 import logo from "/src/assets/Birla_Institute_of_Technology_Mesra.png";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faBars,
-  faTimes,
-  faUserTie,
-  faUser,
-} from "@fortawesome/free-solid-svg-icons";
+import { faBars, faTimes, faUserTie, faUser } from "@fortawesome/free-solid-svg-icons";
 
 const NavBar = () => {
   const [dropDown, setDropDown] = useState(false);
-
-  const toggleDropDown = () => {
-    setDropDown(!dropDown);
-  };
+  const toggleDropDown = () => setDropDown(!dropDown);
 
   return (
-    <nav className="sticky top-0 z-30 py-3 bg-gray-900 text-white">
-      <div className="container relative px-4 mx-auto text-sm">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center flex-shrink-0">
-            <img className="h-10 w-10 mr-2" src={logo} alt="bit" />
-            <span className="text-xl font-bold">BITACADEMIA</span>
-          </div>
-          <div className="hidden lg:flex justify-center space-x-8 items-center">
-          <Link
-              to="/public-user"
-              className="hover:bg-blue-600 hover:text-white transition px-2 py-3 border rounded-md "
-            >
-              <FontAwesomeIcon icon={faUser} className="mx-2" />
-              Search Student
-            </Link>
-            <Link
-              to="/log"
-              className="hover:bg-blue-600 hover:text-white transition px-2 py-3 border rounded-md "
-            >
-              <FontAwesomeIcon icon={faUser} className="mx-2" />
-              Student Login
-            </Link>
-            <Link
-              to="/log.a"
-              className="hover:bg-red-700 hover:text-white transition px-2 py-3 border rounded-md"
-            >
-              <FontAwesomeIcon icon={faUserTie} className="mx-2" />
-              Admin Login
-            </Link>
-          </div>
-          <div className="lg:hidden md:flex flex-col justify-end">
-            <button onClick={toggleDropDown}>
-              <FontAwesomeIcon
-                icon={dropDown ? faTimes : faBars}
-                className="text-white"
-              />
-            </button>
-          </div>
+    <nav className="sticky top-0 z-30 py-3 bg-gray-900 text-white shadow-lg">
+      <div className="container mx-auto px-4 flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          <img className="h-10 w-10" src={logo} alt="BIT Logo" />
+          <span className="text-xl font-bold tracking-wide">BITACADEMIA</span>
         </div>
-        {dropDown && (
-          <div className="fixed right-0 top-16 z-20 bg-neutral-100 p-10 flex flex-col justify-center items-end lg:hidden rounded-lg">
-            <div className="flex flex-col space-y-6">
+        <div className="hidden lg:flex space-x-6">
+          <Link
+            to="/public-user"
+            className="px-4 py-2 border rounded-md hover:bg-blue-600 hover:text-white transition"
+          >
+            <FontAwesomeIcon icon={faUser} className="mr-2" />
+            Search Student
+          </Link>
+          <Link
+            to="/log"
+            className="px-4 py-2 border rounded-md hover:bg-blue-600 hover:text-white transition"
+          >
+            <FontAwesomeIcon icon={faUser} className="mr-2" />
+            Student Login
+          </Link>
+          <Link
+            to="/log.a"
+            className="px-4 py-2 border rounded-md hover:bg-red-700 hover:text-white transition"
+          >
+            <FontAwesomeIcon icon={faUserTie} className="mr-2" />
+            Admin Login
+          </Link>
+        </div>
+        <button
+          onClick={toggleDropDown}
+          className="lg:hidden p-2 border rounded-md"
+          aria-label="Toggle navigation menu"
+        >
+          <FontAwesomeIcon icon={dropDown ? faTimes : faBars} />
+        </button>
+      </div>
+      {dropDown && (
+        <div className="absolute right-0 top-16 z-20 bg-gray-100 p-6 rounded-md shadow-lg lg:hidden">
+          <ul className="flex flex-col space-y-4">
+            <li>
+              <Link
+                to="/public-user"
+                className="block px-4 py-2 border rounded-md bg-white text-black hover:bg-blue-600 hover:text-white transition"
+                onClick={() => setDropDown(false)}
+              >
+                <FontAwesomeIcon icon={faUser} className="mr-2" />
+                Search Student
+              </Link>
+            </li>
+            <li>
               <Link
                 to="/log"
-                className="hover:bg-blue-600 hover:text-white transition px-2 py-3 border rounded-md text-black"
+                className="block px-4 py-2 border rounded-md bg-white text-black hover:bg-blue-600 hover:text-white transition"
+                onClick={() => setDropDown(false)}
               >
-                <FontAwesomeIcon icon={faUser} className="mx-2" />
+                <FontAwesomeIcon icon={faUser} className="mr-2" />
                 Student Login
               </Link>
+            </li>
+            <li>
               <Link
                 to="/log.a"
-                className="hover:bg-red-700 hover:text-white transition px-2 py-3 border rounded-md text-black"
+                className="block px-4 py-2 border rounded-md bg-white text-black hover:bg-red-700 hover:text-white transition"
+                onClick={() => setDropDown(false)}
               >
-                <FontAwesomeIcon icon={faUserTie} className="mx-2" />
+                <FontAwesomeIcon icon={faUserTie} className="mr-2" />
                 Admin Login
               </Link>
-            </div>
-          </div>
-        )}
-      </div>
+            </li>
+          </ul>
+        </div>
+      )}
     </nav>
   );
 };

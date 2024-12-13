@@ -46,60 +46,68 @@ function Footer() {
   };
 
   return (
-    <div className="grid bg-red-700 p-16 text-white md:grid-cols-3">
-      <div className="text-center leading-10">
-        <p>All Rights Reserved</p>
-        <p>Copyright &copy; 2024</p>
-        <a href="https://bitacademicapp.ac.in">bitacademicapp.ac.in</a>
+    <div className="grid bg-gray-900 p-8 text-white md:grid-cols-3 gap-4">
+      <div className="flex flex-col items-center justify-center text-center leading-7 border-b-2 border-gray-300 md:border-b-0 md:border-r-2 pr-4">
+      <img
+        src="../../public/static/images/Birla_Institute_of_Technology_Mesra.png"
+        alt="BIT Mesra Logo"
+        className="w-24 h-auto mb-4"
+      />
+      <p className="text-base font-semibold">All Rights Reserved</p>
+      <p className="text-sm font-light">&copy; 2024 | bitacademicapp.ac.in</p>
+      <a
+        href="https://www.bitmesra.ac.in"
+        className="text-blue-300 hover:underline"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Visit our official website
+      </a>
       </div>
-      <div>
-        <ul className="text-center leading-10">
-          <li>
-            <button className="text-white hover:text-gray-300 focus:outline-none">
-              <Link to="/">Home</Link>
-            </button>
-          </li>
-          <li>
-            <button className="text-white hover:text-gray-300 focus:outline-none">
-              <Link to="/signup">Signup</Link>
-            </button>
-          </li>
-          <li>
-            <button className="text-white hover:text-gray-300 focus:outline-none">Features</button>
-          </li>
-        </ul>
+      <div className="flex flex-col items-center justify-center space-y-2 border-b-2 border-gray-300 md:border-b-0 md:border-r-2 px-2">
+        <Link to="/" className="text-sm font-medium hover:text-gray-300 transition-all duration-200">
+          Home
+        </Link>
+        <Link to="/signup" className="text-sm font-medium hover:text-gray-300 transition-all duration-200">
+          Signup
+        </Link>
+        <button className="text-sm font-medium hover:text-gray-300 transition-all duration-200">
+          Features
+        </button>
       </div>
-      <div className="flex flex-col gap-3 text-center">
-        <p>Your Review down here</p>
-        <form className="flex flex-col gap-3 text-center" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="rounded-md border px-4 py-2 text-center"
-            autoComplete="Name"
-            style={{ color: 'black' }}
-          />
-          <input
-            type="text"
-            placeholder="Roll Number"
-            value={rollNumber}
-            onChange={(e) => setRollNumber(e.target.value)}
-            className="rounded-md border px-4 py-2 text-center"
-            autoComplete="RollNumber"
-            style={{ color: 'black' }}
-          />
+      <div className="flex flex-col items-center gap-4">
+        <p className="text-sm font-semibold">Write down your review below</p>
+        <form className="flex flex-col w-full max-w-sm gap-3" onSubmit={handleSubmit}>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Your Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-1/2 rounded-md border px-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+              autoComplete="name"
+              required
+            />
+            <input
+              type="text"
+              placeholder="Your Roll Number"
+              value={rollNumber}
+              onChange={(e) => setRollNumber(e.target.value)}
+              className="w-1/2 rounded-md border px-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+              autoComplete="roll-number"
+              required
+            />
+          </div>
           <textarea
-            placeholder="Enter your review"
+            placeholder="Write your review here..."
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="h-20 rounded-md border px-4 py-2 text-center"
-            style={{ color: 'black' }}
+            className="w-full h-20 rounded-md border px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            required
           />
           <button
             type="submit"
-            className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+            className="w-full rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
           >
             Submit
           </button>
