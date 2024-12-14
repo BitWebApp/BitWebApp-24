@@ -17,8 +17,9 @@ import {
   verifyMail,
   fetchBranch,
   otpForgotPass,
-  changepassword
+  changepassword,
 } from "../controllers/user.controller.js";
+import { addInterviewExp } from "../controllers/interview.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
 
@@ -69,8 +70,11 @@ router.route("/placementDetails").get(verifyAdmin, getPlacementDetails);
 router.route("/placementOne").get(verifyJWT, getPlacementOne);
 router.route("/placementTwo").get(verifyJWT, getPlacementTwo);
 router.route("/placementThree").get(verifyJWT, getPlacementThree);
-router.route("/get-all-users").get(verifyAdmin, getAllUsers)
+router.route("/get-all-users").get(verifyAdmin, getAllUsers);
 router.route("/get-backlogs").get(verifyJWT, getAllBacklogSubjects);
 router.route("/get-pass-otp").post(otpForgotPass);
 router.route("/changepass").post(changepassword);
+
+//interview exp routes
+router.route("/add-interview-exp").post(verifyJWT, addInterviewExp);
 export default router;

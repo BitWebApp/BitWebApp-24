@@ -36,3 +36,5 @@ const InterviewExpSchema = new Schema(
     timestamps: true,
   }
 );
+
+export const InterviewExp = mongoose.model("InterviewExp", InterviewExpSchema);
