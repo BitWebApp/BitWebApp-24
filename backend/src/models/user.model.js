@@ -136,6 +136,12 @@ const userSchema = new Schema(
         ref: "PeCourse",
       },
     ],
+    companyInterview: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Company",
+      },
+    ],
     refreshToken: {
       type: String,
     },

@@ -11,7 +11,11 @@ import {
   rejectUser,
 } from "../controllers/admin.controller.js";
 import { addbacklogSubject } from "../controllers/backlog.controller.js";
-import { addCompany } from "../controllers/company.controller.js";
+import {
+  addCompany,
+  getAllCompanies,
+  assignCompany,
+} from "../controllers/company.controller.js";
 const router = Router();
 
 router.route("/unverifiedUsers").get(verifyAdmin, getUnverifiedUsers);
@@ -23,5 +27,7 @@ router.route("/get-admin").get(verifyAdmin, getCurrendAdmin);
 router.route("/add-backlog").post(verifyAdmin, addbacklogSubject);
 router.route("/rejectUser").patch(verifyAdmin, rejectUser);
 router.route("/add-company").post(verifyAdmin, addCompany);
+router.route("/get-companies").get(verifyAdmin, getAllCompanies);
+router.route("/assign-company").post(verifyAdmin, assignCompany);
 
 export default router;
