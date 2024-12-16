@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
-export default function Userform() {
+export default function UserForm() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [branch, setBranch] = useState("");
@@ -11,15 +11,23 @@ export default function Userform() {
   const [mobileNumber, setMobileNumber] = useState("");
   const [semester, setSemester] = useState("");
   const [cgpa, setCgpa] = useState("");
+  const [linkedin, setlinkedin] = useState("");
+  const [codingProfiles, setCodingProfiles] = useState({
+    github: "",
+    leetcode: "",
+    codeforces: "",
+    codechef: "",
+    atcoder: ""
+  });
+  const [resume, setResume] = useState(null);
   const [user, setUser] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [profilePicture, setProfilePicture] = useState(null);
-  const [availableSections, setAvailableSections] = useState([]); // New state for available sections
+  const [availableSections, setAvailableSections] = useState([]);
 
   useEffect(() => {
     axios.get("/api/v1/users/get-user")
       .then(response => {
-        console.log(response);
         const userData = response.data.data;
         setFullName(userData.fullName);
         setEmail(userData.email);
@@ -28,8 +36,16 @@ export default function Userform() {
         setMobileNumber(userData.mobileNumber);
         setSemester(userData.semester);
         setCgpa(userData.cgpa);
+        setlinkedin(userData.linkedin || "");
+        setCodingProfiles({
+          github: userData.codingProfiles?.github || "",
+          leetcode: userData.codingProfiles?.leetcode || "",
+          codeforces: userData.codingProfiles?.codeforces || "",
+          codechef: userData.codingProfiles?.codechef || "",
+          atcoder: userData.codingProfiles?.atcoder || "",
+        });
         setUser(userData);
-        setAvailableSectionsBasedOnBranch(userData.branch); // Set sections based on branch
+        setAvailableSectionsBasedOnBranch(userData.branch);
       })
       .catch(error => {
         console.log(error);
@@ -37,11 +53,10 @@ export default function Userform() {
   }, []);
 
   const setAvailableSectionsBasedOnBranch = (branch) => {
-    
     if (branch === "artificial intelligence and machine learning") {
       setAvailableSections(["A"]);
     } else {
-        setAvailableSections(["A", "B", "C"]);
+      setAvailableSections(["A", "B", "C"]);
     }
   };
 
@@ -56,6 +71,15 @@ export default function Userform() {
     formData.append("mobileNumber", mobileNumber);
     formData.append("semester", semester);
     formData.append("cgpa", cgpa);
+    formData.append("linkedin", linkedin);
+    formData.append("github", codingProfiles.github);
+    formData.append("leetcode", codingProfiles.leetcode);
+    formData.append("codeforces", codingProfiles.codeforces);
+    formData.append("atcoder", codingProfiles.atcoder);
+    formData.append("codechef", codingProfiles.codechef);
+    if (resume) {
+      formData.append("resume", resume);
+    }
     if (profilePicture) {
       formData.append("image", profilePicture);
     }
@@ -87,6 +111,15 @@ export default function Userform() {
     setMobileNumber(user.mobileNumber);
     setSemester(user.semester);
     setCgpa(user.cgpa);
+    setlinkedin(user.linkedin || "");
+    setCodingProfiles({
+      github: user.codingProfiles?.github || "",
+      leetcode: user.codingProfiles?.leetcode || "",
+      codeforces: user.codingProfiles?.codeforces || "",
+      codechef: user.codingProfiles?.codechef || "",
+      atcoder: user.codingProfiles?.atcoder || ""
+    });
+    setResume(null);
     setProfilePicture(null);
     setIsEditMode(false);
   };
@@ -100,66 +133,68 @@ export default function Userform() {
             <h3 className="text-3xl font-semibold mb-4">Your Profile</h3>
             <p className="text-base mb-2">Enter Your details.</p>
           </div>
-          <form onSubmit={e => e.preventDefault()}>
-            <div className="w-full flex flex-col">
-              <label>Full Name</label>
-              <input
-                type="text"
-                placeholder="Enter Your Full Name"
-                value={fullName}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setFullName(e.target.value)}
-                disabled={!isEditMode}
-              />
-              <label>Email</label>
-              <input
-                type="email"
-                placeholder="Enter Your Email"
-                value={email}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={!isEditMode}
-              />
-              <label>Branch</label>
-              <select
-                value={branch}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => {
-                  setBranch(e.target.value);
-                  setAvailableSectionsBasedOnBranch(e.target.value); // Update available sections based on branch
-                }}
-                disabled={!isEditMode}
-              >
-                <option value="">Select Branch</option>
-                <option value="computer science and engineering">Computer Science and Engineering</option>
-                <option value="artificial intelligence and machine learning">Artificial Intelligence and Machine Learning</option>
-                <option value="electronics and communication engineering">Electronics and Communication Engineering</option>
-                <option value="mechanical engineering">Mechanical Engineering</option>
-                <option value="chemical engineering">Chemical Engineering</option>
-                <option value="civil engineering">Civil Engineering</option>
-                <option value="production and industrial engineering">Production and Industrial Engineering</option>
-              </select>
-              <label>Section</label>
-              <select
-                value={section}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setSection(e.target.value)}
-                disabled={!isEditMode}
-              >
-                <option value="">Select Section</option>
-                {availableSections.map((sec, index) => (
-                  <option key={index} value={sec}>{sec}</option>
-                ))}
-              </select>
-              <label>Mobile Number</label>
-              <input
-                type="text"
-                placeholder="Enter Your Mobile Number"
-                value={mobileNumber}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setMobileNumber(e.target.value)}
-                disabled={!isEditMode}
-              />
+          <form onSubmit={(e) => e.preventDefault()}>
+            {/* Full Name */}
+            <label>Full Name</label>
+            <input
+              type="text"
+              value={fullName}
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+              onChange={(e) => setFullName(e.target.value)}
+              disabled={!isEditMode}
+              placeholder="Enter your full name"
+            />
+
+            {/* Email */}
+            <label>Email</label>
+            <input
+              type="email"
+              value={email}
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={!isEditMode}
+              placeholder="Enter your email"
+            />
+
+            {/* Branch */}
+            <label>Branch</label>
+            <select
+              value={branch}
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+              onChange={(e) => setBranch(e.target.value)}
+              disabled={!isEditMode}
+            >
+              <option value="computer science">Computer Science</option>
+              <option value="artificial intelligence and machine learning">
+                AI and ML
+              </option>
+            </select>
+
+            {/* Section */}
+            <label>Section</label>
+            <select
+              value={section}
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+              onChange={(e) => setSection(e.target.value)}
+              disabled={!isEditMode}
+            >
+              {availableSections.map((sec) => (
+                <option key={sec} value={sec}>
+                  {sec}
+                </option>
+              ))}
+            </select>
+
+            {/* Mobile Number */}
+            <label>Mobile Number</label>
+            <input
+              type="tel"
+              value={mobileNumber}
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+              onChange={(e) => setMobileNumber(e.target.value)}
+              disabled={!isEditMode}
+              placeholder="Enter your mobile number"
+            />
               <label>Semester</label>
               <select
                 value={semester}
@@ -176,58 +211,117 @@ export default function Userform() {
                 <option value="VI">VI</option>
                 <option value="VII">VII</option>
                 <option value="VIII">VIII</option>
+                <option value="Graduated">Graduated</option>
               </select>
-              <label>CGPA</label>
-              <input
-                type="text"
-                placeholder="Enter Your CGPA"
-                value={cgpa}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setCgpa(e.target.value)}
-                disabled={!isEditMode}
-              />
-              <label>Upload Profile Picture</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setProfilePicture(e.target.files[0])}
-                disabled={!isEditMode}
-              />
-            </div>
-            <div className="h-8"></div>
-            <div className="w-full flex items-center justify-between">
+
+            {/* CGPA */}
+            <label>CGPA</label>
+            <input
+              type="number"
+              value={cgpa}
+              step="0.01"
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+              onChange={(e) => setCgpa(e.target.value)}
+              disabled={!isEditMode}
+              placeholder="Enter your CGPA"
+            />
+
+            {/* LinkedIn Profile */}
+            <label>LinkedIn Profile</label>
+            <input
+              type="url"
+              value={linkedin}
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+              onChange={(e) => setlinkedin(e.target.value)}
+              disabled={!isEditMode}
+              placeholder="Enter LinkedIn Profile URL"
+            />
+
+            {/* Coding Profiles */}
+            <label>GitHub Profile</label>
+            <input
+              type="url"
+              value={codingProfiles.github}
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+              onChange={(e) => setCodingProfiles({ ...codingProfiles, github: e.target.value })}
+              disabled={!isEditMode}
+              placeholder="Enter GitHub Profile URL"
+            />
+            <label>LeetCode Profile</label>
+            <input
+              type="url"
+              value={codingProfiles.leetcode}
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+              onChange={(e) => setCodingProfiles({ ...codingProfiles, leetcode: e.target.value })}
+              disabled={!isEditMode}
+              placeholder="Enter LeetCode Profile URL"
+            />
+            <label>Codeforces Profile</label>
+            <input
+              type="url"
+              value={codingProfiles.codeforces}
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+              onChange={(e) => setCodingProfiles({ ...codingProfiles, codeforces: e.target.value })}
+              disabled={!isEditMode}
+              placeholder="Enter Codeforces Profile URL"
+            />
+            <label>Codechef Profile</label>
+            <input
+              type="url"
+              value={codingProfiles.codechef}
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+              onChange={(e) => setCodingProfiles({ ...codingProfiles, codechef: e.target.value })}
+              disabled={!isEditMode}
+              placeholder="Enter Codechef Profile URL"
+            />
+            <label>Atcoder Profile</label>
+            <input
+              type="url"
+              value={codingProfiles.atcoder}
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+              onChange={(e) => setCodingProfiles({ ...codingProfiles, atcoder: e.target.value })}
+              disabled={!isEditMode}
+              placeholder="Enter Atcoder Profile URL"
+            />
+            {/* Resume Upload */}
+            <label>Upload Resume</label>
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx"
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+              onChange={(e) => setResume(e.target.files[0])}
+              disabled={!isEditMode}
+            />
+
+            {/* Profile Picture Upload (optional) */}
+            <label>Upload Profile Picture</label>
+            <input
+              type="file"
+              accept="image/*"
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+              onChange={(e) => setProfilePicture(e.target.files[0])}
+              disabled={!isEditMode}
+            />
+
+            {/* Buttons */}
+            <div className="w-full flex items-center justify-between mt-4">
               {isEditMode ? (
                 <>
-                  <button
-                    className="bg-black text-white rounded-md p-2 text-center flex items-center justify-center my-2 hover:bg-black/90"
-                    onClick={handleUpdate}
-                  >
+                  <button className="bg-green-500 text-white rounded-md p-2" onClick={handleUpdate}>
                     Save
                   </button>
-                  <button
-                    className="bg-red-500 text-white rounded-md p-2 text-center flex items-center justify-center my-2 hover:bg-red-600"
-                    onClick={handleCancelEdit}
-                  >
+                  <button className="bg-red-500 text-white rounded-md p-2" onClick={handleCancelEdit}>
                     Cancel
                   </button>
                 </>
               ) : (
-                <button
-                  className="bg-blue-500 text-white rounded-md p-2 text-center flex items-center justify-center my-2 hover:bg-blue-600"
-                  onClick={() => setIsEditMode(true)}
-                >
+                <button className="bg-blue-500 text-white rounded-md p-2" onClick={() => setIsEditMode(true)}>
                   Edit
                 </button>
               )}
             </div>
           </form>
-          <div className="w-full items-center justify-center flex">
-            <p className="text-sm font-normal text-black">
-              <span className="font-semibold underline underline-offset cursor-pointer text-blue-600">
-                <Link to="/">Back to Dashboard</Link>
-              </span>
-            </p>
-          </div>
+
         </div>
       </div>
     </div>

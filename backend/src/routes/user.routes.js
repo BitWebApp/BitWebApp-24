@@ -38,7 +38,7 @@ router
   .route("/update")
   .patch(
     verifyJWT,
-    upload.fields([{ name: "image", maxCount: 1 }]),
+    upload.fields([{ name: "image", maxCount: 1 }, { name: "resume", maxCount: 1}]),
     updateUser1
   );
 router.route("/get-user").get(verifyJWT, getCurrentUser);

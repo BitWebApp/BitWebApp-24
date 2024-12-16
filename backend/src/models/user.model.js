@@ -1,10 +1,4 @@
 import mongoose, { Schema } from "mongoose";
-import { Placement } from "./placement.model.js";
-import { Project } from "./project.model.js";
-import { Award } from "./award.model.js";
-import { Internship } from "./internship.model.js";
-import { Exam } from "./exam.model.js";
-import { Backlog } from "./backlog.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -42,6 +36,9 @@ const userSchema = new Schema(
       unique: true,
       lowercase: true,
     },
+    resume: {
+      type: String,  
+    },
     idCard: {
       type: String,
       required: [true, "Id card is required for verification!"],
@@ -58,6 +55,40 @@ const userSchema = new Schema(
       type: String,
       default: "",
     },
+    linkedin: {
+      type: String,
+      default: "",
+    },
+    abcId: {
+      type: String,
+      default: ""
+    },
+    codingProfiles: {
+      github: {
+        type: String,
+        default: "",
+      },
+      leetcode: {
+        type: String,
+        default: "",
+        match: [/^https?:\/\/(www\.)?leetcode\.com\/.+$/, "Enter a valid LeetCode profile URL!"],
+      },
+      codeforces: {
+        type: String,
+        default: "",
+        match: [/^https?:\/\/(www\.)?codeforces\.com\/profile\/.+$/, "Enter a valid Codeforces profile URL!"],
+      },
+      codechef: {
+        type: String,
+        default: "",
+        match: [/^https?:\/\/(www\.)?codechef\.com\/users\/.+$/, "Enter a valid CodeChef profile URL!"],
+      },
+      atcoder: {
+        type: String,
+        default: "",
+        match: [/^https?:\/\/(www\.)?atcoder\.jp\/users\/.+$/, "Enter a valid AtCoder profile URL!"],
+      },
+    },    
     mobileNumber: {
       type: String,
       minLength: [10, "Enter 10 digits of your mobile number!"],

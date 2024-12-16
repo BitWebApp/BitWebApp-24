@@ -103,7 +103,7 @@ export default function Dashboard() {
 </li>
 
 <li className="flex items-center text-sm sm:text-base font-semibold text-gray-700 py-1 mt-2">
-  <span className="font-bold text-gray-700">Section & Semester:</span>
+  <span className="font-bold text-gray-700">Semester & Section:</span>
   <span className="  ml-6 text-gray-800 text-xs sm:text-sm"> {user.semester}  {user.section}</span>
 </li>
 

@@ -398,28 +398,48 @@ const updateUser1 = asyncHandler(async (req, res) => {
     mobileNumber,
     semester,
     cgpa,
+    leetcode,
+    codeforces,
+    codechef,
+    github,
+    atcoder,
+    linkedin,
+    abcId,
   } = req.body;
-
-  // Check if the image file exists
 
   const updateFields = {};
 
+  // Handle image upload
   if (req.files && req.files.image && req.files.image[0]) {
     const imageLocalPath = req.files.image[0].path;
-    let imagePath;
 
     try {
-      imagePath = await uploadOnCloudinary(imageLocalPath);
+      const imagePath = await uploadOnCloudinary(imageLocalPath);
+      if (!imagePath) {
+        throw new ApiError(400, "Image upload failed");
+      }
+      updateFields["image"] = imagePath.url;
     } catch (error) {
-      throw new ApiError(400, "Image upload failed: " + error.message);
+      throw new ApiError(400, `Image upload failed: ${error.message}`);
     }
-
-    if (!imagePath) {
-      throw new ApiError(400, "Image file is required");
-    }
-    updateFields["image"] = imagePath.url;
   }
 
+  // Handle resume upload
+  if (req.files && req.files.resume && req.files.resume[0]) {
+    const resumeLocalPath = req.files.resume[0].path;
+
+    try {
+      const resumePath = await uploadOnCloudinary(resumeLocalPath);
+      if (!resumePath) {
+        throw new ApiError(400, "Resume upload failed");
+      }
+      updateFields["resume"] = resumePath.url;
+    } catch (error) {
+      throw new ApiError(400, `Resume upload failed: ${error.message}`);
+    }
+  }
+
+  // Define fields to update
   const fieldsToUpdate = {
     fullName,
     rollNumber,
@@ -429,25 +449,35 @@ const updateUser1 = asyncHandler(async (req, res) => {
     mobileNumber,
     semester,
     cgpa,
+    "codingProfiles.leetcode": leetcode,
+    "codingProfiles.codeforces": codeforces,
+    "codingProfiles.codechef": codechef,
+    "codingProfiles.atcoder": atcoder,
+    "codingProfiles.github": github,
+    linkedin,
+    abcId,
   };
 
-  // Populate updateFields only with provided values
+  // Add provided fields to updateFields
   Object.keys(fieldsToUpdate).forEach((field) => {
     if (fieldsToUpdate[field]) {
       updateFields[field] = fieldsToUpdate[field];
     }
   });
 
+  // Ensure at least one field is provided for update
   if (Object.keys(updateFields).length === 0) {
     throw new ApiError(400, "At least one field is required for update");
   }
+
   try {
+    // Update user details
     const user = await User.findByIdAndUpdate(
       req.user?._id,
       { $set: updateFields },
-      { new: true }
+      { new: true, runValidators: true } // Ensure validators are run
     ).select("-password");
-    console.log(user);
+
     if (!user) {
       throw new ApiError(404, "User not found");
     }
@@ -456,7 +486,7 @@ const updateUser1 = asyncHandler(async (req, res) => {
       .status(200)
       .json(new ApiResponse(200, user, "User details updated successfully!"));
   } catch (error) {
-    throw new ApiError(500, "Internal server error: " + error.message);
+    throw new ApiError(500, `Internal server error: ${error.message}`);
   }
 });
 
@@ -464,6 +494,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   const _id = req?.user?._id;
   const user = await User.findById({ _id });
   if (!user) throw new ApiError(404, "user not found");
+  console.log(user)
   res.status(200).json(new ApiResponse(200, user, "user fetched"));
 });
 
