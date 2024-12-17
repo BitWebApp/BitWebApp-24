@@ -11,6 +11,7 @@ export default function UserForm() {
   const [mobileNumber, setMobileNumber] = useState("");
   const [semester, setSemester] = useState("");
   const [cgpa, setCgpa] = useState("");
+  const [abcId, setabcId] = useState("");
   const [linkedin, setlinkedin] = useState("");
   const [codingProfiles, setCodingProfiles] = useState({
     github: "",
@@ -36,6 +37,7 @@ export default function UserForm() {
         setMobileNumber(userData.mobileNumber);
         setSemester(userData.semester);
         setCgpa(userData.cgpa);
+        setabcId(userData.abcId)
         setlinkedin(userData.linkedin || "");
         setCodingProfiles({
           github: userData.codingProfiles?.github || "",
@@ -71,6 +73,7 @@ export default function UserForm() {
     formData.append("mobileNumber", mobileNumber);
     formData.append("semester", semester);
     formData.append("cgpa", cgpa);
+    formData.append("abcId", abcId);
     formData.append("linkedin", linkedin);
     formData.append("github", codingProfiles.github);
     formData.append("leetcode", codingProfiles.leetcode);
@@ -111,6 +114,7 @@ export default function UserForm() {
     setMobileNumber(user.mobileNumber);
     setSemester(user.semester);
     setCgpa(user.cgpa);
+    setabcId(user.abcId);
     setlinkedin(user.linkedin || "");
     setCodingProfiles({
       github: user.codingProfiles?.github || "",
@@ -226,6 +230,16 @@ export default function UserForm() {
               placeholder="Enter your CGPA"
             />
 
+            {/* ABC ID*/}
+            <label>ABC ID</label>
+            <input
+              value={abcId}
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+              onChange={(e) => setabcId(e.target.value)}
+              disabled={!isEditMode}
+              placeholder="Enter ABC ID"
+            />
+
             {/* LinkedIn Profile */}
             <label>LinkedIn Profile</label>
             <input
@@ -288,6 +302,7 @@ export default function UserForm() {
             <input
               type="file"
               accept=".pdf,.doc,.docx"
+              value={resume}
               className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
               onChange={(e) => setResume(e.target.files[0])}
               disabled={!isEditMode}
@@ -297,6 +312,7 @@ export default function UserForm() {
             <label>Upload Profile Picture</label>
             <input
               type="file"
+              value={profilePicture}
               accept="image/*"
               className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
               onChange={(e) => setProfilePicture(e.target.files[0])}
