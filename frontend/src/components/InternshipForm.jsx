@@ -24,7 +24,8 @@ export default function InternshipForm() {
     "IBM", "Oracle", "Intel", "Cisco", "NVIDIA", "Qualcomm", "Broadcom", 
     "Texas Instruments", "Visa", "Mastercard", "PayPal", "Stripe", 
     "Salesforce", "Wells Fargo", "Uber", "Atlassian", "Fastenal", 
-    "Walmart Global Tech", "Intuit", "Sprinkler", "NPCI", "Others"
+    "Walmart Global Tech", "Intuit", "Sprinkler", "NPCI", "LinkedIn", "GEP", "Accenture", "Placewit", "Algo University",
+    "ITC Limited", "Tata Steel Limited", "Arcesium", "Schrodinger"
   ];
 
   const roleList = [
@@ -134,15 +135,6 @@ export default function InternshipForm() {
                   <option key={index} value={val}>{val}</option>
                 ))}
               </select>
-              {newCompany === "Others" && (
-                <input
-                  type="text"
-                  value={company}
-                  onChange={(e) => setCompany(e.target.value)}
-                  placeholder="Type the company name"
-                  className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                />
-              )}
               <label>Role</label>
               <select
                 value={role}
@@ -169,7 +161,7 @@ export default function InternshipForm() {
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setEndDate(e.target.value)}
               />
-              <label className="mt-4">Upload Your ID Card</label>
+              <label className="mt-4">Upload Offer Doc</label>
               <input
                 type="file"
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
