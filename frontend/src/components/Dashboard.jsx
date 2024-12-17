@@ -33,6 +33,7 @@ export default function Dashboard() {
         rollNumber,
       });
       setUser(response.data.data);
+      console.log(user)
       setError(null);
     } catch (err) {
       setError("User not found or an error occurred");
@@ -90,22 +91,26 @@ export default function Dashboard() {
               className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border"
             />
             <div>
-              <p className="font-semibold text-gray-900 text-sm sm:text-lg">{user.fullName}</p>
+              <p className="font-semibold text-gray-900 text-sm sm:text-lg">{user.fullName.toUpperCase()}</p>
               <p className="text-gray-600 text-xs sm:text-sm">{user.rollNumber}</p>
               <p className="text-gray-600 text-xs sm:text-sm">{user.email}</p>
             </div>
           </div>
-         
             
-          <li className="flex items-center text-sm sm:text-base font-semibold text-gray-800 py-1">
+          <li className="flex items-center text-sm sm:text-base font-semibold text-gray-800">
   <span className="font-bold text-gray-800">Branch:</span>
-  <span className="  ml-6 text-gray-800 text-xs sm:text-sm">{user.branch}</span>
+  <span className="  ml-6 text-gray-800 text-xs sm:text-sm">{user.branch.toUpperCase()}</span>
 </li>
 
-<li className="flex items-center text-sm sm:text-base font-semibold text-gray-700 py-1 mt-2">
+<li className="flex items-center text-sm sm:text-base font-semibold text-gray-700">
   <span className="font-bold text-gray-700">Semester & Section:</span>
-  <span className="  ml-6 text-gray-800 text-xs sm:text-sm"> {user.semester}  {user.section}</span>
+  <span className="  ml-6 text-gray-800 text-xs sm:text-sm"> {user.semester} & {user.section}</span>
 </li>
+
+            <li className="flex items-center text-sm sm:text-base font-semibold text-gray-700">
+              <span className="font-bold text-gray-700">ABC ID:</span>
+              <span className="  ml-6 text-gray-800 text-xs sm:text-sm"> {user.abcId}</span>
+            </li>
 
               {isAdmin && (
                <li className="flex items-center text-sm sm:text-base font-semibold text-gray-700 py-1 mt-2">
@@ -114,138 +119,80 @@ export default function Dashboard() {
              </li>
               )}
            
+           <div className="mt-4">
+            <p className="font-semibold text-blue-600">Academics</p>
+            <table className="w-full border-2 border-black border-collapse">
+              <thead>
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Semester</th>
+                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">SGPA</th>
+                </tr>
+              </thead>
+              {user.academics[0]?.academicRecords?.map((ele, index) => (
+                <tr className="text-center" key={index}>
+                  <td className="border border-black">{ele.semester}</td>
+                  <td className="border border-black">{ele.gpa}</td>
+                </tr>
+              ))}
+            </table>
+          </div>
+          
+          <div className="mt-4">
+            <p className="font-semibold text-blue-600">Backlogs</p>
+            <table className="w-full border-2 border-black border-collapse">
+              <thead>
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Course Code</th>
+                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Course Name</th>
+                </tr>
+              </thead>
+              {user.backlogs?.map((ele, index) => (
+                <tr className="text-center" key={index}>
+                  <td className="border border-black">{ele?.subjectCode}</td>
+                  <td className="border border-black">{ele?.subjectName}</td>
+                </tr>
+              ))}
+            </table>
+          </div>
 
-          {user.higherEd.length > 0 && (
-            <div className="mt-4">
-              <p className="font-semibold text-blue-600">Higher Education:</p>
-              <ul className="list-disc ml-6 text-gray-800 text-xs sm:text-sm">
-                {user.higherEd.map((edu) => (
-                  <li key={edu._id}>
-                    {edu.degree} ({edu.fieldOfStudy}) at {edu.institution}
-                    {isAdmin && (
-                      <a
-                        href={edu.docs[0]}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500"
-                      >
-                        View Document
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <div className="mt-4">
+            <p className="font-semibold text-blue-600">Internships</p>
+            <table className="w-full border-2 border-black border-collapse">
+              <thead>
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Company</th>
+                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Role</th>
+                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Start Date</th>
+                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">End Date</th>
+                </tr>
+              </thead>
+              {user.internShips?.map((ele, index) => (
+                <tr className="text-center" key={index}>
+                  <td className="border border-black">{ele.company}</td>
+                  <td className="border border-black">{ele.role}</td>
+                  <td className="border border-black">{ele?.startDate ? new Date(ele.startDate).toLocaleDateString(): ''}</td>
+                  <td className="border border-black">{ele?.endDate ? new Date(ele.endDate).toLocaleDateString(): ''}</td>
+                </tr>
+              ))}
+            </table>
+          </div>
 
-          {user.placementOne?.length > 0 && (
-            <div className="mt-4">
-              <p className="font-semibold text-blue-600">Placement Details:</p>
-              <ul className="list-disc ml-6 text-gray-800 text-xs sm:text-sm">
-                <div className="mb-4 bg-gray-100 p-3 rounded-md shadow-sm">
-                  <li>
-                    <strong>Company:</strong> {user.placementOne.company}
-                  </li>
-                  {isAdmin && (
-                    <li>
-                      <strong>CTC:</strong> {user.placementOne.ctc}
-                    </li>
-                  )}
-                  {isAdmin && (
-                    <a
-                      href={user.placementOne.doc}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500"
-                    >
-                      View Document
-                    </a>
-                  )}
-                </div>
-              </ul>
-            </div>
-          )}
-
-          {user.internShips?.length > 0 && (
-            <div className="mt-4">
-              <p className="font-semibold text-blue-600">Internship Details:</p>
-              <ul className="list-disc ml-6 text-gray-800 text-xs sm:text-sm">
-                {user.internShips.map((internship) => (
-                  <li key={internship._id}>
-                    {internship.company} - {internship.role}
-                    {isAdmin && (
-                      <a
-                        href={internship.doc}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500"
-                      >
-                        View Document
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {user.exams?.length > 0 && (
-            <div className="mt-4">
-              <p className="font-semibold text-blue-600">Exam Details:</p>
-              <ul className="list-disc ml-6 text-gray-800 text-xs sm:text-sm">
-                {user.exams.map((exam) => (
-                  <li key={exam._id}>
-                    {exam.examName} - {exam.score}
-                    {isAdmin && (
-                      <a
-                        href={exam.docs[0]}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500"
-                      >
-                        View Document
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div>
-            
-            {isAdmin && user.backlogs.length > 0 ? (
-              
-              <div className="overflow-x-auto">
-                <h3 className="text-lg font-bold mt-4 mb-2 text-blue-600">Backlogs</h3>
-                <table className="min-w-full bg-white border border-gray-200">
-                  <thead>
-                    <tr>
-                      <th className="px-3 py-2 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Sl No
-                      </th>
-                      <th className="px-3 py-2 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Subject Code
-                      </th>
-                      <th className="px-3 py-2 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Subject Name
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {user.backlogs.map((backlog, index) => (
-                      <tr key={backlog._id} className="bg-white border-b hover:bg-gray-100">
-                        <td className="px-3 py-2 border-b border-gray-200">{index + 1}</td>
-                        <td className="px-3 py-2 border-b border-gray-200">{backlog.subjectCode}</td>
-                        <td className="px-3 py-2 border-b border-gray-200">{backlog.subjectName}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p></p>
-            )}
+          <div className="mt-4">
+            <p className="font-semibold text-blue-600">Placements</p>
+            <table className="w-full border-2 border-black border-collapse">
+              <thead>
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Company</th>
+                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Role</th>
+                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Date</th>
+                </tr>
+              </thead>
+                <tr className="text-center">
+                  <td className="border border-black">{user?.placementOne?.company}</td>
+                  <td className="border border-black">{user?.placementOne?.role}</td>
+                  <td className="border border-black">{user?.placementOne?.date ? new Date(user?.placementOne?.date).toLocaleDateString() : ''}</td>
+                </tr>
+            </table>
           </div>
         </div>
       )}

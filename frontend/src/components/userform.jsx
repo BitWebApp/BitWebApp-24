@@ -302,17 +302,15 @@ export default function UserForm() {
             <input
               type="file"
               accept=".pdf,.doc,.docx"
-              value={resume}
               className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
               onChange={(e) => setResume(e.target.files[0])}
               disabled={!isEditMode}
             />
 
-            {/* Profile Picture Upload (optional) */}
+            {/* Profile Picture Upload */}
             <label>Upload Profile Picture</label>
             <input
               type="file"
-              value={profilePicture}
               accept="image/*"
               className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
               onChange={(e) => setProfilePicture(e.target.files[0])}
