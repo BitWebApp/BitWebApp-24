@@ -5,8 +5,8 @@ import axios from 'axios';
 export default function AcademicTable() {
   const [academicRecords, setAcademicRecords] = useState([]);
   const [selectedSemester, setSelectedSemester] = useState('');
-  const [selectedRecord, setSelectedRecord] = useState(null);
-  const [updatedGPA, setUpdatedGPA] = useState('');
+  // const [selectedRecord, setSelectedRecord] = useState(null);
+  // const [updatedGPA, setUpdatedGPA] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {

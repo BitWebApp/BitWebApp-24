@@ -51,7 +51,7 @@ export default function Academicform() {
             semester: semester,
             gpa: gpa,
           }, {
-            headers: {
+            headers: { // Custom Header
               Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }
           });

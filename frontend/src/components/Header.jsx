@@ -5,15 +5,7 @@ import { IoMdMenu } from 'react-icons/io';
 import classNames from 'classnames';
 import axios from 'axios';
 import {
-  HiUser,
-  HiAcademicCap,
   HiOutlineLogout,
-  HiBadgeCheck,
-  HiHome,
-  HiDocumentReport,
-  HiOutlineBriefcase,
-  HiPresentationChartLine,
-  HiBriefcase,
 } from 'react-icons/hi';
 import useLinks from './admin/user-links';
 const linkClasses = 'flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base';
