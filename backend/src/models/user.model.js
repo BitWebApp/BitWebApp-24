@@ -145,12 +145,11 @@ const userSchema = new Schema(
         ref: "Exam",
       },
     ],
-    academics: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Academics",
-      },
-    ],
+    academics: 
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Academics",
+    },
     cgpa: {
       type: String,
       default: "",
