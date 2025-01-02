@@ -99,6 +99,34 @@ const userSchema = new Schema(
       type: String,
       default: "",
     },
+    graduationYear: {
+      type: Date,
+      default: ""
+    },
+    workExp: [
+      {
+        company: {
+          type: String, 
+          default: ""
+        },
+        role: {
+          type: String,
+          default: ""
+        },
+        startDate: {
+          type: Date,
+          default: ""
+        },
+        endDate: {
+          type: Date,
+          default: ""
+        },
+        description:{
+          type: String,
+          default: ""
+        }
+      }
+    ],
     isVerified: {
       type: Boolean,
       default: false,
