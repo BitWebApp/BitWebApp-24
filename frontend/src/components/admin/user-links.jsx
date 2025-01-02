@@ -85,6 +85,17 @@ export default function useLinks() {
       to: "/db/project-form",
     },
     { text: "Internships", icon: <HiBriefcase />, to: "/db/internship-form" },
+    { text: "Interview Experience", icon: <HiBriefcase />, to: "/db/interview" },
+    { 
+      text: "Internships", 
+      icon: <HiBriefcase />, 
+      to: "/db/internship-form" 
+    },
+    { 
+      text: "Request Classroom", 
+      icon: <HiBriefcase />, 
+      to: "/db/classroom-form" 
+    },
   ];
 
   const adminLinks = [
