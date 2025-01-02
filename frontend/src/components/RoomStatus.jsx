@@ -10,6 +10,12 @@ export default function RoomStatus() {
     fetchRoomStatus();
   }, []);
 
+  function formatReadableDate(isoDate) {
+    const date = new Date(isoDate);
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString('en-US', options);
+  }
+  
   const fetchRoomStatus = async () => {
     try {
       const response = await axios.get("/api/v1/classroom/student");
@@ -28,26 +34,40 @@ export default function RoomStatus() {
     <div className="p-8">
       <h2 className="text-3xl font-semibold mb-4">Room Status</h2>
       <table className="min-w-full divide-y divide-gray-200">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Start Time</th>
-            <th>End Time</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
+      <thead>
+            <tr className="bg-gray-100">
+              <th className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Date
+              </th>
+              <th className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Start Time
+              </th>
+              <th className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                End Time
+              </th>
+              <th className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Location
+              </th>
+              <th className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Purpose
+              </th>
+              <th className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+            </tr>
+          </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
           {roomStatus.map((status, index) => (
-            <tr key={index}>
-            <td>{status.bookingDate.split("T")[0]}</td>
-            <td>{status.startTime}</td>
-            <td>{status.endTime}</td>
-            <td>{status.building} - {status.classroomNumber}</td>
-            <td>{status.purpose}</td>
+            <tr key={index} className="hover:bg-gray-50">
+            <td className="px-6 py-4 text-md text-gray-900">{formatReadableDate(status.bookingDate)}</td>
+            <td className="px-6 py-4 text-md text-gray-900">{status.startTime}</td>
+            <td className="px-6 py-4 text-md text-gray-900">{status.endTime}</td>
+            <td className="px-6 py-4 text-md text-gray-900">{status.building} - {status.classroomNumber}</td>
+            <td className="px-6 py-4 text-md text-gray-900">{status.purpose}</td>
             <td
               className={`font-semibold ${
                 status.status === "Approved" ? "text-green-600" : "text-red-600"
-              }`}
+              } px-6 py-4 text-md text-black-1000` } 
             >
               {status.status}
             </td>

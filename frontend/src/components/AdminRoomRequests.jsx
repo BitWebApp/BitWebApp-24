@@ -10,25 +10,30 @@ const AdminRoomRequests = () => {
 
     // Fetch all room requests (Pending status)
     useEffect(() => {
-        const fetchRoomRequests = async () => {
-            try {
-                const response = await axios.get('/api/v1/classroom/bookings/pending');
-                if (response.data && response.data.data) {
-                    // Fetch student names from populated data
-                    const sortedData = response.data.data.sort((a, b) => {
-                        const dateA = new Date(a.bookingDate + ' ' + a.startTime);
-                        const dateB = new Date(b.bookingDate + ' ' + b.startTime);
-                        return dateB - dateA; // Descending order
-                    });
-                    setRoomRequests(sortedData);
-                }
-            } catch (error) {
-                console.error('Error fetching room requests:', error);
-            }
-        };
-
-        fetchRoomRequests();
-    }, []);
+      const fetchRoomRequests = async () => {
+          try {
+              const response = await axios.get('/api/v1/classroom/bookings/pending');
+              console.log("API Response:", response.data); // Check the API response
+              
+              if (response.data && response.data.data) {
+                  const sortedData = response.data.data.sort((a, b) => {
+                      const dateA = new Date(a.bookingDate + ' ' + a.startTime);
+                      const dateB = new Date(b.bookingDate + ' ' + b.startTime);
+                      return dateB - dateA; // Descending order
+                  });
+                  console.log("Sorted Data:", sortedData); // Check sorted data
+                  setRoomRequests(sortedData);
+              } else {
+                  console.warn("Data is missing in the response!");
+              }
+          } catch (error) {
+              console.error('Error fetching room requests:', error);
+          }
+      };
+  
+      fetchRoomRequests();
+  }, []);
+  
 
     // Handle Approve
     const handleApprove = async (request) => {
@@ -54,6 +59,8 @@ const AdminRoomRequests = () => {
 
     // Render table rows dynamically
     const renderTableRows = (data) => {
+      console.log("Data", data);
+      
         return data.map((request) => (
             <tr key={request._id} className="hover:bg-gray-100">
                 <td className="px-4 py-2">{request.student?.fullName || 'N/A'}</td>

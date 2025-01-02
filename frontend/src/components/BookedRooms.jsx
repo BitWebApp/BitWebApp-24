@@ -8,14 +8,24 @@ export default function BookedRooms() {
     fetchBookings();
   }, []);
 
+  function formatReadableDate(isoDate) {
+    const date = new Date(isoDate);
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString('en-US', options);
+  }
   const fetchBookings = async () => {
     try {
       const response = await axios.get("/api/v1/classroom/allBookings");
+      console.log("Response ", response.data);
+
       setBookings(response.data);
     } catch (error) {
       console.error("Failed to fetch booked rooms.");
     }
   };
+
+  console.log("Printing bookings", bookings);
+
 
   return (
     <div className="p-8">
@@ -32,10 +42,10 @@ export default function BookedRooms() {
         <tbody>
           {bookings.map((booking, index) => (
             <tr key={index}>
-              <td>{booking.date}</td>
-              <td>{booking.startTime}</td>
-              <td>{booking.endTime}</td>
-              <td>{booking.studentName}</td>
+              <td className="px-6 py-4 text-md text-gray-900">{formatReadableDate(booking.bookingDate)}</td>
+              <td className="px-6 py-4 text-md text-gray-900">{booking.startTime}</td>
+              <td className="px-6 py-4 text-md text-gray-900">{booking.endTime}</td>
+              <td className="px-6 py-4 text-md text-gray-900">{booking.student.fullName}</td>
             </tr>
           ))}
         </tbody>

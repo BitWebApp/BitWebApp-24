@@ -17,9 +17,9 @@ export default function ClassroomForm() {
   const navigate = useNavigate();
 
   const classroomOptions = {
-    "Main Building": ["212", "213", "214"],
-    "RnD": ["Lab 1", "Lab 2", "Lab 3"],
-    "Lecture Hall": ["LH1", "LH2"],
+    "Main Building": ["201", "202", "203", "204", "205", "206", "207", "208", "209", "210", "211", "212", "213", "214", "215", "216", "217", "218", "219", "231"],
+    "RnD": ["Lab 1", "Lab 2", "Lab 3", "Lab 4", "Lab 5", "Lab 6", "Lab 7"],
+    "Lecture Hall": ["LH1", "LH2", "LH3", "LH4"],
     "Cat Hall": ["CAT HALL"],
   };
 
@@ -180,7 +180,7 @@ export default function ClassroomForm() {
               className={`bg-black text-white px-6 py-3 rounded-md ${loading && "opacity-70"}`}
               disabled={loading}
             >
-              {loading ? <ClipLoader size={24} color="#ffffff" /> : "Save"}
+              {loading ? <ClipLoader size={24} color="#ffffff" /> : "Request"}
             </button>
           </div>
         </form>

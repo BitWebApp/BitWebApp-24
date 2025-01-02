@@ -5,7 +5,7 @@ import {
   getPendingBookings, 
   updateBookingStatus,
   getApprovedBookings,
-  getRejectedBookings 
+  getRejectedBookings,
 } from "../controllers/classroom.controller.js";
 import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
 
@@ -14,6 +14,7 @@ const router = express.Router();
 // Student routes
 router.post("/", verifyJWT, createBookingRequest); // Submit booking request
 router.get("/student", verifyJWT, getStudentBookings); // View student's booking requests
+router.get("/allBookings", verifyJWT, getApprovedBookings);
 
 // Admin routes
 // Get all pending bookings
