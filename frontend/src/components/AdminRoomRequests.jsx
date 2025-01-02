@@ -7,7 +7,12 @@ const AdminRoomRequests = () => {
     const [rejectedRooms, setRejectedRooms] = useState([]);
     const [showRejected, setShowRejected] = useState(false);
     const [showBooked, setShowBooked] = useState(false);
-
+    
+    function formatReadableDate(isoDate) {
+        const date = new Date(isoDate);
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return date.toLocaleDateString('en-US', options);
+    }
     // Fetch all room requests (Pending status)
     useEffect(() => {
         const fetchRoomRequests = async () => {
@@ -63,7 +68,7 @@ const AdminRoomRequests = () => {
                 <td className="px-4 py-2">{request.rollNumber}</td>
                 <td className="px-4 py-2">{request.building}</td>
                 <td className="px-4 py-2">{request.classroomNumber}</td>
-                <td className="px-4 py-2">{request.bookingDate}</td>
+                <td className="px-4 py-2">{formatReadableDate(request.bookingDate)}</td>
                 <td className="px-4 py-2">{request.startTime}</td>
                 <td className="px-4 py-2">{request.endTime}</td>
                 <td className="px-4 py-2 max-w-xs overflow-auto">{request.purpose}</td>
@@ -166,7 +171,7 @@ const AdminRoomRequests = () => {
                     }}
                     className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                 >
-                    Show New Requests
+                    Show Pending Requests
                 </button>
                 <button
                     onClick={() => {
