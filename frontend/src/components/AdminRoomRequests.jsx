@@ -12,14 +12,16 @@ const AdminRoomRequests = () => {
     useEffect(() => {
         const fetchRoomRequests = async () => {
             try {
-                const response = await axios.get('/api/v1/classroom/bookings/pending');
-                if (response.data && response.data.data) {
+                const response = await axios.get('/api/v1/classroom/bookings/pending',{ withCredentials: true });
+                console.log("fetch data is",response.data);
+                if (response.data && response.data) {
                     // Fetch student names from populated data
-                    const sortedData = response.data.data.sort((a, b) => {
+                    const sortedData = response.data.sort((a, b) => {
                         const dateA = new Date(a.bookingDate + ' ' + a.startTime);
                         const dateB = new Date(b.bookingDate + ' ' + b.startTime);
                         return dateB - dateA; // Descending order
                     });
+                    console.log("sorted data is",sortedData);
                     setRoomRequests(sortedData);
                 }
             } catch (error) {
@@ -51,7 +53,8 @@ const AdminRoomRequests = () => {
             console.error('Error rejecting request:', error);
         }
     };
-
+    
+    // console.log("roomrequest is",roomRequests)
     // Render table rows dynamically
     const renderTableRows = (data) => {
         return data.map((request) => (

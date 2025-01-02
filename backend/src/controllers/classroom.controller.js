@@ -6,7 +6,8 @@ import {ApiResponse} from "../utils/ApiResponse.js";
 // Submit a classroom booking request
 export const createBookingRequest = asyncHandler(async (req, res) => {
   const { building, classroomNumber, bookingDate, startTime, endTime, purpose } = req.body;
-
+  
+  try{
   const userId = req.user._id; 
   console.log("Request", req);
   
@@ -44,15 +45,24 @@ export const createBookingRequest = asyncHandler(async (req, res) => {
   });
 
   res.status(201).json(new ApiResponse(201, booking, "Booking request submitted successfully."));
+}catch(err){
+  console.log("error in controller",err);
+  res.status(500).json({ message: "Error fetching pending bookings", error });
+}
 });
 
 // Get a student's booking requests
 export const getStudentBookings = asyncHandler(async (req, res) => {
+  try{
   const bookings = await ClassroomBooking.find({ student: req.user._id });
 
   res
     .status(200)
     .json(new ApiResponse(200, bookings, "Student booking requests fetched successfully."));
+  }catch(err){
+    console.log("error in controler",err);
+    res.status(500).json({ message: "Error fetching pending bookings", error });
+  }
 });
 
 // Fetch all pending bookings
