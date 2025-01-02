@@ -86,11 +86,7 @@ export default function useLinks() {
     },
     { text: "Internships", icon: <HiBriefcase />, to: "/db/internship-form" },
     { text: "Interview Experience", icon: <HiBriefcase />, to: "/db/interview" },
-    { 
-      text: "Internships", 
-      icon: <HiBriefcase />, 
-      to: "/db/internship-form" 
-    },
+   
     { 
       text: "Request Classroom", 
       icon: <HiBriefcase />, 
