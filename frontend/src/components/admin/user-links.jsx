@@ -39,20 +39,36 @@ export default function useLinks() {
   const isAdmin = useUserRole();
 
   const additionalLinks = [
-    { text: "Dashboard", icon: <HiHome />, to: "/db" },
+    { 
+      text: "Dashboard", 
+      icon: <HiHome />, 
+      to: "/db" 
+    },
     {
-      text: "Academic Records",
+      text: "Academic Records", 
       icon: <HiAcademicCap />,
       to: "/db/academic-table",
     },
-    { text: "Backlogs", icon: <HiAcademicCap />, to: "/db/backlogs" },
-    { text: "PE-Course", icon: <HiAcademicCap />, to: "/db/PE-form" },
+    { 
+      text: "Backlogs", 
+      icon: <HiAcademicCap />, 
+      to: "/db/backlogs" 
+    },
+    { 
+      text: "PE-Course", 
+      icon: <HiAcademicCap />, 
+      to: "/db/PE-form" 
+    },
     {
       text: "Awards & Achievements",
       icon: <HiBadgeCheck />,
       to: "/db/award-form",
     },
-    { text: "Examinations", icon: <HiDocumentReport />, to: "/db/exam-form" },
+    { 
+      text: "Examinations", 
+      icon: <HiDocumentReport />, 
+      to: "/db/exam-form" 
+    },
     {
       text: "Higher Education",
       icon: <HiAcademicCap />,
@@ -69,13 +85,24 @@ export default function useLinks() {
       to: "/db/project-form",
     },
     { text: "Internships", icon: <HiBriefcase />, to: "/db/internship-form" },
-    { text: "Interview Experience", icon: <HiBriefcase />, to: "/db/interview" },
   ];
 
   const adminLinks = [
-    { text: "Dashboard", icon: <HiHome />, to: "/db" },
-    { text: "Student Details", icon: <HiUser />, to: "/db/student-table" },
-    { text: "Verify Users", icon: <HiUser />, to: "/verify-users" },
+    { 
+      text: "Dashboard", 
+      icon: <HiHome />, 
+      to: "/db" 
+    },
+    { 
+      text: "Student Details", 
+      icon: <HiUser />, 
+      to: "/db/student-table" 
+    },
+    { 
+      text: "Verify Users", 
+      icon: <HiUser />, 
+      to: "/verify-users" 
+    },
     {
       text: "Academic Records",
       icon: <HiAcademicCap />,
@@ -91,7 +118,11 @@ export default function useLinks() {
       icon: <HiBadgeCheck />,
       to: "/db/award-table",
     },
-    { text: "Examinations", icon: <HiDocumentReport />, to: "/db/exam-table" },
+    { 
+      text: "Examinations", 
+      icon: <HiDocumentReport />, 
+      to: "/db/exam-table" 
+    },
     {
       text: "Higher Education",
       icon: <HiAcademicCap />,
@@ -116,6 +147,11 @@ export default function useLinks() {
       text: "Internship Records",
       icon: <HiBriefcase />,
       to: "/db/internship-table",
+    },
+    {
+      text: "Room Allocations",
+      icon: <HiBriefcase />,
+      to: "/db/admin-room-request",
     },
     {
       text: "Student Reviews",

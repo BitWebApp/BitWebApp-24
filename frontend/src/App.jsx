@@ -47,12 +47,17 @@ import BacklogTable from "./components/Backlogtable";
 import PECourseForm from "./components/PECourseForm";
 import PeCoursesTable from "./components/PEtable";
 import PEAdminTable from "./components/PE-admin-table"
+import ClassroomForm from "./components/ClassroomForm";
+import RoomStatus from "./components/RoomStatus";
+import BookedRooms from "./components/BookedRooms";
+import AdminRoomRequests from "./components/AdminRoomRequests";
+
 export default function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/public-user" element={<Dashboard/>}/>
+        <Route path="/public-user" element={<Dashboard />} />
         <Route path="/log" element={<Login />} />
         <Route
           path="/db"
@@ -72,6 +77,13 @@ export default function App() {
             <Route path="placement-two" element={<PlacementTwo />} />
             <Route path="placement-three" element={<PlacementThree />} />
           </Route>
+
+          <Route path="classroom-form" element={<ClassroomForm />} />
+          <Route path="room-status" element={<RoomStatus />} />
+          <Route path="booked-rooms" element={<BookedRooms />} />
+          <Route path="admin-room-request" element={<AdminRoomRequests />} />
+          
+
           <Route path="higher-education" element={<HigherEducation />} />
           <Route path="exam-table" element={<ExamTable />} />
           <Route path="project-form" element={<ProjectForm />} />
@@ -87,12 +99,12 @@ export default function App() {
           <Route path="internship-form-table" element={<InternTable />} />
           <Route path="internship-table" element={<Internshiptable />} />
           <Route path="student-award-table" element={<StudentAwardTable />} />
-          <Route path="PE-Form" element={<PECourseForm/>} />
-          <Route path="PE-table" element={<PeCoursesTable/>} />
-          <Route path="PE-admin-table" element={<PEAdminTable/>}/>
-          <Route path="backlogs" element={<AddBacklog/>} />
+          <Route path="PE-Form" element={<PECourseForm />} />
+          <Route path="PE-table" element={<PeCoursesTable />} />
+          <Route path="PE-admin-table" element={<PEAdminTable />} />
+          <Route path="backlogs" element={<AddBacklog />} />
           <Route path="review" element={<Review />} />
-          <Route path="backlogs-table" element={<BacklogTable/>} />
+          <Route path="backlogs-table" element={<BacklogTable />} />
         </Route>
         <Route path="verify-users" element={<VerifyUsers />} />
         <Route path="/sg" element={<Signup />} />

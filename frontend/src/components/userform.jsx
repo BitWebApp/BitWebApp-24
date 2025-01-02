@@ -21,10 +21,14 @@ export default function UserForm() {
     atcoder: ""
   });
   const [resume, setResume] = useState(null);
-  const [user, setUser] = useState(null);
+  const [user, setUser ] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [profilePicture, setProfilePicture] = useState(null);
   const [availableSections, setAvailableSections] = useState([]);
+  
+  // Alumni section state
+  const [graduationYear, setGraduationYear] = useState("");
+  const [workExperiences, setWorkExperiences] = useState([]);
 
   useEffect(() => {
     axios.get("/api/v1/users/get-user")
@@ -37,7 +41,7 @@ export default function UserForm() {
         setMobileNumber(userData.mobileNumber);
         setSemester(userData.semester);
         setCgpa(userData.cgpa);
-        setabcId(userData.abcId)
+        setabcId(userData.abcId);
         setlinkedin(userData.linkedin || "");
         setCodingProfiles({
           github: userData.codingProfiles?.github || "",
@@ -46,8 +50,12 @@ export default function UserForm() {
           codechef: userData.codingProfiles?.codechef || "",
           atcoder: userData.codingProfiles?.atcoder || "",
         });
-        setUser(userData);
+        setUser (userData);
         setAvailableSectionsBasedOnBranch(userData.branch);
+        if (userData.semester === "Graduated") {
+          setGraduationYear(userData.graduationYear || "");
+          setWorkExperiences(userData.workExperiences || []);
+        }
       })
       .catch(error => {
         console.log(error);
@@ -86,10 +94,14 @@ export default function UserForm() {
     if (profilePicture) {
       formData.append("image", profilePicture);
     }
+    if (semester === "Graduated") {
+      formData.append("graduationYear", graduationYear);
+      formData.append("workExperiences", JSON.stringify(workExperiences));
+    }
 
     axios.patch(`/api/v1/users/update`, formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        ' Content-Type': 'multipart/form-data',
       },
     })
       .then(response => {
@@ -125,7 +137,19 @@ export default function UserForm() {
     });
     setResume(null);
     setProfilePicture(null);
+    setGraduationYear("");
+    setWorkExperiences([]);
     setIsEditMode(false);
+  };
+
+  const addWorkExperience = () => {
+    setWorkExperiences([...workExperiences, { companyName: "", startYear: "", endYear: "", role: "", description: "" }]);
+  };
+
+  const handleExperienceChange = (index, field, value) => {
+    const updatedExperiences = [...workExperiences];
+    updatedExperiences[index][field] = value;
+    setWorkExperiences(updatedExperiences);
   };
 
   return (
@@ -199,24 +223,26 @@ export default function UserForm() {
               disabled={!isEditMode}
               placeholder="Enter your mobile number"
             />
-              <label>Semester</label>
-              <select
-                value={semester}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setSemester(e.target.value)}
-                disabled={!isEditMode}
-              >
-                <option value="">Select Semester</option>
-                <option value="I">I</option>
-                <option value="II">II</option>
-                <option value="III">III</option>
-                <option value="IV">IV</option>
-                <option value="V">V</option>
-                <option value="VI">VI</option>
-                <option value="VII">VII</option>
-                <option value="VIII">VIII</option>
-                <option value="Graduated">Graduated</option>
-              </select>
+
+            {/* Semester */}
+            <label>Semester</label>
+            <select
+              value={semester}
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+              onChange={(e) => setSemester(e.target.value)}
+              disabled={!isEditMode}
+            >
+              <option value="">Select Semester</option>
+              <option value="I">I</option>
+              <option value="II">II</option>
+              <option value="III">III</option>
+              <option value="IV">IV</option>
+              <option value="V">V</option>
+              <option value="VI">VI</option>
+              <option value="VII">VII</option>
+              <option value="VIII">VIII</option>
+              <option value="Graduated">Graduated</option>
+            </select>
 
             {/* CGPA */}
             <label>CGPA</label>
@@ -230,7 +256,7 @@ export default function UserForm() {
               placeholder="Enter your CGPA"
             />
 
-            {/* ABC ID*/}
+            {/* ABC ID */}
             <label>ABC ID</label>
             <input
               value={abcId}
@@ -317,6 +343,81 @@ export default function UserForm() {
               disabled={!isEditMode}
             />
 
+            {/* Alumni Section */}
+            {semester === "Graduated" && (
+              <div className="mt-5">
+ <h3 className="text-2xl font-semibold mb-4">Alumni Section</h3>
+                <label>Graduation Year</label>
+                <input
+                  type="text"
+                  value={graduationYear}
+                  className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+                  onChange={(e) => setGraduationYear(e.target.value)}
+                  disabled={!isEditMode}
+                  placeholder="Enter your graduation year"
+                />
+
+                <h4 className="text-xl font-semibold mb-2">Work Experiences</h4>
+                {workExperiences.map((experience, index) => (
+                  <div key={index} className="mb-4 border p-4 rounded">
+                    <label>Company Name</label>
+                    <input
+                      type="text"
+                      value={experience.companyName}
+                      className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+                      onChange={(e) => handleExperienceChange(index, 'companyName', e.target.value)}
+                      disabled={!isEditMode}
+                      placeholder="Enter company name"
+                    />
+                    <label>Start Year</label>
+                    <input
+                      type="text"
+                      value={experience.startYear}
+                      className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+                      onChange={(e) => handleExperienceChange(index, 'startYear', e.target.value)}
+                      disabled={!isEditMode}
+                      placeholder="Enter start year"
+                    />
+                    <label>End Year</label>
+                    <input
+                      type="text"
+                      value={experience.endYear}
+                      className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+                      onChange={(e) => handleExperienceChange(index, 'endYear', e.target.value)}
+                      disabled={!isEditMode}
+                      placeholder="Enter end year"
+                    />
+                    <label>Role</label>
+                    <input
+                      type="text"
+                      value={experience.role}
+                      className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+                      onChange={(e) => handleExperienceChange(index, 'role', e.target.value)}
+                      disabled={!isEditMode}
+                      placeholder="Enter your role"
+                    />
+                    <label>Description</label>
+                    <textarea
+                      value={experience.description}
+                      className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+                      onChange={(e) => handleExperienceChange(index, 'description', e.target.value)}
+                      disabled={!isEditMode}
+                      placeholder="Enter job description"
+                    />
+                  </div>
+                ))}
+                {isEditMode && (
+                  <button
+                    type="button"
+                    className="bg-blue-500 text-white rounded-md p-2"
+                    onClick={addWorkExperience}
+                  >
+                    + Add Work Experience
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Buttons */}
             <div className="w-full flex items-center justify-between mt-4">
               {isEditMode ? (
@@ -335,7 +436,6 @@ export default function UserForm() {
               )}
             </div>
           </form>
-
         </div>
       </div>
     </div>

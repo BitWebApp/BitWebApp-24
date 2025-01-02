@@ -45,4 +45,8 @@ app.use('/api/v1', reviewRoutes);
 
 import backlogRoutes from './routes/backlog.routes.js'
 app.use('/api/v1/backlogs', backlogRoutes)
+
+import classroomRouter from "./routes/classroom.routes.js";
+app.use("/api/v1/classroom", classroomRouter);
+
 export { app };
