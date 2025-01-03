@@ -9,18 +9,9 @@ const About = () => {
             ABOUT THE WEB APP
           </h2>
           <p className="text-sm md:text-xl text-gray-700 leading-relaxed">
-            The academic web app for BIT Mesra College is a digital gateway to a
-            world of knowledge and opportunities. Seamlessly blending
-            functionality with user-friendly design, it offers students and
-            faculty a centralized platform for academic pursuits. With intuitive
-            navigation, students can access course materials, submit
-            assignments, and track their academic progress effortlessly. Faculty
-            members utilize its robust features for grading, scheduling, and
-            communication with students. Beyond academics, the app serves as a
-            hub for campus announcements, event updates, and community
-            engagement. With its responsive interface and comprehensive
-            features, the BIT Mesra academic web app enriches the college
-            experience, fostering a dynamic learning environment.
+          Bitacademia is an innovative academic management platform designed to streamline and enhance the educational experience for students, faculty, and administrators at BIT Mesra. It provides a centralized system for managing academic records, facilitating communication, and offering personalized insights to improve academic outcomes.
+
+The platform goes beyond traditional academic portals by integrating cutting-edge features such as AI-driven performance analytics, personalized dashboards, and a dedicated internship and placement portal. With Bitacademia, users can access essential academic resources, manage profiles, track achievements, and participate in community-driven discussions, all within a seamless digital environment.
           </p>
         </div>
       </div>
