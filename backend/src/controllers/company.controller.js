@@ -75,4 +75,19 @@ const assignCompany = asyncHandler(async (req, res) => {
   }
 });
 
-export { addCompany, assignCompany, getAllCompanies };
+const getUserCompanies = asyncHandler(async (req, res) => {
+  const requestedUser = req.user;
+  const user = await User.findById(requestedUser._id);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  const companies = await Company.find({ _id: { $in: user.companyInterview } });
+  if (!companies) {
+    throw new ApiError(404, "No companies found");
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, companies, "Companies fetched successfully"));
+});
+
+export { addCompany, assignCompany, getAllCompanies, getUserCompanies };
