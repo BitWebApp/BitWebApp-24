@@ -1,12 +1,11 @@
 import rateLimit from "express-rate-limit";
 
-const createRateLimiter = (options) => {
+export const createRateLimiter = ({ windowMs, max }) => {
   return rateLimit({
-    windowMs: options.windowMs || 15 * 60 * 1000,
-    limit: options.max || 100,
+    windowMs,
+    max,
+    keyGenerator: (req) => req.ip,
     standardHeaders: true,
     legacyHeaders: false,
   });
 };
-
-export { createRateLimiter };
