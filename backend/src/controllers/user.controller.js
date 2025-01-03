@@ -231,7 +231,7 @@ const loginUser = asyncHandler(async (req, res) => {
     );
 });
 export const otpForgotPass = asyncHandler(async (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   const { email } = req.body;
   console.log(email);
   if (!email) {
@@ -494,7 +494,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   const _id = req?.user?._id;
   const user = await User.findById({ _id });
   if (!user) throw new ApiError(404, "user not found");
-  console.log(user)
+  // console.log(user)
   res.status(200).json(new ApiResponse(200, user, "user fetched"));
 });
 
