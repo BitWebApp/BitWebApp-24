@@ -161,10 +161,21 @@ export default function useLinks() {
       to: "/db/admin-room-request",
     },
     {
+      text: "Companies List",
+      icon: <HiArchive />,
+      to: "/db/companies-table",
+    },
+    {
+      text: "Assign Company",
+      icon: <HiBriefcase />,
+      to: "/db/assign-company",
+    },
+    {
       text: "Student Reviews",
       icon: <HiArchive />,
       to: "/db/review",
     },
+
   ];
 
   return isAdmin ? adminLinks : additionalLinks;
