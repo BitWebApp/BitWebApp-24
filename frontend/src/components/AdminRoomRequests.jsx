@@ -8,6 +8,12 @@ const AdminRoomRequests = () => {
     const [showRejected, setShowRejected] = useState(false);
     const [showBooked, setShowBooked] = useState(false);
 
+    function formatReadableDate(isoDate) {
+        const date = new Date(isoDate);
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return date.toLocaleDateString('en-US', options);
+      }
+
     // Fetch all room requests (Pending status)
     useEffect(() => {
       const fetchRoomRequests = async () => {
@@ -15,8 +21,8 @@ const AdminRoomRequests = () => {
               const response = await axios.get('/api/v1/classroom/bookings/pending');
               console.log("API Response:", response.data); // Check the API response
               
-              if (response.data && response.data.data) {
-                  const sortedData = response.data.data.sort((a, b) => {
+              if (response.data) {
+                  const sortedData = response.data.sort((a, b) => {
                       const dateA = new Date(a.bookingDate + ' ' + a.startTime);
                       const dateB = new Date(b.bookingDate + ' ' + b.startTime);
                       return dateB - dateA; // Descending order
@@ -34,12 +40,41 @@ const AdminRoomRequests = () => {
       fetchRoomRequests();
   }, []);
   
+  // Fetch all approved bookings
+  const fetchBookedRooms = async () => {
+    try {
+        const response = await axios.get('/api/v1/classroom/bookings/approved');
+        if (response.data) {
+            const sortedData = response.data.sort(
+                (a, b) => new Date(b.bookingDate) - new Date(a.bookingDate)
+            );
+            setBookedRooms(sortedData);
+        }
+    } catch (error) {
+        console.error('Error fetching approved bookings:', error);
+    }
+};
 
+// Fetch all rejected bookings
+const fetchRejectedRooms = async () => {
+    try {
+        const response = await axios.get('/api/v1/classroom/bookings/rejected');
+        if (response.data) {
+            const sortedData = response.data.sort(
+                (a, b) => new Date(b.bookingDate) - new Date(a.bookingDate)
+            );
+            setRejectedRooms(sortedData);
+        }
+    } catch (error) {
+        console.error('Error fetching rejected bookings:', error);
+    }
+};
     // Handle Approve
     const handleApprove = async (request) => {
         try {
-            await axios.put(`/api/v1/classroom/bookings/${request._id}/approve`);
-            setBookedRooms([...bookedRooms, { ...request, status: 'Approved' }]);
+            await axios.put(`/api/v1/classroom/bookings/${request._id}/approve`, {withCredentials: true});
+
+            // setBookedRooms([...bookedRooms, { ...request, status: 'Approved' }]);
             setRoomRequests(roomRequests.filter((r) => r._id !== request._id));
         } catch (error) {
             console.error('Error approving request:', error);
@@ -49,7 +84,7 @@ const AdminRoomRequests = () => {
     // Handle Reject
     const handleReject = async (request) => {
         try {
-            await axios.put(`/api/v1/classroom/bookings/${request._id}/reject`);
+            await axios.put(`/api/v1/classroom/bookings/${request._id}/reject`, {withCredentials: true});
             setRejectedRooms([...rejectedRooms, { ...request, status: 'Rejected' }]);
             setRoomRequests(roomRequests.filter((r) => r._id !== request._id));
         } catch (error) {
@@ -65,9 +100,10 @@ const AdminRoomRequests = () => {
             <tr key={request._id} className="hover:bg-gray-100">
                 <td className="px-4 py-2">{request.student?.fullName || 'N/A'}</td>
                 <td className="px-4 py-2">{request.rollNumber}</td>
-                <td className="px-4 py-2">{request.building}</td>
-                <td className="px-4 py-2">{request.classroomNumber}</td>
-                <td className="px-4 py-2">{request.bookingDate}</td>
+                <td className="px-4 py-2">
+                    {request.building} - {request.classroomNumber}
+                </td>
+                <td className="px-4 py-2">{formatReadableDate(request.bookingDate)}</td>
                 <td className="px-4 py-2">{request.startTime}</td>
                 <td className="px-4 py-2">{request.endTime}</td>
                 <td className="px-4 py-2 max-w-xs overflow-auto">{request.purpose}</td>
@@ -103,8 +139,7 @@ const AdminRoomRequests = () => {
                             <tr>
                                 <th className="border px-4 py-2">Student Name</th>
                                 <th className="border px-4 py-2">Roll Number</th>
-                                <th className="border px-4 py-2">Building</th>
-                                <th className="border px-4 py-2">Classroom</th>
+                                <th className="border px-4 py-2">Location</th>
                                 <th className="border px-4 py-2">Booking Date</th>
                                 <th className="border px-4 py-2">Start Time</th>
                                 <th className="border px-4 py-2">End Time</th>
@@ -126,8 +161,7 @@ const AdminRoomRequests = () => {
                             <tr>
                                 <th className="border px-4 py-2">Student Name</th>
                                 <th className="border px-4 py-2">Roll Number</th>
-                                <th className="border px-4 py-2">Building</th>
-                                <th className="border px-4 py-2">Classroom</th>
+                                <th className="border px-4 py-2">Location</th>
                                 <th className="border px-4 py-2">Booking Date</th>
                                 <th className="border px-4 py-2">Start Time</th>
                                 <th className="border px-4 py-2">End Time</th>
@@ -139,7 +173,7 @@ const AdminRoomRequests = () => {
                 </>
             )}
 
-            {/* Show Booked Rooms Table */}
+            {/* Show Approved Rooms Table */}
             {showBooked && (
                 <>
                     <h2 className="text-2xl font-semibold mb-4">All Booked Rooms</h2>
@@ -148,8 +182,7 @@ const AdminRoomRequests = () => {
                             <tr>
                                 <th className="border px-4 py-2">Student Name</th>
                                 <th className="border px-4 py-2">Roll Number</th>
-                                <th className="border px-4 py-2">Building</th>
-                                <th className="border px-4 py-2">Classroom</th>
+                                <th className="border px-4 py-2">Location</th>
                                 <th className="border px-4 py-2">Booking Date</th>
                                 <th className="border px-4 py-2">Start Time</th>
                                 <th className="border px-4 py-2">End Time</th>
@@ -174,6 +207,7 @@ const AdminRoomRequests = () => {
                 </button>
                 <button
                     onClick={() => {
+                        fetchRejectedRooms()
                         setShowRejected(true);
                         setShowBooked(false);
                     }}
@@ -183,6 +217,7 @@ const AdminRoomRequests = () => {
                 </button>
                 <button
                     onClick={() => {
+                        fetchBookedRooms()
                         setShowRejected(false);
                         setShowBooked(true);
                     }}
