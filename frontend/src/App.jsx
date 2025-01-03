@@ -6,6 +6,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import ForgotPassword from "./components/forgot-password";
+import InterviewForm from "./components/Interview-Form";
 import Layout from "./components/Layout";
 import Dashboard from "./components/Dashboard";
 import Login from "./components/Login";
@@ -87,6 +88,7 @@ export default function App() {
           <Route path="exam-table" element={<ExamTable />} />
           <Route path="project-form" element={<ProjectForm />} />
           <Route path="internship-form" element={<InternshipForm />} />
+          <Route path="interview" element={<InterviewForm />} />
           <Route path="Student-Table" element={<StudentTable />} />
           <Route path="academic-table" element={<AcademicTable />} />
           <Route path="award-table" element={<AwardTable />} />
