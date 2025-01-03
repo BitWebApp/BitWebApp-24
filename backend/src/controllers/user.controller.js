@@ -405,6 +405,8 @@ const updateUser1 = asyncHandler(async (req, res) => {
     atcoder,
     linkedin,
     abcId,
+    graduationYear,
+    workExp
   } = req.body;
 
   const updateFields = {};
@@ -456,6 +458,8 @@ const updateUser1 = asyncHandler(async (req, res) => {
     "codingProfiles.github": github,
     linkedin,
     abcId,
+    graduationYear,
+    workExp
   };
 
   // Add provided fields to updateFields
