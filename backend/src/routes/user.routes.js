@@ -20,6 +20,7 @@ import {
   changepassword,
 } from "../controllers/user.controller.js";
 import { addInterviewExp } from "../controllers/interview.controller.js";
+import { getUserCompanies } from "../controllers/company.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
 
@@ -34,13 +35,14 @@ router
 
 router.route("/login").post(loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
-router
-  .route("/update")
-  .patch(
-    verifyJWT,
-    upload.fields([{ name: "image", maxCount: 1 }, { name: "resume", maxCount: 1}]),
-    updateUser1
-  );
+router.route("/update").patch(
+  verifyJWT,
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "resume", maxCount: 1 },
+  ]),
+  updateUser1
+);
 router.route("/get-user").get(verifyJWT, getCurrentUser);
 router
   .route("/pone")
@@ -76,5 +78,6 @@ router.route("/get-pass-otp").post(otpForgotPass);
 router.route("/changepass").post(changepassword);
 
 //interview exp routes
+router.route("/get-user-companies").get(verifyJWT, getUserCompanies);
 router.route("/add-interview-exp").post(verifyJWT, addInterviewExp);
 export default router;
