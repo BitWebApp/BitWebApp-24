@@ -49,7 +49,7 @@ function Footer() {
     <div className="grid bg-gray-900 p-8 text-white md:grid-cols-3 gap-4">
       <div className="flex flex-col items-center justify-center text-center leading-7 border-b-2 border-gray-300 md:border-b-0 md:border-r-2 pr-4">
       <img
-        src="../../public/static/images/Birla_Institute_of_Technology_Mesra.png"
+        src="/static/images/Birla_Institute_of_Technology_Mesra.png"
         alt="BIT Mesra Logo"
         className="w-24 h-auto mb-4"
       />
