@@ -166,6 +166,11 @@ export default function useLinks() {
       to: "/db/companies-table",
     },
     {
+      text: "Assign Company",
+      icon: <HiBriefcase />,
+      to: "/db/assign-company",
+    },
+    {
       text: "Student Reviews",
       icon: <HiArchive />,
       to: "/db/review",

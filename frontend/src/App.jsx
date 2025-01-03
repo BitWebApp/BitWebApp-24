@@ -52,6 +52,7 @@ import RoomStatus from "./components/RoomStatus";
 import BookedRooms from "./components/BookedRooms";
 import AdminRoomRequests from "./components/AdminRoomRequests";
 import AdminAddCompanies from "./components/AdminAddCompanies";
+import CompanyAssignmentForm from "./components/CompanyAssignmentForm";
 
 export default function App() {
   return (
@@ -107,6 +108,7 @@ export default function App() {
           <Route path="review" element={<Review />} />
           <Route path="backlogs-table" element={<BacklogTable />} />
           <Route path="companies-table" element={<AdminAddCompanies />} />
+          <Route path="assign-company" element={<CompanyAssignmentForm />} />
         </Route>
         <Route path="verify-users" element={<VerifyUsers />} />
         <Route path="/sg" element={<Signup />} />
