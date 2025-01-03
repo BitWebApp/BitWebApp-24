@@ -5,9 +5,6 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 
 const addReview = asyncHandler(async (req, res) => {
-  const _id = req?.user?._id;
-  const user = await User.findById({ _id });
-  console.log("sent by:", user.rollNumber);
   const { name, rollNumber, content } = req.body;
   if (!name || !rollNumber || !content) {
     throw new ApiError(
