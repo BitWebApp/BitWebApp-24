@@ -11,9 +11,8 @@ export default function InterviewForm() {
   const [ctc, setCtc] = useState("");
   const [stipend, setStipend] = useState("");
   const [cgpaCriteria, setCgpaCriteria] = useState("");
-  const [experience, setExperience] = useState("");
-  const [document, setDocument] = useState(null);
-  const [refLinks, setRefLinks] = useState("");
+  const [experiences, setExperiences] = useState([""]);
+  const [referenceLinks, setReferenceLinks] = useState([""]);
   const [spin, setSpin] = useState(false);
   const [companies, setCompanies] = useState([]);
 
@@ -31,17 +30,56 @@ export default function InterviewForm() {
     fetchCompanies();
   }, []);
 
+  const handleAddExperience = () => {
+    setExperiences([...experiences, ""]);
+  };
+
+  const handleAddReferenceLink = () => {
+    setReferenceLinks([...referenceLinks, ""]);
+  };
+
+  const handleExperienceChange = (index, value) => {
+    const newExperiences = [...experiences];
+    newExperiences[index] = value;
+    setExperiences(newExperiences);
+  };
+
+  const handleReferenceLinkChange = (index, value) => {
+    const newReferenceLinks = [...referenceLinks];
+    newReferenceLinks[index] = value;
+    setReferenceLinks(newReferenceLinks);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const selectedCompany = companies.find(
+      (company) => company.companyName === companyName
+    );
+    if (!selectedCompany) {
+      toast.error("Please select a valid company!");
+      return;
+    }
 
-    const documentLink = document
-      ? `<a href="${URL.createObjectURL(
-          document
-        )}" target="_blank" style="margin-top: 10px;">(Click to View)</a>`
-      : "";
+    const experiencesHtml = experiences
+      .map((exp, index) => `
+        <p style="font-size: 16px; margin: 5px 0; color: #333;">
+          <strong>Experience ${index + 1}:</strong><br>
+          ${exp}
+        </p>
+      `)
+      .join('');
+
+    const referenceLinksHtml = referenceLinks
+      .map((link, index) => `
+        <p style="font-size: 16px; margin: 5px 0; color: #333;">
+          <strong>Reference Link ${index + 1}:</strong><br>
+          <a href="${link}" target="_blank">${link}</a>
+        </p>
+      `)
+      .join('');
 
     const htmlContent = `
-      <div style="text-align: left; padding: 20px;">
+      <div style="text-align: left; padding: 20px; max-height: 70vh; overflow-y: auto;">
         <p style="font-size: 18px; margin: 10px 0; color: #333;">
           <strong>Company Name:</strong> ${companyName}
         </p>
@@ -49,31 +87,30 @@ export default function InterviewForm() {
           <strong>Role:</strong> ${role}
         </p>
         <p style="font-size: 18px; margin: 10px 0; color: #333;">
-          <strong>CTC:</strong> ${ctc}
+          <strong>CTC:</strong> ${ctc || 'Not specified'}
         </p>
         <p style="font-size: 18px; margin: 10px 0; color: #333;">
-          <strong>Stipend:</strong> ${stipend}
+          <strong>Stipend:</strong> ${stipend || 'Not specified'}
         </p>
         <p style="font-size: 18px; margin: 10px 0; color: #333;">
-          <strong>CGPA Criteria:</strong> ${cgpaCriteria}
+          <strong>CGPA Criteria:</strong> ${cgpaCriteria || 'Not specified'}
         </p>
-        <p style="font-size: 18px; margin: 10px 0; color: #333;">
-          <strong>Experience:</strong> ${experience}
-        </p>
-        <p style="font-size: 18px; margin: 10px 0; color: #333;">
-          <strong>Supporting Document:</strong> ${documentLink}
-        </p>
-        <br/>
+        <div style="margin: 15px 0; border-top: 1px solid #eee; padding-top: 10px;">
+          <strong style="font-size: 18px; color: #333;">Experiences:</strong>
+          ${experiencesHtml}
+        </div>
+        <div style="margin: 15px 0; border-top: 1px solid #eee; padding-top: 10px;">
+          <strong style="font-size: 18px; color: #333;">Reference Links:</strong>
+          ${referenceLinksHtml}
+        </div>
       </div>
-      <p style="font-size: 17px; color: #666;">
-          Do you want to submit the form?
-        </p>
     `;
 
     Swal.fire({
-      title: "Are you sure?",
+      title: "Review Your Submission",
       html: htmlContent,
-      icon: "warning",
+      icon: "info",
+      width: '800px',
       showCancelButton: true,
       confirmButtonText: "Yes, submit it!",
       cancelButtonText: "No, cancel!",
@@ -82,11 +119,44 @@ export default function InterviewForm() {
       preConfirm: async () => {
         setSpin(true);
         try {
-          // Simulate API request here
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-          toast.success("Data uploaded successfully!");
+          const payload = {
+            companyId: selectedCompany._id,
+            role,
+            interviewYear: "2024",
+            cgpa: cgpaCriteria,
+            ctc,
+            stipend,
+            experience: experiences,
+            referenceMaterialLinks: referenceLinks
+          };
+
+          const response = await axios.post(
+            "/api/v1/users/add-interview-exp",
+            payload,
+            {
+              headers: {
+                "Content-Type": "application/json"
+              },
+            }
+          );
+
+          if (response.data.success) {
+            toast.success("Interview experience shared successfully!");
+            setCompanyName("");
+            setRole("");
+            setCtc("");
+            setStipend("");
+            setCgpaCriteria("");
+            setExperiences([""]);
+            setReferenceLinks([""]);
+          } else {
+            toast.error(
+              response.data.message || "Failed to submit interview experience!"
+            );
+          }
         } catch (err) {
-          toast.error("Error uploading data!");
+          console.error("Error submitting form:", err);
+          toast.error(err.response?.data?.message || "Error uploading data!");
         } finally {
           setSpin(false);
         }
@@ -132,6 +202,7 @@ export default function InterviewForm() {
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 required
               />
+
               <label>CTC</label>
               <input
                 type="text"
@@ -140,6 +211,7 @@ export default function InterviewForm() {
                 onChange={(e) => setCtc(e.target.value)}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
               />
+
               <label>Stipend</label>
               <input
                 type="text"
@@ -148,6 +220,7 @@ export default function InterviewForm() {
                 onChange={(e) => setStipend(e.target.value)}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
               />
+
               <label>CGPA Criteria</label>
               <input
                 type="text"
@@ -156,30 +229,49 @@ export default function InterviewForm() {
                 onChange={(e) => setCgpaCriteria(e.target.value)}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
               />
-              <label>Experience</label>
-              <textarea
-                placeholder="Describe your interview experience"
-                value={experience}
-                onChange={(e) => setExperience(e.target.value)}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-              ></textarea>
-              <label>Reference Links</label>
-              <input
-                type="text"
-                placeholder="Enter the Reference Links"
-                value={refLinks}
-                onChange={(e) => setRefLinks(e.target.value)}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                required
-              />
-              <label className="mt-4">Upload Supporting Document</label>
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setDocument(e.target.files[0])}
-              />
+
+              {experiences.map((experience, index) => (
+                <div key={index} className="mb-4">
+                  <label>Round {index + 1} Experience</label>
+                  <textarea
+                    placeholder="Describe your interview experience"
+                    value={experience}
+                    onChange={(e) => handleExperienceChange(index, e.target.value)}
+                    className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
+                  ></textarea>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={handleAddExperience}
+                className="py-2 px-4 text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 transition-all duration-200 mb-4"
+              >
+                Add More Experience
+              </button>
+
+              {referenceLinks.map((link, index) => (
+                <div key={index} className="mb-4">
+                  <label>Reference Link {index + 1}</label>
+                  <input
+                    type="text"
+                    placeholder="Enter the Reference Link"
+                    value={link}
+                    onChange={(e) => handleReferenceLinkChange(index, e.target.value)}
+                    className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
+                  />
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={handleAddReferenceLink}
+                className="py-2 px-4 text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 transition-all duration-200 mb-4"
+              >
+                Add More Reference Links
+              </button>
             </div>
+
             <div className="flex flex-row w-full mt-4">
               <button
                 type="submit"
