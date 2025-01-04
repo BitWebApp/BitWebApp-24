@@ -1,26 +1,44 @@
-import React, { useState } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
-import { ClipLoader } from 'react-spinners';
-import Swal from 'sweetalert2';
-import 'react-toastify/dist/ReactToastify.css';
+import React, { useState, useEffect } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import { ClipLoader } from "react-spinners";
+import Swal from "sweetalert2";
+import axios from "axios";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function InterviewForm() {
-  const [companyName, setCompanyName] = useState('');
-  const [role, setRole] = useState('');
-  const [ctc, setCtc] = useState('');
-  const [stipend, setStipend] = useState('');
-  const [cgpaCriteria, setCgpaCriteria] = useState('');
-  const [experience, setExperience] = useState('');
+  const [companyName, setCompanyName] = useState("");
+  const [role, setRole] = useState("");
+  const [ctc, setCtc] = useState("");
+  const [stipend, setStipend] = useState("");
+  const [cgpaCriteria, setCgpaCriteria] = useState("");
+  const [experience, setExperience] = useState("");
   const [document, setDocument] = useState(null);
-  const [refLinks,setrefLinks] = useState(null);
+  const [refLinks, setRefLinks] = useState("");
   const [spin, setSpin] = useState(false);
+  const [companies, setCompanies] = useState([]);
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const response = await axios.get("/api/v1/users/get-user-companies");
+        setCompanies(response.data.data || []);
+      } catch (error) {
+        console.error("Error fetching companies:", error);
+        toast.error("Failed to fetch company list!");
+      }
+    };
+
+    fetchCompanies();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const documentLink = document
-      ? `<a href="${URL.createObjectURL(document)}" target="_blank" style="margin-top: 10px;">(Click to View)</a>`
-      : '';
+      ? `<a href="${URL.createObjectURL(
+          document
+        )}" target="_blank" style="margin-top: 10px;">(Click to View)</a>`
+      : "";
 
     const htmlContent = `
       <div style="text-align: left; padding: 20px;">
@@ -53,12 +71,12 @@ export default function InterviewForm() {
     `;
 
     Swal.fire({
-      title: 'Are you sure?',
+      title: "Are you sure?",
       html: htmlContent,
-      icon: 'warning',
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: 'Yes, submit it!',
-      cancelButtonText: 'No, cancel!',
+      confirmButtonText: "Yes, submit it!",
+      cancelButtonText: "No, cancel!",
       buttonsStyling: true,
       showLoaderOnConfirm: true,
       preConfirm: async () => {
@@ -66,9 +84,9 @@ export default function InterviewForm() {
         try {
           // Simulate API request here
           await new Promise((resolve) => setTimeout(resolve, 2000));
-          toast.success('Data uploaded successfully!');
+          toast.success("Data uploaded successfully!");
         } catch (err) {
-          toast.error('Error uploading data!');
+          toast.error("Error uploading data!");
         } finally {
           setSpin(false);
         }
@@ -83,20 +101,28 @@ export default function InterviewForm() {
         <h3 className="text-xl text-black font-semibold">BITACADEMIA</h3>
         <div className="w-full flex flex-col">
           <div className="flex flex-col w-full mb-5">
-            <h3 className="text-3xl font-semibold mb-4">Share Your Interview Experience</h3>
+            <h3 className="text-3xl font-semibold mb-4">
+              Share Your Interview Experience
+            </h3>
             <p className="text-base mb-2">Please enter your details below.</p>
           </div>
           <form onSubmit={handleSubmit}>
             <div className="w-full flex flex-col">
               <label>Company Name</label>
-              <input
-                type="text"
-                placeholder="Enter the company name"
+              <select
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 required
-              />
+              >
+                <option value="">Select a company</option>
+                {companies.map((company, index) => (
+                  <option key={index} value={company.companyName}>
+                    {company.companyName}
+                  </option>
+                ))}
+              </select>
+
               <label>Role</label>
               <input
                 type="text"
@@ -137,12 +163,12 @@ export default function InterviewForm() {
                 onChange={(e) => setExperience(e.target.value)}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
               ></textarea>
-                  <label>Reference Links</label>
+              <label>Reference Links</label>
               <input
                 type="text"
                 placeholder="Enter the Reference Links"
                 value={refLinks}
-                onChange={(e) => setrefLinks(e.target.value)}
+                onChange={(e) => setRefLinks(e.target.value)}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 required
               />
@@ -159,7 +185,7 @@ export default function InterviewForm() {
                 type="submit"
                 className="w-full py-2 px-4 text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 transition-all duration-200"
               >
-                {spin ? <ClipLoader color="white" size={20} /> : 'Submit'}
+                {spin ? <ClipLoader color="white" size={20} /> : "Submit"}
               </button>
             </div>
           </form>
