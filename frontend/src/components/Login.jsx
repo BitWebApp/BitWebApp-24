@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import NavBar from './NavBar';
 
 export default function Login() {
   const [email, setemail] = useState("");
@@ -61,105 +62,110 @@ export default function Login() {
   };
 
   return (
-    <div className="w-full min-h-screen flex flex-col md:flex-row items-stretch">
-      <ToastContainer />
-      <div className="relative w-full md:w-1/2 flex-shrink-0 hidden md:block">
-        <img src="/static/images/bitphoto.JPG"
-          className="w-full h-full object-cover"
-          alt="bit-mesra"
-        />
-      </div>
-      <div className="w-full md:w-1/2 bg-white flex flex-col p-6 md:p-20 justify-between">
-        <h3 className="text-xl text-black font-semibold">BIT WEB APP</h3>
-
-        <div className="w-full flex flex-col max-w-[500px]">
-          <div className="flex flex-col w-full mb-5">
-            <h3 className="text-3xl font-semibold mb-4">Student-Login</h3>
-            <p className="text-base mb-2">Enter Your login details.</p>
-          </div>
-          <div className="w-full flex flex-col">
-            <label>Email</label>
-            <input
-              type="text"
-              placeholder="Enter Your email"
-              value={email}
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-              required
-              onChange={(e) => setemail(e.target.value)}
-            />
-            <div className="relative">
-              <label>Password</label>
+    <>
+      <NavBar />
+      <div className="w-full h-screen flex flex-col md:flex-row items-stretch overflow-hidden">
+        <ToastContainer />
+        <div className="relative w-full md:w-1/2 flex-shrink-0 hidden md:block">
+          <img
+            src="/static/images/bitphoto.JPG"
+            className="w-full h-full object-cover"
+            alt="bit-mesra"
+          />
+        </div>
+        <div className="w-full md:w-1/2 bg-gradient-to-b from-gray-50 to-white flex flex-col p-6 md:p-20 justify-between">
+          <h3 className="text-2xl font-bold text-blue-600 mb-4"> Welcome to BIT WEB APP </h3>
+          <div className="w-full flex flex-col max-w-[500px]">
+            <div className="flex flex-col w-full mb-6">
+              <h3 className="text-4xl font-semibold mb-4 text-gray-800">Student Login</h3>
+              <p className="text-lg mb-2 text-gray-600">Enter your login details below.</p>
+            </div>
+            <div className="w-full flex flex-col mb-4">
+              <label className="text-gray-700 text-sm mb-1">Email</label>
+              <input
+                type="text"
+                placeholder="Enter your email"
+                value={email}
+                className="w-full text-gray-800 py-3 px-4 border rounded-md focus:border-blue-500 focus:outline-none"
+                required
+                onChange={(e) => setemail(e.target.value)}
+              />
+            </div>
+            <div className="w-full flex flex-col mb-4 relative">
+              <label className="text-gray-700 text-sm mb-1">Password</label>
               <input
                 type={showPassword ? "text" : "password"}
-                placeholder="Enter Your Password"
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
+                placeholder="Enter your password"
+                className="w-full text-gray-800 py-3 px-4 border rounded-md focus:border-blue-500 focus:outline-none"
                 value={password}
                 required
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={handleKeyDown}
               />
               <button
-                className="absolute bottom-4 right-4 text-gray-600 hover:text-red-900 hover:text-black-1500"
+                className="absolute bottom-3 right-4 text-sm text-gray-500 hover:text-blue-600"
                 onClick={togglePasswordVisibility}
               >
                 {showPassword ? "Hide" : "Show"} Password
               </button>
             </div>
-          </div>
-          <div className="h-8"></div>
-
-          <div className="w-full flex items-center justify-between">
-            <div className="w-full flex items-center">
-              <input type="checkbox" className="w-4 h-4 mr-2" />
-              <p className="text-sm">Remember Me</p>
+            <div className="w-full flex items-center justify-between mb-6">
+              <div className="flex items-center">
+                <input type="checkbox" className="w-4 h-4 mr-2" />
+                <p className="text-sm text-gray-700">Remember Me</p>
+              </div>
+              <Link
+                to="/forgot-password"
+                className="text-sm font-medium text-red-500 hover:underline"
+              >
+                Forgot Password?
+              </Link>
             </div>
-            <p className="text-sm cursor-pointer underline underline-offset-2 font-medium whitespace-nowrap text-red-600">
-            <Link to="/forgot-password">Forgot Password</Link>
-            </p>
-          </div>
-
-          <div className="w-full flex flex-col my-4">
-            <button
-              className={`bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={handleLogin}
-              disabled={isLoading} 
-            >
-              {isLoading ? (
-                <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A8.003 8.003 0 014.01 4.545L2.586 6.01A9.96 9.96 0 002 12c0 5.523 4.477 10 10 10V16H6v1.291z"
-                  ></path>
-                </svg>
-              ) : (
-                "Log In"
-              )}
-            </button>
-          </div>
-          <div className="w-full items-center justify-center flex">
-            <p className="text-sm font-normal text-black">
-              Don't have an account?
-              <span className="font-semibold underline underline-offset cursor-pointer text-orange-600">
-                <Link to="/sg">Sign Up</Link>
-              </span>
-            </p>
+            <div className="w-full flex flex-col my-4">
+              <button
+                className={`bg-blue-600 text-white w-full rounded-md py-3 text-lg font-semibold hover:bg-blue-700 transition ${
+                  isLoading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                onClick={handleLogin}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A8.003 8.003 0 014.01 4.545L2.586 6.01A9.96 9.96 0 002 12c0 5.523 4.477 10 10 10V16H6v1.291z"
+                    ></path>
+                  </svg>
+                ) : (
+                  "Log In"
+                )}
+              </button>
+            </div>
+            <div className="w-full flex items-center justify-center mt-4">
+              <p className="text-sm text-gray-600">
+                Don't have an account?{" "}
+                <Link to="/sg" className="font-medium text-orange-600 hover:underline">
+                  Sign Up
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
-}
+};
