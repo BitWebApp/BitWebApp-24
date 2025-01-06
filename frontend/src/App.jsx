@@ -53,6 +53,7 @@ import BookedRooms from "./components/BookedRooms";
 import AdminRoomRequests from "./components/AdminRoomRequests";
 import AdminAddCompanies from "./components/AdminAddCompanies";
 import CompanyAssignmentForm from "./components/CompanyAssignmentForm";
+import Features from "./components/Features";
 
 export default function App() {
   return (
@@ -61,6 +62,7 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/public-user" element={<Dashboard />} />
         <Route path="/log" element={<Login />} />
+        <Route path="/features" element={<Features />} />
         <Route
           path="/db"
           element={
