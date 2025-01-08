@@ -54,10 +54,14 @@ import AdminRoomRequests from "./components/AdminRoomRequests";
 import AdminAddCompanies from "./components/AdminAddCompanies";
 import CompanyAssignmentForm from "./components/CompanyAssignmentForm";
 import Features from "./components/Features";
+import ScrollToTop from "./components/ScrollToTop";
 
 export default function App() {
   return (
     <Router>
+
+      <ScrollToTop />
+
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/public-user" element={<Dashboard />} />
