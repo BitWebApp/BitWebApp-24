@@ -51,4 +51,7 @@ app.use("/api/v1/backlogs", backlogRoutes);
 import classroomRouter from "./routes/classroom.routes.js";
 app.use("/api/v1/classroom", classroomRouter);
 
+import alumniRouter from "./routes/alumni.routes.js";
+app.use("/api/v1/alumni", alumniRouter);
+
 export { app };
