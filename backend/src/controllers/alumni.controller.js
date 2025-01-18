@@ -117,43 +117,43 @@ const getWorkExperiences = asyncHandler(async (req, res) => {
 // Get all alumni (admin only)
 const getAllAlumni = asyncHandler(async (req, res) => {
   try {
-      // Remove .lean() to preserve the full document structure
-      const alumni = await Alumni.find()
-          .populate("user", "email")
-          .select("-__v");
+    // Remove .lean() to preserve the full document structure
+    const alumni = await Alumni.find()
+      .populate("user", "email")
+      .select("-__v");
 
-      if (!alumni || alumni.length === 0) {
-          throw new ApiError(404, "No alumni records found");
-      }
+    if (!alumni || alumni.length === 0) {
+      throw new ApiError(404, "No alumni records found");
+    }
 
-      // Format the response for admin view
-      const formattedAlumni = alumni.map(record => {
-          // Convert to plain object while preserving arrays
-          const plainRecord = record.toObject();
-          
-          return {
-              ...plainRecord,
-              workExperiences: plainRecord.workExperiences 
-                  ? plainRecord.workExperiences.sort(
-                      (a, b) => new Date(b.startDate) - new Date(a.startDate)
-                  )
-                  : [],
-              totalExperiences: plainRecord.workExperiences 
-                  ? plainRecord.workExperiences.length 
-                  : 0
-          };
-      });
+    // Format the response for admin view
+    const formattedAlumni = alumni.map(record => {
+      // Convert to plain object while preserving arrays
+      const plainRecord = record.toObject();
 
-      return res
-          .status(200)
-          .json(new ApiResponse(
-              200,
-              formattedAlumni,
-              "All alumni records retrieved successfully"
-          ));
+      return {
+        ...plainRecord,
+        workExperiences: plainRecord.workExperiences
+          ? plainRecord.workExperiences.sort(
+            (a, b) => new Date(b.startDate) - new Date(a.startDate)
+          )
+          : [],
+        totalExperiences: plainRecord.workExperiences
+          ? plainRecord.workExperiences.length
+          : 0
+      };
+    });
+
+    return res
+      .status(200)
+      .json(new ApiResponse(
+        200,
+        formattedAlumni,
+        "All alumni records retrieved successfully"
+      ));
   } catch (error) {
-      console.error("Error in getAllAlumni:", error);
-      throw new ApiError(500, error.message || "Error retrieving alumni records");
+    console.error("Error in getAllAlumni:", error);
+    throw new ApiError(500, error.message || "Error retrieving alumni records");
   }
 });
 
@@ -161,13 +161,20 @@ const getAllAlumni = asyncHandler(async (req, res) => {
 const sendDonationEmail = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
-  const alumni = await Alumni.findOne({ user: userId });
+  const alumni = await Alumni.findOne({ user: userId })
+    .populate('user', 'email')
+    .exec();
+
   if (!alumni) {
     throw new ApiError(404, "Alumni profile not found");
   }
 
-  console.log("Printing alumni", alumni);
-  
+  if (!alumni.user?.email) {
+    throw new ApiError(400, "Alumni email not found");
+  }
+
+  // console.log("Printing alumni", alumni);
+
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -177,18 +184,75 @@ const sendDonationEmail = asyncHandler(async (req, res) => {
   });
 
   const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: "ankitvsv0311@gmail.com",
+    from: process.env.AUTH_EMAIL,
+    to: "ankitvsv0311@gmail.com", // CSE Department email
+    cc: alumni.user.email, // Alumni email
     subject: "Alumni Donation Interest",
-    text: `
-      Alumni Details:
-      Name: ${alumni.name}
-      Batch: ${alumni.batch}
-      Program: ${alumni.program}
-      Graduation Year: ${alumni.graduationYear}
-      
-      This alumni has expressed interest in making a donation to the institution.
-    `
+    html: `
+      <html>
+      <head>
+        <style>
+          .email-container {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 0 auto;
+            border: 1px solid #dddddd;
+            border-radius: 5px;
+            overflow: hidden;
+          }
+          .header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+          }
+          .content {
+            padding: 30px;
+            background-color: #ffffff;
+          }
+          .content p {
+            font-size: 18px;
+            margin: 0 0 15px;
+          }
+          .highlight {
+            font-weight: bold;
+            color: #007bff;
+          }
+          .footer {
+            background-color: #f2f2f2;
+            padding: 15px;
+            text-align: center;
+            font-size: 14px;
+            color: #888888;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="email-container">
+          <div class="header">
+            Alumni Donation Interest
+          </div>
+          <div class="content">
+            <p>Hello,</p>
+            <p>An alumni has expressed interest in making a donation to the institution. Below are their details:</p>
+            <p><span class="highlight">Name:</span> ${alumni.name}</p>
+            <p><span class="highlight">Email:</span> ${alumni.user.email}</p>
+            <p><span class="highlight">Batch:</span> ${alumni.batch}</p>
+            <p><span class="highlight">Program:</span> ${alumni.program}</p>
+            <p><span class="highlight">Graduation Year:</span> ${alumni.graduationYear}</p>
+            <p>Thank you for fostering a culture of giving and supporting our institution's growth and development.</p>
+            <p>Best regards,</p>
+            <p>TEAM BITAcademia</p>
+          </div>
+          <div class="footer">
+            &copy; BITAcademia 2024. All rights reserved.
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
   };
 
   await transporter.sendMail(mailOptions);
@@ -202,7 +266,10 @@ const sendDonationEmail = asyncHandler(async (req, res) => {
 const getAlumniProfile = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
-  const alumni = await Alumni.findOne({ user: userId });
+  const alumni = await Alumni.findOne({ user: userId })
+    .populate('user', 'email')
+    .exec();
+
   if (!alumni) {
     throw new ApiError(404, "Alumni profile not found");
   }
