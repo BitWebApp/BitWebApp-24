@@ -178,6 +178,10 @@ const userSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Academics",
     }],
+    alumni: [{
+      type: Schema.Types.ObjectId,
+      ref: "Alumni",
+    }],
     cgpa: {
       type: String,
       default: "",

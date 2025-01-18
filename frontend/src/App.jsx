@@ -55,6 +55,11 @@ import AdminAddCompanies from "./components/AdminAddCompanies";
 import CompanyAssignmentForm from "./components/CompanyAssignmentForm";
 import Features from "./components/Features";
 import ScrollToTop from "./components/ScrollToTop";
+import Alumni from "./components/Alumni";
+import AddWorkExperience from "./components/AddWorkExperience";
+import ShowWorkExperience from "./components/ShowWorkExperience";
+import ShowAllAlumni from "./components/ShowAllAlumni";
+import InterviewExperiences from "./components/InterviewExperiences";
 
 export default function App() {
   return (
@@ -77,6 +82,11 @@ export default function App() {
         >
           <Route index element={<Dashboard />} />
           <Route path="user-form" element={<Userform />} />
+          <Route path="alumni" element={<Alumni />} />
+          <Route path="add-work-experience" element={<AddWorkExperience />} />
+          <Route path="show-work-experience" element={<ShowWorkExperience />} />
+          <Route path="show-all-alumni" element={<ShowAllAlumni />} />
+          
           <Route path="academic-form" element={<Academicform />} />
           <Route path="admin-academic-form" element={<AdminAcademicRecords />} />
           <Route path="award-form" element={<Awardform />} />
@@ -115,6 +125,7 @@ export default function App() {
           <Route path="backlogs-table" element={<BacklogTable />} />
           <Route path="companies-table" element={<AdminAddCompanies />} />
           <Route path="assign-company" element={<CompanyAssignmentForm />} />
+          <Route path="interview-experiences" element={<InterviewExperiences />} />
         </Route>
         <Route path="verify-users" element={<VerifyUsers />} />
         <Route path="/sg" element={<Signup />} />
