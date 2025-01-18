@@ -53,4 +53,34 @@ const addInterviewExp = asyncHandler(async (req, res) => {
     );
 });
 
-export { addInterviewExp };
+const getAllInterviewExps = asyncHandler(async (req, res) => {
+  const { companyId, studentId, page = 1, limit = 10, sort = "-createdAt" } = req.query;
+
+  const filter = {};
+
+  if (companyId) {
+    filter.company = companyId;
+  }
+
+  if (studentId) {
+    filter.student = studentId;
+  }
+
+  const skip = (page - 1) * limit;
+
+  const interviewExps = await InterviewExp.find(filter)
+    .populate("company", "name")
+    .populate("student", "name email")
+    .sort(sort)
+    .skip(skip)
+    .limit(parseInt(limit, 10));
+
+  const totalRecords = await InterviewExp.countDocuments(filter);
+
+  return res.status(200).json(
+    new ApiResponse(200, { interviewExps, totalRecords }, "Interview experiences fetched successfully")
+  );
+});
+
+
+export { addInterviewExp , getAllInterviewExps};
