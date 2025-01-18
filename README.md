@@ -65,4 +65,4 @@ Faculty Incharge - Prof. Suvendu Kanungo, Department of CSE, BIT Mesra.
 5. Ankit Verma - Backend Developer
 6. Hritabhash Ray - Frontend Developer
 7. Garvit Raj - Backend Developer
-
+8. Chirag Bhuwalka - Frontend Developer
