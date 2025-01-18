@@ -21,6 +21,9 @@ const requestProjSchema = new Schema(
       type: Date,
       default: Date.now,
     },
+    doc: {
+      type: [String],
+    },
   },
   { timestamps: true }
 );

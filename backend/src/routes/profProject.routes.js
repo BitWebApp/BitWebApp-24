@@ -18,6 +18,8 @@ const router = express.Router();
 
 router.post("/apply", verifyJWT, applyToProject);  
 router.get("/student/applications", verifyJWT, getStudentApplications); 
+
+//both for admin and students
 router.get("/projects/summary", verifyJWT, getAllProjectsSummary); 
 router.get("/projects/:id", verifyJWT, getProjectDetails);
 
