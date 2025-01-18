@@ -57,6 +57,7 @@ import Alumni from "./components/Alumni";
 import AddWorkExperience from "./components/AddWorkExperience";
 import ShowWorkExperience from "./components/ShowWorkExperience";
 import ShowAllAlumni from "./components/ShowAllAlumni";
+import InterviewExperiences from "./components/InterviewExperiences";
 
 export default function App() {
   return (
@@ -118,6 +119,7 @@ export default function App() {
           <Route path="backlogs-table" element={<BacklogTable />} />
           <Route path="companies-table" element={<AdminAddCompanies />} />
           <Route path="assign-company" element={<CompanyAssignmentForm />} />
+          <Route path="interview-experiences" element={<InterviewExperiences />} />
         </Route>
         <Route path="verify-users" element={<VerifyUsers />} />
         <Route path="/sg" element={<Signup />} />

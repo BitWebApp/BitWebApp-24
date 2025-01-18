@@ -19,7 +19,7 @@ import {
   otpForgotPass,
   changepassword,
 } from "../controllers/user.controller.js";
-import { addInterviewExp } from "../controllers/interview.controller.js";
+import { addInterviewExp, getAllInterviewExps } from "../controllers/interview.controller.js";
 import { getUserCompanies } from "../controllers/company.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
@@ -80,4 +80,5 @@ router.route("/changepass").post(changepassword);
 //interview exp routes
 router.route("/get-user-companies").get(verifyJWT, getUserCompanies);
 router.route("/add-interview-exp").post(verifyJWT, addInterviewExp);
+router.route("/interview-experiences").get(verifyJWT, getAllInterviewExps)
 export default router;
