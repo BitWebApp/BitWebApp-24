@@ -139,7 +139,7 @@ const getPendingApplications = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
     const applications = await RequestProj.find({ projectId, status: 'pending' })
       .populate('studentId', 'fullName email rollNumber mobileNumber') 
-      .select('status applicationDate');
+      .select('status applicationDate docs');
   
     res.status(200).json({ success: true, data: applications });
 });
@@ -148,7 +148,7 @@ const getAcceptedApplications = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
       const applications = await RequestProj.find({ projectId, status: 'accepted' })
       .populate('studentId', 'fullName email rollNumber mobileNumber') 
-      .select('status applicationDate');
+      .select('status applicationDate docs');
   
     res.status(200).json({ success: true, data: applications });
 });
@@ -157,7 +157,7 @@ const getRejectedApplications = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
     const applications = await RequestProj.find({ projectId, status: 'rejected' })
       .populate('studentId', 'fullName email rollNumber mobileNumber') 
-      .select('status applicationDate');
+      .select('status applicationDate docs');
   
     res.status(200).json({ success: true, data: applications });
 });
