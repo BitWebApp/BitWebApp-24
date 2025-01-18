@@ -4,7 +4,6 @@ import NavBar from "./NavBar";
 import About from "./About";
 import ReviewCarousel from "./ReviewCarousel";
 import { Link } from "react-router-dom";
-import Features from "./Features";
 
 export default function LandingPage() {
   return (
@@ -17,7 +16,6 @@ export default function LandingPage() {
           <Link to="/public-user">Find a Student</Link>
         </button>
       </div>
-      <Features />
       <ReviewCarousel />
       <Footer />
     </>

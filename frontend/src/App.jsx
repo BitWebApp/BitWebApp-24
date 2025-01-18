@@ -53,6 +53,8 @@ import BookedRooms from "./components/BookedRooms";
 import AdminRoomRequests from "./components/AdminRoomRequests";
 import AdminAddCompanies from "./components/AdminAddCompanies";
 import CompanyAssignmentForm from "./components/CompanyAssignmentForm";
+import Features from "./components/Features";
+import ScrollToTop from "./components/ScrollToTop";
 import Alumni from "./components/Alumni";
 import AddWorkExperience from "./components/AddWorkExperience";
 import ShowWorkExperience from "./components/ShowWorkExperience";
@@ -62,10 +64,14 @@ import InterviewExperiences from "./components/InterviewExperiences";
 export default function App() {
   return (
     <Router>
+
+      <ScrollToTop />
+
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/public-user" element={<Dashboard />} />
         <Route path="/log" element={<Login />} />
+        <Route path="/features" element={<Features />} />
         <Route
           path="/db"
           element={

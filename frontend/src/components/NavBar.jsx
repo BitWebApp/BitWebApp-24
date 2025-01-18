@@ -3,6 +3,7 @@ import logo from "/src/assets/Birla_Institute_of_Technology_Mesra.png";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faTimes, faUserTie, faUser } from "@fortawesome/free-solid-svg-icons";
+import LandingPage from "./LandingPage";
 
 const NavBar = () => {
   const [dropDown, setDropDown] = useState(false);
@@ -12,8 +13,13 @@ const NavBar = () => {
     <nav className="sticky top-0 z-30 py-3 bg-gray-900 text-white shadow-lg">
       <div className="container mx-auto px-4 flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <img className="h-10 w-10" src={logo} alt="BIT Logo" />
-          <span className="text-xl font-bold tracking-wide">BITACADEMIA</span>
+          <Link
+            to="/"
+            className="flex items-center space-x-2"
+          >
+            <img className="h-10 w-10" src={logo} alt="BIT Logo" />
+            <span className="text-xl font-bold tracking-wide">BITACADEMIA</span>
+          </Link>
         </div>
         <div className="hidden lg:flex space-x-6">
           <Link

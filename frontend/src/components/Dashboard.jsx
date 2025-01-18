@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import axios from "axios";
+import NavBar from "./NavBar"
 import { useUserRole } from "./admin/user-links";
+
+const capitalizeWords = (str) => {
+  return str.replace(/\b\w/g, (char) => char.toUpperCase());
+};
 
 export default function Dashboard() {
   const [rollNumber, setRollNumber] = useState("");
@@ -51,6 +56,8 @@ export default function Dashboard() {
   };
 
   return (
+    <>
+    <NavBar />
     <div className="p-4 sm:p-6 w-full max-w-3xl bg-gray-100 h-full mx-auto flex flex-col items-center">
       <h1 className="text-2xl font-semibold text-blue-700 mb-4">Search Student</h1>
 
@@ -91,7 +98,7 @@ export default function Dashboard() {
               className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border"
             />
             <div>
-              <p className="font-semibold text-gray-900 text-sm sm:text-lg">{user.fullName.toUpperCase()}</p>
+              <p className="font-semibold text-gray-900 text-sm sm:text-lg">{capitalizeWords(user.fullName)}</p>
               <p className="text-gray-600 text-xs sm:text-sm">{user.rollNumber}</p>
               <p className="text-gray-600 text-xs sm:text-sm">{user.email}</p>
             </div>
@@ -197,5 +204,6 @@ export default function Dashboard() {
         </div>
       )}
     </div>
+    </>
   );
 }
