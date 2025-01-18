@@ -9,7 +9,7 @@ import {
   HiPresentationChartLine,
   HiBriefcase,
   HiOutlineLogout,
-  HiArchive 
+  HiArchive,
 } from "react-icons/hi";
 import axios from "axios";
 
@@ -43,6 +43,11 @@ export default function useLinks() {
       text: "Dashboard", 
       icon: <HiHome />, 
       to: "/db" 
+    },
+    {
+      text: "Alumni Profile", 
+      icon: <HiUser />,
+      to: "/db/alumni",
     },
     {
       text: "Academic Records", 
@@ -109,6 +114,11 @@ export default function useLinks() {
       text: "Verify Users", 
       icon: <HiUser />, 
       to: "/verify-users" 
+    },
+    {
+      text: "Alumni Profiles",
+      icon: <HiUser />,
+      to: "/db/show-all-alumni",
     },
     {
       text: "Academic Records",
