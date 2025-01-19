@@ -54,4 +54,7 @@ app.use("/api/v1/classroom", classroomRouter);
 import alumniRouter from "./routes/alumni.routes.js";
 app.use("/api/v1/alumni", alumniRouter);
 
+import profProjectRouter from "./routes/profProject.routes.js";
+app.use("/api/v1/profProject", profProjectRouter);
+
 export { app };

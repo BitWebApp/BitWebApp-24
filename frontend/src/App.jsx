@@ -60,7 +60,11 @@ import AddWorkExperience from "./components/AddWorkExperience";
 import ShowWorkExperience from "./components/ShowWorkExperience";
 import ShowAllAlumni from "./components/ShowAllAlumni";
 import InterviewExperiences from "./components/InterviewExperiences";
-
+import AdminDashboard from "./components/AdminDashboard";
+import ViewProfProjectDetails from "./components/ViewProfProjectDetails";
+import StudentProjectDashboard from "./components/StudentProjectDashboard";
+import StudentViewProfProjectDetails from "./components/StudentViewProfProjectDetails";
+import StudentApplyProject from "./components/StudentApplyProject";
 export default function App() {
   return (
     <Router>
@@ -126,6 +130,11 @@ export default function App() {
           <Route path="companies-table" element={<AdminAddCompanies />} />
           <Route path="assign-company" element={<CompanyAssignmentForm />} />
           <Route path="interview-experiences" element={<InterviewExperiences />} />
+          <Route path="admin-projects-dashboard" element={<AdminDashboard />} />
+          <Route path="prof-project/:id" element={<ViewProfProjectDetails />} />
+          <Route path="student-projects-dashboard" element={< StudentProjectDashboard />} />
+          <Route path="student-prof-project/:id" element={< StudentViewProfProjectDetails />} />
+          <Route path="student-apply-project/:id" element={< StudentApplyProject />} />
         </Route>
         <Route path="verify-users" element={<VerifyUsers />} />
         <Route path="/sg" element={<Signup />} />
