@@ -24,7 +24,7 @@ const professorSchema = new Schema(
         },
         published_papers: [{
             type: Schema.Types.ObjectId,
-            ref: "Paper", // Reference to the Paper model
+            ref: "Paper",
         }]
     },
     { timestamps: true }

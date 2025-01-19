@@ -17,22 +17,90 @@ export default function InternshipForm() {
   const [spin, setSpin] = useState(false);
 
   const companyList = [
+    // Tech Giants
     "Google", "Microsoft", "Apple", "Amazon", "Meta (Facebook)", "Netflix", 
     "IBM", "Oracle", "Intel", "Cisco", "NVIDIA", "Qualcomm", "Broadcom", 
-    "Visa", "Mastercard", "PayPal", "Stripe", "Salesforce"
+    "AMD", "Dell", "HP", "SAP", "VMware", "Snowflake", "Twilio", "Linkedin", "Schrodinger",
+  
+    // FinTech and Payment Companies
+    "Visa", "Mastercard", "PayPal", "Stripe", "Square", "Robinhood", 
+    "SoFi", "Plaid",
+  
+    // Enterprise Software Companies
+    "Salesforce", "Workday", "ServiceNow", "Atlassian", "HubSpot", "Slack",
+  
+    // AI/ML and Data Companies
+    "OpenAI", "DeepMind", "Anthropic", "Databricks", "Palantir", 
+    "ThoughtSpot", "Cloudera",
+  
+    // Consulting Firms (Tech Divisions)
+    "McKinsey & Company", "Boston Consulting Group (BCG)", "Bain & Company", 
+    "Deloitte", "Accenture", "Capgemini", "Ernst & Young (EY)", "PwC",
+  
+    // Media and Entertainment
+    "Spotify", "YouTube", "Hulu", "Disney+", "Adobe", "Epic Games",
+  
+    // Gaming Companies
+    "Unity", "Activision Blizzard", "Electronic Arts (EA)", "Roblox Corporation",
+  
+    // Startups and Unicorns
+    "Airbnb", "Uber", "Lyft", "DoorDash", "Instacart", "Reddit", 
+    "Pinterest", "Canva",
+  
+    // E-commerce Companies
+    "Shopify", "eBay", "Flipkart", "Alibaba", "JD.com",
+  
+    // Cloud and DevOps Companies
+    "DigitalOcean", "Linode", "HashiCorp", "Terraform", "Jenkins",
+  
+    // Networking and Security Companies
+    "Palo Alto Networks", "Fortinet", "Cloudflare", "Juniper Networks", "Zscaler"
   ];
-
+  
   const roleList = [
-    "Software Engineer Intern", "Frontend Developer Intern", 
-    "Backend Developer Intern", "Data Science Intern"
+    // Engineering Roles
+    "Software Engineering Intern", "Frontend Developer Intern", "Backend Developer Intern", 
+    "Full Stack Developer Intern", "Mobile App Developer Intern", 
+    "Embedded Systems Intern", "Quality Assurance Engineer Intern", 
+    "Site Reliability Engineer (SRE) Intern", "DevOps Engineer Intern", 
+    "Firmware Developer Intern",
+  
+    // Data and AI/ML Roles
+    "Data Scientist Intern", "Data Engineer Intern", "Business Intelligence Analyst Intern", 
+    "Machine Learning Engineer Intern", "Artificial Intelligence Engineer Intern", 
+    "Natural Language Processing (NLP) Intern", "Computer Vision Engineer Intern", 
+    "Deep Learning Engineer Intern",
+  
+    // Security and Networking Roles
+    "Cybersecurity Intern", "Network Engineer Intern", "Cloud Security Intern", 
+    "Application Security Intern", "Penetration Testing Intern", "IoT Security Intern",
+  
+    // Cloud and Infrastructure Roles
+    "Cloud Engineer Intern", "Infrastructure Engineer Intern", "System Administrator Intern",
+  
+    // Product and Management Roles
+    "Product Manager Intern", "Technical Program Manager Intern", "Project Coordinator Intern",
+  
+    // Specialized Roles
+    "UI/UX Designer Intern", "Game Developer Intern", "AR/VR Developer Intern", 
+    "Blockchain Developer Intern", "Robotics Engineer Intern", "Software Testing Intern",
+  
+    // Research Roles
+    "Research Intern (AI/ML)", "Research Intern (Cybersecurity)", 
+    "Research Intern (Data Science)",
+  
+    // Miscellaneous Roles
+    "Tech Writer Intern", "Solutions Architect Intern", 
+    "Hardware Design Engineer Intern", "Digital Marketing Analyst Intern"
   ];
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!internshipType || !location || !startDate || !endDate || 
-        (internshipType === "Industrial Internship" && (!company || !role)) || 
-        (internshipType === "Research Project" && !mentor) || 
-        (location === "Outside BIT" && !idCard)) {
+        (internshipType === "industrial" && (!company || !role)) || 
+        (internshipType === "research" && !mentor) || 
+        (location === "outside_bit" && !idCard)) {
       toast.error("Please fill in all the required fields!");
       return;
     }
@@ -67,7 +135,7 @@ export default function InternshipForm() {
             window.location.reload();
           }, 2000);
         } catch (error) {
-          toast.error("Submission failed!");
+          toast.error(error.message);
         } finally {
           setSpin(false);
         }
@@ -88,8 +156,8 @@ export default function InternshipForm() {
             className="w-full py-2 my-2 border-b border-black"
           >
             <option value="" disabled>Select Type</option>
-            <option value="Industrial Internship">Industrial Internship</option>
-            <option value="Research Project">Research Project</option>
+            <option value="industrial">Industrial Internship</option>
+            <option value="research">Research Project</option>
           </select>
 
           <label>Location</label>
@@ -97,8 +165,8 @@ export default function InternshipForm() {
             <label>
               <input
                 type="radio"
-                value="Inside BIT"
-                checked={location === "Inside BIT"}
+                value="inside_bit"
+                checked={location === "inside_bit"}
                 onChange={(e) => setLocation(e.target.value)}
               />
               Inside BIT
@@ -106,15 +174,15 @@ export default function InternshipForm() {
             <label className="ml-4">
               <input
                 type="radio"
-                value="Outside BIT"
-                checked={location === "Outside BIT"}
+                value="outside_bit"
+                checked={location === "outside_bit"}
                 onChange={(e) => setLocation(e.target.value)}
               />
               Outside BIT
             </label>
           </div>
 
-          {internshipType === "Industrial Internship" && (
+          {internshipType === "industrial" && (
             <>
               <label>Company</label>
               <select
@@ -142,7 +210,7 @@ export default function InternshipForm() {
             </>
           )}
 
-          {internshipType === "Research Project" && (
+          {internshipType === "research" && (
             <>
               <label>Mentor Name</label>
               <input
@@ -170,7 +238,7 @@ export default function InternshipForm() {
             className="w-full py-2 my-2 border-b border-black"
           />
 
-          {location === "Outside BIT" && (
+          {location === "outside_bit" && (
             <>
               <label>Upload Supporting Document</label>
               <input
