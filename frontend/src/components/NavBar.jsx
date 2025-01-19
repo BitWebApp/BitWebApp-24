@@ -2,7 +2,12 @@ import { useState } from "react";
 import logo from "/src/assets/Birla_Institute_of_Technology_Mesra.png";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faTimes, faUserTie, faUser } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBars,
+  faTimes,
+  faUserTie,
+  faUser,
+} from "@fortawesome/free-solid-svg-icons";
 import LandingPage from "./LandingPage";
 
 const NavBar = () => {
@@ -13,15 +18,19 @@ const NavBar = () => {
     <nav className="sticky top-0 z-30 py-3 bg-gray-900 text-white shadow-lg">
       <div className="container mx-auto px-4 flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <Link
-            to="/"
-            className="flex items-center space-x-2"
-          >
+          <Link to="/" className="flex items-center space-x-2">
             <img className="h-10 w-10" src={logo} alt="BIT Logo" />
             <span className="text-xl font-bold tracking-wide">BITACADEMIA</span>
           </Link>
         </div>
         <div className="hidden lg:flex space-x-6">
+          <Link
+            to="/interview-experiences"
+            className="px-4 py-2 border rounded-md hover:bg-blue-600 hover:text-white transition"
+          >
+            <FontAwesomeIcon icon={faUser} className="mr-2" />
+            Interview Experiences
+          </Link>
           <Link
             to="/public-user"
             className="px-4 py-2 border rounded-md hover:bg-blue-600 hover:text-white transition"

@@ -42,11 +42,11 @@ import { HashLoader, SyncLoader } from "react-spinners";
 import AdminAcademicRecords from "./components/AdminAcademicRecords";
 import StudentAwardTable from "./components/StudentAwardTable";
 import Review from "./components/Review";
-import AddBacklog from "./components/AddBacklog"
+import AddBacklog from "./components/AddBacklog";
 import BacklogTable from "./components/Backlogtable";
 import PECourseForm from "./components/PECourseForm";
 import PeCoursesTable from "./components/PEtable";
-import PEAdminTable from "./components/PE-admin-table"
+import PEAdminTable from "./components/PE-admin-table";
 import ClassroomForm from "./components/ClassroomForm";
 import RoomStatus from "./components/RoomStatus";
 import BookedRooms from "./components/BookedRooms";
@@ -64,7 +64,6 @@ import AddProfessor from "./components/AddProfessor";
 export default function App() {
   return (
     <Router>
-
       <ScrollToTop />
 
       <Routes>
@@ -72,6 +71,10 @@ export default function App() {
         <Route path="/public-user" element={<Dashboard />} />
         <Route path="/log" element={<Login />} />
         <Route path="/features" element={<Features />} />
+        <Route
+          path="interview-experiences"
+          element={<InterviewExperiences />}
+        />
         <Route
           path="/db"
           element={
@@ -86,9 +89,12 @@ export default function App() {
           <Route path="add-work-experience" element={<AddWorkExperience />} />
           <Route path="show-work-experience" element={<ShowWorkExperience />} />
           <Route path="show-all-alumni" element={<ShowAllAlumni />} />
-          <Route path="add-prof" element={<AddProfessor/>}/> 
+          <Route path="add-prof" element={<AddProfessor />} />
           <Route path="academic-form" element={<Academicform />} />
-          <Route path="admin-academic-form" element={<AdminAcademicRecords />} />
+          <Route
+            path="admin-academic-form"
+            element={<AdminAcademicRecords />}
+          />
           <Route path="award-form" element={<Awardform />} />
           <Route path="placement" element={<Placement />}>
             <Route path="placement-one" element={<PlacementOne />} />
@@ -100,7 +106,6 @@ export default function App() {
           <Route path="room-status" element={<RoomStatus />} />
           <Route path="booked-rooms" element={<BookedRooms />} />
           <Route path="admin-room-request" element={<AdminRoomRequests />} />
-          
 
           <Route path="higher-education" element={<HigherEducation />} />
           <Route path="exam-table" element={<ExamTable />} />
@@ -125,7 +130,6 @@ export default function App() {
           <Route path="backlogs-table" element={<BacklogTable />} />
           <Route path="companies-table" element={<AdminAddCompanies />} />
           <Route path="assign-company" element={<CompanyAssignmentForm />} />
-          <Route path="interview-experiences" element={<InterviewExperiences />} />
         </Route>
         <Route path="verify-users" element={<VerifyUsers />} />
         <Route path="/sg" element={<Signup />} />
@@ -133,7 +137,6 @@ export default function App() {
         <Route path="/log.a" element={<Loginadmin />} />
         <Route path="/sg.a" element={<Signupadmin />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-
       </Routes>
     </Router>
   );
