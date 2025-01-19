@@ -1,108 +1,145 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
-import { ClipLoader } from 'react-spinners';
-import Swal from 'sweetalert2';
-import 'react-toastify/dist/ReactToastify.css';
+import React, { useState, useEffect } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import { ClipLoader } from "react-spinners";
+import Swal from "sweetalert2";
+import axios from "axios";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function InternshipForm() {
-  
+  const [internshipType, setInternshipType] = useState("");
+  const [location, setLocation] = useState("");
   const [company, setCompany] = useState("");
-  const [newCompany, setNewCompany] = useState("");
   const [role, setRole] = useState("");
+  const [mentor, setMentor] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [idCard, setIdCard] = useState(null);
   const [spin, setSpin] = useState(false);
-
-  const navigate = useNavigate();
-  
-  const companyList = [
-    "Google", "Microsoft", "Apple", "Amazon", "Meta (Facebook)", "Netflix", 
-    "IBM", "Oracle", "Intel", "Cisco", "NVIDIA", "Qualcomm", "Broadcom", 
-    "Texas Instruments", "Visa", "Mastercard", "PayPal", "Stripe", 
-    "Salesforce", "Wells Fargo", "Uber", "Atlassian", "Fastenal", 
-    "Walmart Global Tech", "Intuit", "Sprinkler", "NPCI", "LinkedIn", "GEP", "Accenture", "Placewit", "Algo University",
-    "ITC Limited", "Tata Steel Limited", "Arcesium", "Schrodinger"
-  ];
+  const [professors, setProfessors] = useState([]);
+  const [companyList, setCompanyList] = useState([]);
 
   const roleList = [
-    "Software Engineer Intern", "Frontend Developer Intern", "Backend Developer Intern", 
-    "Full Stack Developer Intern", "Data Science Intern", "Data Analyst Intern", 
-    "Machine Learning Intern", "Cloud Engineer Intern", "DevOps Intern", 
-    "Cybersecurity Intern", "Information Security Intern", "Product Management Intern", 
-    "Systems Engineer Intern", "R&D Intern", "Quality Assurance Intern", "UI/UX Design Intern"
+    "Software Engineering Intern",
+    "Frontend Developer Intern",
+    "Backend Developer Intern",
+    "Full Stack Developer Intern",
+    "Mobile App Developer Intern",
+    "Embedded Systems Intern",
+    "Quality Assurance Engineer Intern",
+    "Site Reliability Engineer (SRE) Intern",
+    "DevOps Engineer Intern",
+    "Firmware Developer Intern",
+    "Data Scientist Intern",
+    "Data Engineer Intern",
+    "Business Intelligence Analyst Intern",
+    "Machine Learning Engineer Intern",
+    "Artificial Intelligence Engineer Intern",
+    "Natural Language Processing (NLP) Intern",
+    "Computer Vision Engineer Intern",
+    "Deep Learning Engineer Intern",
+    "Cybersecurity Intern",
+    "Network Engineer Intern",
+    "Cloud Security Intern",
+    "Application Security Intern",
+    "Penetration Testing Intern",
+    "IoT Security Intern",
+    "Cloud Engineer Intern",
+    "Infrastructure Engineer Intern",
+    "System Administrator Intern",
+    "Product Manager Intern",
+    "Technical Program Manager Intern",
+    "Project Coordinator Intern",
+    "UI/UX Designer Intern",
+    "Game Developer Intern",
+    "AR/VR Developer Intern",
+    "Blockchain Developer Intern",
+    "Robotics Engineer Intern",
+    "Software Testing Intern",
+    "Research Intern (AI/ML)",
+    "Research Intern (Cybersecurity)",
+    "Research Intern (Data Science)",
+    "Tech Writer Intern",
+    "Solutions Architect Intern",
+    "Hardware Design Engineer Intern",
+    "Digital Marketing Analyst Intern",
   ];
+
+  // Fetch companies and professors
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const { data } = await axios.get("/api/v1/users/get-user-companies");
+        setCompanyList(data?.data || []);
+      } catch (error) {
+        console.error("Error fetching companies:", error);
+        toast.error("Failed to load company list!");
+      }
+    };
+
+    const fetchProfessors = async () => {
+      try {
+        const { data } = await axios.get("/api/v1/prof/getProf");
+        console.log(data)
+        setProfessors(data?.message || []);
+      } catch (error) {
+        console.error("Error fetching professors:", error);
+        toast.error("Failed to load professor list!");
+      }
+    };
+
+    fetchCompanies();
+    if (internshipType === "research" && location === "inside_bit") {
+      fetchProfessors();
+    }
+  }, [internshipType, location]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const documentLink = idCard ? `<a href="${URL.createObjectURL(idCard)}" target="_blank" style="margin-top: 10px;">(Click to View)</a>` : '';
-
-    const htmlContent = `
-      <div style="text-align: left; padding: 20px;">
-        <p style="font-size: 18px; margin: 10px 0; color: #333;">
-          <strong>Company:</strong> ${company}
-        </p>
-        <p style="font-size: 18px; margin: 10px 0; color: #333;">
-          <strong>Role:</strong> ${role}
-        </p>
-        <p style="font-size: 18px; margin: 10px 0; color: #333;">
-          <strong>Start Date:</strong> ${startDate}
-        </p>
-        <p style="font-size: 18px; margin: 10px 0; color: #333;">
-          <strong>End Date:</strong> ${endDate}
-        </p>
-        <p style="font-size: 18px; margin: 10px 0; color: #333;">
-          <strong>Supporting Document:</strong> ${documentLink}
-        </p>
-        <br/>
-      </div>
-      <p style="font-size: 17px; color: #666;">
-          Do you want to submit the form?
-        </p>
-    `;
+    if (
+      !internshipType ||
+      !location ||
+      !startDate ||
+      !endDate ||
+      (internshipType === "industrial" && (!company || !role)) ||
+      (internshipType === "research" && !mentor) ||
+      (location === "outside_bit" && !idCard)
+    ) {
+      toast.error("Please fill in all the required fields!");
+      return;
+    }
 
     Swal.fire({
-      title: 'Are you sure?',
-      html: htmlContent,
-      icon: 'warning',
+      title: "Are you sure?",
+      text: "Do you want to submit the form?",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: 'Yes, submit it!',
-      cancelButtonText: 'No, cancel!',
-      buttonsStyling: true,
-      customClass: {
-        confirmButton: 'btn btn-success',
-        cancelButton: 'btn btn-danger'
-      },
-      showLoaderOnConfirm: true,
-      preConfirm: async () => {
+      confirmButtonText: "Yes, submit it!",
+      cancelButtonText: "No, cancel!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
         setSpin(true);
-        const tokenString = localStorage.getItem('user');
-        const token = JSON.parse(tokenString);
         try {
           const formData = new FormData();
-          formData.append('company', company);
-          formData.append('role', role);
-          formData.append('startDate', startDate);
-          formData.append('endDate', endDate);
-          formData.append('doc', idCard);
-          formData.append('studentid', token._id);
+          formData.append("type", internshipType);
+          formData.append("location", location);
+          formData.append("company", company);
+          formData.append("role", role);
+          formData.append("mentor", mentor);
+          formData.append("startDate", startDate);
+          formData.append("endDate", endDate);
+          formData.append("doc", idCard);
 
-          const response = await axios.post("/api/v1/intern/addinternship", formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-              Accept: "application/json",
-            },
+          await axios.post("/api/v1/intern/addinternship", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
           });
-          toast.success("Data uploaded successfully!");
+
+          toast.success("Form submitted successfully!");
           setTimeout(() => {
-            window.location.reload()
+            window.location.reload();
           }, 2000);
-        } catch (err) {
-          toast.error("Error uploading data!");
+        } catch (error) {
+          console.log(error)
+          toast.error(error.message);
         } finally {
           setSpin(false);
         }
@@ -113,72 +150,135 @@ export default function InternshipForm() {
   return (
     <div className="w-full min-h-screen flex justify-center items-center">
       <ToastContainer />
-      <div className="w-full flex flex-col p-10 justify-between">
-        <h3 className="text-xl text-black font-semibold">BIT WEB APP</h3>
-        <div className="w-full flex flex-col">
-          <div className="flex flex-col w-full mb-5">
-            <h3 className="text-3xl font-semibold mb-4">Internship Form</h3>
-            <p className="text-base mb-2">Enter Your details.</p>
+      <div className="w-full flex flex-col p-10">
+        <h3 className="text-3xl font-semibold mb-6">Internship/Research Form</h3>
+        <form onSubmit={handleSubmit}>
+          <label>Type</label>
+          <select
+            value={internshipType}
+            onChange={(e) => setInternshipType(e.target.value)}
+            className="w-full py-2 my-2 border-b border-black"
+          >
+            <option value="" disabled>
+              Select Type
+            </option>
+            <option value="industrial">Industrial Internship</option>
+            <option value="research">Research Project</option>
+          </select>
+
+          <label>Location</label>
+          <div className="my-2">
+            <label>
+              <input
+                type="radio"
+                value="inside_bit"
+                checked={location === "inside_bit"}
+                onChange={(e) => setLocation(e.target.value)}
+              />
+              Inside BIT
+            </label>
+            <label className="ml-4">
+              <input
+                type="radio"
+                value="outside_bit"
+                checked={location === "outside_bit"}
+                onChange={(e) => setLocation(e.target.value)}
+              />
+              Outside BIT
+            </label>
           </div>
-          <form onSubmit={handleSubmit}>
-            <div className="w-full flex flex-col">
+
+          {internshipType === "industrial" && (
+            <>
               <label>Company</label>
-              <select 
+              <select
                 value={company}
-                onChange={(e) => {
-                  const select = e.target.value;
-                  setCompany(select);
-                  setNewCompany(select);
-                }} 
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none">
-                {companyList.map((val, index) => (
-                  <option key={index} value={val}>{val}</option>
+                onChange={(e) => setCompany(e.target.value)}
+                className="w-full py-2 my-2 border-b border-black"
+              >
+                <option value="" disabled>
+                  Select Company
+                </option>
+                {companyList.map((c, idx) => (
+                  <option key={idx} value={c._id}>
+                    {c.companyName}
+                  </option>
                 ))}
               </select>
+
               <label>Role</label>
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
+                className="w-full py-2 my-2 border-b border-black"
               >
-                {roleList.map((val, index) => (
-                  <option key={index} value={val}>{val}</option>
+                <option value="" disabled>
+                  Select Role
+                </option>
+                {roleList.map((r, idx) => (
+                  <option key={idx} value={r}>
+                    {r}
+                  </option>
                 ))}
               </select>
-              <label>Start Date</label>
-              <input
-                type="date"
-                placeholder="Enter Your Starting Date"
-                value={startDate}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-              <label>End Date</label>
-              <input
-                type="date"
-                placeholder="Enter Your End Date"
-                value={endDate}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-              <label className="mt-4">Upload Offer Doc</label>
+            </>
+          )}
+
+          {internshipType === "research" && location === "inside_bit" && (
+            <>
+              <label>Mentor Name</label>
+              <select
+                value={mentor}
+                onChange={(e) => setMentor(e.target.value)}
+                className="w-full py-2 my-2 border-b border-black"
+              >
+                <option value="" disabled>
+                  Select Mentor
+                </option>
+                {professors?.map((prof, idx) => (
+                  <option className="text-black" key={idx} value={prof._id}>
+                    {prof?.fullName}
+                  </option>
+                ))}
+              </select>
+            </>
+          )}
+
+          <label>Start Date</label>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="w-full py-2 my-2 border-b border-black"
+          />
+
+          <label>End Date</label>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="w-full py-2 my-2 border-b border-black"
+          />
+
+          {location === "outside_bit" && (
+            <>
+              <label>Upload Supporting Document</label>
               <input
                 type="file"
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                 onChange={(e) => setIdCard(e.target.files[0])}
+                className="w-full py-2 my-2 border-b border-black"
               />
-            </div>
-            <div className="flex flex-row w-full mt-4">
-              <button
-                type="submit"
-                className="w-full py-2 px-4 text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 transition-all duration-200"
-              >
-                {spin ? <ClipLoader color="white" size={20} /> : "Submit"}
-              </button>
-            </div>
-          </form>
-        </div>
+            </>
+          )}
+
+          <button
+            type="submit"
+            className="w-full py-2 mt-4 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            {spin ? <ClipLoader color="white" size={20} /> : "Submit"}
+          </button>
+        </form>
       </div>
     </div>
   );

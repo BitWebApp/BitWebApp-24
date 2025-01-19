@@ -14,18 +14,7 @@ const professorSchema = new Schema(
         contact: {
             type: String,
             required: [true, "Phone number is required!"]
-        },
-        avatar: {
-            type: String
-        },
-        joining_date: {
-            type: Date,
-            required: [true, "Joining date is required!"]
-        },
-        published_papers: [{
-            type: Schema.Types.ObjectId,
-            ref: "Paper", // Reference to the Paper model
-        }]
+        }
     },
     { timestamps: true }
 )

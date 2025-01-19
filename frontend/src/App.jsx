@@ -65,6 +65,7 @@ import ViewProfProjectDetails from "./components/ViewProfProjectDetails";
 import StudentProjectDashboard from "./components/StudentProjectDashboard";
 import StudentViewProfProjectDetails from "./components/StudentViewProfProjectDetails";
 import StudentApplyProject from "./components/StudentApplyProject";
+import AddProfessor from "./components/AddProfessor";
 export default function App() {
   return (
     <Router>
@@ -90,7 +91,7 @@ export default function App() {
           <Route path="add-work-experience" element={<AddWorkExperience />} />
           <Route path="show-work-experience" element={<ShowWorkExperience />} />
           <Route path="show-all-alumni" element={<ShowAllAlumni />} />
-          
+          <Route path="add-prof" element={<AddProfessor/>}/> 
           <Route path="academic-form" element={<Academicform />} />
           <Route path="admin-academic-form" element={<AdminAcademicRecords />} />
           <Route path="award-form" element={<Awardform />} />

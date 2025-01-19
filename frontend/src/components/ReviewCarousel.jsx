@@ -42,7 +42,7 @@ const ReviewCarousel = () => {
     <div className="min-h-screen flex flex-col justify-center lg:px-32 px-5 bg-gray-200">
       <div className="flex flex-col items-center lg:flex-row justify-between mb-10 lg:mb-0">
         <div>
-          <h1 className="text-4xl font-semibold text-center lg:text-start">
+          <h1 className="text-2xl md:text-4xl font-bold mb-5 text-left text-black">
             The Developers
           </h1>
         </div>
