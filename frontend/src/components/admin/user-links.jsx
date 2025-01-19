@@ -181,6 +181,11 @@ export default function useLinks() {
       to: "/db/assign-company",
     },
     {
+      text: "Add Project Faculty",
+      icon: <HiUser />,
+      to: "/db/add-prof",
+    },
+    {
       text: "Student Reviews",
       icon: <HiArchive />,
       to: "/db/review",

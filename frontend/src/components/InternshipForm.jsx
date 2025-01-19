@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
-import { ClipLoader } from 'react-spinners';
-import Swal from 'sweetalert2';
-import axios from 'axios';
-import 'react-toastify/dist/ReactToastify.css';
+import React, { useState, useEffect } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import { ClipLoader } from "react-spinners";
+import Swal from "sweetalert2";
+import axios from "axios";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function InternshipForm() {
   const [internshipType, setInternshipType] = useState("");
@@ -15,116 +15,119 @@ export default function InternshipForm() {
   const [endDate, setEndDate] = useState("");
   const [idCard, setIdCard] = useState(null);
   const [spin, setSpin] = useState(false);
+  const [professors, setProfessors] = useState([]);
+  const [companyList, setCompanyList] = useState([]);
 
-  const companyList = [
-    // Tech Giants
-    "Google", "Microsoft", "Apple", "Amazon", "Meta (Facebook)", "Netflix", 
-    "IBM", "Oracle", "Intel", "Cisco", "NVIDIA", "Qualcomm", "Broadcom", 
-    "AMD", "Dell", "HP", "SAP", "VMware", "Snowflake", "Twilio", "Linkedin", "Schrodinger",
-  
-    // FinTech and Payment Companies
-    "Visa", "Mastercard", "PayPal", "Stripe", "Square", "Robinhood", 
-    "SoFi", "Plaid",
-  
-    // Enterprise Software Companies
-    "Salesforce", "Workday", "ServiceNow", "Atlassian", "HubSpot", "Slack",
-  
-    // AI/ML and Data Companies
-    "OpenAI", "DeepMind", "Anthropic", "Databricks", "Palantir", 
-    "ThoughtSpot", "Cloudera",
-  
-    // Consulting Firms (Tech Divisions)
-    "McKinsey & Company", "Boston Consulting Group (BCG)", "Bain & Company", 
-    "Deloitte", "Accenture", "Capgemini", "Ernst & Young (EY)", "PwC",
-  
-    // Media and Entertainment
-    "Spotify", "YouTube", "Hulu", "Disney+", "Adobe", "Epic Games",
-  
-    // Gaming Companies
-    "Unity", "Activision Blizzard", "Electronic Arts (EA)", "Roblox Corporation",
-  
-    // Startups and Unicorns
-    "Airbnb", "Uber", "Lyft", "DoorDash", "Instacart", "Reddit", 
-    "Pinterest", "Canva",
-  
-    // E-commerce Companies
-    "Shopify", "eBay", "Flipkart", "Alibaba", "JD.com",
-  
-    // Cloud and DevOps Companies
-    "DigitalOcean", "Linode", "HashiCorp", "Terraform", "Jenkins",
-  
-    // Networking and Security Companies
-    "Palo Alto Networks", "Fortinet", "Cloudflare", "Juniper Networks", "Zscaler"
-  ];
-  
   const roleList = [
-    // Engineering Roles
-    "Software Engineering Intern", "Frontend Developer Intern", "Backend Developer Intern", 
-    "Full Stack Developer Intern", "Mobile App Developer Intern", 
-    "Embedded Systems Intern", "Quality Assurance Engineer Intern", 
-    "Site Reliability Engineer (SRE) Intern", "DevOps Engineer Intern", 
+    "Software Engineering Intern",
+    "Frontend Developer Intern",
+    "Backend Developer Intern",
+    "Full Stack Developer Intern",
+    "Mobile App Developer Intern",
+    "Embedded Systems Intern",
+    "Quality Assurance Engineer Intern",
+    "Site Reliability Engineer (SRE) Intern",
+    "DevOps Engineer Intern",
     "Firmware Developer Intern",
-  
-    // Data and AI/ML Roles
-    "Data Scientist Intern", "Data Engineer Intern", "Business Intelligence Analyst Intern", 
-    "Machine Learning Engineer Intern", "Artificial Intelligence Engineer Intern", 
-    "Natural Language Processing (NLP) Intern", "Computer Vision Engineer Intern", 
+    "Data Scientist Intern",
+    "Data Engineer Intern",
+    "Business Intelligence Analyst Intern",
+    "Machine Learning Engineer Intern",
+    "Artificial Intelligence Engineer Intern",
+    "Natural Language Processing (NLP) Intern",
+    "Computer Vision Engineer Intern",
     "Deep Learning Engineer Intern",
-  
-    // Security and Networking Roles
-    "Cybersecurity Intern", "Network Engineer Intern", "Cloud Security Intern", 
-    "Application Security Intern", "Penetration Testing Intern", "IoT Security Intern",
-  
-    // Cloud and Infrastructure Roles
-    "Cloud Engineer Intern", "Infrastructure Engineer Intern", "System Administrator Intern",
-  
-    // Product and Management Roles
-    "Product Manager Intern", "Technical Program Manager Intern", "Project Coordinator Intern",
-  
-    // Specialized Roles
-    "UI/UX Designer Intern", "Game Developer Intern", "AR/VR Developer Intern", 
-    "Blockchain Developer Intern", "Robotics Engineer Intern", "Software Testing Intern",
-  
-    // Research Roles
-    "Research Intern (AI/ML)", "Research Intern (Cybersecurity)", 
+    "Cybersecurity Intern",
+    "Network Engineer Intern",
+    "Cloud Security Intern",
+    "Application Security Intern",
+    "Penetration Testing Intern",
+    "IoT Security Intern",
+    "Cloud Engineer Intern",
+    "Infrastructure Engineer Intern",
+    "System Administrator Intern",
+    "Product Manager Intern",
+    "Technical Program Manager Intern",
+    "Project Coordinator Intern",
+    "UI/UX Designer Intern",
+    "Game Developer Intern",
+    "AR/VR Developer Intern",
+    "Blockchain Developer Intern",
+    "Robotics Engineer Intern",
+    "Software Testing Intern",
+    "Research Intern (AI/ML)",
+    "Research Intern (Cybersecurity)",
     "Research Intern (Data Science)",
-  
-    // Miscellaneous Roles
-    "Tech Writer Intern", "Solutions Architect Intern", 
-    "Hardware Design Engineer Intern", "Digital Marketing Analyst Intern"
+    "Tech Writer Intern",
+    "Solutions Architect Intern",
+    "Hardware Design Engineer Intern",
+    "Digital Marketing Analyst Intern",
   ];
-  
+
+  // Fetch companies and professors
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const { data } = await axios.get("/api/v1/users/get-user-companies");
+        setCompanyList(data?.data || []);
+      } catch (error) {
+        console.error("Error fetching companies:", error);
+        toast.error("Failed to load company list!");
+      }
+    };
+
+    const fetchProfessors = async () => {
+      try {
+        const { data } = await axios.get("/api/v1/prof/getProf");
+        console.log(data)
+        setProfessors(data?.message || []);
+      } catch (error) {
+        console.error("Error fetching professors:", error);
+        toast.error("Failed to load professor list!");
+      }
+    };
+
+    fetchCompanies();
+    if (internshipType === "research" && location === "inside_bit") {
+      fetchProfessors();
+    }
+  }, [internshipType, location]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!internshipType || !location || !startDate || !endDate || 
-        (internshipType === "industrial" && (!company || !role)) || 
-        (internshipType === "research" && !mentor) || 
-        (location === "outside_bit" && !idCard)) {
+    if (
+      !internshipType ||
+      !location ||
+      !startDate ||
+      !endDate ||
+      (internshipType === "industrial" && (!company || !role)) ||
+      (internshipType === "research" && !mentor) ||
+      (location === "outside_bit" && !idCard)
+    ) {
       toast.error("Please fill in all the required fields!");
       return;
     }
 
     Swal.fire({
-      title: 'Are you sure?',
+      title: "Are you sure?",
       text: "Do you want to submit the form?",
-      icon: 'warning',
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: 'Yes, submit it!',
-      cancelButtonText: 'No, cancel!',
+      confirmButtonText: "Yes, submit it!",
+      cancelButtonText: "No, cancel!",
     }).then(async (result) => {
       if (result.isConfirmed) {
         setSpin(true);
         try {
           const formData = new FormData();
-          formData.append('type', internshipType);
-          formData.append('location', location);
-          formData.append('company', company);
-          formData.append('role', role);
-          formData.append('mentor', mentor);
-          formData.append('startDate', startDate);
-          formData.append('endDate', endDate);
-          formData.append('doc', idCard);
+          formData.append("type", internshipType);
+          formData.append("location", location);
+          formData.append("company", company);
+          formData.append("role", role);
+          formData.append("mentor", mentor);
+          formData.append("startDate", startDate);
+          formData.append("endDate", endDate);
+          formData.append("doc", idCard);
 
           await axios.post("/api/v1/intern/addinternship", formData, {
             headers: { "Content-Type": "multipart/form-data" },
@@ -135,6 +138,7 @@ export default function InternshipForm() {
             window.location.reload();
           }, 2000);
         } catch (error) {
+          console.log(error)
           toast.error(error.message);
         } finally {
           setSpin(false);
@@ -155,7 +159,9 @@ export default function InternshipForm() {
             onChange={(e) => setInternshipType(e.target.value)}
             className="w-full py-2 my-2 border-b border-black"
           >
-            <option value="" disabled>Select Type</option>
+            <option value="" disabled>
+              Select Type
+            </option>
             <option value="industrial">Industrial Internship</option>
             <option value="research">Research Project</option>
           </select>
@@ -190,9 +196,13 @@ export default function InternshipForm() {
                 onChange={(e) => setCompany(e.target.value)}
                 className="w-full py-2 my-2 border-b border-black"
               >
-                <option value="" disabled>Select Company</option>
+                <option value="" disabled>
+                  Select Company
+                </option>
                 {companyList.map((c, idx) => (
-                  <option key={idx} value={c}>{c}</option>
+                  <option key={idx} value={c._id}>
+                    {c.companyName}
+                  </option>
                 ))}
               </select>
 
@@ -202,23 +212,35 @@ export default function InternshipForm() {
                 onChange={(e) => setRole(e.target.value)}
                 className="w-full py-2 my-2 border-b border-black"
               >
-                <option value="" disabled>Select Role</option>
+                <option value="" disabled>
+                  Select Role
+                </option>
                 {roleList.map((r, idx) => (
-                  <option key={idx} value={r}>{r}</option>
+                  <option key={idx} value={r}>
+                    {r}
+                  </option>
                 ))}
               </select>
             </>
           )}
 
-          {internshipType === "research" && (
+          {internshipType === "research" && location === "inside_bit" && (
             <>
               <label>Mentor Name</label>
-              <input
-                type="text"
+              <select
                 value={mentor}
                 onChange={(e) => setMentor(e.target.value)}
                 className="w-full py-2 my-2 border-b border-black"
-              />
+              >
+                <option value="" disabled>
+                  Select Mentor
+                </option>
+                {professors?.map((prof, idx) => (
+                  <option className="text-black" key={idx} value={prof._id}>
+                    {prof?.fullName}
+                  </option>
+                ))}
+              </select>
             </>
           )}
 

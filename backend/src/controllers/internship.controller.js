@@ -18,7 +18,8 @@ const addInternship = asyncHandler(async (req, res) => {
   if (!studentid || !type || !location || !startDate || !endDate) {
     throw new ApiError(400, "Missing required fields!");
   }
-
+  const prevRecord = await Internship.find({student: studentid})
+  if(prevRecord) throw new ApiError(400, `Record already exists in ${prevRecord?.type}`)
   if (type === "industrial" && (!company || !role)) {
     throw new ApiError(400, "Company and Role are required for industrial internships!");
   }
