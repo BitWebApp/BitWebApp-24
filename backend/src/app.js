@@ -57,9 +57,6 @@ app.use("/api/v1/alumni", alumniRouter);
 import profProjectRouter from "./routes/profProject.routes.js";
 app.use("/api/v1/profProject", profProjectRouter);
 
-import profProjectRouter from "./routes/profProject.routes.js";
-app.use("/api/v1/profProject", profProjectRouter);
-
 import profRouter from "./routes/professor.routes.js"
 app.use("/api/v1/prof", profRouter);
 export { app };

@@ -17,15 +17,16 @@ const Features = () => {
 
   return (
     <>
-      <div className="features bg-gray-300">
-        <div className="ml-10">
+      <NavBar />
+      <div className="features">
+        <div className="m-3 md:ml-10">
           <div>
-            <h1 className="text-2xl md:text-4xl font-bold mb-5 text-left text-black">FEATURES</h1>
-            <p className="text-sm md:text-xl text-gray-700 leading-relaxed">
+            <h1 className="p-2 text-center md:text-left text-6xl">Features</h1>
+            <p className="md:p-3 text-center md:text-left md:mr-80 text-2xl">
               Uncover a seamless and intuitive user experience as you navigate through advanced tools and functionalities designed to enhance your interaction and engagement. Discover a world of convenience and innovation right at your fingertips.
             </p>
           </div>
-          <div className="mt-10 pr-8">
+          <div className="mt-10">
             <div className="">
               {feat_det.map((ele, index) => (
                 <div key={index} className="p-3 md:p-5 border-2 text-white bg-stone-900 border-zinc-600 shadow-2xl">
@@ -49,6 +50,7 @@ const Features = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </>
   );
 }
