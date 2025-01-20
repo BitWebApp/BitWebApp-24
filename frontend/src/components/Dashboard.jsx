@@ -57,7 +57,6 @@ export default function Dashboard() {
 
   return (
     <>
-    <NavBar />
     <div className="p-4 sm:p-6 w-full max-w-3xl bg-gray-100 h-full mx-auto flex flex-col items-center">
       <h1 className="text-2xl font-semibold text-blue-700 mb-4">Search Student</h1>
 

@@ -10,7 +10,7 @@ const StudentTable = () => {
     branch: "",
     search: "",
   });
-  const [sortConfig, setSortConfig] = useState({ key: "", direction: "" });
+  const [sortConfig, setSortConfig] = useState({ key: "rollNumber", direction: "ascending" });
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -61,26 +61,6 @@ const StudentTable = () => {
     setSortConfig({ key, direction });
   };
 
-  const calculateProfileCompletion = (student) => {
-    const fields = [
-      "username",
-      "fullName",
-      "rollNumber",
-      "email",
-      "branch",
-      "section",
-      "semester",
-      "mobileNumber",
-      "placement",
-      "projects",
-      "awards",
-      "isVerified",
-    ];
-    const filledFields = fields.filter(
-      (field) => student[field] && student[field] !== ""
-    );
-    return ((filledFields.length / fields.length) * 100).toFixed(2);
-  };
 
   const applyFilters = (data) => {
     return data.filter((record) => {
@@ -90,20 +70,10 @@ const StudentTable = () => {
       const matchesSection = section ? record.section === section : true;
       const matchesBranch = branch ? record.branch === branch : true;
       const matchesSearch =
-        record.username.toLowerCase().includes(query) ||
         record.fullName.toLowerCase().includes(query) ||
         record.rollNumber.toLowerCase().includes(query) ||
         record.email.toLowerCase().includes(query) ||
-        record.mobileNumber.toLowerCase().includes(query) ||
-        (record.placement &&
-          record.placement.toLowerCase().includes(query)) ||
-        (record.projects &&
-          record.projects.some((project) =>
-            project.toLowerCase().includes(query)
-          )) ||
-        (record.awards &&
-          record.awards.some((award) => award.toLowerCase().includes(query)));
-
+        record.mobileNumber.toLowerCase().includes(query)
       return matchesSection && matchesBranch && matchesSearch;
     });
   };
@@ -182,8 +152,6 @@ const StudentTable = () => {
   
     // Define Headers
     const headers = [
-      "Profile Completion",
-      "Username",
       "Full Name",
       "Roll Number",
       "Email",
@@ -191,9 +159,6 @@ const StudentTable = () => {
       "Section",
       "Semester",
       "Mobile Number",
-      "Placement",
-      "Projects",
-      "Awards",
       "Verified",
     ];
   
@@ -210,19 +175,13 @@ const StudentTable = () => {
     // Add Data Rows starting from Row 3
     processedStudents.forEach((student) => {
       worksheet.addRow([
-        `${Math.ceil(calculateProfileCompletion(student))}%`,
-        student.username,
         student.fullName,
         student.rollNumber,
         student.email,
         student.branch,
         student.section,
         student.semester,
-        student.mobileNumber,
-        student.placement ? "Yes" : "No",
-        student.projects ? "Yes" : "No",
-        student.awards ? "Yes" : "No",
-        student.isVerified ? "Yes" : "No",
+        student.mobileNumber
       ]);
     });
   
@@ -336,8 +295,6 @@ const StudentTable = () => {
           className="px-4 py-2 border rounded min-w-[200px]"
         >
           <option value="-">Sort By</option>
-          <option value="username-ascending">Username (A-Z)</option>
-          <option value="username-descending">Username (Z-A)</option>
           <option value="fullName-ascending">Full Name (A-Z)</option>
           <option value="fullName-descending">Full Name (Z-A)</option>
           <option value="rollNumber-ascending">Roll Number (Ascending)</option>
@@ -370,12 +327,6 @@ const StudentTable = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Profile Completion
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Username
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Full Name
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -397,15 +348,6 @@ const StudentTable = () => {
                 Mobile Number
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Placement
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Projects
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Awards
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Verified
               </th>
             </tr>
@@ -419,11 +361,7 @@ const StudentTable = () => {
                 }`}
                 onClick={() => handleRowSelect(student._id)}
               >
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {calculateProfileCompletion(student)}%
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">{student.username}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{student.fullName}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{student.fullName.toUpperCase()}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {student.rollNumber}
                 </td>
@@ -433,15 +371,6 @@ const StudentTable = () => {
                 <td className="px-6 py-4 whitespace-nowrap">{student.semester}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {student.mobileNumber}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {student.placement ? "Yes" : "No"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {student.projects ? "Yes" : "No"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {student.awards ? "Yes" : "No"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {student.isVerified ? "Yes" : "No"}

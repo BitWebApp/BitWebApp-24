@@ -84,6 +84,7 @@ export default function App() {
           }
         >
           <Route index element={<Dashboard />} />
+          <Route path="verify-users" element={<VerifyUsers />} />
           <Route path="user-form" element={<Userform />} />
           <Route path="alumni" element={<Alumni />} />
           <Route path="add-work-experience" element={<AddWorkExperience />} />
@@ -131,7 +132,6 @@ export default function App() {
           <Route path="companies-table" element={<AdminAddCompanies />} />
           <Route path="assign-company" element={<CompanyAssignmentForm />} />
         </Route>
-        <Route path="verify-users" element={<VerifyUsers />} />
         <Route path="/sg" element={<Signup />} />
         <Route path="/sb" element={<Sidebar />} />
         <Route path="/log.a" element={<Loginadmin />} />

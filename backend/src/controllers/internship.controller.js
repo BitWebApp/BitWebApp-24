@@ -19,7 +19,8 @@ const addInternship = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Missing required fields!");
   }
   const prevRecord = await Internship.find({student: studentid})
-  if(prevRecord) throw new ApiError(400, `Record already exists in ${prevRecord?.type}`)
+  console.log(prevRecord)
+  if(prevRecord.length > 0) throw new ApiError(400, `Record already exists`)
   if (type === "industrial" && (!company || !role)) {
     throw new ApiError(400, "Company and Role are required for industrial internships!");
   }
@@ -100,13 +101,13 @@ const getAllInternshipData = asyncHandler(async(req, res) => {
 })
 
 const getAllVerifiedInternshipData = asyncHandler(async(req, res) => {
-  const response = await Internship.find({verified: true}).populate('student')
+  const response = await Internship.find().populate('student').populate('company')
   res.status(200).json(new ApiResponse(200, {response}, "All Intern Data fetched"))
 })
 
 const getInternshipDataforStudent = asyncHandler(async(req, res) => {
     const {student_id} = req.body
-    const response = await Internship.find({student: student_id}, {verfied: true}).populate('student')
+    const response = await Internship.find({student: student_id}, {verfied: true}).populate('student').populate('company')
     res.status(200).json(new ApiResponse(200, {response}, "All Intern Data fetched"))
 })
 

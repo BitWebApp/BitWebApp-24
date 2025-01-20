@@ -9,7 +9,6 @@ import { Admin } from "../models/admin.model.js";
 import nodemailer from "nodemailer";
 
 const getUnverifiedUsers = asyncHandler(async (req, res) => {
-  try {
     const users = await User.find({ isVerified: false }).select(
       "-password -refreshToken"
     );
@@ -19,13 +18,7 @@ const getUnverifiedUsers = asyncHandler(async (req, res) => {
       rollNumer: user.rollNumber,
       idCard: user.idCard,
     }));
-    return res.json(new ApiResponse(200, { us }));
-  } catch (error) {
-    throw new ApiError(
-      500,
-      "Something went wrong while fetching unverified users"
-    );
-  }
+    return res.status(200).json(new ApiResponse(200, us, "All unverified users fetched"));
 });
 
 const verifyUser = asyncHandler(async (req, res) => {
