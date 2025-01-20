@@ -113,7 +113,7 @@ export default function useLinks() {
     { 
       text: "Verify Users", 
       icon: <HiUser />, 
-      to: "/verify-users" 
+      to: "/db/verify-users" 
     },
     {
       text: "Alumni Profiles",
