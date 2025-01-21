@@ -35,6 +35,10 @@ const ReviewCarousel = () => {
     {
       name: "Akshat",
       specialties: "The seamless interface of BitWebApp makes it incredibly easy to track my placements and exam details. It's a comprehensive platform that has significantly improved my academic journey. Highly recommended!"
+    },
+    {
+      name: "Chirag",
+      specialties: "BitWebApp is a transformative platform for students, simplifying the management of academic records, project details, and internships. Its user-friendly interface and comprehensive features make it an essential tool for achieving academic and career excellence."
     }
   ];
 
@@ -42,7 +46,7 @@ const ReviewCarousel = () => {
     <div className="min-h-screen flex flex-col justify-center lg:px-32 px-5 bg-gray-200">
       <div className="flex flex-col items-center lg:flex-row justify-between mb-10 lg:mb-0">
         <div>
-          <h1 className="text-2xl md:text-4xl font-bold mb-5 text-left text-black">
+          <h1 className="text-4xl font-semibold text-center lg:text-start">
             The Developers
           </h1>
         </div>

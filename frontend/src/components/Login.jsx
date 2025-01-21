@@ -57,6 +57,7 @@ export default function Login() {
 
   const handleKeyDown = (event) => {
     if (event.key === "Enter") {
+      event.preventDefault();
       handleLogin();
     }
   };
@@ -74,8 +75,11 @@ export default function Login() {
           />
         </div>
         <div className="w-full md:w-1/2 bg-gradient-to-b from-gray-50 to-white flex flex-col p-6 md:p-20 justify-between">
-          <h3 className="text-2xl font-bold text-blue-600 mb-4"> Welcome to BITACADEMIA</h3>
-          <div className="w-full flex flex-col max-w-[500px]">
+        <h3 className="text-2xl font-bold text-blue-600 mb-4"> Welcome to BIT WEB APP </h3>
+          <form
+            onKeyDown={handleKeyDown}
+            className="w-full flex flex-col max-w-[500px]"
+          >
             <div className="flex flex-col w-full mb-6">
               <h3 className="text-4xl font-semibold mb-4 text-gray-800">Student Login</h3>
               <p className="text-lg mb-2 text-gray-600">Enter your login details below.</p>
@@ -100,9 +104,9 @@ export default function Login() {
                 value={password}
                 required
                 onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={handleKeyDown}
               />
               <button
+                type="button"
                 className="absolute bottom-3 right-4 text-sm text-gray-500 hover:text-blue-600"
                 onClick={togglePasswordVisibility}
               >
@@ -163,9 +167,9 @@ export default function Login() {
                 </Link>
               </p>
             </div>
-          </div>
+          </form>
         </div>
       </div>
     </>
   );
-};
+}

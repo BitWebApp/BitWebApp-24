@@ -5,20 +5,18 @@ import { RequestProj } from "../models/requestProj.model.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/Cloudinary.js";
 
 const addNewProject = asyncHandler(async (req, res) => {
-  const { profId, profName, profEmail, title, desc, categories, startDate, endDate } = req.body;
-
-  if (!req.files || !req.files.length) {
-    throw new ApiError(400, "File upload required");
-  }
+  const { profId, profName, profEmail, title, desc, categories, startDate, endDate, relevantLinks } = req.body;
 
   const docsURL = [];
-  for (const file of req.files) {
-    const cloudinaryResponse = await uploadOnCloudinary(file.path);
-    docsURL.push(cloudinaryResponse.secure_url);
+  if (req.files &&  req.files.length) {
+    for (const file of req.files) {
+      const cloudinaryResponse = await uploadOnCloudinary(file.path);
+      docsURL.push(cloudinaryResponse.secure_url);
+    }
   }
 
   const newProject = await ProfProject.create({
-    profId, profName, profEmail, title, desc, categories, startDate, endDate, doc: docsURL
+    profId, profName, profEmail, title, desc, categories, startDate, endDate, doc: docsURL, relevantLinks
   });
 
   res.status(201).json({ 
@@ -104,36 +102,50 @@ const editProject = asyncHandler(async (req, res) => {
       res.status(500).json({ error: "Internal server error" });
     }
 });
-
 const applyToProject = asyncHandler(async (req, res) => {
-    const { projectId } = req.body;
-    
-    const project = await ProfProject.findById(projectId);
-    if (!project) {
-      throw new ApiError(404, "Project not found");
-    }
-    
-    if (project.closed) {
-      throw new ApiError(400, "This project is closed and no longer accepting applications");
-    }
+  const { projectId } = req.body;
   
-    const docsURL = []; 
-    if (req.files && req.files.length) {
-      for (const file of req.files) {
-          const cloudinaryResponse = await uploadOnCloudinary(file.path);
-          docsURL.push(cloudinaryResponse.secure_url);
-      }
-    }
+  // Check if the project exists
+  const project = await ProfProject.findById(projectId);
+  if (!project) {
+    throw new ApiError(404, "Project not found");
+  }
   
-    const request = await RequestProj.create({
-      projectId, studentId: req.user._id, docs: docsURL
-    });
+  // Check if the project is closed
+  if (project.closed) {
+    throw new ApiError(400, "This project is closed and no longer accepting applications");
+  }
   
-    res.status(201).json({ 
-      success: true, 
-      data: request 
-    });
+  // Check if the student has already applied for this project
+  const existingApplication = await RequestProj.findOne({
+    projectId,
+    studentId: req.user._id
   });
+
+  if (existingApplication) {
+    throw new ApiError(400, "You have already applied to this project");
+  }
+
+  // Process uploaded files
+  const docsURL = [];
+  if (req.files && req.files.length) {
+    for (const file of req.files) {
+      const cloudinaryResponse = await uploadOnCloudinary(file.path);
+      docsURL.push(cloudinaryResponse.secure_url);
+    }
+  }
+
+  // Create a new application
+  const request = await RequestProj.create({
+    projectId, studentId: req.user._id, doc: docsURL
+  });
+
+  res.status(201).json({
+    success: true,
+    data: request
+  });
+});
+
 
 const getPendingApplications = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
@@ -183,12 +195,20 @@ const updateApplicationStatus = asyncHandler(async (req, res) => {
 });
 
 const getStudentApplications = asyncHandler(async (req, res) => {
+  try {
     const studentId = req.user._id; 
-    const applications = await RequestProj.find({ studentId })
-      .populate('projectId', 'title desc startDate endDate') 
-      .select('status applicationDate projectId');
-  
-    res.status(200).json({ success: true, data: applications });
+    const { projId } = req.query;
+
+    const application = await RequestProj.findOne({ studentId, projectId: projId }).select('status');
+    if (!application) {
+      return res.status(200).json({ success: true, data: "notapplied" });
+    }
+
+    res.status(200).json({ success: true, data: application.status });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 });
 
 const closeProject = asyncHandler(async (req, res) => {

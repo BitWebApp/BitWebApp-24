@@ -97,6 +97,11 @@ export default function useLinks() {
       icon: <HiBriefcase />, 
       to: "/db/classroom-form" 
     },
+    {
+      text: "Prof. Projects",
+      icon: <HiPresentationChartLine />,
+      to: "/db/student-projects-dashboard",
+    },
   ];
 
   const adminLinks = [
@@ -190,7 +195,11 @@ export default function useLinks() {
       icon: <HiArchive />,
       to: "/db/review",
     },
-
+    {
+      text: "Prof. Projects",
+      icon: <HiPresentationChartLine />,
+      to: "/db/admin-projects-dashboard",
+    },
   ];
 
   return isAdmin ? adminLinks : additionalLinks;
