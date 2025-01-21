@@ -9,6 +9,8 @@ import { Otp } from "../models/otp.model.js";
 import { Placement } from "../models/placement.model.js";
 import nodemailer from "nodemailer";
 import bcrypt from "bcrypt" 
+import cron from "node-cron"
+
 const generateAcessAndRefreshToken = async (userId) => {
   try {
     const user = await User.findById(userId);
@@ -844,6 +846,12 @@ const getAllUsers = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, { users }, "all users fetched"));
 });
+
+cron.schedule('0 0 1 1,8 *', async () => {
+  console.log('Running semester update...');
+  await updateSemesterForAllUsers();
+  console.log('Semester update completed!');
+});
 export {
   registerUser,
   loginUser,
@@ -861,5 +869,5 @@ export {
   getAllUsers,
   verifyMail,
   fetchBranch,
-  changepassword
+  changepassword,
 };

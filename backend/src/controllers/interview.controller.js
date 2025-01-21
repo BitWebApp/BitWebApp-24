@@ -54,7 +54,13 @@ const addInterviewExp = asyncHandler(async (req, res) => {
 });
 
 const getAllInterviewExps = asyncHandler(async (req, res) => {
-  const { companyId, studentId, page = 1, limit = 10, sort = "-createdAt" } = req.query;
+  const {
+    companyId,
+    studentId,
+    page = 1,
+    limit = 10,
+    sort = "-createdAt",
+  } = req.query;
 
   const filter = {};
 
@@ -69,18 +75,23 @@ const getAllInterviewExps = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
 
   const interviewExps = await InterviewExp.find(filter)
-    .populate("company", "name")
-    .populate("student", "name email")
+    .populate("company", "companyName")
+    .populate("student", "fullName email")
     .sort(sort)
     .skip(skip)
     .limit(parseInt(limit, 10));
 
   const totalRecords = await InterviewExp.countDocuments(filter);
 
-  return res.status(200).json(
-    new ApiResponse(200, { interviewExps, totalRecords }, "Interview experiences fetched successfully")
-  );
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { interviewExps, totalRecords },
+        "Interview experiences fetched successfully"
+      )
+    );
 });
 
-
-export { addInterviewExp , getAllInterviewExps};
+export { addInterviewExp, getAllInterviewExps };

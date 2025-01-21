@@ -106,6 +106,12 @@ function Footer() {
         >
           Features
         </Link>
+        <Link
+          to="/interview-experiences"
+          className="text-sm font-medium hover:text-gray-300 transition-all duration-200"
+        >
+          Interview Experiences
+        </Link>
       </div>
       <div className="flex flex-col items-center gap-4">
         <p className="text-sm font-semibold">Write down your review below</p>

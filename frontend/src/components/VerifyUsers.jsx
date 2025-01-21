@@ -11,17 +11,13 @@ const UnverifiedUsers = () => {
   const [showRejectModal, setShowRejectModal] = useState(false)
 
   useEffect(() => {
-    const fetchUnverifiedUsers = async () => {
-      try {
-        const response = await axios.get("api/v1/admin/unverifiedUsers")
-        setUsers(response.data.data.us)
-      } catch (err) {
-        setError("Something went wrong while fetching unverified users")
-      }
-    }
-    fetchUnverifiedUsers()
-  }, [])
-
+    fetchUnverifiedUsers();
+  }, []);
+  const fetchUnverifiedUsers = async () => {
+      const response = await axios.get("/api/v1/admin/unverifiedUsers")
+      console.log(response)
+      setUsers(response.data.data)
+  }
   const handleCheckboxChange = (userId) => {
     setSelectedUserIds((prevSelectedUserIds) =>
       prevSelectedUserIds.includes(userId)

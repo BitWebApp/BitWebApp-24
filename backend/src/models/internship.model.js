@@ -18,8 +18,8 @@ const internshipSchema = new Schema(
       required: [true, "Internship location is required!"],
     },
     company: {
-      type: String,
-      uppercase: true,
+      type: Schema.Types.ObjectId,
+      ref: "Company",
       required: function () {
         return this.type === "industrial";
       },
