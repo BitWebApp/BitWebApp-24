@@ -92,39 +92,42 @@ export default function Header() {
                 leaveFrom='opacity-100 translate-y-0'
                 leaveTo='opacity-0 translate-y-1'
               >
-                <Popover.Panel className='absolute left-0 z-10 mt-2.5 w-full bg-black'>
-                  <div className='whitespace-pre flex-1 py-[1rem] text-[0.9rem] text-red-500 flex flex-col gap-0.5'>
-                    {links.map((link, index) => (
-                      <Link
-                        to={link.to}
-                        key={index}
-                        className={classNames('cursor-pointer border-t border-neutral-700', linkClasses)}
-                        onClick={closeNavbar}
-                      >
-                        <span className='text-xl'>{link.icon}</span>
-                        {link.text}
-                      </Link>
-                    ))}
-                    <div
-                      onClick={() => { handleLogout(); closeNavbar(); }}
-                      className={classNames('text-red-500 mt-[2rem] cursor-pointer border-t border-neutral-700', linkClasses)}
-                    >
-                      <span className='text-xl'>
-                        <HiOutlineLogout />
-                      </span>
-                      Logout
-                    </div>
-                    <div
-                      className={classNames('text-red-500 cursor-pointer border-t border-neutral-700', linkClasses)}
-                      onClick={closeNavbar}
-                    >
-                      <span className='text-xl'>
-                        <HiOutlineLogout />
-                      </span>
-                      Collapse
-                    </div>
-                  </div>
-                </Popover.Panel>
+               <Popover.Panel
+  className='absolute left-0 z-10 mt-2.5 w-full bg-black max-h-[70vh] overflow-y-auto'
+>
+  <div className='whitespace-pre flex-1 py-[1rem] text-[0.9rem] text-red-500 flex flex-col gap-0.5'>
+    {links.map((link, index) => (
+      <Link
+        to={link.to}
+        key={index}
+        className={classNames('cursor-pointer border-t border-neutral-700', linkClasses)}
+        onClick={closeNavbar}
+      >
+        <span className='text-xl'>{link.icon}</span>
+        {link.text}
+      </Link>
+    ))}
+    <div
+      onClick={() => { handleLogout(); closeNavbar(); }}
+      className={classNames('text-red-500 mt-[2rem] cursor-pointer border-t border-neutral-700', linkClasses)}
+    >
+      <span className='text-xl'>
+        <HiOutlineLogout />
+      </span>
+      Logout
+    </div>
+    <div
+      className={classNames('text-red-500 cursor-pointer border-t border-neutral-700', linkClasses)}
+      onClick={closeNavbar}
+    >
+      <span className='text-xl'>
+        <HiOutlineLogout />
+      </span>
+      Collapse
+    </div>
+  </div>
+</Popover.Panel>
+
               </Transition>
             </>
           )}

@@ -125,41 +125,46 @@ export default function Dashboard() {
              </li>
               )}
            
-           <div className="mt-4">
-            <p className="font-semibold text-blue-600">Academics</p>
-            <table className="w-full border-2 border-black border-collapse">
-              <thead>
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Semester</th>
-                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">SGPA</th>
-                </tr>
-              </thead>
-              {user.academics[0]?.academicRecords?.map((ele, index) => (
-                <tr className="text-center" key={index}>
-                  <td className="border border-black">{ele.semester}</td>
-                  <td className="border border-black">{ele.gpa}</td>
-                </tr>
-              ))}
-            </table>
-          </div>
-          
-          <div className="mt-4">
-            <p className="font-semibold text-blue-600">Backlogs</p>
-            <table className="w-full border-2 border-black border-collapse">
-              <thead>
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Course Code</th>
-                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Course Name</th>
-                </tr>
-              </thead>
-              {user.backlogs?.map((ele, index) => (
-                <tr className="text-center" key={index}>
-                  <td className="border border-black">{ele?.subjectCode}</td>
-                  <td className="border border-black">{ele?.subjectName}</td>
-                </tr>
-              ))}
-            </table>
-          </div>
+           {isAdmin && (
+  <div className="mt-4">
+    <p className="font-semibold text-blue-600">Academics</p>
+    <table className="w-full border-2 border-black border-collapse">
+      <thead>
+        <tr>
+          <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Semester</th>
+          <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">SGPA</th>
+        </tr>
+      </thead>
+      {user.academics[0]?.academicRecords?.map((ele, index) => (
+        <tr className="text-center" key={index}>
+          <td className="border border-black">{ele.semester}</td>
+          <td className="border border-black">{ele.gpa}</td>
+        </tr>
+      ))}
+    </table>
+  </div>
+)}
+
+{isAdmin && (
+  <div className="mt-4">
+    <p className="font-semibold text-blue-600">Backlogs</p>
+    <table className="w-full border-2 border-black border-collapse">
+      <thead>
+        <tr>
+          <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Course Code</th>
+          <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Course Name</th>
+        </tr>
+      </thead>
+      {user.backlogs?.map((ele, index) => (
+        <tr className="text-center" key={index}>
+          <td className="border border-black">{ele?.subjectCode}</td>
+          <td className="border border-black">{ele?.subjectName}</td>
+        </tr>
+      ))}
+    </table>
+  </div>
+)}
+
 
           <div className="mt-4">
             <p className="font-semibold text-blue-600">Internships</p>
