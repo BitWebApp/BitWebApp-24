@@ -95,7 +95,7 @@ function Footer() {
           Home
         </Link>
         <Link
-          to="/signup"
+          to="/sg"
           className="text-sm font-medium hover:text-gray-300 transition-all duration-200"
         >
           Signup
