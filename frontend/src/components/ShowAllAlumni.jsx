@@ -79,7 +79,7 @@ export default function AlumniTable() {
           <thead className="bg-black">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                #
+                S.no.
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                 Name
@@ -91,7 +91,7 @@ export default function AlumniTable() {
                 Program
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                Graduation Year
+                Branch
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                 Work Experience
@@ -114,7 +114,7 @@ export default function AlumniTable() {
                   {alumni.program}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {alumni.graduationYear}
+                  {alumni.branch}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   {/* Updated to use workExperiences instead of workExperience */}
