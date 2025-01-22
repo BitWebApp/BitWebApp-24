@@ -131,7 +131,9 @@ const getAllAlumni = asyncHandler(async (req, res) => {
       .select("-__v");
 
     if (!alumni || alumni.length === 0) {
-      throw new ApiError(404, "No alumni records found");
+      return res
+        .status(200)  // Changed from 404 to 200 since it's not an error case
+        .json(new ApiResponse(200, [], "No Alumni Records Found"));
     }
 
     // Format the response for admin view
