@@ -100,5 +100,4 @@ router.put("/projects/close/:id", verifyAdmin, closeProject);
 router.put("/projects/:id", verifyAdmin, upload.array('files'), editProject);
 router.put("/applications/:applicationId", verifyAdmin, updateApplicationStatus);
 
-
 export default router;

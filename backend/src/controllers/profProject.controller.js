@@ -43,7 +43,7 @@ const getProjectDetails = asyncHandler(async (req, res) => {
 
 const editProject = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { title, desc, categories, startDate, endDate, relevantLinks, deleteUrls, status } = req.body;
+    const { title, desc, categories, startDate, endDate, relevantLinks, deleteUrls, closed } = req.body; // 'relevantLinks' is now an array
   
     try {
       const project = await ProfProject.findById(id);
@@ -57,8 +57,8 @@ const editProject = asyncHandler(async (req, res) => {
       project.categories = categories || project.categories;
       project.startDate = startDate || project.startDate;
       project.endDate = endDate || project.endDate;
-      project.relevantLinks = relevantLinks || project.relevantLinks;
-      project.closed = status || project.closed;
+      project.relevantLinks = relevantLinks || project.relevantLinks; // Assign array directly
+      project.closed = closed !== undefined ? closed : project.closed; // Ensure 'closed' is updated correctly
   
       if (deleteUrls && Array.isArray(deleteUrls) && deleteUrls.length > 0) {
         for (const url of deleteUrls) {

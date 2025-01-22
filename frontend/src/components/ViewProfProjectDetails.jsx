@@ -28,6 +28,9 @@ const ViewProfProjectDetails = () => {
     const [removedDocs, setRemovedDocs] = useState([]); // State to track removed docs
     const [removedLinks, setRemovedLinks] = useState([]); // State to track removed links
     const [newFiles, setNewFiles] = useState([]); // State to track new files
+    const [newCategory, setNewCategory] = useState('');
+    const [newLink, setNewLink] = useState('');
+    const [isSaving, setIsSaving] = useState(false); // Add isSaving state
     const navigate = useNavigate();
   
     useEffect(() => {
@@ -92,8 +95,28 @@ const ViewProfProjectDetails = () => {
       });
     };
 
+    const handleAddCategory = () => {
+      if (newCategory.trim() !== '') {
+          setProject((prev) => ({
+              ...prev,
+              categories: [...prev.categories, newCategory.trim()],
+          }));
+          setNewCategory('');
+      }
+  };
+
+    const handleAddLink = () => {
+        if (newLink.trim()) {
+            setProject((prev) => ({
+                ...prev,
+                relevantLinks: [...prev.relevantLinks, newLink.trim()],
+            }));
+            setNewLink('');
+        }
+    };
       
       const handleSave = async () => {
+        setIsSaving(true); // Set isSaving to true
         const { doc, relevantLinks, ...otherFields } = project;
         const payload = new FormData();
       
@@ -104,7 +127,7 @@ const ViewProfProjectDetails = () => {
         payload.append('relevantLinks', relevantLinks.join(', '));
         payload.append('startDate', otherFields.startDate);
         payload.append('endDate', otherFields.endDate);
-        payload.append('closed', otherFields.closed);
+        payload.append('closed', otherFields.closed); // Change this line to use 'closed'
         // Append each URL separately
         const deleteUrls = [...removedDocs, ...removedLinks];
         deleteUrls.forEach(url => {
@@ -128,6 +151,8 @@ const ViewProfProjectDetails = () => {
           setIsEditMode(false);
         } catch (err) {
           setError(err.response?.data?.message || 'Error updating project');
+        } finally {
+          setIsSaving(false); // Set isSaving to false
         }
       };
     if (loading) {
@@ -241,71 +266,109 @@ const ViewProfProjectDetails = () => {
           <div>
             <label htmlFor="categories" className="block font-medium text-gray-700">Categories (comma-separated)</label>
             <input
-              id="categories"
-              name="categories"
-              value={project.categories.join(', ')}
-              onChange={handleCategoriesChange}
-              className="w-full p-2 border border-gray-300 rounded"
-              disabled={!isEditMode}
-            />
+                type="text"
+                placeholder="Add a category..."
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddCategory();
+                    }
+                }}
+                className="w-full p-2 border border-gray-300 rounded"
+                disabled={!isEditMode}
+              />
+            <div className="mt-2 flex flex-wrap">
+              {project.categories.map((cat, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center m-1 px-2 py-1 rounded bg-gray-200 text-gray-700"
+                >
+                  {cat}
+                  {isEditMode && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveItem('categories', index)}
+                      className="ml-2 text-red-500 hover:text-red-700"
+                    >
+                      ×
+                    </button>
+                  )}
+                </span>
+              ))}
+            </div>
           </div>
   
           {/* Relevant Links */}
           <div>
             <label htmlFor="relevantLinks" className="block font-medium text-gray-700">Relevant Links (comma-separated)</label>
-            <input
-              id="relevantLinks"
-              name="relevantLinks"
-              value={project.relevantLinks.join(', ')}
-              onChange={handleLinksChange}
-              className="w-full p-2 border border-gray-300 rounded"
-              disabled={!isEditMode}
-            />
-            {isEditMode && project.relevantLinks.length > 0 && (
-              <ul className="mt-2">
+            {isEditMode && (
+                    <input
+                        type="text"
+                        placeholder="Add a link..."
+                        value={newLink}
+                        onChange={(e) => setNewLink(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddLink();
+                            }
+                        }}
+                        className="w-full p-2 border border-gray-300 rounded"
+                    />
+                )}
+            <ul className="mt-2">
                 {project.relevantLinks.map((link, index) => (
-                  <li key={index} className="flex justify-between items-center">
-                    <span>{link}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveItem('relevantLinks', index)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      Remove
-                    </button>
-                  </li>
+                    <li key={index} className="flex items-center space-x-2">
+                        <a 
+                            href={link} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-blue-500 underline"
+                        >
+                            {link}
+                        </a>
+                        {isEditMode && (
+                            <button
+                                type="button"
+                                onClick={() => handleRemoveItem('relevantLinks', index)}
+                                className="text-red-500 hover:text-red-700"
+                            >
+                                ×
+                            </button>
+                        )}
+                    </li>
                 ))}
-              </ul>
-            )}
+            </ul>
           </div>
   
           {/* Documents */}
           <div>
             <label htmlFor="doc" className="block font-medium text-gray-700">Documents (comma-separated)</label>
-            <input
-              id="doc"
-              name="doc"
-              value={project.doc.join(', ')}
-              onChange={handleDocsChange}
-              className="w-full p-2 border border-gray-300 rounded"
-              disabled={!isEditMode}
-            />
-            {isEditMode && project.doc.length > 0 && (
-              <ul className="mt-2">
-                {project.doc.map((doc, index) => (
-                  <li key={index} className="flex justify-between items-center">
-                    <span>{doc}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveItem('doc', index)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      Remove
-                    </button>
-                  </li>
+            <ul className="mt-2">
+                {project.doc.map((docLink, index) => (
+                    <li key={index} className="flex items-center space-x-2">
+                        <a
+                            href={docLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 underline"
+                        >
+                            {docLink}
+                        </a>
+                        {isEditMode && (
+                            <button
+                                type="button"
+                                onClick={() => handleRemoveItem('doc', index)}
+                                className="text-red-500 hover:text-red-700"
+                            >
+                                ×
+                            </button>
+                        )}
+                    </li>
                 ))}
-              </ul>
-            )}
+            </ul>
           </div>
   
           {/* File Upload */}
@@ -330,7 +393,12 @@ const ViewProfProjectDetails = () => {
               id="closed"
               name="closed"
               value={project.closed ? 'Closed' : 'Open'}
-              onChange={(e) => handleInputChange({ target: { name: 'closed', value: e.target.value === 'Closed' } })}
+              onChange={(e) => {
+                setProject(prev => ({
+                    ...prev,
+                    closed: e.target.value === 'Closed'
+                }));
+            }}
               className="w-full p-2 border border-gray-300 rounded"
               disabled={!isEditMode}
             >
@@ -343,9 +411,10 @@ const ViewProfProjectDetails = () => {
             <button
               type="button"
               onClick={isEditMode ? handleSave : () => setIsEditMode(true)}
-              className="bg-blue-500 text-white px-6 py-2 rounded"
+              className={`bg-blue-500 text-white px-6 py-2 rounded ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={isSaving} // Disable button when saving
             >
-              {isEditMode ? 'Save Changes' : 'Edit Project'}
+              {isSaving ? 'Saving...' : isEditMode ? 'Save Changes' : 'Edit Project'} {/* Change button text */}
             </button>
           </div>
         </form>
