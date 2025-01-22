@@ -334,23 +334,23 @@ export const otpForgotPass = asyncHandler(async (req, res) => {
 });
 const changepassword = asyncHandler(async(req, res) => {
   try {
-      console.log("hello")
+      // console.log("hello")
       const {email, otp, newpassword} = req.body
       if(!email || !otp || !newpassword)
           throw new ApiError(400, "enter all fields")
       const user = await User.findOne({email})
-      console.log(user)
+      // console.log(user)
       const otpverify = await Otp.find({
           email
       })
-      console.log(otpverify)
+      // console.log(otpverify)
       if(otpverify.length<=0){
           throw new ApiError(401, "Account record doesn't exist or has been verified already. please login")
       }
       const hashedOTP = otpverify[0].otp
-      console.log(hashedOTP)
+      // console.log(hashedOTP)
       const validOTP= otp === hashedOTP
-        console.log(validOTP)
+        // console.log(validOTP)
         if(!validOTP){
             throw new ApiError("Invalid code. Check your Inbox")
         }

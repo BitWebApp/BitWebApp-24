@@ -25,12 +25,12 @@ const ViewProfProjectDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
-    const [removedDocs, setRemovedDocs] = useState([]); // State to track removed docs
-    const [removedLinks, setRemovedLinks] = useState([]); // State to track removed links
-    const [newFiles, setNewFiles] = useState([]); // State to track new files
+    const [removedDocs, setRemovedDocs] = useState([]); 
+    const [removedLinks, setRemovedLinks] = useState([]); 
+    const [newFiles, setNewFiles] = useState([]); 
     const [newCategory, setNewCategory] = useState('');
     const [newLink, setNewLink] = useState('');
-    const [isSaving, setIsSaving] = useState(false); // Add isSaving state
+    const [isSaving, setIsSaving] = useState(false); 
     const navigate = useNavigate();
   
     useEffect(() => {
@@ -116,38 +116,38 @@ const ViewProfProjectDetails = () => {
     };
       
     const handleSave = async () => {
-      setIsSaving(true); // Set isSaving to true
+      setIsSaving(true); 
       const { doc, relevantLinks, ...otherFields } = project;
       const payload = new FormData();
     
-      // Append project details to the FormData
+      
       payload.append('title', otherFields.title);
       payload.append('desc', otherFields.desc);
       
-      // Change this line to append each category individually
+      
       otherFields.categories.forEach(category => {
         payload.append('categories[]', category);
       });
     
-      // Similarly, append relevantLinks as an array
+      
       relevantLinks.forEach(link => {
         payload.append('relevantLinks[]', link);
       });
     
       payload.append('startDate', otherFields.startDate);
       payload.append('endDate', otherFields.endDate);
-      payload.append('closed', otherFields.closed); // Use 'closed'
+      payload.append('closed', otherFields.closed); 
     
-      // Append each URL separately
+      
       const deleteUrls = [...removedDocs, ...removedLinks];
       deleteUrls.forEach(url => {
-        payload.append('deleteUrls[]', url);  // 'deleteUrls[]' treats it as an array in the backend
+        payload.append('deleteUrls[]', url);  
       });
     
-      // Append new files if any
+      
       if (newFiles.length > 0) {
         Array.from(newFiles).forEach(file => {
-          payload.append('files', file); // Ensure files are appended correctly
+          payload.append('files', file); 
         });
       }
     
@@ -163,7 +163,7 @@ const ViewProfProjectDetails = () => {
       } catch (err) {
         setError(err.response?.data?.message || 'Error updating project');
       } finally {
-        setIsSaving(false); // Set isSaving to false
+        setIsSaving(false); 
       }
     };
     if (loading) {
@@ -183,7 +183,6 @@ const ViewProfProjectDetails = () => {
         <h1 className="text-xl font-semibold mb-6">{isEditMode ? 'Edit Project' : 'Project Details'}</h1>
   
         <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-          {/* Title */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="title" className="block font-medium text-gray-700">Title</label>
@@ -198,7 +197,6 @@ const ViewProfProjectDetails = () => {
               />
             </div>
   
-            {/* Professor Name */}
             <div>
               <label htmlFor="profName" className="block font-medium text-gray-700">Professor Name</label>
               <input
@@ -213,7 +211,6 @@ const ViewProfProjectDetails = () => {
             </div>
           </div>
   
-          {/* Description */}
           <div>
             <label htmlFor="desc" className="block font-medium text-gray-700">Description</label>
             <textarea
@@ -227,7 +224,6 @@ const ViewProfProjectDetails = () => {
             />
           </div>
   
-          {/* Email and Date */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="profEmail" className="block font-medium text-gray-700">Professor Email</label>
@@ -249,7 +245,7 @@ const ViewProfProjectDetails = () => {
                 id="startDate"
                 name="startDate"
                 type="date"
-                value={project.startDate.split('T')[0]} // Ensure the date is formatted correctly
+                value={project.startDate.split('T')[0]} 
                 onChange={handleInputChange}
                 className="w-full p-2 border border-gray-300 rounded"
                 required
@@ -257,25 +253,23 @@ const ViewProfProjectDetails = () => {
               />
             </div>
           </div>
-  
-          {/* End Date */}
+
           <div>
             <label htmlFor="endDate" className="block font-medium text-gray-700">End Date</label>
             <input
               id="endDate"
               name="endDate"
               type="date"
-              value={project.endDate.split('T')[0]} // Ensure the date is formatted correctly
+              value={project.endDate.split('T')[0]} 
               onChange={handleInputChange}
               className="w-full p-2 border border-gray-300 rounded"
               required
               disabled={!isEditMode}
             />
           </div>
-  
-          {/* Categories */}
+
           <div>
-            <label htmlFor="categories" className="block font-medium text-gray-700">Categories (comma-separated)</label>
+            <label htmlFor="categories" className="block font-medium text-gray-700">Categories</label>
             <input
                 type="text"
                 placeholder="Add a category..."
@@ -311,9 +305,8 @@ const ViewProfProjectDetails = () => {
             </div>
           </div>
   
-          {/* Relevant Links */}
           <div>
-            <label htmlFor="relevantLinks" className="block font-medium text-gray-700">Relevant Links (comma-separated)</label>
+            <label htmlFor="relevantLinks" className="block font-medium text-gray-700">Relevant Links</label>
             {isEditMode && (
                     <input
                         type="text"
@@ -354,9 +347,8 @@ const ViewProfProjectDetails = () => {
             </ul>
           </div>
   
-          {/* Documents */}
           <div>
-            <label htmlFor="doc" className="block font-medium text-gray-700">Documents (comma-separated)</label>
+            <label htmlFor="doc" className="block font-medium text-gray-700">Documents</label>
             <ul className="mt-2">
                 {project.doc.map((docLink, index) => (
                     <li key={index} className="flex items-center space-x-2">
@@ -381,8 +373,7 @@ const ViewProfProjectDetails = () => {
                 ))}
             </ul>
           </div>
-  
-          {/* File Upload */}
+
           {isEditMode && (
             <div>
               <label htmlFor="file" className="block font-medium text-gray-700">Upload New Files</label>
@@ -397,7 +388,6 @@ const ViewProfProjectDetails = () => {
             </div>
           )}
   
-          {/* Status */}
           <div>
             <label htmlFor="closed" className="block font-medium text-gray-700">Status</label>
             <select
@@ -423,7 +413,7 @@ const ViewProfProjectDetails = () => {
               type="button"
               onClick={isEditMode ? handleSave : () => setIsEditMode(true)}
               className={`bg-blue-500 text-white px-6 py-2 rounded ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={isSaving} // Disable button when saving
+              disabled={isSaving} 
             >
               {isSaving ? 'Saving...' : isEditMode ? 'Save Changes' : 'Edit Project'} {/* Change button text */}
             </button>

@@ -43,15 +43,15 @@ const addBacklogbyUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Invalid backlog ID');
   }
 
-  console.log('Backlog ID:', backlogid);
+  // console.log('Backlog ID:', backlogid);
 
   const user = req?.user;
-  console.log('User:', user);
+  // console.log('User:', user);
 
   if (!user) throw new ApiError(401, 'User not authenticated');
 
   const student = await User.findById(user._id);
-  console.log('Student:', student);
+  // console.log('Student:', student);
 
   if (!student) throw new ApiError(401, 'Student not found');
   const backlogExists = student.backlogs.some((id) => id.equals(backlogid));
@@ -71,12 +71,12 @@ const addBacklogbyUser = asyncHandler(async (req, res) => {
 
 const getBacklogsbyUser = asyncHandler(async(req, res) =>{
   const user = req?.user;
-  console.log('User:', user);
+  // console.log('User:', user);
 
   if (!user) throw new ApiError(401, 'User not authenticated');
 
   const student = await User.findById(user._id).populate('backlogs');
-  console.log('Student:', student);
+  // console.log('Student:', student);
   const backlog = student.backlogs
   return res.status(200).json(new ApiResponse(200, backlog, "All backlogs fetched"))
 })

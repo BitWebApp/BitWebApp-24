@@ -19,7 +19,7 @@ const createExam = asyncHandler(async (req, res) => {
     examName: { $regex: new RegExp(`^${examName}$`, 'i') }
   })
 
-  console.log(examName.toLowerCase());
+  // console.log(examName.toLowerCase());
 
   if(isDup) {throw new Error("exam exists already!")}
 
