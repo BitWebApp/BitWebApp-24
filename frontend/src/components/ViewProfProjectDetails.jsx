@@ -115,46 +115,57 @@ const ViewProfProjectDetails = () => {
         }
     };
       
-      const handleSave = async () => {
-        setIsSaving(true); // Set isSaving to true
-        const { doc, relevantLinks, ...otherFields } = project;
-        const payload = new FormData();
+    const handleSave = async () => {
+      setIsSaving(true); // Set isSaving to true
+      const { doc, relevantLinks, ...otherFields } = project;
+      const payload = new FormData();
+    
+      // Append project details to the FormData
+      payload.append('title', otherFields.title);
+      payload.append('desc', otherFields.desc);
       
-        // Append project details to the FormData
-        payload.append('title', otherFields.title);
-        payload.append('desc', otherFields.desc);
-        payload.append('categories', otherFields.categories.join(', '));
-        payload.append('relevantLinks', relevantLinks.join(', '));
-        payload.append('startDate', otherFields.startDate);
-        payload.append('endDate', otherFields.endDate);
-        payload.append('closed', otherFields.closed); // Change this line to use 'closed'
-        // Append each URL separately
-        const deleteUrls = [...removedDocs, ...removedLinks];
-        deleteUrls.forEach(url => {
-        payload.append('deleteUrls[]', url);  // 'deleteUrls[]' will treat it as an array in the backend
+      // Change this line to append each category individually
+      otherFields.categories.forEach(category => {
+        payload.append('categories[]', category);
+      });
+    
+      // Similarly, append relevantLinks as an array
+      relevantLinks.forEach(link => {
+        payload.append('relevantLinks[]', link);
+      });
+    
+      payload.append('startDate', otherFields.startDate);
+      payload.append('endDate', otherFields.endDate);
+      payload.append('closed', otherFields.closed); // Use 'closed'
+    
+      // Append each URL separately
+      const deleteUrls = [...removedDocs, ...removedLinks];
+      deleteUrls.forEach(url => {
+        payload.append('deleteUrls[]', url);  // 'deleteUrls[]' treats it as an array in the backend
+      });
+    
+      // Append new files if any
+      if (newFiles.length > 0) {
+        Array.from(newFiles).forEach(file => {
+          payload.append('files', file); // Ensure files are appended correctly
         });
-        // Append new files if any
-        if (newFiles.length > 0) {
-          Array.from(newFiles).forEach(file => {
-            payload.append('files', file); // Ensure files are appended correctly
-          });
-        }
-      
-        try {
-          const response = await api.put(`/projects/${id}`, payload, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-          setProject(response.data.data);
-          alert('Project updated successfully!');
-          setIsEditMode(false);
-        } catch (err) {
-          setError(err.response?.data?.message || 'Error updating project');
-        } finally {
-          setIsSaving(false); // Set isSaving to false
-        }
-      };
+      }
+    
+      try {
+        const response = await api.put(`/projects/${id}`, payload, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        setProject(response.data.data);
+        alert('Project updated successfully!');
+        setIsEditMode(false);
+      } catch (err) {
+        setError(err.response?.data?.message || 'Error updating project');
+      } finally {
+        setIsSaving(false); // Set isSaving to false
+      }
+    };
     if (loading) {
       return <p>Loading...</p>;
     }
