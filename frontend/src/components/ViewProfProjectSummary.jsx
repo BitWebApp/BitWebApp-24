@@ -33,6 +33,17 @@ const ViewProfProjectSummary = ({ refreshTrigger }) =>
         }
     };
 
+    const handleCloseProject = async (projectId) => {
+        try {
+            await api.put(`/projects/close/${projectId}`);
+            toast.success('Project closed successfully');
+            fetchProjects(); // Refresh the projects list
+        } catch (error) {
+            console.error('Error closing project:', error);
+            toast.error('Failed to close project');
+        }
+    };
+
     useEffect(() =>
     {
         fetchProjects();

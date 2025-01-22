@@ -40,7 +40,7 @@ const createAlumni = asyncHandler(async (req, res) => {
 // Get alumni profile status
 const getAlumniStatus = asyncHandler(async (req, res) => {
   const userId = req.user._id;
-  console.log("Print user", req.user);
+  // console.log("Print user", req.user);
 
   const alumni = await Alumni.findOne({ user: userId }).select("hasSubmittedForm");
 

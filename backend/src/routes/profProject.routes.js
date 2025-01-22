@@ -5,12 +5,11 @@ import {
   getProjectDetails,
   editProject, 
   applyToProject, 
-  getPendingApplications, 
-  getAcceptedApplications, 
-  getRejectedApplications, 
+  getAllApplications,
   updateApplicationStatus, 
   getStudentApplications,
-  closeProject
+  closeProject,
+  getApplicationDetails
 } from "../controllers/profProject.controller.js";
 import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
@@ -93,12 +92,10 @@ router.get(
 
 // admin routes
 router.post("/projects", verifyAdmin, upload.array('files'), addNewProject);
-router.get("/applications/pending", verifyAdmin, getPendingApplications);
-router.get("/applications/accepted", verifyAdmin, getAcceptedApplications);
-router.get("/applications/rejected", verifyAdmin, getRejectedApplications);
+router.get("/applications/status/:status", getAllApplications);
+router.get("/applications/:applicationId", verifyAdmin, getApplicationDetails);
 router.put("/projects/close/:id", verifyAdmin, closeProject);
 router.put("/projects/:id", verifyAdmin, upload.array('files'), editProject);
 router.put("/applications/:applicationId", verifyAdmin, updateApplicationStatus);
-
 
 export default router;

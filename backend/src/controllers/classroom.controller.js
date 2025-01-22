@@ -8,7 +8,7 @@ export const createBookingRequest = asyncHandler(async (req, res) => {
   const { building, classroomNumber, bookingDate, startTime, endTime, purpose } = req.body;
 
   const userId = req.user._id; 
-  console.log("Request", req);
+  // console.log("Request", req);
   
   // Validate required fields
   if (!userId || !building || !classroomNumber || !bookingDate || !startTime || !endTime || !purpose) {

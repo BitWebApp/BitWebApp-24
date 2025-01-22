@@ -43,7 +43,7 @@ const getProjectDetails = asyncHandler(async (req, res) => {
 
 const editProject = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { title, desc, categories, startDate, endDate, relevantLinks, deleteUrls, status } = req.body;
+    const { title, desc, categories, startDate, endDate, relevantLinks, deleteUrls, closed } = req.body; // 'relevantLinks' is now an array
   
     try {
       const project = await ProfProject.findById(id);
@@ -57,8 +57,8 @@ const editProject = asyncHandler(async (req, res) => {
       project.categories = categories || project.categories;
       project.startDate = startDate || project.startDate;
       project.endDate = endDate || project.endDate;
-      project.relevantLinks = relevantLinks || project.relevantLinks;
-      project.closed = status || project.closed;
+      project.relevantLinks = relevantLinks || project.relevantLinks; // Assign array directly
+      project.closed = closed !== undefined ? closed : project.closed; // Ensure 'closed' is updated correctly
   
       if (deleteUrls && Array.isArray(deleteUrls) && deleteUrls.length > 0) {
         for (const url of deleteUrls) {
@@ -147,31 +147,14 @@ const applyToProject = asyncHandler(async (req, res) => {
 });
 
 
-const getPendingApplications = asyncHandler(async (req, res) => {
-    const { projectId } = req.params;
-    const applications = await RequestProj.find({ projectId, status: 'pending' })
-      .populate('studentId', 'fullName email rollNumber mobileNumber') 
-      .select('status applicationDate docs');
-  
-    res.status(200).json({ success: true, data: applications });
-});
-
-const getAcceptedApplications = asyncHandler(async (req, res) => {
-    const { projectId } = req.params;
-      const applications = await RequestProj.find({ projectId, status: 'accepted' })
-      .populate('studentId', 'fullName email rollNumber mobileNumber') 
-      .select('status applicationDate docs');
-  
-    res.status(200).json({ success: true, data: applications });
-});
-
-const getRejectedApplications = asyncHandler(async (req, res) => {
-    const { projectId } = req.params;
-    const applications = await RequestProj.find({ projectId, status: 'rejected' })
-      .populate('studentId', 'fullName email rollNumber mobileNumber') 
-      .select('status applicationDate docs');
-  
-    res.status(200).json({ success: true, data: applications });
+const getAllApplications = asyncHandler(async (req, res) => {
+  const { status } = req.params;
+  const applications = await RequestProj.find({ status })
+    .populate('studentId', 'fullName email rollNumber mobileNumber')
+    .populate('projectId', 'title profName') // Added populate for projectId
+    .select('status applicationDate doc projectId'); // Included projectId in selected fields
+  console.log("applications", applications);
+  res.status(200).json({ success: true, data: applications });
 });
 
 const updateApplicationStatus = asyncHandler(async (req, res) => {
@@ -228,16 +211,30 @@ const closeProject = asyncHandler(async (req, res) => {
     });
 });
 
+const getApplicationDetails = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const application = await RequestProj.findById(applicationId)
+      .populate('studentId', 'fullName email')
+      .populate('projectId', 'title profName startDate endDate');
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+    res.json({ data: application });
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching application details' });
+  }
+};
+
 export { 
   addNewProject, 
   getAllProjectsSummary,
   getProjectDetails,
   editProject, 
   applyToProject, 
-  getPendingApplications,
-  getAcceptedApplications,
-  getRejectedApplications,
+  getAllApplications,
   updateApplicationStatus,
   getStudentApplications,
-  closeProject
+  closeProject,
+  getApplicationDetails
 };
