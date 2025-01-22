@@ -66,6 +66,8 @@ import StudentProjectDashboard from "./components/StudentProjectDashboard";
 import StudentViewProfProjectDetails from "./components/StudentViewProfProjectDetails";
 import StudentApplyProject from "./components/StudentApplyProject";
 import AddProfessor from "./components/AddProfessor";
+import AdminApplications from './components/AdminApplications';
+import AdminApplicationDetails from './components/AdminApplicationDetails';
 export default function App() {
   return (
     <Router>
@@ -142,6 +144,8 @@ export default function App() {
           <Route path="student-projects-dashboard" element={< StudentProjectDashboard />} />
           <Route path="student-prof-project/:id" element={< StudentViewProfProjectDetails />} />
           <Route path="student-apply-project/:id" element={< StudentApplyProject />} />
+          <Route path="/db/admin-applications" element={<AdminApplications />} />
+          <Route path="/db/admin-applications/:applicationId" element={<AdminApplicationDetails />} />
         </Route>
         <Route path="/sg" element={<Signup />} />
         <Route path="/sb" element={<Sidebar />} />

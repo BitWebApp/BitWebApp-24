@@ -147,31 +147,14 @@ const applyToProject = asyncHandler(async (req, res) => {
 });
 
 
-const getPendingApplications = asyncHandler(async (req, res) => {
-    const { projectId } = req.params;
-    const applications = await RequestProj.find({ projectId, status: 'pending' })
-      .populate('studentId', 'fullName email rollNumber mobileNumber') 
-      .select('status applicationDate doc'); // Changed 'docs' to 'doc' based on model
-  
-    res.status(200).json({ success: true, data: applications });
-});
-
-const getAcceptedApplications = asyncHandler(async (req, res) => {
-    const { projectId } = req.params;
-    const applications = await RequestProj.find({ projectId, status: 'accepted' })
-      .populate('studentId', 'fullName email rollNumber mobileNumber') 
-      .select('status applicationDate doc'); // Changed 'docs' to 'doc' based on model
-  
-    res.status(200).json({ success: true, data: applications });
-});
-
-const getRejectedApplications = asyncHandler(async (req, res) => {
-    const { projectId } = req.params;
-    const applications = await RequestProj.find({ projectId, status: 'rejected' })
-      .populate('studentId', 'fullName email rollNumber mobileNumber') 
-      .select('status applicationDate doc'); // Changed 'docs' to 'doc' based on model
-  
-    res.status(200).json({ success: true, data: applications });
+const getAllApplications = asyncHandler(async (req, res) => {
+  const { status } = req.params;
+  const applications = await RequestProj.find({ status })
+    .populate('studentId', 'fullName email rollNumber mobileNumber')
+    .populate('projectId', 'title profName') // Added populate for projectId
+    .select('status applicationDate doc projectId'); // Included projectId in selected fields
+  console.log("applications", applications);
+  res.status(200).json({ success: true, data: applications });
 });
 
 const updateApplicationStatus = asyncHandler(async (req, res) => {
@@ -228,16 +211,30 @@ const closeProject = asyncHandler(async (req, res) => {
     });
 });
 
+const getApplicationDetails = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const application = await RequestProj.findById(applicationId)
+      .populate('studentId', 'fullName email')
+      .populate('projectId', 'title profName startDate endDate');
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+    res.json({ data: application });
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching application details' });
+  }
+};
+
 export { 
   addNewProject, 
   getAllProjectsSummary,
   getProjectDetails,
   editProject, 
   applyToProject, 
-  getPendingApplications,
-  getAcceptedApplications,
-  getRejectedApplications,
+  getAllApplications,
   updateApplicationStatus,
   getStudentApplications,
-  closeProject
+  closeProject,
+  getApplicationDetails
 };

@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import ManageProjects from './ManageProjects';
 import ViewProfProjectSummary from "./ViewProfProjectSummary"
+import { useNavigate } from 'react-router-dom';
+import ScrollToTop from './ScrollToTop';
 
 const api = axios.create({
   baseURL: '/api/v1/profProject',
@@ -13,6 +14,7 @@ const api = axios.create({
 });
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [projectDetails, setProjectDetails] = useState({
     profId: JSON.parse(localStorage.getItem('user'))?._id || '',
@@ -190,6 +192,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <ScrollToTop />
       <ToastContainer />
       {/* Project Management */}
       <div>
@@ -349,8 +352,12 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Application Management */}
-      <ManageProjects />
+      <button
+        onClick={() => navigate('/db/admin-applications')}
+        className="mt-6 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+      >
+        Manage Applications
+      </button>
     </div>
   );
 };
