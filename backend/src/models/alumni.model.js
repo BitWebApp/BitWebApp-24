@@ -43,8 +43,8 @@ const alumniSchema = new Schema(
       type: String,
       required: [true, "Program is required"]
     },
-    graduationYear: {
-      type: Number,
+    branch: {
+      type: String,
       required: [true, "Graduation year is required"]
     },
     hasSubmittedForm: {

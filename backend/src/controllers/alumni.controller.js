@@ -2,11 +2,13 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Alumni } from "../models/alumni.model.js";
+import { User } from "../models/user.model.js";
 import nodemailer from "nodemailer";
 
 // Create alumni profile
 const createAlumni = asyncHandler(async (req, res) => {
-  const { name, batch, program, graduationYear } = req.body;
+  const { batch, program } = req.body;
+  const name = req.user.fullName;
   const userId = req.user._id;
 
   // Check if alumni profile already exists
@@ -15,13 +17,18 @@ const createAlumni = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Alumni profile already exists");
   }
 
+  const user = await User.findById(userId);
+  if (!user.branch) {
+    throw new ApiError(400, "Please update your branch in your profile first");
+  }
+
   // Create new alumni profile
   const alumni = await Alumni.create({
     user: userId,
     name,
     batch,
     program,
-    graduationYear,
+    branch: user.branch,
     hasSubmittedForm: true
   });
 
@@ -33,6 +40,7 @@ const createAlumni = asyncHandler(async (req, res) => {
 // Get alumni profile status
 const getAlumniStatus = asyncHandler(async (req, res) => {
   const userId = req.user._id;
+  // console.log("Print user", req.user);
 
   const alumni = await Alumni.findOne({ user: userId }).select("hasSubmittedForm");
 
@@ -123,7 +131,9 @@ const getAllAlumni = asyncHandler(async (req, res) => {
       .select("-__v");
 
     if (!alumni || alumni.length === 0) {
-      throw new ApiError(404, "No alumni records found");
+      return res
+        .status(200)  // Changed from 404 to 200 since it's not an error case
+        .json(new ApiResponse(200, [], "No Alumni Records Found"));
     }
 
     // Format the response for admin view

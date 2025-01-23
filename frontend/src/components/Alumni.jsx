@@ -5,10 +5,9 @@ import Swal from "sweetalert2";
 import { ClipLoader } from "react-spinners";
 
 export default function Alumni() {
-  const [name, setName] = useState("");
   const [batch, setBatch] = useState("");
   const [program, setProgram] = useState("");
-  const [graduationYear, setGraduationYear] = useState("");
+  const [branch, setBranch] = useState("");
   const [isDetailsSubmitted, setIsDetailsSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -30,11 +29,28 @@ export default function Alumni() {
             withCredentials: true
           });
 
-          const { name, batch, program, graduationYear } = detailsResponse.data.data;
-          setName(name);
+          const { batch, program, branch } = detailsResponse.data.data;
           setBatch(batch);
           setProgram(program);
-          setGraduationYear(graduationYear);
+          setBranch(branch);
+        } else {
+          // Fetch user profile to get branch
+          const userResponse = await axios.get("/api/v1/users/get-user");
+          const userBranch = userResponse.data.data.branch;
+          if (!userBranch) {
+            Swal.fire({
+              title: "Branch Required",
+              text: "Please select your branch in your profile first",
+              icon: "warning",
+              confirmButtonText: "Go to Profile",
+              showCancelButton: true
+            }).then((result) => {
+              if (result.isConfirmed) {
+                navigate("/db"); // Adjust this path as needed
+              }
+            });
+          }
+          setBranch(userBranch);
         }
       } catch (error) {
         setError("Failed to fetch alumni status");
@@ -45,48 +61,58 @@ export default function Alumni() {
     };
 
     checkStatus();
-  }, []);
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const result = await Swal.fire({
-        title: "Are you sure?",
-        text: "Details will not be editable after submission",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, submit",
-        cancelButtonText: "Cancel"
+      title: "Are you sure?",
+      text: "Details will not be editable after submission",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, submit",
+      cancelButtonText: "Cancel"
     });
 
     if (result.isConfirmed) {
-        try {
-            setLoading(true);
-            const response = await axios.post("/api/v1/alumni/create", {
-                name,
-                batch,
-                program,
-                graduationYear
-            }, {
-                withCredentials: true
-            });
+      try {
+        setLoading(true);
+        const response = await axios.post("/api/v1/alumni/create", {
+          batch,
+          program
+        }, {
+          withCredentials: true
+        });
 
-            // Store the returned alumni data
-            const alumniData = response.data.data;
-            setName(alumniData.name);
-            setBatch(alumniData.batch);
-            setProgram(alumniData.program);
-            setGraduationYear(alumniData.graduationYear);
-            
-            setIsDetailsSubmitted(true);
-            Swal.fire("Success!", "Alumni details submitted successfully", "success");
-        } catch (error) {
-            Swal.fire("Error!", error.response?.data?.message || "Failed to submit details", "error");
-        } finally {
-            setLoading(false);
+        const alumniData = response.data.data;
+        setBatch(alumniData.batch);
+        setProgram(alumniData.program);
+        setBranch(alumniData.branch);
+        
+        setIsDetailsSubmitted(true);
+        Swal.fire("Success!", "Alumni details submitted successfully", "success");
+      } catch (error) {
+        if (error.response?.data?.message === "Please update your branch in your profile first") {
+          Swal.fire({
+            title: "Branch Required",
+            text: "Please select your branch in your profile first",
+            icon: "warning",
+            confirmButtonText: "Go to Profile",
+            showCancelButton: true
+          }).then((result) => {
+            if (result.isConfirmed) {
+              navigate("/profile");
+            }
+          });
+        } else {
+          Swal.fire("Error!", error.response?.data?.message || "Failed to submit details", "error");
         }
+      } finally {
+        setLoading(false);
+      }
     }
-};
+  };
 
   const handleDonate = async () => {
     const result = await Swal.fire({
@@ -103,7 +129,7 @@ export default function Alumni() {
         await axios.post("/api/v1/alumni/donate", {}, {
           withCredentials: true
         });
-        Swal.fire("Success!", "Donation request sent successfully", "success");
+        Swal.fire("Success!", "Donation request sent successfully. Please regularly check your email for further communication", "success");
       } catch (error) {
         Swal.fire("Error!", "Failed to process donation request", "error");
       }
@@ -122,24 +148,12 @@ export default function Alumni() {
         <h3 className="text-2xl font-bold mb-4">Alumni Details</h3>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium">Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter Name"
-              className="w-full border-b border-gray-400 py-2 outline-none"
-              disabled={isDetailsSubmitted}
-              required
-            />
-          </div>
-          <div className="mb-4">
             <label className="block text-sm font-medium">Batch</label>
             <input
               type="text"
               value={batch}
               onChange={(e) => setBatch(e.target.value)}
-              placeholder="Enter Batch"
+              placeholder="Enter Batch (ex: 2022, 2023, etc.)"
               className="w-full border-b border-gray-400 py-2 outline-none"
               disabled={isDetailsSubmitted}
               required
@@ -151,30 +165,27 @@ export default function Alumni() {
               type="text"
               value={program}
               onChange={(e) => setProgram(e.target.value)}
-              placeholder="Enter Program"
+              placeholder="Enter Program (ex: B.Tech, M.Tech, etc.)"
               className="w-full border-b border-gray-400 py-2 outline-none"
               disabled={isDetailsSubmitted}
               required
             />
           </div>
           <div className="mb-6">
-            <label className="block text-sm font-medium">Graduation Year</label>
+            <label className="block text-sm font-medium">Branch</label>
             <input
               type="text"
-              value={graduationYear}
-              onChange={(e) => setGraduationYear(e.target.value)}
-              placeholder="Enter Graduation Year"
-              className="w-full border-b border-gray-400 py-2 outline-none"
-              disabled={isDetailsSubmitted}
-              required
+              value={branch}
+              className="w-full border-b border-gray-400 py-2 outline-none bg-gray-100"
+              disabled={true}
+              placeholder="Branch (from profile)"
             />
           </div>
           {!isDetailsSubmitted && (
             <button
               type="submit"
-              className={`w-full bg-black text-white py-2 rounded-md ${loading ? "opacity-70 cursor-not-allowed" : ""
-                }`}
-              disabled={loading}
+              className={`w-full bg-black text-white py-2 rounded-md ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
+              disabled={loading || !branch}
             >
               {loading ? <ClipLoader size={20} color="#ffffff" /> : "Submit"}
             </button>

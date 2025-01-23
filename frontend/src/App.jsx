@@ -60,7 +60,14 @@ import AddWorkExperience from "./components/AddWorkExperience";
 import ShowWorkExperience from "./components/ShowWorkExperience";
 import ShowAllAlumni from "./components/ShowAllAlumni";
 import InterviewExperiences from "./components/InterviewExperiences";
+import AdminDashboard from "./components/AdminDashboard";
+import ViewProfProjectDetails from "./components/ViewProfProjectDetails";
+import StudentProjectDashboard from "./components/StudentProjectDashboard";
+import StudentViewProfProjectDetails from "./components/StudentViewProfProjectDetails";
+import StudentApplyProject from "./components/StudentApplyProject";
 import AddProfessor from "./components/AddProfessor";
+import AdminApplications from './components/AdminApplications';
+import AdminApplicationDetails from './components/AdminApplicationDetails';
 export default function App() {
   return (
     <Router>
@@ -131,6 +138,14 @@ export default function App() {
           <Route path="backlogs-table" element={<BacklogTable />} />
           <Route path="companies-table" element={<AdminAddCompanies />} />
           <Route path="assign-company" element={<CompanyAssignmentForm />} />
+          <Route path="interview-experiences" element={<InterviewExperiences />} />
+          <Route path="admin-projects-dashboard" element={<AdminDashboard />} />
+          <Route path="prof-project/:id" element={<ViewProfProjectDetails />} />
+          <Route path="student-projects-dashboard" element={< StudentProjectDashboard />} />
+          <Route path="student-prof-project/:id" element={< StudentViewProfProjectDetails />} />
+          <Route path="student-apply-project/:id" element={< StudentApplyProject />} />
+          <Route path="/db/admin-applications" element={<AdminApplications />} />
+          <Route path="/db/admin-applications/:applicationId" element={<AdminApplicationDetails />} />
         </Route>
         <Route path="/sg" element={<Signup />} />
         <Route path="/sb" element={<Sidebar />} />

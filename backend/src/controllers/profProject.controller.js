@@ -5,20 +5,18 @@ import { RequestProj } from "../models/requestProj.model.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/Cloudinary.js";
 
 const addNewProject = asyncHandler(async (req, res) => {
-  const { profId, profName, profEmail, title, desc, categories, startDate, endDate } = req.body;
-
-  if (!req.files || !req.files.length) {
-    throw new ApiError(400, "File upload required");
-  }
+  const { profId, profName, profEmail, title, desc, categories, startDate, endDate, relevantLinks } = req.body;
 
   const docsURL = [];
-  for (const file of req.files) {
-    const cloudinaryResponse = await uploadOnCloudinary(file.path);
-    docsURL.push(cloudinaryResponse.secure_url);
+  if (req.files &&  req.files.length) {
+    for (const file of req.files) {
+      const cloudinaryResponse = await uploadOnCloudinary(file.path);
+      docsURL.push(cloudinaryResponse.secure_url);
+    }
   }
 
   const newProject = await ProfProject.create({
-    profId, profName, profEmail, title, desc, categories, startDate, endDate, doc: docsURL
+    profId, profName, profEmail, title, desc, categories, startDate, endDate, doc: docsURL, relevantLinks
   });
 
   res.status(201).json({ 
@@ -45,7 +43,7 @@ const getProjectDetails = asyncHandler(async (req, res) => {
 
 const editProject = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { title, desc, categories, startDate, endDate, relevantLinks, deleteUrls, status } = req.body;
+    const { title, desc, categories, startDate, endDate, relevantLinks, deleteUrls, closed } = req.body; // 'relevantLinks' is now an array
   
     try {
       const project = await ProfProject.findById(id);
@@ -59,8 +57,8 @@ const editProject = asyncHandler(async (req, res) => {
       project.categories = categories || project.categories;
       project.startDate = startDate || project.startDate;
       project.endDate = endDate || project.endDate;
-      project.relevantLinks = relevantLinks || project.relevantLinks;
-      project.closed = status || project.closed;
+      project.relevantLinks = relevantLinks || project.relevantLinks; // Assign array directly
+      project.closed = closed !== undefined ? closed : project.closed; // Ensure 'closed' is updated correctly
   
       if (deleteUrls && Array.isArray(deleteUrls) && deleteUrls.length > 0) {
         for (const url of deleteUrls) {
@@ -104,62 +102,59 @@ const editProject = asyncHandler(async (req, res) => {
       res.status(500).json({ error: "Internal server error" });
     }
 });
-
 const applyToProject = asyncHandler(async (req, res) => {
-    const { projectId } = req.body;
-    
-    const project = await ProfProject.findById(projectId);
-    if (!project) {
-      throw new ApiError(404, "Project not found");
-    }
-    
-    if (project.closed) {
-      throw new ApiError(400, "This project is closed and no longer accepting applications");
-    }
+  const { projectId } = req.body;
   
-    const docsURL = []; 
-    if (req.files && req.files.length) {
-      for (const file of req.files) {
-          const cloudinaryResponse = await uploadOnCloudinary(file.path);
-          docsURL.push(cloudinaryResponse.secure_url);
-      }
-    }
+  // Check if the project exists
+  const project = await ProfProject.findById(projectId);
+  if (!project) {
+    throw new ApiError(404, "Project not found");
+  }
   
-    const request = await RequestProj.create({
-      projectId, studentId: req.user._id, docs: docsURL
-    });
+  // Check if the project is closed
+  if (project.closed) {
+    throw new ApiError(400, "This project is closed and no longer accepting applications");
+  }
   
-    res.status(201).json({ 
-      success: true, 
-      data: request 
-    });
+  // Check if the student has already applied for this project
+  const existingApplication = await RequestProj.findOne({
+    projectId,
+    studentId: req.user._id
   });
 
-const getPendingApplications = asyncHandler(async (req, res) => {
-    const { projectId } = req.params;
-    const applications = await RequestProj.find({ projectId, status: 'pending' })
-      .populate('studentId', 'fullName email rollNumber mobileNumber') 
-      .select('status applicationDate docs');
-  
-    res.status(200).json({ success: true, data: applications });
+  if (existingApplication) {
+    throw new ApiError(400, "You have already applied to this project");
+  }
+
+  // Process uploaded files
+  const docsURL = [];
+  if (req.files && req.files.length) {
+    for (const file of req.files) {
+      const cloudinaryResponse = await uploadOnCloudinary(file.path);
+      docsURL.push(cloudinaryResponse.secure_url);
+    }
+  }
+
+  // Create a new application
+  const request = await RequestProj.create({
+    projectId, studentId: req.user._id, doc: docsURL
+  });
+
+  res.status(201).json({
+    success: true,
+    data: request
+  });
 });
 
-const getAcceptedApplications = asyncHandler(async (req, res) => {
-    const { projectId } = req.params;
-      const applications = await RequestProj.find({ projectId, status: 'accepted' })
-      .populate('studentId', 'fullName email rollNumber mobileNumber') 
-      .select('status applicationDate docs');
-  
-    res.status(200).json({ success: true, data: applications });
-});
 
-const getRejectedApplications = asyncHandler(async (req, res) => {
-    const { projectId } = req.params;
-    const applications = await RequestProj.find({ projectId, status: 'rejected' })
-      .populate('studentId', 'fullName email rollNumber mobileNumber') 
-      .select('status applicationDate docs');
-  
-    res.status(200).json({ success: true, data: applications });
+const getAllApplications = asyncHandler(async (req, res) => {
+  const { status } = req.params;
+  const applications = await RequestProj.find({ status })
+    .populate('studentId', 'fullName email rollNumber mobileNumber')
+    .populate('projectId', 'title profName') // Added populate for projectId
+    .select('status applicationDate doc projectId'); // Included projectId in selected fields
+  console.log("applications", applications);
+  res.status(200).json({ success: true, data: applications });
 });
 
 const updateApplicationStatus = asyncHandler(async (req, res) => {
@@ -183,12 +178,20 @@ const updateApplicationStatus = asyncHandler(async (req, res) => {
 });
 
 const getStudentApplications = asyncHandler(async (req, res) => {
+  try {
     const studentId = req.user._id; 
-    const applications = await RequestProj.find({ studentId })
-      .populate('projectId', 'title desc startDate endDate') 
-      .select('status applicationDate projectId');
-  
-    res.status(200).json({ success: true, data: applications });
+    const { projId } = req.query;
+
+    const application = await RequestProj.findOne({ studentId, projectId: projId }).select('status');
+    if (!application) {
+      return res.status(200).json({ success: true, data: "notapplied" });
+    }
+
+    res.status(200).json({ success: true, data: application.status });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 });
 
 const closeProject = asyncHandler(async (req, res) => {
@@ -208,16 +211,30 @@ const closeProject = asyncHandler(async (req, res) => {
     });
 });
 
+const getApplicationDetails = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const application = await RequestProj.findById(applicationId)
+      .populate('studentId', 'fullName email')
+      .populate('projectId', 'title profName startDate endDate');
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+    res.json({ data: application });
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching application details' });
+  }
+};
+
 export { 
   addNewProject, 
   getAllProjectsSummary,
   getProjectDetails,
   editProject, 
   applyToProject, 
-  getPendingApplications,
-  getAcceptedApplications,
-  getRejectedApplications,
+  getAllApplications,
   updateApplicationStatus,
   getStudentApplications,
-  closeProject
+  closeProject,
+  getApplicationDetails
 };
