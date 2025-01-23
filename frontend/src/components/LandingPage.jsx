@@ -10,11 +10,24 @@ export default function LandingPage() {
     <>
       <NavBar />
       <About />
-      <div className="p-5 bg-gray-300 m-auto flex">
-        <h2 className="mx-5 my-auto text-xl md:text-3xl font-bold text-blue-600">Know Your Student</h2>
-        <button className="bg-blue-600 md:m-3 text-white font-bold rounded-md p-3 md:px-6 md:py-2 hover:bg-blue-700 transition">
-          <Link to="/public-user">Find a Student</Link>
-        </button>
+      {/* Call-to-action section */}
+      <div className="bg-gray-300 py-12">
+        <div className="max-w-6xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-between bg-white shadow-md rounded-lg p-6 md:p-8">
+          <div className="mb-6 md:mb-0">
+            <h2 className="text-2xl md:text-3xl font-bold text-blue-600">
+              Know Your Student
+            </h2>
+            <p className="text-gray-700 mt-2 text-sm md:text-base">
+              Discover detailed student profiles and explore their achievements easily.
+            </p>
+          </div>
+          <Link
+            to="/public-user"
+            className="bg-blue-600 text-white text-lg font-semibold rounded-md px-8 py-3 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 shadow-md transition-all"
+          >
+            Find a Student
+          </Link>
+        </div>
       </div>
       <ReviewCarousel />
       <Footer />
