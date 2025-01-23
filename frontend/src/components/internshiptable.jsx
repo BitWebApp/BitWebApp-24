@@ -83,7 +83,8 @@ export default function InternshipTable() {
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Internships");
-
+  
+    // Define columns with headers and styles
     worksheet.columns = [
       { header: "#", key: "index", width: 5 },
       { header: "Roll Number", key: "rollNumber", width: 15 },
@@ -97,24 +98,59 @@ export default function InternshipTable() {
       { header: "Ending Date", key: "endDate", width: 15 },
       { header: "Supporting Doc", key: "doc", width: 30 },
     ];
-
+  
+    // Add a bold style to the header row
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).alignment = { vertical: "middle", horizontal: "center" };
+    worksheet.getRow(1).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF000000" },
+      bgColor: { argb: "FFFFFFFF" },
+    };
+    worksheet.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+  
     let index = 1;
     filteredData.forEach((record) => {
-      worksheet.addRow({
+      const row = worksheet.addRow({
         index: index++,
         rollNumber: record.student.rollNumber,
         name: record.student.fullName,
         company: record.company.companyName,
         role: record.role,
-        type: record.type, // Internship Type
-        location: record.location, // Internship Location
-        mentor: record.mentorName || "N/A", // Mentor Name (Assuming it's a field in your data)
+        type: record.type,
+        location: record.location,
+        mentor: record.mentorName || "N/A",
         startDate: formatDate(record.startDate),
         endDate: formatDate(record.endDate),
         doc: record.doc,
       });
+  
+      // Add alternating row colors for better readability
+      const fillColor = index % 2 === 0 ? "FFFAFAFA" : "FFFFFFFF";
+      row.eachCell((cell) => {
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: fillColor },
+        };
+      });
     });
-
+  
+    // Add borders to all cells
+    worksheet.eachRow((row) => {
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+        cell.alignment = { vertical: "middle", horizontal: "center" };
+      });
+    });
+  
+    // Write to buffer and trigger download
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -128,6 +164,7 @@ export default function InternshipTable() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+  
 
   return (
     <div className="overflow-x-auto">
