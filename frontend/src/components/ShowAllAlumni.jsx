@@ -18,20 +18,20 @@ export default function AlumniTable() {
       const response = await axios.get("/api/v1/alumni/all", {
         withCredentials: true,
         headers: {
-            'Content-Type': 'application/json',
-            // If you're using token in Authorization header
-            'Authorization': `Bearer ${localStorage.getItem('token')}` // adjust based on how you store the token
+          'Content-Type': 'application/json',
+          // If you're using token in Authorization header
+          'Authorization': `Bearer ${localStorage.getItem('token')}` // adjust based on how you store the token
         }
-    });
-    
+      });
+
       if (response.data.success) {
         setAlumniData(response.data.data);
       } else {
         setError("Failed to fetch alumni data.");
       }
     } catch (err) {
-      console.error("Error fetching alumni data:", err);
-      setError("An error occurred while fetching alumni data.");
+      console.error("Error fetching alumni data:", err.response?.data || err.message);
+      setError(err.response?.data?.message || "An error occurred while fetching alumni data.");
     } finally {
       setLoading(false);
     }
@@ -161,8 +161,8 @@ export default function AlumniTable() {
                   {selectedWorkExperience.isCurrentlyWorking
                     ? "Present"
                     : selectedWorkExperience.endDate
-                    ? new Date(selectedWorkExperience.endDate).toLocaleDateString()
-                    : "N/A"}
+                      ? new Date(selectedWorkExperience.endDate).toLocaleDateString()
+                      : "N/A"}
                 </p>
               </div>
               <button
