@@ -92,7 +92,7 @@ router.get(
 
 // admin routes
 router.post("/projects", verifyAdmin, upload.array('files'), addNewProject);
-router.get("/applications/status/:status", getAllApplications);
+router.get("/applications/status/:status", verifyAdmin,getAllApplications);
 router.get("/applications/:applicationId", verifyAdmin, getApplicationDetails);
 router.put("/projects/close/:id", verifyAdmin, closeProject);
 router.put("/projects/:id", verifyAdmin, upload.array('files'), editProject);
