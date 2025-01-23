@@ -33,7 +33,6 @@ import PlacementTable from "./components/Placement-Table";
 import ExamTable from "./components/examtable";
 import HigherEduTable from "./components/higher-eduTable";
 import ProjectTable from "./components/project-table";
-import InternTable from "./components/intern-table";
 import Internshiptable from "./components/internshiptable";
 import axios from "axios";
 import PropTypes from "prop-types";
@@ -127,7 +126,6 @@ export default function App() {
           <Route path="higher-education-table" element={<HigherEduTable />} />
           <Route path="exam-form" element={<ExamForm />} />
           <Route path="project-form-table" element={<ProjectTable />} />
-          <Route path="internship-form-table" element={<InternTable />} />
           <Route path="internship-table" element={<Internshiptable />} />
           <Route path="student-award-table" element={<StudentAwardTable />} />
           <Route path="PE-Form" element={<PECourseForm />} />

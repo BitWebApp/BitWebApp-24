@@ -14,6 +14,29 @@ const professorSchema = new Schema(
         contact: {
             type: String,
             required: [true, "Phone number is required!"]
+        },
+        email: {
+            type: String,
+            required: true
+        },
+        projects: {
+            type: Schema.Types.ObjectId,
+            ref: 'Project'
+        },
+        password:{
+            type: String,
+            required: true
+        },
+        limits:{
+            summer_training:{
+                type: Number
+            },
+            minor_project:{
+                type:Number
+            },
+            major_project:{
+                type:Number
+            }
         }
     },
     { timestamps: true }

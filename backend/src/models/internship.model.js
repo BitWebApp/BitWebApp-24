@@ -32,7 +32,8 @@ const internshipSchema = new Schema(
       },
     },
     mentor: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'Professor',
       required: function () {
         return this.type === "research";
       },
@@ -50,11 +51,7 @@ const internshipSchema = new Schema(
       required: function () {
         return this.location === "outside_bit";
       },
-    },
-    verified: {
-      type: Boolean,
-      default: false,
-    },
+    }
   },
   { timestamps: true }
 );
