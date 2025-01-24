@@ -8,8 +8,8 @@ import mongoose from "mongoose";
 import { Otp } from "../models/otp.model.js";
 import { Placement } from "../models/placement.model.js";
 import nodemailer from "nodemailer";
-import bcrypt from "bcrypt" 
-import cron from "node-cron"
+import bcrypt from "bcrypt";
+import cron from "node-cron";
 
 const generateAcessAndRefreshToken = async (userId) => {
   try {
@@ -243,23 +243,23 @@ export const otpForgotPass = asyncHandler(async (req, res) => {
   if (!user) {
     throw new ApiError(404, "User does not exists");
   }
-  const otp = `${Math.floor(Math.random()*9000+1000)}`
+  const otp = `${Math.floor(Math.random() * 9000 + 1000)}`;
   await Otp.create({ email, otp });
 
-    const tOtp = await Otp.findOne({ email });
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.AUTH_EMAIL,
-        pass: process.env.AUTH_PASSWORD,
-      },
-    });
+  const tOtp = await Otp.findOne({ email });
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.AUTH_EMAIL,
+      pass: process.env.AUTH_PASSWORD,
+    },
+  });
 
-    const mailOptions = {
-      from: process.env.AUTH_EMAIL,
-      to: email,
-      subject: "Forgot Password",
-      html: `
+  const mailOptions = {
+    from: process.env.AUTH_EMAIL,
+    to: email,
+    subject: "Forgot Password",
+    html: `
         <html>
         <head>
           <style>
@@ -321,58 +321,62 @@ export const otpForgotPass = asyncHandler(async (req, res) => {
         </body>
         </html>
       `,
-    };
+  };
 
-    transporter.sendMail(mailOptions, async (error) => {
-      if (error) {
-        console.log("Error sending email to:", email, error);
-      } else {
-        console.log("Email sent to:", email);
-      }
-    });
-    res.status(200).send("Mail sent!");
-});
-const changepassword = asyncHandler(async(req, res) => {
-  try {
-      // console.log("hello")
-      const {email, otp, newpassword} = req.body
-      if(!email || !otp || !newpassword)
-          throw new ApiError(400, "enter all fields")
-      const user = await User.findOne({email})
-      // console.log(user)
-      const otpverify = await Otp.find({
-          email
-      })
-      // console.log(otpverify)
-      if(otpverify.length<=0){
-          throw new ApiError(401, "Account record doesn't exist or has been verified already. please login")
-      }
-      const hashedOTP = otpverify[0].otp
-      // console.log(hashedOTP)
-      const validOTP= otp === hashedOTP
-        // console.log(validOTP)
-        if(!validOTP){
-            throw new ApiError("Invalid code. Check your Inbox")
-        }
-        else {
-            const savepass = await bcrypt.hash(newpassword, 12);
-            const response = await User.updateOne({_id: user?._id}, {$set: {password: savepass}})
-            await Otp.deleteMany({email})
-            return res.json({
-                status: "Verified",
-                message: "user email verified successfully",
-                response
-            })
-        }
+  transporter.sendMail(mailOptions, async (error) => {
+    if (error) {
+      console.log("Error sending email to:", email, error);
+    } else {
+      console.log("Email sent to:", email);
     }
-    catch (error) {
-      console.log(error)
-      res.json({
-          status: "Failed",
-          message: error.message
-      })
+  });
+  res.status(200).send("Mail sent!");
+});
+const changepassword = asyncHandler(async (req, res) => {
+  try {
+    // console.log("hello")
+    const { email, otp, newpassword } = req.body;
+    if (!email || !otp || !newpassword)
+      throw new ApiError(400, "enter all fields");
+    const user = await User.findOne({ email });
+    // console.log(user)
+    const otpverify = await Otp.find({
+      email,
+    });
+    // console.log(otpverify)
+    if (otpverify.length <= 0) {
+      throw new ApiError(
+        401,
+        "Account record doesn't exist or has been verified already. please login"
+      );
+    }
+    const hashedOTP = otpverify[0].otp;
+    // console.log(hashedOTP)
+    const validOTP = otp === hashedOTP;
+    // console.log(validOTP)
+    if (!validOTP) {
+      throw new ApiError("Invalid code. Check your Inbox");
+    } else {
+      const savepass = await bcrypt.hash(newpassword, 12);
+      const response = await User.updateOne(
+        { _id: user?._id },
+        { $set: { password: savepass } }
+      );
+      await Otp.deleteMany({ email });
+      return res.json({
+        status: "Verified",
+        message: "user email verified successfully",
+        response,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.json({
+      status: "Failed",
+      message: error.message,
+    });
   }
-})
+});
 const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
@@ -408,7 +412,7 @@ const updateUser1 = asyncHandler(async (req, res) => {
     linkedin,
     abcId,
     graduationYear,
-    workExp
+    workExp,
   } = req.body;
 
   const updateFields = {};
@@ -461,7 +465,7 @@ const updateUser1 = asyncHandler(async (req, res) => {
     linkedin,
     abcId,
     graduationYear,
-    workExp
+    workExp,
   };
 
   // Add provided fields to updateFields
@@ -504,183 +508,167 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, user, "user fetched"));
 });
 
-const updatePlacementOne = asyncHandler(async (req, res) => 
-  {
-    const { company, role, ctc, date } = req.body;
-  
-    if (!company || !role || !ctc || !date ) 
-    {
-      throw new ApiError(400, "All fields are required");
-    }
-  
-    const idLocalPath = req.files?.doc[0]?.path;
-    if (!idLocalPath) 
-    {
-      throw new ApiError(400, "doc file is required");
-    }
-  
-    const doc = await uploadOnCloudinary(idLocalPath);
-    if (!doc) 
-    {
-      throw new ApiError(400, "doc file is required");
-    }
-  
-    const placement = await Placement.create({
-      student: req.user._id,
-      company,
-      role,
-      ctc,
-      date,
-      doc: doc.url,
-    });
-  
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user._id,
-      {
-        $set: {
-          placementOne: placement._id,
-        },
-      },
-      { new: true }
-    );
-  
-    if (!updatedUser) 
-    {
-      throw new ApiError(
-        500,
-        "Something went wrong while updating the placement details"
-      );
-    }
-  
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          updatedUser,
-          "Placement details updated successfully!"
-        )
-      );
-  });
-  const updatePlacementTwo = asyncHandler(async (req, res) => 
-    {
-      const { company, role, ctc, date } = req.body;
-    
-      if (!company || !role || !ctc || !date ) 
-      {
-        throw new ApiError(400, "All fields are required");
-      }
-    
-      const idLocalPath = req.files?.doc[0]?.path;
-      if (!idLocalPath) 
-      {
-        throw new ApiError(400, "doc file is required");
-      }
-    
-      const doc = await uploadOnCloudinary(idLocalPath);
-      if (!doc) 
-      {
-        throw new ApiError(400, "doc file is required");
-      }
-    
-      const placement = await Placement.create({
-        student: req.user._id,
-        company,
-        role,
-        ctc,
-        date,
-        doc: doc.url,
-      });
-    
-      const updatedUser = await User.findByIdAndUpdate(
-        req.user._id,
-        {
-          $set: {
-            placementTwo: placement._id,
-          },
-        },
-        { new: true }
-      );
-    
-      if (!updatedUser) 
-      {
-        throw new ApiError(
-          500,
-          "Something went wrong while updating the placement details"
-        );
-      }
-    
-      return res
-        .status(200)
-        .json(
-          new ApiResponse(
-            200,
-            updatedUser,
-            "Placement details updated successfully!"
-          )
-        );
-    });
-    
-    const updatePlacementThree = asyncHandler(async (req, res) => 
-      {
-        const { company, role, ctc, date } = req.body;
-      
-        if (!company || !role || !ctc || !date) 
-        {
-          throw new ApiError(400, "All fields are required");
-        }
-      
-        const idLocalPath = req.files?.doc[0]?.path;
-        if (!idLocalPath) 
-        {
-          throw new ApiError(400, "doc file is required");
-        }
-      
-        const doc = await uploadOnCloudinary(idLocalPath);
-        if (!doc) 
-        {
-          throw new ApiError(400, "doc file is required");
-        }
-      
-        const placement = await Placement.create({
-          student: req.user._id,
-          company,
-          role,
-          ctc,
-          date,
-          doc: doc.url,
-        });
-      
-        const updatedUser = await User.findByIdAndUpdate(
-          req.user._id,
-          {
-            $set: {
-              placementThree: placement._id,
-            },
-          },
-          { new: true }
-        );
-      
-        if (!updatedUser) 
-        {
-          throw new ApiError(
-            500,
-            "Something went wrong while updating the placement details"
-          );
-        }
-      
-        return res
-          .status(200)
-          .json(
-            new ApiResponse(
-              200,
-              updatedUser,
-              "Placement details updated successfully!"
-            )
-          );
-      });
+const updatePlacementOne = asyncHandler(async (req, res) => {
+  const { company, role, ctc, date } = req.body;
 
-      
+  if (!company || !role || !ctc || !date) {
+    throw new ApiError(400, "All fields are required");
+  }
+
+  const idLocalPath = req.files?.doc[0]?.path;
+  if (!idLocalPath) {
+    throw new ApiError(400, "doc file is required");
+  }
+
+  const doc = await uploadOnCloudinary(idLocalPath);
+  if (!doc) {
+    throw new ApiError(400, "doc file is required");
+  }
+
+  const placement = await Placement.create({
+    student: req.user._id,
+    company,
+    role,
+    ctc,
+    date,
+    doc: doc.url,
+  });
+
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        placementOne: placement._id,
+      },
+    },
+    { new: true }
+  );
+
+  if (!updatedUser) {
+    throw new ApiError(
+      500,
+      "Something went wrong while updating the placement details"
+    );
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        updatedUser,
+        "Placement details updated successfully!"
+      )
+    );
+});
+const updatePlacementTwo = asyncHandler(async (req, res) => {
+  const { company, role, ctc, date } = req.body;
+
+  if (!company || !role || !ctc || !date) {
+    throw new ApiError(400, "All fields are required");
+  }
+
+  const idLocalPath = req.files?.doc[0]?.path;
+  if (!idLocalPath) {
+    throw new ApiError(400, "doc file is required");
+  }
+
+  const doc = await uploadOnCloudinary(idLocalPath);
+  if (!doc) {
+    throw new ApiError(400, "doc file is required");
+  }
+
+  const placement = await Placement.create({
+    student: req.user._id,
+    company,
+    role,
+    ctc,
+    date,
+    doc: doc.url,
+  });
+
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        placementTwo: placement._id,
+      },
+    },
+    { new: true }
+  );
+
+  if (!updatedUser) {
+    throw new ApiError(
+      500,
+      "Something went wrong while updating the placement details"
+    );
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        updatedUser,
+        "Placement details updated successfully!"
+      )
+    );
+});
+
+const updatePlacementThree = asyncHandler(async (req, res) => {
+  const { company, role, ctc, date } = req.body;
+
+  if (!company || !role || !ctc || !date) {
+    throw new ApiError(400, "All fields are required");
+  }
+
+  const idLocalPath = req.files?.doc[0]?.path;
+  if (!idLocalPath) {
+    throw new ApiError(400, "doc file is required");
+  }
+
+  const doc = await uploadOnCloudinary(idLocalPath);
+  if (!doc) {
+    throw new ApiError(400, "doc file is required");
+  }
+
+  const placement = await Placement.create({
+    student: req.user._id,
+    company,
+    role,
+    ctc,
+    date,
+    doc: doc.url,
+  });
+
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        placementThree: placement._id,
+      },
+    },
+    { new: true }
+  );
+
+  if (!updatedUser) {
+    throw new ApiError(
+      500,
+      "Something went wrong while updating the placement details"
+    );
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        updatedUser,
+        "Placement details updated successfully!"
+      )
+    );
+});
+
 const getPlacementOne = asyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate("placementOne");
@@ -762,16 +750,16 @@ const getPlacementThree = asyncHandler(async (req, res) => {
   }
 });
 
-const fetchBranch = asyncHandler(async (req, res) => 
-  {
-      const user = await User.findById(req.user._id).select("branch");
-      if (!user) 
-      {
-          throw new ApiError(404, "User not found");
-      }
-  
-      return res.status(200).json(new ApiResponse(200, user.branch, "Branch fetched successfully"));
-  });
+const fetchBranch = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select("branch");
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user.branch, "Branch fetched successfully"));
+});
 
 const getUserbyRoll = asyncHandler(async (req, res) => {
   const { rollNumber } = req.body;
@@ -847,10 +835,10 @@ const getAllUsers = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { users }, "all users fetched"));
 });
 
-cron.schedule('0 0 1 1,8 *', async () => {
-  console.log('Running semester update...');
+cron.schedule("0 0 1 1,8 *", async () => {
+  console.log("Running semester update...");
   await updateSemesterForAllUsers();
-  console.log('Semester update completed!');
+  console.log("Semester update completed!");
 });
 export {
   registerUser,
