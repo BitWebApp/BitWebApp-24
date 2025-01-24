@@ -20,7 +20,7 @@ import {
   changepassword,
 } from "../controllers/user.controller.js";
 
-import { applyToSummer } from "../controllers/professor.controller.js";
+import { applyToSummer, getProf } from "../controllers/professor.controller.js";
 import {
   addInterviewExp,
   getAllInterviewExps,
@@ -96,4 +96,5 @@ router
 
 //summer internship routes
 router.route("/applyToSummer").post(verifyJWT, applyToSummer);
+router.route("/getProf").get(verifyJWT, getProf);
 export default router;

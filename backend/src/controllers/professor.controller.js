@@ -3,10 +3,11 @@ import { User } from "../models/user.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
+import { Internship } from "../models/internship.model.js";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
-import { mongo } from "mongoose";
+import mongoose, { mongo } from "mongoose";
 const url = "https://bitacademia.vercel.app/log.a";
 
 const addProf = asyncHandler(async (req, res) => {
@@ -161,7 +162,9 @@ const logoutProf = asyncHandler(async (req, res) => {
 //***************************************************/
 const applyToSummer = asyncHandler(async (req, res) => {
   const { profId } = req.body;
+  // console.log(profId);
   const user = await User.findById(req.user._id);
+
   const prof = await Professor.findById(profId);
   if (!prof) {
     throw new ApiError(404, "Professor not found!");
@@ -177,6 +180,9 @@ const applyToSummer = asyncHandler(async (req, res) => {
   }
   user.summerAppliedProfs.push(profId);
   await user.save();
+  res
+    .status(200)
+    .json(new ApiResponse(200, "Applied to professor successfully!", user));
 });
 
 //*************************************************************** */
@@ -211,7 +217,8 @@ const getAppliedStudents = asyncHandler(async (req, res) => {
 });
 
 const selectSummerStudents = asyncHandler(async (req, res) => {
-  const session = await mongo.startSession();
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const profId = req.professor._id;
     const { selectedStudents } = req.body;
@@ -236,14 +243,34 @@ const selectSummerStudents = asyncHandler(async (req, res) => {
       throw new ApiError(400, "Invalid student ID's provided!");
     }
     for (const student of students) {
+      // console.log(student);
       student.isSummerAllocated = true;
       student.summerAllocatedProf = profId;
-      student.summerAppliedProfs = student.summerAplliedProfs.filter(
+      // console.log("check!");
+      student.summerAppliedProfs = student.summerAppliedProfs.filter(
         (id) => id.toString() !== profId.toString()
       );
       await student.save({ session });
+      // console.log("check2!");
+      const internRecord = await Internship.create(
+        [
+          {
+            student: student._id,
+            type: "research",
+            location: "inside_bit",
+            mentor: profId,
+            startDate: new Date(),
+            endDate: new Date(),
+          },
+        ],
+        { session }
+      );
+      // console.log("check3!");
+      if (!internRecord) {
+        throw new ApiError(500, "Failed to create internship record!");
+      }
     }
-    professor.students.summer_training.pus(...selectedStudents);
+    professor.students.summer_training.push(...selectedStudents);
     professor.currentCount.summer_training += selectedStudents.length;
     await professor.save({ session });
     await session.commitTransaction();
