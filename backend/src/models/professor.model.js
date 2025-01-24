@@ -32,13 +32,50 @@ const professorSchema = new Schema(
     limits: {
       summer_training: {
         type: Number,
+        default: 5,
       },
       minor_project: {
         type: Number,
+        default: 5,
       },
       major_project: {
         type: Number,
+        default: 5,
       },
+    },
+    currentCount: {
+      summer_training: {
+        type: Number,
+        default: 0,
+      },
+      minor_project: {
+        type: Number,
+        default: 0,
+      },
+      major_project: {
+        type: Number,
+        default: 0,
+      },
+    },
+    students: {
+      summer_training: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+        },
+      ],
+      minor_project: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+        },
+      ],
+      major_project: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+        },
+      ],
     },
   },
   { timestamps: true }

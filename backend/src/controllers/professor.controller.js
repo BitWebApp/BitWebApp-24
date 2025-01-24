@@ -1,4 +1,5 @@
 import { Professor } from "../models/professor.model.js";
+import { User } from "../models/user.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -156,4 +157,25 @@ const logoutProf = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Prof logged out successfully!"));
 });
 
-export { addProf, getProf, loginProf, logoutProf };
+//**************************** */
+const applyToSummer = asyncHandler(async (req, res) => {
+  const { profId } = req.body;
+  const user = await User.findById(req.user._id);
+  const prof = await Professor.findById(profId);
+  if (!prof) {
+    throw new ApiError(404, "Professor not found!");
+  }
+  if (!user) {
+    throw new ApiError(404, "User not found!");
+  }
+  if (user.isSummerAllocated) {
+    throw new ApiError(400, "You have already been allocated a professor!");
+  }
+  if (user.summerAppliedProfs.includes(profId)) {
+    throw new ApiError(400, "You have already applied to this professor!");
+  }
+  user.summerAppliedProfs.push(profId);
+  await user.save();
+});
+
+export { addProf, getProf, loginProf, logoutProf, applyToSummer };

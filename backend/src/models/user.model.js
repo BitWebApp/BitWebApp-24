@@ -37,7 +37,7 @@ const userSchema = new Schema(
       lowercase: true,
     },
     resume: {
-      type: String,  
+      type: String,
     },
     idCard: {
       type: String,
@@ -61,7 +61,7 @@ const userSchema = new Schema(
     },
     abcId: {
       type: String,
-      default: ""
+      default: "",
     },
     codingProfiles: {
       github: {
@@ -71,24 +71,36 @@ const userSchema = new Schema(
       leetcode: {
         type: String,
         default: "",
-        match: [/^https?:\/\/(www\.)?leetcode\.com\/.+$/, "Enter a valid LeetCode profile URL!"],
+        match: [
+          /^https?:\/\/(www\.)?leetcode\.com\/.+$/,
+          "Enter a valid LeetCode profile URL!",
+        ],
       },
       codeforces: {
         type: String,
         default: "",
-        match: [/^https?:\/\/(www\.)?codeforces\.com\/profile\/.+$/, "Enter a valid Codeforces profile URL!"],
+        match: [
+          /^https?:\/\/(www\.)?codeforces\.com\/profile\/.+$/,
+          "Enter a valid Codeforces profile URL!",
+        ],
       },
       codechef: {
         type: String,
         default: "",
-        match: [/^https?:\/\/(www\.)?codechef\.com\/users\/.+$/, "Enter a valid CodeChef profile URL!"],
+        match: [
+          /^https?:\/\/(www\.)?codechef\.com\/users\/.+$/,
+          "Enter a valid CodeChef profile URL!",
+        ],
       },
       atcoder: {
         type: String,
         default: "",
-        match: [/^https?:\/\/(www\.)?atcoder\.jp\/users\/.+$/, "Enter a valid AtCoder profile URL!"],
+        match: [
+          /^https?:\/\/(www\.)?atcoder\.jp\/users\/.+$/,
+          "Enter a valid AtCoder profile URL!",
+        ],
       },
-    },    
+    },
     mobileNumber: {
       type: String,
       minLength: [10, "Enter 10 digits of your mobile number!"],
@@ -101,31 +113,31 @@ const userSchema = new Schema(
     },
     graduationYear: {
       type: Date,
-      default: ""
+      default: "",
     },
     workExp: [
       {
         company: {
-          type: String, 
-          default: ""
+          type: String,
+          default: "",
         },
         role: {
           type: String,
-          default: ""
+          default: "",
         },
         startDate: {
           type: Date,
-          default: ""
+          default: "",
         },
         endDate: {
           type: Date,
-          default: ""
+          default: "",
         },
-        description:{
+        description: {
           type: String,
-          default: ""
-        }
-      }
+          default: "",
+        },
+      },
     ],
     isVerified: {
       type: Boolean,
@@ -174,14 +186,17 @@ const userSchema = new Schema(
       },
     ],
     academics: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: "Academics",
-    }],
-    alumni: [{
-      type: Schema.Types.ObjectId,
-      ref: "Alumni",
-    }],
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Academics",
+      },
+    ],
+    alumni: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Alumni",
+      },
+    ],
     cgpa: {
       type: String,
       default: "",
@@ -204,6 +219,20 @@ const userSchema = new Schema(
         ref: "Company",
       },
     ],
+    summerAppliedProfs: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Professor",
+      },
+    ],
+    summerAllocatedProf: {
+      type: Schema.Types.ObjectId,
+      ref: "Professor",
+    },
+    isSummerAllocated: {
+      type: Boolean,
+      default: false,
+    },
     refreshToken: {
       type: String,
     },
