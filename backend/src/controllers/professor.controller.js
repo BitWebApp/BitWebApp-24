@@ -178,4 +178,42 @@ const applyToSummer = asyncHandler(async (req, res) => {
   await user.save();
 });
 
-export { addProf, getProf, loginProf, logoutProf, applyToSummer };
+//*************************************************************** */
+const getAppliedStudents = asyncHandler(async (req, res) => {
+  try {
+    const profId = req.professor._id;
+    const professor = await Professor.findById(profId);
+    if (!professor) {
+      throw new ApiError(404, "Professor not found!");
+    }
+    const students = await User.find({
+      summerAppliedProfs: profId,
+      isSummerAllocated: false,
+    });
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          "Applied students retrieved successfully!",
+          students
+        )
+      );
+  } catch (error) {
+    console.log(error);
+    throw new ApiError(
+      500,
+      "Something went wrong while getting applied students!",
+      error.message
+    );
+  }
+});
+
+export {
+  addProf,
+  getProf,
+  loginProf,
+  logoutProf,
+  applyToSummer,
+  getAppliedStudents,
+};

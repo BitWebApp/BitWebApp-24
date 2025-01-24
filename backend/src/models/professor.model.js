@@ -95,22 +95,6 @@ professorSchema.methods.generateAccessToken = function () {
     expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
   });
 };
-// userSchema.methods.generateAccessToken = function () {
-//   return jwt.sign(
-//     {
-//       _id: this._id,
-//       branch: this.branch,
-//       email: this.email,
-//       username: this.username,
-//       fullName: this.fullName,
-//       isAdmin: false,
-//     },
-//     process.env.ACCESS_TOKEN_SECRET,
-//     {
-//       expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
-//     }
-//   );
-// };
 
 professorSchema.methods.generateRefreshToken = function () {
   return jwt.sign({ id: this._id }, process.env.REFRESH_TOKEN_SECRET, {
