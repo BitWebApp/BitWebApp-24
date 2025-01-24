@@ -19,6 +19,8 @@ import {
   otpForgotPass,
   changepassword,
 } from "../controllers/user.controller.js";
+
+import { applyToSummer } from "../controllers/professor.controller.js";
 import {
   addInterviewExp,
   getAllInterviewExps,
@@ -91,4 +93,7 @@ const reviewLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 25 });
 router
   .route("/interview-experiences")
   .get(requestIpMiddleware, reviewLimiter, getAllInterviewExps);
+
+//summer internship routes
+router.route("/applyToSummer").post(verifyJWT, applyToSummer);
 export default router;

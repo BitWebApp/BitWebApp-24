@@ -6,6 +6,7 @@ import { ApiError } from "../utils/ApiError.js";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
+import { mongo } from "mongoose";
 const url = "https://bitacademia.vercel.app/log.a";
 
 const addProf = asyncHandler(async (req, res) => {
@@ -157,7 +158,7 @@ const logoutProf = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Prof logged out successfully!"));
 });
 
-//**************************** */
+//***************************************************/
 const applyToSummer = asyncHandler(async (req, res) => {
   const { profId } = req.body;
   const user = await User.findById(req.user._id);
@@ -209,6 +210,59 @@ const getAppliedStudents = asyncHandler(async (req, res) => {
   }
 });
 
+const selectSummerStudents = asyncHandler(async (req, res) => {
+  const session = await mongo.startSession();
+  try {
+    const profId = req.professor._id;
+    const { selectedStudents } = req.body;
+    const professor = await Professor.findById(profId).session(session);
+    if (!professor) {
+      throw new ApiError(404, "Professor not found!");
+    }
+    const remainingCap =
+      professor.limits.summer_training - professor.currentCount.summer_training;
+    if (selectedStudents.length > remainingCap) {
+      throw new ApiError(
+        400,
+        `Cannot select more than ${remainingCap} students!`
+      );
+    }
+    const students = await User.find({
+      _id: { $in: selectedStudents },
+      summerAppliedProfs: profId,
+      isSummerAllocated: false,
+    }).session(session);
+    if (students.length !== selectedStudents.length) {
+      throw new ApiError(400, "Invalid student ID's provided!");
+    }
+    for (const student of students) {
+      student.isSummerAllocated = true;
+      student.summerAllocatedProf = profId;
+      student.summerAppliedProfs = student.summerAplliedProfs.filter(
+        (id) => id.toString() !== profId.toString()
+      );
+      await student.save({ session });
+    }
+    professor.students.summer_training.pus(...selectedStudents);
+    professor.currentCount.summer_training += selectedStudents.length;
+    await professor.save({ session });
+    await session.commitTransaction();
+    res
+      .status(200)
+      .json(new ApiResponse(200, "Students selected successfully!", students));
+  } catch (error) {
+    await session.abortTransaction();
+    console.log(error);
+    throw new ApiError(
+      500,
+      "Something went wrong while selecting students!",
+      error.message
+    );
+  } finally {
+    session.endSession();
+  }
+});
+
 export {
   addProf,
   getProf,
@@ -216,4 +270,5 @@ export {
   logoutProf,
   applyToSummer,
   getAppliedStudents,
+  selectSummerStudents,
 };

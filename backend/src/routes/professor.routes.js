@@ -10,6 +10,8 @@ import {
   getProf,
   loginProf,
   logoutProf,
+  getAppliedStudents,
+  selectSummerStudents,
 } from "../controllers/professor.controller.js";
 // import { verify } from "jsonwebtoken";
 const router = Router();
@@ -18,5 +20,10 @@ router.route("/getProf").get(verifyJWT, getProf);
 
 router.route("/login").post(loginProf);
 router.route("/logout").post(verifyProfessor, logoutProf);
+
+router.route("/getAppliedStudents").get(verifyProfessor, getAppliedStudents);
+router
+  .route("/selectSummerStudents")
+  .post(verifyProfessor, selectSummerStudents);
 
 export default router;
