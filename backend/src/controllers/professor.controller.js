@@ -27,7 +27,6 @@ const addProf = asyncHandler(async (req, res) => {
     throw new ApiError(409, "Professor with this ID number already exists!");
   }
   const password = crypto.randomInt(100000, 1000000).toString();
-  const hashedPassword = await bcrypt.hash(password, 10);
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -70,7 +69,7 @@ const addProf = asyncHandler(async (req, res) => {
     fullName,
     contact,
     email,
-    password: hashedPassword,
+    password: password,
   });
 
   res
@@ -160,59 +159,63 @@ const logoutProf = asyncHandler(async (req, res) => {
 });
 
 //***************************************************/
-    const applyToSummer = asyncHandler(async (req, res) => {
-        const { profIds } = req.body; // Expecting an array of professor IDs
-      
-        if (!Array.isArray(profIds) || profIds.length === 0) {
-          throw new ApiError(400, "No professor IDs provided or invalid format!");
-        }
-      
-        const user = await User.findById(req.user._id);
-      
-        if (!user) {
-          throw new ApiError(404, "User not found!");
-        }
-      
-        if (user.isSummerAllocated) {
-          throw new ApiError(400, "You have already been allocated a professor!");
-        }
-      
-        const appliedProfIds = [];
-        const errors = [];
-      
-        for (const profId of profIds) {
-          try {
-            const prof = await Professor.findById(profId);
-      
-            if (!prof) {
-              errors.push(`Professor with ID ${profId} not found!`);
-              continue;
-            }
-      
-            if (user.summerAppliedProfs.includes(profId)) {
-              errors.push(`You have already applied to professor with ID ${profId}!`);
-              continue;
-            }
-      
-            user.summerAppliedProfs.push(profId);
-            appliedProfIds.push(profId);
-          } catch (error) {
-            errors.push(`Error processing professor with ID ${profId}: ${error.message}`);
-          }
-        }
-      
-        await user.save();
-      
-        const responseMessage = {
-          appliedProfessors: appliedProfIds,
-          errors,
-          message: appliedProfIds.length
-            ? `Successfully applied to ${appliedProfIds.length} professor(s).`
-            : "No applications were successful.",
-        };
-      
-        res.status(appliedProfIds.length ? 200 : 400).json(new ApiResponse(200, responseMessage.message, responseMessage));
-      });  
+const applyToSummer = asyncHandler(async (req, res) => {
+  const { profIds } = req.body; // Expecting an array of professor IDs
+
+  if (!Array.isArray(profIds) || profIds.length === 0) {
+    throw new ApiError(400, "No professor IDs provided or invalid format!");
+  }
+
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    throw new ApiError(404, "User not found!");
+  }
+
+  if (user.isSummerAllocated) {
+    throw new ApiError(400, "You have already been allocated a professor!");
+  }
+
+  const appliedProfIds = [];
+  const errors = [];
+
+  for (const profId of profIds) {
+    try {
+      const prof = await Professor.findById(profId);
+
+      if (!prof) {
+        errors.push(`Professor with ID ${profId} not found!`);
+        continue;
+      }
+
+      if (user.summerAppliedProfs.includes(profId)) {
+        errors.push(`You have already applied to professor with ID ${profId}!`);
+        continue;
+      }
+
+      user.summerAppliedProfs.push(profId);
+      appliedProfIds.push(profId);
+    } catch (error) {
+      errors.push(
+        `Error processing professor with ID ${profId}: ${error.message}`
+      );
+    }
+  }
+
+  await user.save();
+
+  const responseMessage = {
+    appliedProfessors: appliedProfIds,
+    errors,
+    message: appliedProfIds.length
+      ? `Successfully applied to ${appliedProfIds.length} professor(s).`
+      : "No applications were successful.",
+  };
+
+  res
+    .status(appliedProfIds.length ? 200 : 400)
+    .json(new ApiResponse(200, responseMessage.message, responseMessage));
+});
 
 //*************************************************************** */
 const getAppliedStudents = asyncHandler(async (req, res) => {
