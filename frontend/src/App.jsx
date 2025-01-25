@@ -68,6 +68,7 @@ import AddProfessor from "./components/AddProfessor";
 import AdminApplications from './components/AdminApplications';
 import AdminApplicationDetails from './components/AdminApplicationDetails';
 import Research from './components/Research'
+import AcceptStudents from "./components/AcceptStudents";
 export default function App() {
   return (
     <Router>
@@ -109,7 +110,6 @@ export default function App() {
             <Route path="placement-two" element={<PlacementTwo />} />
             <Route path="placement-three" element={<PlacementThree />} />
           </Route>
-
           <Route path="classroom-form" element={<ClassroomForm />} />
           <Route path="room-status" element={<RoomStatus />} />
           <Route path="booked-rooms" element={<BookedRooms />} />
@@ -151,6 +151,7 @@ export default function App() {
         <Route path="/log.a" element={<Loginadmin />} />
         <Route path="/sg.a" element={<Signupadmin />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="accept-students" element={<AcceptStudents />} />
       </Routes>
     </Router>
   );
