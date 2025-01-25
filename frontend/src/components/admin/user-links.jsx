@@ -98,9 +98,9 @@ export default function useLinks() {
       to: "/db/classroom-form" 
     },
     {
-      text: "Prof. Projects",
+      text: "Summer Training",
       icon: <HiPresentationChartLine />,
-      to: "/db/student-projects-dashboard",
+      to: "/db/apply-summer",
     },
   ];
 
