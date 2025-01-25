@@ -31,6 +31,7 @@ const NavBar = () => {
             <FontAwesomeIcon icon={faUser} className="mr-2" />
             Interview Experiences
           </Link>
+          
           <Link
             to="/public-user"
             className="px-4 py-2 border rounded-md hover:bg-blue-600 hover:text-white transition"
@@ -51,6 +52,13 @@ const NavBar = () => {
           >
             <FontAwesomeIcon icon={faUserTie} className="mr-2" />
             Admin Login
+          </Link>
+          <Link
+            to="/faculty-login"
+            className="px-4 py-2 border rounded-md hover:bg-blue-600 hover:text-white transition"
+          >
+            <FontAwesomeIcon icon={faUser} className="mr-2" />
+            Faculty Login
           </Link>
         </div>
         <button
