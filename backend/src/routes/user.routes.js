@@ -18,6 +18,7 @@ import {
   fetchBranch,
   otpForgotPass,
   changepassword,
+  getAppliedProfs,
 } from "../controllers/user.controller.js";
 
 import { applyToSummer, getProf } from "../controllers/professor.controller.js";
@@ -96,5 +97,5 @@ router
 
 //summer internship routes
 router.route("/applyToSummer").post(verifyJWT, applyToSummer);
-router.route("/getProf").get(verifyJWT, getProf);
+router.route("/get-app-profs").get(verifyJWT, getAppliedProfs);
 export default router;

@@ -67,11 +67,12 @@ import StudentApplyProject from "./components/StudentApplyProject";
 import AddProfessor from "./components/AddProfessor";
 import AdminApplications from './components/AdminApplications';
 import AdminApplicationDetails from './components/AdminApplicationDetails';
+import Research from './components/Research'
 export default function App() {
   return (
     <Router>
       <ScrollToTop />
-
+      
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/public-user" element={<Dashboard />} />
@@ -113,7 +114,7 @@ export default function App() {
           <Route path="room-status" element={<RoomStatus />} />
           <Route path="booked-rooms" element={<BookedRooms />} />
           <Route path="admin-room-request" element={<AdminRoomRequests />} />
-
+          <Route path="apply-summer" element={<Research />}/>
           <Route path="higher-education" element={<HigherEducation />} />
           <Route path="exam-table" element={<ExamTable />} />
           <Route path="project-form" element={<ProjectForm />} />
