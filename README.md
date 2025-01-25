@@ -59,7 +59,7 @@ BITAcademia is the comprehensive academic platform designed and developed for BI
 ### Developers
 Faculty Incharge - Prof. Suvendu Kanungo, Department of CSE, BIT Mesra.
 1. Kushagra Sahay - Full Stack Developer (Team Leader)
-2. Sumit Kumar - Full Stack Developer (Team Co-Leader)
+2. Sumit Kumar - Full Stack Developer (Team Leader)
 3. Akshat Tambi - Full Stack Developer
 4. Parth Shresth - Frontend Developer
 5. Ankit Verma - Backend Developer
