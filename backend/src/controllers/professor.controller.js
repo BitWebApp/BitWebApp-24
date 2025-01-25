@@ -333,6 +333,41 @@ const getcurrentProf = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Professor retrieved successfully!", professor));
 });
 
+const incrementLimit = asyncHandler(async (req, res) => {
+  const { profId, limit, type } = req.body;
+  const professor = await Professor.findById(profId);
+  if (!professor) {
+    throw new ApiError(404, "Professor not found!");
+  }
+  if (!limit || !type) {
+    throw new ApiError(400, "Limit and field are required!");
+  }
+  if (type == "summer_training") {
+    if (limit < professor.currentCount.summer_training) {
+      throw new ApiError(400, "Limit cannot be less than current count!");
+    }
+    professor.limits.summer_training = limit;
+    await professor.save();
+  } else if (type == "minor_project") {
+    if (limit < professor.currentCount.minor_project) {
+      throw new ApiError(400, "Limit cannot be less than current count!");
+    }
+    professor.limits.minor_project = limit;
+    await professor.save();
+  } else if (type == "major_project") {
+    if (limit < professor.currentCount.major_project) {
+      throw new ApiError(400, "Limit cannot be less than current count!");
+    }
+    professor.limits.major_project = limit;
+    await professor.save();
+  } else {
+    throw new ApiError(400, "Invalid type provided!");
+  }
+  res
+    .status(200)
+    .json(new ApiResponse(200, "Limit updated successfully!", professor));
+});
+
 export {
   addProf,
   getProf,
@@ -342,4 +377,5 @@ export {
   getAppliedStudents,
   selectSummerStudents,
   getcurrentProf,
+  incrementLimit,
 };
