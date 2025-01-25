@@ -840,6 +840,13 @@ cron.schedule("0 0 1 1,8 *", async () => {
   await updateSemesterForAllUsers();
   console.log("Semester update completed!");
 });
+
+const getAppliedProfs = asyncHandler(async(req, res) => {
+  const userid = req?.user?._id
+  const user = await User.findById(userid).populate('summerAppliedProfs')
+  return res.status(200).json(new ApiResponse(200, user.summerAppliedProfs, "Applied profs returned"))
+})
+
 export {
   registerUser,
   loginUser,
@@ -858,4 +865,5 @@ export {
   verifyMail,
   fetchBranch,
   changepassword,
+  getAppliedProfs
 };

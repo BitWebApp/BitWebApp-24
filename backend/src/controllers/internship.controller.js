@@ -18,9 +18,12 @@ const addInternship = asyncHandler(async (req, res) => {
   if (!studentid || !type || !location || !startDate || !endDate) {
     throw new ApiError(400, "Missing required fields!");
   }
+
+
   const prevRecord = await Internship.find({student: studentid})
-  console.log(prevRecord)
   if(prevRecord.length > 0) throw new ApiError(400, `Record already exists`)
+
+
   if (type === "industrial" && (!company || !role)) {
     throw new ApiError(400, "Company and Role are required for industrial internships!");
   }
@@ -45,6 +48,13 @@ const addInternship = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Start date cannot be after end date!");
   }
 
+  const student = await User.findById(studentid);
+  if (!student) {
+    throw new ApiError(404, "Student not found!");
+  }
+
+  if(student.isSummerAllocated) throw new ApiError(400, "Student already has a project alloted.")
+
   const createdInternship = await Internship.create({
     student: studentid,
     type,
@@ -60,11 +70,6 @@ const addInternship = asyncHandler(async (req, res) => {
 
   if (!createdInternship) {
     throw new ApiError(500, "Failed to create internship record!");
-  }
-
-  const student = await User.findById(studentid);
-  if (!student) {
-    throw new ApiError(404, "Student not found!");
   }
 
   if (!Array.isArray(student.internShips)) {
