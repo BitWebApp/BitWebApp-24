@@ -290,6 +290,17 @@ const selectSummerStudents = asyncHandler(async (req, res) => {
   }
 });
 
+const getcurrentProf = asyncHandler(async (req, res) => {
+  const profId = req.professor._id;
+  const professor = await Professor.findById(profId);
+  if (!professor) {
+    throw new ApiError(404, "Professor not found!");
+  }
+  res
+    .status(200)
+    .json(new ApiResponse(200, "Professor retrieved successfully!", professor));
+});
+
 export {
   addProf,
   getProf,
@@ -298,4 +309,5 @@ export {
   applyToSummer,
   getAppliedStudents,
   selectSummerStudents,
+  getcurrentProf,
 };
