@@ -1,12 +1,10 @@
-import {useEffect,useState,React} from "react";
-import PropTypes from "prop-types";
+import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   useNavigate,
 } from "react-router-dom";
-import axios from "axios";
 import ScrollToTop from "./components/ScrollToTop";
 import Layout from "./components/Layout";
 import Dashboard from "./components/Dashboard";
@@ -71,8 +69,6 @@ import CompanyAssignmentForm from "./components/CompanyAssignmentForm";
 import AdminApplications from "./components/AdminApplications";
 import AdminApplicationDetails from "./components/AdminApplicationDetails";
 import AcceptStudents from "./components/AcceptStudents";
-import { HashLoader, SyncLoader } from "react-spinners";
-
 
 export default function App() {
   return (
