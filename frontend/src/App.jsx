@@ -1,31 +1,56 @@
-import React, { useEffect, useState } from "react";
+import {useEffect,useState,React} from "react";
+import PropTypes from "prop-types";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   useNavigate,
 } from "react-router-dom";
-import ForgotPassword from "./components/forgot-password";
-import InterviewForm from "./components/Interview-Form";
+import axios from "axios";
+import ScrollToTop from "./components/ScrollToTop";
 import Layout from "./components/Layout";
 import Dashboard from "./components/Dashboard";
+import AdminDashboard from "./components/AdminDashboard";
+import FacultyDashboard from "./components/FacultyDashboard";
+import SidebarUser from "./components/SidebarUser";
+import SidebarAdmin from "./components/SidebarAdmin";
+import SidebarFaculty from "./components/SidebarFaculty";
+import HeaderUser from "./components/HeaderUser";
+import HeaderAdmin from "./components/HeaderAdmin";
+import HeaderFaculty from "./components/HeaderFaculty";
 import Login from "./components/Login";
-import Signup from "./components/signup";
-import Userform from "./components/userform";
-import Sidebar from "./components/Sidebar";
 import Loginadmin from "./components/Loginadmin";
+import LoginFaculty from "./components/LoginFaculty";
+import Signup from "./components/signup";
 import Signupadmin from "./components/Signupadmin";
 import LandingPage from "./components/LandingPage";
+import ForgotPassword from "./components/forgot-password";
+import Features from "./components/Features";
+import InterviewExperiences from "./components/InterviewExperiences";
+import VerifyUsers from "./components/VerifyUsers";
+import Userform from "./components/userform";
+import Alumni from "./components/Alumni";
+import AddWorkExperience from "./components/AddWorkExperience";
+import ShowWorkExperience from "./components/ShowWorkExperience";
+import ShowAllAlumni from "./components/ShowAllAlumni";
+import AddProfessor from "./components/AddProfessor";
 import Academicform from "./components/academicform";
+import AdminAcademicRecords from "./components/AdminAcademicRecords";
 import Awardform from "./components/award-form";
+import Placement from "./components/Placement";
 import PlacementOne from "./components/PlacementOne";
 import PlacementTwo from "./components/PlacementTwo";
 import PlacementThree from "./components/PlacementThree";
+import ClassroomForm from "./components/ClassroomForm";
+import RoomStatus from "./components/RoomStatus";
+import BookedRooms from "./components/BookedRooms";
+import AdminRoomRequests from "./components/AdminRoomRequests";
+import Research from "./components/Research";
 import HigherEducation from "./components/HigherEducation";
 import ExamForm from "./components/ExamForm";
 import ProjectForm from "./components/ProjectForm";
-import Placement from "./components/Placement";
 import InternshipForm from "./components/InternshipForm";
+import InterviewForm from "./components/Interview-Form";
 import StudentTable from "./components/StudentTable";
 import AcademicTable from "./components/AcademicTable";
 import AwardTable from "./components/AwardTable";
@@ -34,11 +59,6 @@ import ExamTable from "./components/examtable";
 import HigherEduTable from "./components/higher-eduTable";
 import ProjectTable from "./components/project-table";
 import Internshiptable from "./components/internshiptable";
-import axios from "axios";
-import PropTypes from "prop-types";
-import VerifyUsers from "./components/VerifyUsers";
-import { HashLoader, SyncLoader } from "react-spinners";
-import AdminAcademicRecords from "./components/AdminAcademicRecords";
 import StudentAwardTable from "./components/StudentAwardTable";
 import Review from "./components/Review";
 import AddBacklog from "./components/AddBacklog";
@@ -46,35 +66,18 @@ import BacklogTable from "./components/Backlogtable";
 import PECourseForm from "./components/PECourseForm";
 import PeCoursesTable from "./components/PEtable";
 import PEAdminTable from "./components/PE-admin-table";
-import ClassroomForm from "./components/ClassroomForm";
-import RoomStatus from "./components/RoomStatus";
-import BookedRooms from "./components/BookedRooms";
-import AdminRoomRequests from "./components/AdminRoomRequests";
 import AdminAddCompanies from "./components/AdminAddCompanies";
 import CompanyAssignmentForm from "./components/CompanyAssignmentForm";
-import Features from "./components/Features";
-import ScrollToTop from "./components/ScrollToTop";
-import Alumni from "./components/Alumni";
-import AddWorkExperience from "./components/AddWorkExperience";
-import ShowWorkExperience from "./components/ShowWorkExperience";
-import ShowAllAlumni from "./components/ShowAllAlumni";
-import InterviewExperiences from "./components/InterviewExperiences";
-import AdminDashboard from "./components/AdminDashboard";
-import ViewProfProjectDetails from "./components/ViewProfProjectDetails";
-import StudentProjectDashboard from "./components/StudentProjectDashboard";
-import StudentViewProfProjectDetails from "./components/StudentViewProfProjectDetails";
-import StudentApplyProject from "./components/StudentApplyProject";
-import AddProfessor from "./components/AddProfessor";
-import AdminApplications from './components/AdminApplications';
-import AdminApplicationDetails from './components/AdminApplicationDetails';
-import Research from './components/Research'
+import AdminApplications from "./components/AdminApplications";
+import AdminApplicationDetails from "./components/AdminApplicationDetails";
 import AcceptStudents from "./components/AcceptStudents";
-import LoginFaculty from "./components/LoginFaculty";
+import { HashLoader, SyncLoader } from "react-spinners";
+
+
 export default function App() {
   return (
     <Router>
       <ScrollToTop />
-      
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/public-user" element={<Dashboard />} />
@@ -88,67 +91,85 @@ export default function App() {
           path="/db"
           element={
             <ProtectedRoute>
-              <Layout />
+              <Layout sidebar={<SidebarUser />} header={<HeaderUser />} />
             </ProtectedRoute>
           }
         >
           <Route index element={<Dashboard />} />
-          <Route path="verify-users" element={<VerifyUsers />} />
-          <Route path="user-form" element={<Userform />} />
           <Route path="alumni" element={<Alumni />} />
-          <Route path="add-work-experience" element={<AddWorkExperience />} />
-          <Route path="show-work-experience" element={<ShowWorkExperience />} />
-          <Route path="show-all-alumni" element={<ShowAllAlumni />} />
-          <Route path="add-prof" element={<AddProfessor />} />
-          <Route path="academic-form" element={<Academicform />} />
-          <Route
-            path="admin-academic-form"
-            element={<AdminAcademicRecords />}
-          />
+          <Route path="academic-table" element={<AcademicTable />} />
+          <Route path="backlogs" element={<AddBacklog />} />
+          <Route path="PE-form" element={<PECourseForm />} />
           <Route path="award-form" element={<Awardform />} />
+          <Route path="exam-form" element={<ExamForm />} />
+          <Route path="higher-education" element={<HigherEducation />} />
           <Route path="placement" element={<Placement />}>
             <Route path="placement-one" element={<PlacementOne />} />
             <Route path="placement-two" element={<PlacementTwo />} />
             <Route path="placement-three" element={<PlacementThree />} />
           </Route>
-          <Route path="classroom-form" element={<ClassroomForm />} />
-          <Route path="room-status" element={<RoomStatus />} />
-          <Route path="booked-rooms" element={<BookedRooms />} />
-          <Route path="admin-room-request" element={<AdminRoomRequests />} />
-          <Route path="apply-summer" element={<Research />}/>
-          <Route path="higher-education" element={<HigherEducation />} />
-          <Route path="exam-table" element={<ExamTable />} />
           <Route path="project-form" element={<ProjectForm />} />
           <Route path="internship-form" element={<InternshipForm />} />
           <Route path="interview" element={<InterviewForm />} />
-          <Route path="Student-Table" element={<StudentTable />} />
-          <Route path="academic-table" element={<AcademicTable />} />
-          <Route path="award-table" element={<AwardTable />} />
-          <Route path="placement-Table" element={<PlacementTable />} />
-          <Route path="higher-education-table" element={<HigherEduTable />} />
-          <Route path="exam-form" element={<ExamForm />} />
-          <Route path="project-form-table" element={<ProjectTable />} />
-          <Route path="internship-table" element={<Internshiptable />} />
-          <Route path="student-award-table" element={<StudentAwardTable />} />
-          <Route path="PE-Form" element={<PECourseForm />} />
-          <Route path="PE-table" element={<PeCoursesTable />} />
+          <Route path="classroom-form" element={<ClassroomForm />} />
+          <Route path="apply-summer" element={<Research />} />
+          <Route path="userform" element={<Userform />} />
+          <Route path="add-work-experience" element={<AddWorkExperience />} />
+          <Route path="show-work-experience" element={<ShowWorkExperience />} />
+          <Route path="academic-form" element={<Academicform />} />
+          <Route path="room-status" element={<RoomStatus />} />
+          <Route path="booked-rooms" element={<BookedRooms />} />
+        </Route>
+        <Route
+          path="/admin-db"
+          element={
+            <ProtectedRoute>
+              <Layout sidebar={<SidebarAdmin />} header={<HeaderAdmin />} />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="student-table" element={<StudentTable />} />
+          <Route path="verify-users" element={<VerifyUsers />} />
+          <Route path="show-all-alumni" element={<ShowAllAlumni />} />
+          <Route
+            path="admin-academic-form"
+            element={<AdminAcademicRecords />}
+          />
           <Route path="PE-admin-table" element={<PEAdminTable />} />
-          <Route path="backlogs" element={<AddBacklog />} />
-          <Route path="review" element={<Review />} />
-          <Route path="backlogs-table" element={<BacklogTable />} />
+          <Route path="award-table" element={<AwardTable />} />
+          <Route path="exam-table" element={<ExamTable />} />
+          <Route path="higher-education-table" element={<HigherEduTable />} />
+          <Route path="placement-table" element={<PlacementTable />} />
+          <Route path="project-form-table" element={<ProjectTable />} />
+          <Route path="internship-form-table" element={<InternshipForm />} />
+          <Route path="internship-table" element={<Internshiptable />} />
+          <Route path="admin-room-request" element={<AdminRoomRequests />} />
           <Route path="companies-table" element={<AdminAddCompanies />} />
           <Route path="assign-company" element={<CompanyAssignmentForm />} />
-          <Route path="interview-experiences" element={<InterviewExperiences />} />
+          <Route path="add-prof" element={<AddProfessor />} />
+          <Route path="review" element={<Review />} />
           <Route path="admin-projects-dashboard" element={<AdminDashboard />} />
-          <Route path="prof-project/:id" element={<ViewProfProjectDetails />} />
-          <Route path="student-projects-dashboard" element={< StudentProjectDashboard />} />
-          <Route path="student-prof-project/:id" element={< StudentViewProfProjectDetails />} />
-          <Route path="student-apply-project/:id" element={< StudentApplyProject />} />
-          <Route path="/db/admin-applications" element={<AdminApplications />} />
-          <Route path="/db/admin-applications/:applicationId" element={<AdminApplicationDetails />} />
+          <Route path="student-award-table" element={<StudentAwardTable />} />
+          <Route path="backlogs-table" element={<BacklogTable />} />
+          <Route path="PE-table" element={<PeCoursesTable />} />
+          <Route path="admin-applications" element={<AdminApplications />} />
+          <Route
+            path="admin-applications/:applicationId"
+            element={<AdminApplicationDetails />}
+          />
+        </Route>
+        <Route
+          path="/faculty-db"
+          element={
+            <ProtectedRoute>
+              <Layout sidebar={<SidebarFaculty />} header={<HeaderFaculty />} />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<FacultyDashboard />} />
         </Route>
         <Route path="/sg" element={<Signup />} />
-        <Route path="/sb" element={<Sidebar />} />
         <Route path="/log.a" element={<Loginadmin />} />
         <Route path="/sg.a" element={<Signupadmin />} />
         <Route path="/faculty-login" element={<LoginFaculty />} />
