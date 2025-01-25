@@ -69,6 +69,7 @@ import AdminApplications from './components/AdminApplications';
 import AdminApplicationDetails from './components/AdminApplicationDetails';
 import Research from './components/Research'
 import AcceptStudents from "./components/AcceptStudents";
+import LoginFaculty from "./components/LoginFaculty";
 export default function App() {
   return (
     <Router>
@@ -150,6 +151,7 @@ export default function App() {
         <Route path="/sb" element={<Sidebar />} />
         <Route path="/log.a" element={<Loginadmin />} />
         <Route path="/sg.a" element={<Signupadmin />} />
+        <Route path="/faculty-login" element={<LoginFaculty />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="accept-students" element={<AcceptStudents />} />
       </Routes>
