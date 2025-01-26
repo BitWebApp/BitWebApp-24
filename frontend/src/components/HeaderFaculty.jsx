@@ -24,12 +24,12 @@ export default function Header() {
   const [isAdmin, setIsAdmin] = useState(true);
   const [currentTime, setCurrentTime] = useState(null);
   const [user, setUser] = useState();
-  const loggedIn = JSON.parse(localStorage.getItem('user'));
+  const loggedIn = JSON.parse(localStorage.getItem('faculty'));
 
   useEffect(() => {
     axios.get('/api/v1/prof/getcurrentProf')
       .then(response => {
-        setUser(response.data.data);
+        setUser(response.data.message);
       });
   }, []);
 
@@ -80,7 +80,7 @@ export default function Header() {
     //   console.error(error);
       try {
         const resp = await axios.post('/api/v1/prof/logout');
-        localStorage.removeItem('user');
+        localStorage.removeItem('faculty');
         navigate('/');
       } catch (err) {
         console.error(err);
@@ -152,11 +152,10 @@ export default function Header() {
           )}
         </Popover>
         <div className='flex h-full m-auto rounded-sm'>
-          Welcome, {user?.fullName?.toUpperCase() || loggedIn?.username?.toUpperCase()}
+          Welcome, {user?.fullName?.toUpperCase()}
         </div>
       </div>
       <div className='ml-auto flex items-center gap-2 mr-2'>
-        <div className='text-gray-600 mr-4'>{currentTime}</div>
         <Menu as='div' className='relative'>
           <div className='inline-flex'>
             <Menu.Button className='ml-2 inline-flex rounded-full bg-grey-200 focus:outline-none focus:ring-2 focus:ring-neutral-400'>

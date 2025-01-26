@@ -18,9 +18,10 @@ export default function LoginFaculty() {
         email,
         password,
       });
+      console.log(response)
       localStorage.setItem(
         "faculty",
-        JSON.stringify(response.data.data.faculty)
+        JSON.stringify(response.data.data.professor)
       );
       console.log(response);
       toast.success("Login Successful! Redirecting to dashboard...");
