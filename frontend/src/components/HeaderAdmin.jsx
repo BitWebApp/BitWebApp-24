@@ -264,21 +264,6 @@ export default function Header() {
             <Menu.Items className='origin-top-right z-10 absolute right-0 mt-2 w-48 rounded-sm shadow-md p-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none'>
               <Menu.Item>
                 {({ active }) => (
-                  <Link to='/db/user-form'>
-                    <button
-                      className={classNames(
-                        active && 'bg-gray-100',
-                        'text-gray-700 focus:bg-gray-200 cursor-pointer rounded-sm px-4 w-full py-2'
-                      )}
-                      onClick={closeNavbar}
-                    >
-                      Your Profile
-                    </button>
-                  </Link>
-                )}
-              </Menu.Item>
-              <Menu.Item>
-                {({ active }) => (
                   <button
                     onClick={() => { handleLogout(); closeNavbar(); }}
                     className={classNames(
