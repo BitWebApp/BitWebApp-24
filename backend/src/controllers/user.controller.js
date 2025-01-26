@@ -858,7 +858,10 @@ const getAppliedProfs = asyncHandler(async (req, res) => {
   }, "Applied profs and allocation details returned"));
 });
 
-
+const summerSorted = asyncHandler(async(req, res) => {
+  const summer = await User.findById(req?.user?._id)
+  return res.status(200).json(new ApiResponse(200, summer.isSummerAllocated, "Returned summer status"))
+})
 export {
   registerUser,
   loginUser,
@@ -877,5 +880,6 @@ export {
   verifyMail,
   fetchBranch,
   changepassword,
-  getAppliedProfs
+  getAppliedProfs,
+  summerSorted
 };
