@@ -11,8 +11,8 @@ import ScrollToTop from "./components/ScrollToTop";
 import Layout from "./components/Layout";
 import Dashboard from "./components/Dashboard";
 import Sidebar from "./components/Sidebar";
-import SidebarAdmin from "./components/SidebarAdmin";
-import SidebarFaculty from "./components/SidebarFaculty";
+import SidebarAdmin from "./components/SideBarAdmin";
+import SidebarFaculty from "./components/SideBarFaculty";
 import Header from "./components/Header";
 import HeaderAdmin from "./components/HeaderAdmin";
 import HeaderFaculty from "./components/HeaderFaculty";
@@ -88,7 +88,7 @@ export default function App() {
           path="/db"
           element={
             <ProtectedRoute>
-              <Layout sidebar={<Sidebar />} header={<Header />} />
+              <Layout sidebar={Sidebar} header={Header} />
             </ProtectedRoute>
           }
         >
@@ -121,7 +121,7 @@ export default function App() {
           path="/admin-db"
           element={
             <ProtectedRoute>
-              <Layout sidebar={<SidebarAdmin />} header={<HeaderAdmin />} />
+              <Layout sidebar={SidebarAdmin} header={HeaderAdmin} />
             </ProtectedRoute>
           }
         >

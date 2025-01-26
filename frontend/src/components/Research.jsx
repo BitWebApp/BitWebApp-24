@@ -6,6 +6,7 @@ const Research = () => {
   const [professors, setProfessors] = useState([]);
   const [filteredProfessors, setFilteredProfessors] = useState([]);
   const [appliedProfessors, setAppliedProfessors] = useState([]);
+  const [allocatedProf, setAllocatedProf] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterOption, setFilterOption] = useState("all");
   const [selectedProfs, setSelectedProfs] = useState([]);
@@ -19,18 +20,24 @@ const Research = () => {
           axios.get("/api/v1/prof/getProf"),
           axios.get("/api/v1/users/get-app-profs"),
         ]);
+
+        const { summerAppliedProfs, isSummerAllocated, prof } =
+          appliedProfsResponse?.data?.data || {};
+
+        // Sort professors by seat availability
         const sortedProfessors = allProfsResponse.data.message.sort((a, b) => {
           const seatsA = a.limits.summer_training - a.currentCount.summer_training;
           const seatsB = b.limits.summer_training - b.currentCount.summer_training;
           return seatsB - seatsA;
         });
 
-        setAppliedProfessors(appliedProfsResponse.data.data.map((prof) => prof._id));
-        console.log(appliedProfessors)
+        setAppliedProfessors(summerAppliedProfs.map((prof) => prof._id));
+        if (isSummerAllocated && prof) setAllocatedProf(prof);
         setProfessors(sortedProfessors);
         setFilteredProfessors(sortedProfessors);
         setLoading(false);
       } catch (error) {
+        console.error(error);
         setLoading(false);
         Swal.fire({
           icon: "error",
@@ -44,6 +51,8 @@ const Research = () => {
 
   useEffect(() => {
     let filtered = professors;
+  
+    // Apply search filter
     if (searchQuery) {
       filtered = filtered.filter((prof) =>
         prof.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -51,6 +60,8 @@ const Research = () => {
         prof.contact.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
+  
+    // Apply seat availability filters
     if (filterOption === "highDemand") {
       filtered = filtered.filter((prof) =>
         prof.limits.summer_training - prof.currentCount.summer_training <= 2 &&
@@ -65,27 +76,27 @@ const Research = () => {
         (prof) => prof.limits.summer_training - prof.currentCount.summer_training > 2
       );
     }
-    else if (filterOption === "applied") {
-        filtered = filtered.filter(
-          (prof) => prof.limits.summer_training - prof.currentCount.summer_training > 2
-        );
-      }
-
+  
+    // Sorting logic: Accepted > Applied > Others
     filtered.sort((a, b) => {
+      const isAllocatedA = allocatedProf?._id === a._id;
+      const isAllocatedB = allocatedProf?._id === b._id;
+  
       const isAppliedA = appliedProfessors.includes(a._id);
       const isAppliedB = appliedProfessors.includes(b._id);
-      const isSelectedA = selectedProfs.includes(a._id);
-      const isSelectedB = selectedProfs.includes(b._id);
-
-      if (isAppliedA && !isAppliedB) return -1;
+  
+      if (isAllocatedA && !isAllocatedB) return -1; // Accepted first
+      if (!isAllocatedA && isAllocatedB) return 1;
+  
+      if (isAppliedA && !isAppliedB) return -1; // Applied next
       if (!isAppliedA && isAppliedB) return 1;
-      if (isSelectedA && !isSelectedB) return -1;
-      if (!isSelectedA && isSelectedB) return 1;
-      return 0;
+  
+      return 0; // Others remain in their current order
     });
-
+  
     setFilteredProfessors(filtered);
-  }, [searchQuery, filterOption, professors, selectedProfs, appliedProfessors]);
+  }, [searchQuery, filterOption, professors, selectedProfs, appliedProfessors, allocatedProf]);
+  
 
   const handleCheckboxChange = (profId) => {
     setSelectedProfs((prev) =>
@@ -107,10 +118,7 @@ const Research = () => {
 
     try {
       setLoading(true);
-      const response = await axios.post(
-        "/api/v1/users/applyToSummer",
-        { profIds: selectedProfs }
-      );
+      await axios.post("/api/v1/users/applyToSummer", { profIds: selectedProfs });
       setLoading(false);
       Swal.fire({
         icon: "success",
@@ -146,7 +154,6 @@ const Research = () => {
           className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">All</option>
-          <option value="applied">Applied</option>
           <option value="highDemand">High Demand</option>
           <option value="noSeats">No Seats</option>
           <option value="available">Available</option>
@@ -175,7 +182,10 @@ const Research = () => {
                 const seatsAvailable =
                   prof.limits.summer_training - prof.currentCount.summer_training;
                 const isApplied = appliedProfessors.includes(prof._id);
-                const status = isApplied
+                const isAllocated = allocatedProf?._id === prof._id;
+                const status = isAllocated
+                  ? "Accepted"
+                  : isApplied
                   ? "Applied"
                   : seatsAvailable === 0
                   ? "No Seats"
@@ -199,7 +209,9 @@ const Research = () => {
                     </td>
                     <td
                       className={`border border-gray-300 px-4 py-2 text-center font-bold text-white rounded-lg ${
-                        isApplied
+                        isAllocated
+                          ? "bg-purple-500"
+                          : isApplied
                           ? "bg-blue-500"
                           : seatsAvailable === 0
                           ? "bg-red-500"
@@ -214,7 +226,7 @@ const Research = () => {
                       <input
                         type="checkbox"
                         id={prof._id}
-                        disabled={isApplied || seatsAvailable === 0}
+                        disabled={isApplied || isAllocated || seatsAvailable === 0}
                         checked={selectedProfs.includes(prof._id)}
                         onChange={() => handleCheckboxChange(prof._id)}
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"

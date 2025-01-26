@@ -10,6 +10,7 @@ import { Placement } from "../models/placement.model.js";
 import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import cron from "node-cron";
+import { Professor } from "../models/professor.model.js";
 
 const generateAcessAndRefreshToken = async (userId) => {
   try {
@@ -841,11 +842,22 @@ cron.schedule("0 0 1 1,8 *", async () => {
   console.log("Semester update completed!");
 });
 
-const getAppliedProfs = asyncHandler(async(req, res) => {
-  const userid = req?.user?._id
-  const user = await User.findById(userid).populate('summerAppliedProfs')
-  return res.status(200).json(new ApiResponse(200, user.summerAppliedProfs, "Applied profs returned"))
-})
+const getAppliedProfs = asyncHandler(async (req, res) => {
+  const userid = req?.user?._id;
+  const user = await User.findById(userid).populate('summerAppliedProfs');
+
+  let prof = null;
+
+  if (user.isSummerAllocated && user.summerAllocatedProf) {
+    prof = await Professor.findById(user.summerAllocatedProf);
+  }
+  return res.status(200).json(new ApiResponse(200, {
+    summerAppliedProfs: user.summerAppliedProfs,
+    isSummerAllocated: user.isSummerAllocated,
+    prof: prof
+  }, "Applied profs and allocation details returned"));
+});
+
 
 export {
   registerUser,
