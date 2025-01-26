@@ -14,6 +14,7 @@ import {
   selectSummerStudents,
   getcurrentProf,
   incrementLimit,
+  getAcceptedStudents,
 } from "../controllers/professor.controller.js";
 // import { verify } from "jsonwebtoken";
 const router = Router();
@@ -31,5 +32,7 @@ router
 router.route("/getcurrentProf").get(verifyProfessor, getcurrentProf);
 
 router.route("/incrementLimit").post(verifyAdmin, incrementLimit);
+
+router.route("/getAcceptedStudents").get(verifyProfessor, getAcceptedStudents);
 
 export default router;

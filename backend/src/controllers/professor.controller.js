@@ -368,6 +368,28 @@ const incrementLimit = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Limit updated successfully!", professor));
 });
 
+const getAcceptedStudents = asyncHandler(async (req, res) => {
+  const profId = req.professor._id;
+  const professor = await Professor.findById(profId);
+  if (!professor) {
+    throw new ApiError(404, "Professor not found!");
+  }
+  const studentIds = professor.students.summer_training;
+  const students = await User.find({
+    _id: { $in: studentIds },
+  });
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        "Accepted students retrieved successfully!",
+        students
+      )
+    );
+});
+
 export {
   addProf,
   getProf,
@@ -378,4 +400,5 @@ export {
   selectSummerStudents,
   getcurrentProf,
   incrementLimit,
+  getAcceptedStudents,
 };
