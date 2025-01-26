@@ -62,7 +62,7 @@ router
     upload.fields([{ name: "doc", maxCount: 1 }]),
     updatePlacementOne
   );
-router.route("/getbyroll").post(verifyJWT || verifyAdmin || verifyProfessor, getUserbyRoll);
+router.route("/getbyroll").post(verifyJWT, verifyAdmin, verifyProfessor, getUserbyRoll);
 router
   .route("/ptwo")
   .patch(

@@ -12,6 +12,7 @@ import {
   HiOutlineBriefcase,
   HiPresentationChartLine,
   HiBriefcase,
+  HiArchive
 } from "react-icons/hi";
 import { motion } from "framer-motion";
 import { useEffect } from "react";

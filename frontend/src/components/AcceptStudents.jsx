@@ -12,6 +12,7 @@ const AcceptStudents = () => {
         const fetchAppliedStudents = async () => {
             try {
                 const response = await axios.get('/api/v1/prof/getAppliedStudents');
+                console.log("hello", response)
                 setAppliedStudents(response.data.message);
             } catch (err) {
                 setError(err.response?.data?.message || 'Failed to fetch students.');
@@ -37,7 +38,6 @@ const AcceptStudents = () => {
             const response = await axios.post('/api/v1/prof/selectSummerStudents', {
                 selectedStudents,
             });
-            console.log(response)
             setMessage(response.data.message);
             setSelectedStudents([]);
             setAppliedStudents(

@@ -84,7 +84,7 @@ export default function InternshipTable() {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Internships");
   
-    // Define columns with headers and styles
+    // Define columns with headers and styles matching the frontend table
     worksheet.columns = [
       { header: "#", key: "index", width: 5 },
       { header: "Roll Number", key: "rollNumber", width: 15 },
@@ -93,37 +93,41 @@ export default function InternshipTable() {
       { header: "Role", key: "role", width: 20 },
       { header: "Internship Type", key: "type", width: 20 },
       { header: "Location", key: "location", width: 15 },
-      { header: "Mentor", key: "mentor", width: 20 },
+      { header: "Mentor", key: "mentor", width: 30 },
       { header: "Starting Date", key: "startDate", width: 15 },
       { header: "Ending Date", key: "endDate", width: 15 },
       { header: "Supporting Doc", key: "doc", width: 30 },
     ];
   
-    // Add a bold style to the header row
-    worksheet.getRow(1).font = { bold: true };
-    worksheet.getRow(1).alignment = { vertical: "middle", horizontal: "center" };
-    worksheet.getRow(1).fill = {
+    // Style the header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    headerRow.alignment = { vertical: "middle", horizontal: "center" };
+    headerRow.fill = {
       type: "pattern",
       pattern: "solid",
       fgColor: { argb: "FF000000" },
-      bgColor: { argb: "FFFFFFFF" },
     };
-    worksheet.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
   
-    let index = 1;
-    filteredData.forEach((record) => {
+    // Add data rows matching the frontend table
+    filteredData.forEach((record, index) => {
+      const mentor =
+        record.mentor?.idNumber && record.mentor?.fullName
+          ? `${record.mentor.idNumber}: ${record.mentor.fullName}`
+          : "N/A";
+  
       const row = worksheet.addRow({
-        index: index++,
-        rollNumber: record.student.rollNumber,
-        name: record.student.fullName,
-        company: record.company.companyName,
-        role: record.role,
-        type: record.type,
-        location: record.location,
-        mentor: record.mentorName || "N/A",
-        startDate: formatDate(record.startDate),
-        endDate: formatDate(record.endDate),
-        doc: record.doc,
+        index: index + 1,
+        rollNumber: record?.student?.rollNumber,
+        name: record?.student?.fullName.toUpperCase(),
+        company: record?.company?.companyName.toUpperCase(),
+        role: record?.role,
+        type: record?.type,
+        location: record?.location,
+        mentor: mentor,
+        startDate: formatDate(record?.startDate),
+        endDate: formatDate(record?.endDate),
+        doc: record?.doc ? record?.doc : "N/A",
       });
   
       // Add alternating row colors for better readability
@@ -150,7 +154,7 @@ export default function InternshipTable() {
       });
     });
   
-    // Write to buffer and trigger download
+    // Save the workbook
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -164,6 +168,7 @@ export default function InternshipTable() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+  
   
 
   return (
@@ -243,15 +248,15 @@ export default function InternshipTable() {
           {filteredData.map((record, index) => (
             <tr key={index} className="hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{index + 1}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record.student.rollNumber}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record.student.fullName.toUpperCase()}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record.company.companyName.toUpperCase()}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record.role}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record.type}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record.location}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record.mentorName || "N/A"}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(record.startDate)}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(record.endDate)}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record?.student?.rollNumber}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record?.student?.fullName.toUpperCase()}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record?.company?.companyName.toUpperCase()}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record?.role}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record?.type}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record?.location}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{(record?.mentor) ? record?.mentor?.idNumber+": "+record?.mentor?.fullName : "N/A"}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(record?.startDate)}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(record?.endDate)}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 <a href={record.doc} target="_blank" rel="noopener noreferrer">View</a>
               </td>

@@ -159,9 +159,9 @@ export default function App() {
         <Route
           path="/faculty-db"
           element={
-    
+            <ProtectedRoute>
               <Layout sidebar={SidebarFaculty} header={HeaderFaculty} />
-          
+            </ProtectedRoute>
           }
         >
           <Route index element={<Dashboard />} />
