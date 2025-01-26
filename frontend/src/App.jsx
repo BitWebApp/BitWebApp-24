@@ -10,12 +10,10 @@ import axios from "axios";
 import ScrollToTop from "./components/ScrollToTop";
 import Layout from "./components/Layout";
 import Dashboard from "./components/Dashboard";
-import AdminDashboard from "./components/AdminDashboard";
-import FacultyDashboard from "./components/FacultyDashboard";
-import SidebarUser from "./components/SidebarUser";
+import Sidebar from "./components/Sidebar";
 import SidebarAdmin from "./components/SidebarAdmin";
 import SidebarFaculty from "./components/SidebarFaculty";
-import HeaderUser from "./components/HeaderUser";
+import Header from "./components/Header";
 import HeaderAdmin from "./components/HeaderAdmin";
 import HeaderFaculty from "./components/HeaderFaculty";
 import Login from "./components/Login";
@@ -73,7 +71,6 @@ import AdminApplicationDetails from "./components/AdminApplicationDetails";
 import AcceptStudents from "./components/AcceptStudents";
 import { HashLoader, SyncLoader } from "react-spinners";
 
-
 export default function App() {
   return (
     <Router>
@@ -91,7 +88,7 @@ export default function App() {
           path="/db"
           element={
             <ProtectedRoute>
-              <Layout sidebar={<SidebarUser />} header={<HeaderUser />} />
+              <Layout sidebar={<Sidebar />} header={<Header />} />
             </ProtectedRoute>
           }
         >
@@ -128,7 +125,7 @@ export default function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<AdminDashboard />} />
+          <Route index element={<Dashboard />} />
           <Route path="student-table" element={<StudentTable />} />
           <Route path="verify-users" element={<VerifyUsers />} />
           <Route path="show-all-alumni" element={<ShowAllAlumni />} />
@@ -149,7 +146,7 @@ export default function App() {
           <Route path="assign-company" element={<CompanyAssignmentForm />} />
           <Route path="add-prof" element={<AddProfessor />} />
           <Route path="review" element={<Review />} />
-          <Route path="admin-projects-dashboard" element={<AdminDashboard />} />
+          {/* <Route path="admin-projects-dashboard" element={<AdminDashboard />} /> */}
           <Route path="student-award-table" element={<StudentAwardTable />} />
           <Route path="backlogs-table" element={<BacklogTable />} />
           <Route path="PE-table" element={<PeCoursesTable />} />
@@ -162,19 +159,20 @@ export default function App() {
         <Route
           path="/faculty-db"
           element={
-            <ProtectedRoute>
-              <Layout sidebar={<SidebarFaculty />} header={<HeaderFaculty />} />
-            </ProtectedRoute>
+    
+              <Layout sidebar={SidebarFaculty} header={HeaderFaculty} />
+          
           }
         >
-          <Route index element={<FacultyDashboard />} />
+          <Route index element={<Dashboard />} />
+          <Route path="accept-students" element={<AcceptStudents />} />
         </Route>
         <Route path="/sg" element={<Signup />} />
         <Route path="/log.a" element={<Loginadmin />} />
         <Route path="/sg.a" element={<Signupadmin />} />
         <Route path="/faculty-login" element={<LoginFaculty />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="accept-students" element={<AcceptStudents />} />
+        
       </Routes>
     </Router>
   );
@@ -210,6 +208,19 @@ function ProtectedRoute({ children }) {
           setLoading(false);
         }
       }
+      if (!isAuthenticated) {
+        setLoading(true);
+        try {
+          const response = await axios.get("/api/v1/prof/getcurrentProf");
+          if (response.status == 200) {
+            setIsAuthenticated(true);
+          }
+        } catch (err) {
+          console.log("Error fetching admin!", err);
+        } finally {
+          setLoading(false);
+        }
+      }
     };
     checkUser();
   }, []);
@@ -229,7 +240,7 @@ function ProtectedRoute({ children }) {
     );
   }
   if (!isAuthenticated) {
-    navigate("/log");
+    navigate("/");
     return null;
   }
   return children;

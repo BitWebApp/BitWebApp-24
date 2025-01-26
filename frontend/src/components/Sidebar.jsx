@@ -46,19 +46,76 @@ export default function Sidebar() {
   // }, []);
 
   // const links = isAdmin ? adminLinks : additionalLinks;
-  const links = useLinks();
+  const additionalLinks = [
+    { 
+      text: "Dashboard", 
+      icon: <HiHome />, 
+      to: "/db" 
+    },
+    {
+      text: "Alumni Profile", 
+      icon: <HiUser />,
+      to: "/db/alumni",
+    },
+    {
+      text: "Academic Records", 
+      icon: <HiAcademicCap />,
+      to: "/db/academic-table",
+    },
+    { 
+      text: "Backlogs", 
+      icon: <HiAcademicCap />, 
+      to: "/db/backlogs" 
+    },
+    { 
+      text: "PE-Course", 
+      icon: <HiAcademicCap />, 
+      to: "/db/PE-form" 
+    },
+    {
+      text: "Awards & Achievements",
+      icon: <HiBadgeCheck />,
+      to: "/db/award-form",
+    },
+    { 
+      text: "Examinations", 
+      icon: <HiDocumentReport />, 
+      to: "/db/exam-form" 
+    },
+    {
+      text: "Higher Education",
+      icon: <HiAcademicCap />,
+      to: "/db/higher-education",
+    },
+    {
+      text: "Placement Records",
+      icon: <HiOutlineBriefcase />,
+      to: "/db/placement",
+    },
+    {
+      text: "Projects",
+      icon: <HiPresentationChartLine />,
+      to: "/db/project-form",
+    },
+    { text: "Internships", icon: <HiBriefcase />, to: "/db/internship-form" },
+    { text: "Interview Experience", icon: <HiBriefcase />, to: "/db/interview" },
+   
+    { 
+      text: "Request Classroom", 
+      icon: <HiBriefcase />, 
+      to: "/db/classroom-form" 
+    },
+    {
+      text: "Summer Training",
+      icon: <HiPresentationChartLine />,
+      to: "/db/apply-summer",
+    },
+  ];
+
+  
+  const links = additionalLinks;
   const navigate = useNavigate();
   const handleLogout = async () => {
-    // axios
-    //   .post("/api/v1/users/logout")
-    //   .then((response) => {
-    //     console.log(response);
-    //     localStorage.removeItem("user");
-    //     navigate("/");
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //   });
     try {
       const response = await axios.post("/api/v1/users/logout");
       console.log(response);
@@ -66,14 +123,14 @@ export default function Sidebar() {
       navigate("/");
     } catch (error) {
       console.log(error);
-      try {
-        const resp = await axios.post("/api/v1/admin/logout");
-        console.log(resp);
-        localStorage.removeItem("user");
-        navigate("/");
-      } catch (err) {
-        console.log(err);
-      }
+      // try {
+      //   const resp = await axios.post("/api/v1/admin/logout");
+      //   console.log(resp);
+      //   localStorage.removeItem("user");
+      //   navigate("/");
+      // } catch (err) {
+      //   console.log(err);
+      // }
     } finally {
       navigate("/");
     }

@@ -5,8 +5,17 @@ import { IoMdMenu } from 'react-icons/io';
 import classNames from 'classnames';
 import axios from 'axios';
 import {
+  HiHome,
+  HiUser,
+  HiAcademicCap,
+  HiBadgeCheck,
+  HiDocumentReport,
+  HiOutlineBriefcase,
+  HiPresentationChartLine,
+  HiBriefcase,
   HiOutlineLogout,
-} from 'react-icons/hi';
+  HiArchive,
+} from "react-icons/hi";
 import useLinks from './admin/user-links';
 const linkClasses = 'flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base';
 
@@ -43,7 +52,74 @@ export default function Header() {
     return () => clearInterval(interval);
   }, []);
 
-  const links = useLinks();
+  const additionalLinks = [
+      { 
+        text: "Dashboard", 
+        icon: <HiHome />, 
+        to: "/db" 
+      },
+      {
+        text: "Alumni Profile", 
+        icon: <HiUser />,
+        to: "/db/alumni",
+      },
+      {
+        text: "Academic Records", 
+        icon: <HiAcademicCap />,
+        to: "/db/academic-table",
+      },
+      { 
+        text: "Backlogs", 
+        icon: <HiAcademicCap />, 
+        to: "/db/backlogs" 
+      },
+      { 
+        text: "PE-Course", 
+        icon: <HiAcademicCap />, 
+        to: "/db/PE-form" 
+      },
+      {
+        text: "Awards & Achievements",
+        icon: <HiBadgeCheck />,
+        to: "/db/award-form",
+      },
+      { 
+        text: "Examinations", 
+        icon: <HiDocumentReport />, 
+        to: "/db/exam-form" 
+      },
+      {
+        text: "Higher Education",
+        icon: <HiAcademicCap />,
+        to: "/db/higher-education",
+      },
+      {
+        text: "Placement Records",
+        icon: <HiOutlineBriefcase />,
+        to: "/db/placement",
+      },
+      {
+        text: "Projects",
+        icon: <HiPresentationChartLine />,
+        to: "/db/project-form",
+      },
+      { text: "Internships", icon: <HiBriefcase />, to: "/db/internship-form" },
+      { text: "Interview Experience", icon: <HiBriefcase />, to: "/db/interview" },
+     
+      { 
+        text: "Request Classroom", 
+        icon: <HiBriefcase />, 
+        to: "/db/classroom-form" 
+      },
+      {
+        text: "Summer Training",
+        icon: <HiPresentationChartLine />,
+        to: "/db/apply-summer",
+      },
+    ];
+  
+    
+    const links = additionalLinks;
 
   const closeNavbar = () => {
     setIsNavbarOpen(false);
@@ -58,13 +134,13 @@ export default function Header() {
       navigate('/');
     } catch (error) {
       console.error(error);
-      try {
-        const resp = await axios.post('/api/v1/admin/logout');
-        localStorage.removeItem('user');
-        navigate('/');
-      } catch (err) {
-        console.error(err);
-      }
+      // try {
+      //   const resp = await axios.post('/api/v1/admin/logout');
+      //   localStorage.removeItem('user');
+      //   navigate('/');
+      // } catch (err) {
+      //   console.error(err);
+      // }
     } finally {
       navigate('/');
     }

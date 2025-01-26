@@ -26,7 +26,7 @@ export default function LoginFaculty() {
       toast.success("Login Successful! Redirecting to dashboard...");
 
       setTimeout(() => {
-        navigate("/faculty-dashboard/");
+        navigate("/faculty-db");
       }, 2000);
     } catch (error) {
       if (error.response && error.response.data) {
