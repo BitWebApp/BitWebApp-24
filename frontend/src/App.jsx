@@ -1,4 +1,4 @@
-import {useEffect,useState,React} from "react";
+import { useEffect, useState, React } from "react";
 import PropTypes from "prop-types";
 import {
   BrowserRouter as Router,
@@ -87,9 +87,9 @@ export default function App() {
         <Route
           path="/db"
           element={
-            <ProtectedRoute>
+            <ProtectUser>
               <Layout sidebar={Sidebar} header={Header} />
-            </ProtectedRoute>
+            </ProtectUser>
           }
         >
           <Route index element={<Dashboard />} />
@@ -120,9 +120,9 @@ export default function App() {
         <Route
           path="/admin-db"
           element={
-            <ProtectedRoute>
+            <ProtectAdmin>
               <Layout sidebar={SidebarAdmin} header={HeaderAdmin} />
-            </ProtectedRoute>
+            </ProtectAdmin>
           }
         >
           <Route index element={<Dashboard />} />
@@ -159,9 +159,9 @@ export default function App() {
         <Route
           path="/faculty-db"
           element={
-            <ProtectedRoute>
+            <ProtectFaculty>
               <Layout sidebar={SidebarFaculty} header={HeaderFaculty} />
-            </ProtectedRoute>
+            </ProtectFaculty>
           }
         >
           <Route index element={<Dashboard />} />
@@ -172,13 +172,163 @@ export default function App() {
         <Route path="/sg.a" element={<Signupadmin />} />
         <Route path="/faculty-login" element={<LoginFaculty />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        
       </Routes>
     </Router>
   );
 }
 
-function ProtectedRoute({ children }) {
+// function ProtectedRoute({ children }) {
+//   const [loading, setLoading] = useState(true);
+//   const [isAuthenticated, setIsAuthenticated] = useState(false);
+//   const navigate = useNavigate();
+//   useEffect(() => {
+//     const checkUser = async () => {
+//       setLoading(true);
+//       try {
+//         const response = await axios.get("/api/v1/users/get-user");
+//         if (response.status == 200) {
+//           setIsAuthenticated(true);
+//         }
+//       } catch (err) {
+//         console.log("Error fetching user!", err);
+//       } finally {
+//         setLoading(false);
+//       }
+//       if (!isAuthenticated) {
+//         setLoading(true);
+//         try {
+//           const response = await axios.get("/api/v1/admin/get-admin");
+//           if (response.status == 200) {
+//             setIsAuthenticated(true);
+//           }
+//         } catch (err) {
+//           console.log("Error fetching admin!", err);
+//         } finally {
+//           setLoading(false);
+//         }
+//       }
+//       if (!isAuthenticated) {
+//         setLoading(true);
+//         try {
+//           const response = await axios.get("/api/v1/prof/getcurrentProf");
+//           if (response.status == 200) {
+//             setIsAuthenticated(true);
+//           }
+//         } catch (err) {
+//           console.log("Error fetching admin!", err);
+//         } finally {
+//           setLoading(false);
+//         }
+//       }
+//     };
+//     checkUser();
+//   }, []);
+//   if (loading) {
+//     return (
+//       <div className="h-screen w-full flex flex-col justify-center items-center">
+//         <HashLoader size={150} />
+//         <div className="text-xl py-10 flex font-bold font">
+//           LOADING
+//           <SyncLoader
+//             className="translate-y-3"
+//             size={5}
+//             speedMultiplier={0.75}
+//           />
+//         </div>
+//       </div>
+//     );
+//   }
+//   if (!isAuthenticated) {
+//     navigate("/");
+//     return null;
+//   }
+//   return children;
+// }
+
+function ProtectAdmin({ children }) {
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
+  useEffect(() => {
+    const checkAdmin = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get("/api/v1/admin/get-admin");
+        if (response.status == 200) {
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.log("Error fetching admin!", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAdmin();
+  }, []);
+  if (loading) {
+    return (
+      <div className="h-screen w-full flex flex-col justify-center items-center">
+        <HashLoader size={150} />
+        <div className="text-xl py-10 flex font-bold font">
+          LOADING
+          <SyncLoader
+            className="translate-y-3"
+            size={5}
+            speedMultiplier={0.75}
+          />
+        </div>
+      </div>
+    );
+  }
+  if (!isAuthenticated) {
+    navigate("/");
+    return null;
+  }
+  return children;
+}
+
+function ProtectFaculty({ children }) {
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
+  useEffect(() => {
+    const checkFaculty = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get("/api/v1/prof/getcurrentProf");
+        if (response.status == 200) {
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.log("Error fetching faculty!", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkFaculty();
+  }, []);
+  if (loading) {
+    return (
+      <div className="h-screen w-full flex flex-col justify-center items-center">
+        <HashLoader size={150} />
+        <div className="text-xl py-10 flex font-bold font">
+          LOADING
+          <SyncLoader
+            className="translate-y-3"
+            size={5}
+            speedMultiplier={0.75}
+          />
+        </div>
+      </div>
+    );
+  }
+  if (!isAuthenticated) {
+    navigate("/");
+    return null;
+  }
+  return children;
+}
+function ProtectUser({ children }) {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
@@ -190,36 +340,10 @@ function ProtectedRoute({ children }) {
         if (response.status == 200) {
           setIsAuthenticated(true);
         }
-      } catch (err) {
-        console.log("Error fetching user!", err);
+      } catch (error) {
+        console.log("Error fetching user!", error);
       } finally {
         setLoading(false);
-      }
-      if (!isAuthenticated) {
-        setLoading(true);
-        try {
-          const response = await axios.get("/api/v1/admin/get-admin");
-          if (response.status == 200) {
-            setIsAuthenticated(true);
-          }
-        } catch (err) {
-          console.log("Error fetching admin!", err);
-        } finally {
-          setLoading(false);
-        }
-      }
-      if (!isAuthenticated) {
-        setLoading(true);
-        try {
-          const response = await axios.get("/api/v1/prof/getcurrentProf");
-          if (response.status == 200) {
-            setIsAuthenticated(true);
-          }
-        } catch (err) {
-          console.log("Error fetching admin!", err);
-        } finally {
-          setLoading(false);
-        }
       }
     };
     checkUser();
@@ -245,6 +369,19 @@ function ProtectedRoute({ children }) {
   }
   return children;
 }
-ProtectedRoute.propTypes = {
+
+ProtectAdmin.propTypes = {
   children: PropTypes.node.isRequired,
 };
+
+ProtectFaculty.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+ProtectUser.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+// ProtectedRoute.propTypes = {
+//   children: PropTypes.node.isRequired,
+// };
