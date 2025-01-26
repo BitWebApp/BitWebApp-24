@@ -19,18 +19,18 @@ const PlacementOne = () => {
   const navigate = useNavigate();
 
   const companyList = [
-    "Google", "Microsoft", "Apple", "Amazon", "Meta (Facebook)", "Netflix", 
-    "IBM", "Oracle", "Intel", "Cisco", "NVIDIA", "Qualcomm", "Broadcom", 
-    "Texas Instruments", "Visa", "Mastercard", "PayPal", "Stripe", 
-    "Salesforce", "Wells Fargo", "Uber", "Atlassian", "Fastenal", 
+    "Google", "Microsoft", "Apple", "Amazon", "Meta (Facebook)", "Netflix",
+    "IBM", "Oracle", "Intel", "Cisco", "NVIDIA", "Qualcomm", "Broadcom",
+    "Texas Instruments", "Visa", "Mastercard", "PayPal", "Stripe",
+    "Salesforce", "Wells Fargo", "Uber", "Atlassian", "Fastenal",
     "Walmart Global Tech", "Intuit", "Sprinkler", "NPCI", "Others"
   ];
 
   const roleList = [
-    "Software Engineer", "Frontend Developer", "Backend Developer", 
-    "Full Stack Developer", "Data Science", "Data Analyst", 
-    "Machine Learning", "Cloud Engineer", "DevOps", 
-    "Cybersecurity", "Information Security", "Product Management", 
+    "Software Engineer", "Frontend Developer", "Backend Developer",
+    "Full Stack Developer", "Data Science", "Data Analyst",
+    "Machine Learning", "Cloud Engineer", "DevOps",
+    "Cybersecurity", "Information Security", "Product Management",
     "Systems Engineer", "R&D", "Quality Assurance", "UI/UX Design"
   ];
 
@@ -138,13 +138,13 @@ const PlacementOne = () => {
           <form onSubmit={handleSubmit}>
             <div className="w-full flex flex-col">
               <label>Company</label>
-              <select 
+              <select
                 value={company}
                 onChange={(e) => {
                   const select = e.target.value;
                   setCompany(select);
                   setNewCompany(select);
-                }} 
+                }}
                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none">
                 {companyList.map((val, index) => (
                   <option key={index} value={val}>{val}</option>
@@ -204,9 +204,13 @@ const PlacementOne = () => {
                 {spin ? <ClipLoader color="white" size={20} /> : "Submit"}
               </button>
             </div>
-            <span className="font-semibold underline underline-offset cursor-pointer text-blue-600 mt-4">
-              <Link to="/db">Go back to Dashboard</Link>
-            </span>
+            <div className="w-full items-center justify-center flex">
+              <p className="text-sm font-normal text-black mt-5">
+                <span className="font-semibold underline underline-offset cursor-pointer text-blue-600">
+                  <Link to="/db">Go back to Dashboard</Link>
+                </span>
+              </p>
+            </div>
           </form>
         </div>
       </div>

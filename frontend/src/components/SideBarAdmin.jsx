@@ -95,11 +95,11 @@ export default function Sidebar() {
       icon: <HiPresentationChartLine />,
       to: "/admin-db/project-form-table",
     },
-    {
-      text: "Approve Internships",
-      icon: <HiBriefcase />,
-      to: "/admin-db/internship-form-table",
-    },
+    // {
+    //   text: "Approve Internships",
+    //   icon: <HiBriefcase />,
+    //   to: "/admin-db/internship-form-table",
+    // },
     {
       text: "Internship Records",
       icon: <HiBriefcase />,
@@ -130,11 +130,11 @@ export default function Sidebar() {
       icon: <HiArchive />,
       to: "/admin-db/review",
     },
-    {
-      text: "Prof. Projects",
-      icon: <HiPresentationChartLine />,
-      to: "/admin-db/admin-projects-dashboard",
-    },
+    // {
+    //   text: "Prof. Projects",
+    //   icon: <HiPresentationChartLine />,
+    //   to: "/admin-db/admin-projects-dashboard",
+    // },
   ];
   // const [isAdmin, setIsAdmin] = useState(true);
 

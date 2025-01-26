@@ -70,6 +70,7 @@ import AdminApplications from "./components/AdminApplications";
 import AdminApplicationDetails from "./components/AdminApplicationDetails";
 import AcceptStudents from "./components/AcceptStudents";
 import { HashLoader, SyncLoader } from "react-spinners";
+// import AdminDashboard from "./components/AdminDashboard";
 
 export default function App() {
   return (

@@ -168,6 +168,12 @@ const HigherEducation = () => {
     )
   );
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const options = { day: '2-digit', month: 'short', year: 'numeric' };
+    return date.toLocaleDateString('en-US', options);
+  };
+
   return (
     <div className="w-full min-h-screen flex flex-col items-center">
       <ToastContainer />
@@ -310,8 +316,8 @@ const HigherEducation = () => {
                   <td className="px-6 py-4 whitespace-nowrap">{higherEducation.institution}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{higherEducation.degree}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{higherEducation.fieldOfStudy}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{higherEducation.startDate}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{higherEducation.endDate}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{formatDate(higherEducation.startDate)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{formatDate(higherEducation.endDate)}</td>
                 </tr>
               ))}
             </tbody>
