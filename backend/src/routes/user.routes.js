@@ -19,7 +19,7 @@ import {
   fetchBranch,
   otpForgotPass,
   changepassword,
-  getAppliedProfs
+  getAppliedProfs,
 } from "../controllers/user.controller.js";
 
 import { applyToSummer, getProf } from "../controllers/professor.controller.js";
@@ -62,7 +62,7 @@ router
     upload.fields([{ name: "doc", maxCount: 1 }]),
     updatePlacementOne
   );
-router.route("/getbyroll").post(verifyJWT, verifyAdmin, verifyProfessor, getUserbyRoll);
+router.route("/getbyroll").post(getUserbyRoll);
 router
   .route("/ptwo")
   .patch(
