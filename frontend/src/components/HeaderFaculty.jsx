@@ -24,12 +24,12 @@ export default function Header() {
   const [isAdmin, setIsAdmin] = useState(true);
   const [currentTime, setCurrentTime] = useState(null);
   const [user, setUser] = useState();
-  const loggedIn = JSON.parse(localStorage.getItem('user'));
+  const loggedIn = JSON.parse(localStorage.getItem('faculty'));
 
   useEffect(() => {
-    axios.get('/api/v1/users/get-user')
+    axios.get('/api/v1/prof/getcurrentProf')
       .then(response => {
-        setUser(response.data.data);
+        setUser(response.data.message);
       });
   }, []);
 
@@ -51,75 +51,19 @@ export default function Header() {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
-
-  const additionalLinks = [
+  const facultyLinks = [
       { 
         text: "Dashboard", 
         icon: <HiHome />, 
-        to: "/db" 
-      },
-      {
-        text: "Alumni Profile", 
-        icon: <HiUser />,
-        to: "/db/alumni",
-      },
-      {
-        text: "Academic Records", 
-        icon: <HiAcademicCap />,
-        to: "/db/academic-table",
-      },
-      { 
-        text: "Backlogs", 
-        icon: <HiAcademicCap />, 
-        to: "/db/backlogs" 
-      },
-      { 
-        text: "PE-Course", 
-        icon: <HiAcademicCap />, 
-        to: "/db/PE-form" 
-      },
-      {
-        text: "Awards & Achievements",
-        icon: <HiBadgeCheck />,
-        to: "/db/award-form",
-      },
-      { 
-        text: "Examinations", 
-        icon: <HiDocumentReport />, 
-        to: "/db/exam-form" 
-      },
-      {
-        text: "Higher Education",
-        icon: <HiAcademicCap />,
-        to: "/db/higher-education",
-      },
-      {
-        text: "Placement Records",
-        icon: <HiOutlineBriefcase />,
-        to: "/db/placement",
-      },
-      {
-        text: "Projects",
-        icon: <HiPresentationChartLine />,
-        to: "/db/project-form",
-      },
-      { text: "Internships", icon: <HiBriefcase />, to: "/db/internship-form" },
-      { text: "Interview Experience", icon: <HiBriefcase />, to: "/db/interview" },
-     
-      { 
-        text: "Request Classroom", 
-        icon: <HiBriefcase />, 
-        to: "/db/classroom-form" 
+        to: "/faculty-db" 
       },
       {
         text: "Summer Training",
-        icon: <HiPresentationChartLine />,
-        to: "/db/apply-summer",
-      },
+        icon: <HiHome/>,
+        to: "/faculty-db/accept-students"
+      }
     ];
-  
-    
-    const links = additionalLinks;
+  const links = facultyLinks;
 
   const closeNavbar = () => {
     setIsNavbarOpen(false);
@@ -128,19 +72,18 @@ export default function Header() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    try {
-      const response = await axios.post('/api/v1/users/logout');
-      localStorage.removeItem('user');
-      navigate('/');
-    } catch (error) {
-      console.error(error);
-      // try {
-      //   const resp = await axios.post('/api/v1/admin/logout');
-      //   localStorage.removeItem('user');
-      //   navigate('/');
-      // } catch (err) {
-      //   console.error(err);
-      // }
+    // try {
+    //   const response = await axios.post('/api/v1/users/logout');
+    //   localStorage.removeItem('user');
+    //   navigate('/');
+    // } catch (error) {
+    //   console.error(error);
+      try {
+        const resp = await axios.post('/api/v1/prof/logout');
+        localStorage.removeItem('faculty');
+        navigate('/');
+      } catch (err) {
+        console.error(err);
     } finally {
       navigate('/');
     }
@@ -209,11 +152,10 @@ export default function Header() {
           )}
         </Popover>
         <div className='flex h-full m-auto rounded-sm'>
-          Welcome, {user?.fullName?.toUpperCase() || loggedIn?.username?.toUpperCase()}
+          Welcome, {user?.fullName?.toUpperCase()}
         </div>
       </div>
       <div className='ml-auto flex items-center gap-2 mr-2'>
-        <div className='text-gray-600 mr-4'>{currentTime}</div>
         <Menu as='div' className='relative'>
           <div className='inline-flex'>
             <Menu.Button className='ml-2 inline-flex rounded-full bg-grey-200 focus:outline-none focus:ring-2 focus:ring-neutral-400'>

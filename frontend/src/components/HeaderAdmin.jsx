@@ -27,7 +27,7 @@ export default function Header() {
   const loggedIn = JSON.parse(localStorage.getItem('user'));
 
   useEffect(() => {
-    axios.get('/api/v1/users/get-user')
+    axios.get('/api/v1/admin/get-admin')
       .then(response => {
         setUser(response.data.data);
       });
@@ -51,75 +51,104 @@ export default function Header() {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
-
-  const additionalLinks = [
+  const adminLinks = [
       { 
         text: "Dashboard", 
         icon: <HiHome />, 
-        to: "/db" 
+        to: "/admin-db" 
+      },
+      { 
+        text: "Student Details", 
+        icon: <HiUser />, 
+        to: "/admin-db/student-table" 
+      },
+      { 
+        text: "Verify Users", 
+        icon: <HiUser />, 
+        to: "/admin-db/verify-users" 
       },
       {
-        text: "Alumni Profile", 
+        text: "Alumni Profiles",
         icon: <HiUser />,
-        to: "/db/alumni",
+        to: "/admin-db/show-all-alumni",
       },
       {
-        text: "Academic Records", 
+        text: "Academic Records",
         icon: <HiAcademicCap />,
-        to: "/db/academic-table",
+        to: "/admin-db/admin-academic-form",
       },
-      { 
-        text: "Backlogs", 
-        icon: <HiAcademicCap />, 
-        to: "/db/backlogs" 
-      },
-      { 
-        text: "PE-Course", 
-        icon: <HiAcademicCap />, 
-        to: "/db/PE-form" 
+      {
+        text: "PE Courses",
+        icon: <HiAcademicCap />,
+        to: "/admin-db/PE-admin-table",
       },
       {
         text: "Awards & Achievements",
         icon: <HiBadgeCheck />,
-        to: "/db/award-form",
+        to: "/admin-db/award-table",
       },
       { 
         text: "Examinations", 
         icon: <HiDocumentReport />, 
-        to: "/db/exam-form" 
+        to: "/admin-db/exam-table" 
       },
       {
         text: "Higher Education",
         icon: <HiAcademicCap />,
-        to: "/db/higher-education",
+        to: "/admin-db/higher-education-table",
       },
       {
         text: "Placement Records",
         icon: <HiOutlineBriefcase />,
-        to: "/db/placement",
+        to: "/admin-db/placement-table",
       },
       {
         text: "Projects",
         icon: <HiPresentationChartLine />,
-        to: "/db/project-form",
-      },
-      { text: "Internships", icon: <HiBriefcase />, to: "/db/internship-form" },
-      { text: "Interview Experience", icon: <HiBriefcase />, to: "/db/interview" },
-     
-      { 
-        text: "Request Classroom", 
-        icon: <HiBriefcase />, 
-        to: "/db/classroom-form" 
+        to: "/admin-db/project-form-table",
       },
       {
-        text: "Summer Training",
+        text: "Approve Internships",
+        icon: <HiBriefcase />,
+        to: "/admin-db/internship-form-table",
+      },
+      {
+        text: "Internship Records",
+        icon: <HiBriefcase />,
+        to: "/admin-db/internship-table",
+      },
+      {
+        text: "Room Allocations",
+        icon: <HiBriefcase />,
+        to: "/admin-db/admin-room-request",
+      },
+      {
+        text: "Companies List",
+        icon: <HiArchive />,
+        to: "/admin-db/companies-table",
+      },
+      {
+        text: "Assign Company",
+        icon: <HiBriefcase />,
+        to: "/admin-db/assign-company",
+      },
+      {
+        text: "Add Project Faculty",
+        icon: <HiUser />,
+        to: "/admin-db/add-prof",
+      },
+      {
+        text: "Student Reviews",
+        icon: <HiArchive />,
+        to: "/admin-db/review",
+      },
+      {
+        text: "Prof. Projects",
         icon: <HiPresentationChartLine />,
-        to: "/db/apply-summer",
+        to: "/admin-db/admin-projects-dashboard",
       },
     ];
-  
-    
-    const links = additionalLinks;
+  const links = adminLinks;
 
   const closeNavbar = () => {
     setIsNavbarOpen(false);
@@ -128,19 +157,18 @@ export default function Header() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    try {
-      const response = await axios.post('/api/v1/users/logout');
-      localStorage.removeItem('user');
-      navigate('/');
-    } catch (error) {
-      console.error(error);
-      // try {
-      //   const resp = await axios.post('/api/v1/admin/logout');
-      //   localStorage.removeItem('user');
-      //   navigate('/');
-      // } catch (err) {
-      //   console.error(err);
-      // }
+    // try {
+    //   const response = await axios.post('/api/v1/users/logout');
+    //   localStorage.removeItem('user');
+    //   navigate('/');
+    // } catch (error) {
+    //   console.error(error);
+      try {
+        const resp = await axios.post('/api/v1/admin/logout');
+        localStorage.removeItem('user');
+        navigate('/');
+      } catch (err) {
+        console.error(err);
     } finally {
       navigate('/');
     }

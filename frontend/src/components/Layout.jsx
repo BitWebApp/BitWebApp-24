@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
-import Sidebar from "./Sidebar";
-import Header from "./Header";
 
-export default function Layout() {
+export default function Layout({ sidebar: Sidebar, header: Header }) {
   const [isSmallScreen, setIsSmallScreen] = useState(false);
 
   useEffect(() => {
@@ -18,9 +16,9 @@ export default function Layout() {
   return (
     <div className="bg-neutral-100">
       <div className="flex h-screen overflow-hidden">
-        {!isSmallScreen && <Sidebar />} {/* Conditionally render the Sidebar */}
+        {!isSmallScreen && Sidebar && <Sidebar />} {/* Conditionally render the Sidebar */}
         <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-          <Header />
+          {Header && <Header />} {/* Render the Header if passed */}
           <main>
             <div className="min-h-screen flex flex-col space-y-10 p-4">
               <Outlet />

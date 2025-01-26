@@ -12,6 +12,7 @@ import {
   HiOutlineBriefcase,
   HiPresentationChartLine,
   HiBriefcase,
+  HiArchive
 } from "react-icons/hi";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
@@ -38,6 +39,103 @@ export default function Sidebar() {
     },
   };
   const [isOpen, setIsOpen] = useState(true);
+  const adminLinks = [
+    { 
+      text: "Dashboard", 
+      icon: <HiHome />, 
+      to: "/admin-db" 
+    },
+    { 
+      text: "Student Details", 
+      icon: <HiUser />, 
+      to: "/admin-db/student-table" 
+    },
+    { 
+      text: "Verify Users", 
+      icon: <HiUser />, 
+      to: "/admin-db/verify-users" 
+    },
+    {
+      text: "Alumni Profiles",
+      icon: <HiUser />,
+      to: "/admin-db/show-all-alumni",
+    },
+    {
+      text: "Academic Records",
+      icon: <HiAcademicCap />,
+      to: "/admin-db/admin-academic-form",
+    },
+    {
+      text: "PE Courses",
+      icon: <HiAcademicCap />,
+      to: "/admin-db/PE-admin-table",
+    },
+    {
+      text: "Awards & Achievements",
+      icon: <HiBadgeCheck />,
+      to: "/admin-db/award-table",
+    },
+    { 
+      text: "Examinations", 
+      icon: <HiDocumentReport />, 
+      to: "/admin-db/exam-table" 
+    },
+    {
+      text: "Higher Education",
+      icon: <HiAcademicCap />,
+      to: "/admin-db/higher-education-table",
+    },
+    {
+      text: "Placement Records",
+      icon: <HiOutlineBriefcase />,
+      to: "/admin-db/placement-table",
+    },
+    {
+      text: "Projects",
+      icon: <HiPresentationChartLine />,
+      to: "/admin-db/project-form-table",
+    },
+    {
+      text: "Approve Internships",
+      icon: <HiBriefcase />,
+      to: "/admin-db/internship-form-table",
+    },
+    {
+      text: "Internship Records",
+      icon: <HiBriefcase />,
+      to: "/admin-db/internship-table",
+    },
+    {
+      text: "Room Allocations",
+      icon: <HiBriefcase />,
+      to: "/admin-db/admin-room-request",
+    },
+    {
+      text: "Companies List",
+      icon: <HiArchive />,
+      to: "/admin-db/companies-table",
+    },
+    {
+      text: "Assign Company",
+      icon: <HiBriefcase />,
+      to: "/admin-db/assign-company",
+    },
+    {
+      text: "Add Project Faculty",
+      icon: <HiUser />,
+      to: "/admin-db/add-prof",
+    },
+    {
+      text: "Student Reviews",
+      icon: <HiArchive />,
+      to: "/admin-db/review",
+    },
+    {
+      text: "Prof. Projects",
+      icon: <HiPresentationChartLine />,
+      to: "/admin-db/admin-projects-dashboard",
+    },
+  ];
   // const [isAdmin, setIsAdmin] = useState(true);
 
   // useEffect(() => {
@@ -46,92 +144,25 @@ export default function Sidebar() {
   // }, []);
 
   // const links = isAdmin ? adminLinks : additionalLinks;
-  const additionalLinks = [
-    { 
-      text: "Dashboard", 
-      icon: <HiHome />, 
-      to: "/db" 
-    },
-    {
-      text: "Alumni Profile", 
-      icon: <HiUser />,
-      to: "/db/alumni",
-    },
-    {
-      text: "Academic Records", 
-      icon: <HiAcademicCap />,
-      to: "/db/academic-table",
-    },
-    { 
-      text: "Backlogs", 
-      icon: <HiAcademicCap />, 
-      to: "/db/backlogs" 
-    },
-    { 
-      text: "PE-Course", 
-      icon: <HiAcademicCap />, 
-      to: "/db/PE-form" 
-    },
-    {
-      text: "Awards & Achievements",
-      icon: <HiBadgeCheck />,
-      to: "/db/award-form",
-    },
-    { 
-      text: "Examinations", 
-      icon: <HiDocumentReport />, 
-      to: "/db/exam-form" 
-    },
-    {
-      text: "Higher Education",
-      icon: <HiAcademicCap />,
-      to: "/db/higher-education",
-    },
-    {
-      text: "Placement Records",
-      icon: <HiOutlineBriefcase />,
-      to: "/db/placement",
-    },
-    {
-      text: "Projects",
-      icon: <HiPresentationChartLine />,
-      to: "/db/project-form",
-    },
-    { text: "Internships", icon: <HiBriefcase />, to: "/db/internship-form" },
-    { text: "Interview Experience", icon: <HiBriefcase />, to: "/db/interview" },
-   
-    { 
-      text: "Request Classroom", 
-      icon: <HiBriefcase />, 
-      to: "/db/classroom-form" 
-    },
-    {
-      text: "Summer Training",
-      icon: <HiPresentationChartLine />,
-      to: "/db/apply-summer",
-    },
-  ];
-
-  
-  const links = additionalLinks;
+  const links = adminLinks;
   const navigate = useNavigate();
   const handleLogout = async () => {
-    try {
-      const response = await axios.post("/api/v1/users/logout");
-      console.log(response);
-      localStorage.removeItem("user");
-      navigate("/");
-    } catch (error) {
-      console.log(error);
-      // try {
-      //   const resp = await axios.post("/api/v1/admin/logout");
-      //   console.log(resp);
-      //   localStorage.removeItem("user");
-      //   navigate("/");
-      // } catch (err) {
-      //   console.log(err);
-      // }
-    } finally {
+    // try {
+    //   const response = await axios.post("/api/v1/users/logout");
+    //   console.log(response);
+    //   localStorage.removeItem("user");
+    //   navigate("/");
+    // } catch (error) {
+    //   console.log(error);
+      try {
+        const resp = await axios.post("/api/v1/admin/logout");
+        console.log(resp);
+        localStorage.removeItem("user");
+        navigate("/");
+      } catch (err) {
+        console.log(err);
+      }
+     finally {
       navigate("/");
     }
   };

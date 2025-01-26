@@ -106,7 +106,7 @@ const getAllInternshipData = asyncHandler(async(req, res) => {
 })
 
 const getAllVerifiedInternshipData = asyncHandler(async(req, res) => {
-  const response = await Internship.find().populate('student').populate('company')
+  const response = await Internship.find().populate('student').populate('company').populate('mentor')
   res.status(200).json(new ApiResponse(200, {response}, "All Intern Data fetched"))
 })
 

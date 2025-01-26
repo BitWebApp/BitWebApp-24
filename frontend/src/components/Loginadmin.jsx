@@ -25,7 +25,7 @@ export default function SignInPage() {
       toast.success("Login Successful! Redirecting to dashboard...");
 
       setTimeout(() => {
-        navigate("/db/");
+        navigate("/admin-db/");
       }, 2000);
     } catch (error) {
       if (error.response && error.response.data) {
