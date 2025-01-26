@@ -204,9 +204,13 @@ const PlacementThree = () => {
                 {spin ? <ClipLoader color="white" size={20} /> : "Submit"}
               </button>
             </div>
-            <span className="font-semibold underline underline-offset cursor-pointer text-blue-600 mt-4">
-              <Link to="/db">Go back to Dashboard</Link>
-            </span>
+            <div className="w-full items-center justify-center flex">
+              <p className="text-sm font-normal text-black mt-5">
+                <span className="font-semibold underline underline-offset cursor-pointer text-blue-600">
+                  <Link to="/db">Go back to Dashboard</Link>
+                </span>
+              </p>
+            </div>
           </form>
         </div>
       </div>

@@ -168,6 +168,12 @@ const AwardForm = () => {
     )
   );
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const options = { day: '2-digit', month: 'short', year: 'numeric' };
+    return date.toLocaleDateString('en-US', options);
+  };
+
   return (
     <div className="w-full min-h-screen flex flex-col items-center">
       <ToastContainer />
@@ -298,7 +304,7 @@ const AwardForm = () => {
               {filteredAwards.map((award) => (
                 <tr key={award._id}>
                   <td className="px-6 py-4 whitespace-nowrap">{award.title}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{new Date(award.date).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{formatDate(award.date)}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{award.description}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {award.doc ? (
