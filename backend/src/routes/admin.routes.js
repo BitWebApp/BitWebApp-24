@@ -27,7 +27,7 @@ router.route("/get-admin").get(verifyAdmin, getCurrendAdmin);
 router.route("/add-backlog").post(verifyAdmin, addbacklogSubject);
 router.route("/rejectUser").patch(verifyAdmin, rejectUser);
 router.route("/add-company").post(verifyAdmin, addCompany);
-router.route("/get-companies").get(verifyAdmin, getAllCompanies);
+router.route("/get-companies").get(getAllCompanies);
 router.route("/assign-company").post(verifyAdmin, assignCompany);
 
 export default router;

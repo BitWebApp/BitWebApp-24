@@ -19,7 +19,7 @@ const InterviewExperiences = () => {
         params: {
           page: currentPage,
           limit,
-          companyName: company || undefined,
+          companyId: company || undefined,
         },
       });
       setExperiences(response.data.data.interviewExps);
@@ -33,7 +33,7 @@ const InterviewExperiences = () => {
 
   const fetchCompanies = async () => {
     try {
-      const response = await axios.get("/api/v1/companies");
+      const response = await axios.get("/api/v1/admin/get-companies");
       setCompanies(response.data.data); // Assume the API returns a list of companies
     } catch (err) {
       console.error("Failed to fetch companies", err);
@@ -76,8 +76,8 @@ const InterviewExperiences = () => {
           >
             <option value="">All Companies</option>
             {companies.map((company) => (
-              <option key={company.id} value={company.name}>
-                {company.name}
+              <option key={company._id} value={company._id}>
+                {company.companyName}
               </option>
             ))}
           </select>

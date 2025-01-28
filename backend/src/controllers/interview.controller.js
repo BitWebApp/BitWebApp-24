@@ -63,7 +63,7 @@ const getAllInterviewExps = asyncHandler(async (req, res) => {
   } = req.query;
 
   const filter = {};
-
+  console.log(companyId, studentId);
   if (companyId) {
     filter.company = companyId;
   }
