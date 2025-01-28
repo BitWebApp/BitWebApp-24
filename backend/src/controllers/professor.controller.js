@@ -8,7 +8,7 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import mongoose, { mongo } from "mongoose";
-const url = "https://bitacademia.vercel.app/log.a";
+const url = "https://bitacademia.vercel.app/faculty-login";
 
 const addProf = asyncHandler(async (req, res) => {
   const { idNumber, fullName, contact, email } = req.body;
@@ -76,6 +76,130 @@ const addProf = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(201, "Professor added successfully!", professor));
 });
+// const addProf = asyncHandler(async (req, res) => {
+//   const professors = req.body;
+
+//   if (!Array.isArray(professors) || professors.length === 0) {
+//     throw new ApiError(400, "An array of professor objects is required!");
+//   }
+
+//   const errors = [];
+//   const addedProfessors = [];
+
+//   for (const professorData of professors) {
+//     const { idNumber, fullName, contact, email } = professorData;
+
+//     if (!idNumber || !fullName || !contact || !email) {
+//       errors.push({
+//         professorData,
+//         error: "All fields (idNumber, fullName, contact, email) are required!",
+//       });
+//       continue;
+//     }
+
+//     try {
+//       const existingProfessor = await Professor.findOne({ idNumber });
+//       const existingEmail = await Professor.findOne({ email });
+
+//       if (existingEmail) {
+//         errors.push({
+//           professorData,
+//           error: "Professor with this email already exists!",
+//         });
+//         continue;
+//       }
+
+//       if (existingProfessor) {
+//         errors.push({
+//           professorData,
+//           error: "Professor with this ID number already exists!",
+//         });
+//         continue;
+//       }
+
+//       const password = crypto.randomInt(100000, 1000000).toString();
+//       const transporter = nodemailer.createTransport({
+//         service: "gmail",
+//         auth: {
+//           user: process.env.AUTH_EMAIL,
+//           pass: process.env.AUTH_PASSWORD,
+//         },
+//       });
+
+//       const mailOptions = {
+//         from: process.env.AUTH_EMAIL,
+//         to: email,
+//         subject: "Welcome to BITAcademia! Your Account Credentials",
+//         html: `
+//         <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
+//           <table width="100%" style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); overflow: hidden;">
+//             <thead style="background-color: #0033cc; color: #ffffff; text-align: center;">
+//               <tr>
+//                 <th style="padding: 20px;">
+//                   <h1 style="margin: 0; font-size: 24px;">Welcome to BITAcademia!</h1>
+//                 </th>
+//               </tr>
+//             </thead>
+//             <tbody>
+//               <tr>
+//                 <td style="padding: 20px; text-align: left;">
+//                   <p style="font-size: 16px; color: #333333;">Dear Professor,</p>
+//                   <p style="font-size: 16px; color: #333333;">Your account has been successfully created on BITAcademia. Below are your login credentials:</p>
+//                   <table style="width: 100%; margin: 20px 0; border-collapse: collapse;">
+//                     <tr>
+//                       <td style="font-weight: bold; color: #333333; padding: 8px; border: 1px solid #ddd;">Email:</td>
+//                       <td style="padding: 8px; border: 1px solid #ddd;">${email}</td>
+//                     </tr>
+//                     <tr>
+//                       <td style="font-weight: bold; color: #333333; padding: 8px; border: 1px solid #ddd;">Password:</td>
+//                       <td style="padding: 8px; border: 1px solid #ddd;">${password}</td>
+//                     </tr>
+//                   </table>
+//                   <p style="font-size: 16px; color: #333333;">You can log in by clicking the button below:</p>
+//                   <p style="text-align: center; margin: 20px 0;">
+//                     <a href="${url}" style="display: inline-block; padding: 10px 20px; background-color: #0033cc; color: #ffffff; text-decoration: none; font-size: 16px; border-radius: 5px;">Login to BITAcademia</a>
+//                   </p>
+//                   <p style="font-size: 16px; color: #333333;">If you did not request this account or have any concerns, please contact our support team immediately.</p>
+//                 </td>
+//               </tr>
+//             </tbody>
+//             <tfoot style="background-color: #0033cc; color: #ffffff; text-align: center;">
+//               <tr>
+//                 <td style="padding: 10px;">
+//                   <p style="margin: 0; font-size: 14px;">&copy; BITAcademia 2024. All rights reserved.</p>
+//                 </td>
+//               </tr>
+//             </tfoot>
+//           </table>
+//         </body>
+//         `,
+//       };
+      
+//       await transporter.sendMail(mailOptions);
+
+//       const newProfessor = await Professor.create({
+//         idNumber,
+//         fullName,
+//         contact,
+//         email,
+//         password,
+//       });
+
+//       addedProfessors.push(newProfessor);
+//     } catch (error) {
+//       errors.push({
+//         professorData,
+//         error: error.message,
+//       });
+//     }
+//   }
+
+//   res.status(201).json({
+//     message: "Bulk professor processing completed!",
+//     addedProfessors,
+//     errors,
+//   });
+// });
 
 const getProf = asyncHandler(async (req, res) => {
   const professors = await Professor.find();
