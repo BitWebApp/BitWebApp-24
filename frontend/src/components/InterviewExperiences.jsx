@@ -63,7 +63,7 @@ const InterviewExperiences = () => {
         Placement Interview Experiences
       </h1>
 
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
         <div>
           <label htmlFor="companyFilter" className="block text-sm font-medium">
             Filter by Company
@@ -102,7 +102,7 @@ const InterviewExperiences = () => {
               key={exp._id}
               className="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300"
             >
-              <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex flex-col md:flex-row items-start md:items-center justify-between space-y-2 md:space-y-0">
                 <h3 className="text-xl font-semibold text-gray-800">
                   {exp.company.companyName}
                 </h3>
@@ -114,7 +114,7 @@ const InterviewExperiences = () => {
                 </h3>
               </div>
               <div className="p-6 space-y-6">
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <p className="text-sm text-gray-500">Year</p>
                     <p className="font-medium text-gray-800">
