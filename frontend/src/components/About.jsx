@@ -49,11 +49,6 @@ const About = () => {
           {/* Right Column: Visual Elements */}
           <div className="flex items-center justify-center">
             <div className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <img
-                src="https://via.placeholder.com/400" // Replace with your image
-                alt="Bitacademia in Action"
-                className="rounded-lg mb-6"
-              />
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
                 Our Vision
               </h3>
