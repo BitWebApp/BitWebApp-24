@@ -7,9 +7,11 @@ const InterviewExperiences = () => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [companyFilter, setCompanyFilter] = useState("");
+  const [companies, setCompanies] = useState([]); // List of all companies
   const limit = 10;
 
-  const fetchInterviewExperiences = async (currentPage) => {
+  const fetchInterviewExperiences = async (currentPage, company) => {
     try {
       setLoading(true);
       setError(null);
@@ -17,26 +19,31 @@ const InterviewExperiences = () => {
         params: {
           page: currentPage,
           limit,
+          companyName: company || undefined,
         },
       });
       setExperiences(response.data.data.interviewExps);
       setTotalRecords(response.data.data.totalRecords);
     } catch (err) {
-      if (err.response?.status == 429) {
-        setError(
-          "You have reached the maximum number of viewing experience!  Plz try again after 15 mins"
-        );
-      } else {
-        setError(err.response?.data?.message || "An error occurred");
-      }
+      setError(err.response?.data?.message || "An error occurred");
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchCompanies = async () => {
+    try {
+      const response = await axios.get("/api/v1/companies");
+      setCompanies(response.data.data); // Assume the API returns a list of companies
+    } catch (err) {
+      console.error("Failed to fetch companies", err);
+    }
+  };
+
   useEffect(() => {
-    fetchInterviewExperiences(page);
-  }, [page]);
+    fetchCompanies();
+    fetchInterviewExperiences(page, companyFilter);
+  }, [page, companyFilter]);
 
   const handleNextPage = () => {
     if (page < Math.ceil(totalRecords / limit)) {
@@ -50,35 +57,50 @@ const InterviewExperiences = () => {
     }
   };
 
-  if (loading)
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg text-red-500">Error: {error}</div>
-      </div>
-    );
-
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">
-        Interview Experiences
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <h1 className="text-4xl font-bold text-center mb-8 text-blue-500">
+        Placement Interview Experiences
       </h1>
-      {experiences.length === 0 ? (
-        <p className="text-center text-gray-500">
-          No interview experiences found.
+
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <label htmlFor="companyFilter" className="block text-sm font-medium">
+            Filter by Company
+          </label>
+          <select
+            id="companyFilter"
+            value={companyFilter}
+            onChange={(e) => setCompanyFilter(e.target.value)}
+            className="w-64 mt-1 block rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          >
+            <option value="">All Companies</option>
+            {companies.map((company) => (
+              <option key={company.id} value={company.name}>
+                {company.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <p className="text-sm text-gray-600">
+          Showing {experiences.length} of {totalRecords} results
         </p>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-lg">Loading...</div>
+        </div>
+      ) : error ? (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-lg text-red-500">Error: {error}</div>
+        </div>
       ) : (
         <div className="space-y-6">
           {experiences.map((exp) => (
             <div
               key={exp._id}
-              className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow duration-300"
+              className="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300"
             >
               <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <h3 className="text-xl font-semibold text-gray-800">
@@ -90,9 +112,7 @@ const InterviewExperiences = () => {
                 <h3 className="text-xl font-semibold text-gray-800">
                   {exp.student.fullName}
                 </h3>
-                <p className="text-gray-600 mt-1">{exp.company.name}</p>
               </div>
-
               <div className="p-6 space-y-6">
                 <div className="grid grid-cols-4 gap-4">
                   <div className="bg-gray-50 p-3 rounded-lg">
@@ -125,48 +145,9 @@ const InterviewExperiences = () => {
                     ))}
                   </ul>
                 </div>
-
-                {exp.referenceMaterialLinks.length > 0 && (
-                  <div>
-                    <h4 className="font-medium text-gray-800 mb-3">
-                      Reference Links
-                    </h4>
-                    <ul className="space-y-2">
-                      {exp.referenceMaterialLinks.map((link, index) => (
-                        <li key={index}>
-                          <a
-                            href={link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                              />
-                            </svg>
-                            {link.length > 40
-                              ? link.substring(0, 40) + "..."
-                              : link}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
               </div>
             </div>
           ))}
-
           <div className="mt-8 flex items-center justify-center gap-4">
             <button
               onClick={handlePreviousPage}
