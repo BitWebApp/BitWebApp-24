@@ -19,7 +19,7 @@ import {
 // import { verify } from "jsonwebtoken";
 const router = Router();
 router.route("/addprof").post(verifyAdmin, addProf);
-router.route("/getProf").get(verifyJWT, getProf);
+router.route("/getProf").get(getProf);
 
 router.route("/login").post(loginProf);
 router.route("/logout").post(verifyProfessor, logoutProf);
