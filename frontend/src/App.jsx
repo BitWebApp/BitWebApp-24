@@ -70,6 +70,7 @@ import AdminApplications from "./components/AdminApplications";
 import AdminApplicationDetails from "./components/AdminApplicationDetails";
 import AcceptStudents from "./components/AcceptStudents";
 import { HashLoader, SyncLoader } from "react-spinners";
+import IncreaseLimit from "./components/IncreaseLimit";
 // import AdminDashboard from "./components/AdminDashboard";
 
 export default function App() {
@@ -156,6 +157,7 @@ export default function App() {
             path="admin-applications/:applicationId"
             element={<AdminApplicationDetails />}
           />
+          <Route path="increase-limit" element={<IncreaseLimit />} />
         </Route>
         <Route
           path="/faculty-db"

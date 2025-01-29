@@ -13,42 +13,46 @@ const Research = () => {
   const [loading, setLoading] = useState(false);
   const [summerSorted, setSummerSorted] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [allProfsResponse, appliedProfsResponse, summerStatusResponse] = await Promise.all([
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [allProfsResponse, appliedProfsResponse, summerStatusResponse] =
+        await Promise.all([
           axios.get("/api/v1/prof/getProf"),
           axios.get("/api/v1/users/get-app-profs"),
           axios.get("/api/v1/users/summer"),
         ]);
 
-        const { summerAppliedProfs, isSummerAllocated, prof } =
-          appliedProfsResponse?.data?.data || {};
+      const { summerAppliedProfs, isSummerAllocated, prof } =
+        appliedProfsResponse?.data?.data || {};
 
-        // Sort professors by seat availability
-        const sortedProfessors = allProfsResponse.data.message.sort((a, b) => {
-          const seatsA = a.limits.summer_training - a.currentCount.summer_training;
-          const seatsB = b.limits.summer_training - b.currentCount.summer_training;
-          return seatsB - seatsA;
-        });
+      // Sort professors by seat availability
+      const sortedProfessors = allProfsResponse.data.message.sort((a, b) => {
+        const seatsA =
+          a.limits.summer_training - a.currentCount.summer_training;
+        const seatsB =
+          b.limits.summer_training - b.currentCount.summer_training;
+        return seatsB - seatsA;
+      });
 
-        setSummerSorted(summerStatusResponse?.data?.data || false);
-        setAppliedProfessors(summerAppliedProfs.map((prof) => prof._id));
-        if (isSummerAllocated && prof) setAllocatedProf(prof);
-        setProfessors(sortedProfessors);
-        setFilteredProfessors(sortedProfessors);
-        setLoading(false);
-      } catch (error) {
-        console.error(error);
-        setLoading(false);
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: "Failed to fetch data. Please try again later.",
-        });
-      }
-    };
+      setSummerSorted(summerStatusResponse?.data?.data || false);
+      setAppliedProfessors(summerAppliedProfs.map((prof) => prof._id));
+      if (isSummerAllocated && prof) setAllocatedProf(prof);
+      setProfessors(sortedProfessors);
+      setFilteredProfessors(sortedProfessors);
+      setLoading(false);
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Failed to fetch data. Please try again later.",
+      });
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -57,26 +61,31 @@ const Research = () => {
 
     // Apply search filter
     if (searchQuery) {
-      filtered = filtered.filter((prof) =>
-        prof.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        prof.idNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        prof.contact.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(
+        (prof) =>
+          prof.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          prof.idNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          prof.contact.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     // Apply seat availability filters
     if (filterOption === "highDemand") {
-      filtered = filtered.filter((prof) =>
-        prof.limits.summer_training - prof.currentCount.summer_training <= 2 &&
-        prof.limits.summer_training - prof.currentCount.summer_training > 0
+      filtered = filtered.filter(
+        (prof) =>
+          prof.limits.summer_training - prof.currentCount.summer_training <=
+            2 &&
+          prof.limits.summer_training - prof.currentCount.summer_training > 0
       );
     } else if (filterOption === "noSeats") {
       filtered = filtered.filter(
-        (prof) => prof.limits.summer_training - prof.currentCount.summer_training === 0
+        (prof) =>
+          prof.limits.summer_training - prof.currentCount.summer_training === 0
       );
     } else if (filterOption === "available") {
       filtered = filtered.filter(
-        (prof) => prof.limits.summer_training - prof.currentCount.summer_training > 2
+        (prof) =>
+          prof.limits.summer_training - prof.currentCount.summer_training > 2
       );
     }
 
@@ -120,8 +129,11 @@ const Research = () => {
 
     try {
       setLoading(true);
-      await axios.post("/api/v1/users/applyToSummer", { profIds: selectedProfs });
+      await axios.post("/api/v1/users/applyToSummer", {
+        profIds: selectedProfs,
+      });
       setLoading(false);
+      await fetchData();
       Swal.fire({
         icon: "success",
         title: "Success",
@@ -130,6 +142,7 @@ const Research = () => {
       setSelectedProfs([]);
     } catch (error) {
       setLoading(false);
+      console.log(error);
       Swal.fire({
         icon: "error",
         title: "Application Failed",
@@ -142,8 +155,12 @@ const Research = () => {
     <div className="container mx-auto p-6">
       {summerSorted ? (
         <div className="text-center bg-green-100 p-6 rounded-lg shadow-md">
-          <h1 className="text-3xl font-bold text-green-700">Congratulations!</h1>
-          <p className="text-lg mt-4">Your summer training has been successfully sorted.</p>
+          <h1 className="text-3xl font-bold text-green-700">
+            Congratulations!
+          </h1>
+          <p className="text-lg mt-4">
+            Your summer training has been successfully sorted.
+          </p>
         </div>
       ) : (
         <>
@@ -179,9 +196,15 @@ const Research = () => {
                 <thead>
                   <tr className="bg-gray-100">
                     <th className="border border-gray-300 px-4 py-2">ID No</th>
-                    <th className="border border-gray-300 px-4 py-2">Full Name</th>
-                    <th className="border border-gray-300 px-4 py-2">Contact</th>
-                    <th className="border border-gray-300 px-4 py-2">Seats Available</th>
+                    <th className="border border-gray-300 px-4 py-2">
+                      Full Name
+                    </th>
+                    <th className="border border-gray-300 px-4 py-2">
+                      Contact
+                    </th>
+                    <th className="border border-gray-300 px-4 py-2">
+                      Seats Available
+                    </th>
                     <th className="border border-gray-300 px-4 py-2">Status</th>
                     <th className="border border-gray-300 px-4 py-2">Select</th>
                   </tr>
@@ -189,7 +212,8 @@ const Research = () => {
                 <tbody>
                   {filteredProfessors.map((prof) => {
                     const seatsAvailable =
-                      prof.limits.summer_training - prof.currentCount.summer_training;
+                      prof.limits.summer_training -
+                      prof.currentCount.summer_training;
                     const isApplied = appliedProfessors.includes(prof._id);
                     const isAllocated = allocatedProf?._id === prof._id;
                     const status = isAllocated
@@ -235,7 +259,9 @@ const Research = () => {
                           <input
                             type="checkbox"
                             id={prof._id}
-                            disabled={isApplied || isAllocated || seatsAvailable === 0}
+                            disabled={
+                              isApplied || isAllocated || seatsAvailable === 0
+                            }
                             checked={selectedProfs.includes(prof._id)}
                             onChange={() => handleCheckboxChange(prof._id)}
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"

@@ -111,6 +111,11 @@ export default function Sidebar() {
       to: "/admin-db/admin-room-request",
     },
     {
+      text:"Increase Faculty Limits",
+      icon:<HiArchive />,
+      to:"/admin-db/increase-limit"
+    },
+    {
       text: "Companies List",
       icon: <HiArchive />,
       to: "/admin-db/companies-table",
