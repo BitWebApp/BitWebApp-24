@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import axios from "axios";
-import NavBar from "./NavBar"
 import { useUserRole } from "./admin/user-links";
 
 const capitalizeWords = (str) => {
@@ -38,7 +37,6 @@ export default function Dashboard() {
         rollNumber,
       });
       setUser(response.data.data);
-      console.log(user)
       setError(null);
     } catch (err) {
       setError("User not found or an error occurred");
@@ -56,158 +54,183 @@ export default function Dashboard() {
   };
 
   return (
-    <>
-    <div className="p-4 sm:p-6 w-full max-w-3xl bg-gray-100 h-full mx-auto flex flex-col items-center">
-      <h1 className="text-2xl font-semibold text-blue-700 mb-4">Search Student</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-6">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
+          Student Search Dashboard
+        </h1>
 
-      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full mb-4">
-        <input
-          className={`w-full text-sm py-2 px-3 bg-gray-200 border ${
-            isRollNumberValid ? "border-gray-300" : "border-red-500"
-          } rounded-md focus:ring-2 focus:ring-blue-600`}
-          type="text"
-          placeholder="Roll Number (e.g., BTECH/10XXX/YY)"
-          onChange={(e) => {
-            setRollNumber(e.target.value.toUpperCase());
-            setIsRollNumberValid(true);
-            setError(null);
-          }}
-          onKeyDown={handleKeyDown}
-        />
-        <button
-          className="bg-blue-600 text-white text-sm font-semibold rounded-md px-4 py-2 sm:px-6 sm:py-3 hover:bg-blue-700 transition"
-          onClick={findStudent}
-        >
-          Find
-        </button>
-      </div>
-
-      {loading && <p className="text-center text-blue-600 text-sm">Loading...</p>}
-      {error && <p className="text-center text-red-500 text-sm">{error}</p>}
-
-      {user && (
-        <div className="border p-4 rounded-lg bg-white shadow-md w-full">
-          <h2 className="text-lg font-semibold mb-4 text-center text-blue-600">
-            Student Profile
-          </h2>
-          <div className="flex items-center gap-4 sm:gap-6 mb-4">
-            <img
-              src={user.image || "https://via.placeholder.com/50"}
-              alt="Student"
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border"
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <input
+              className={`flex-grow p-3 border ${
+                isRollNumberValid ? "border-gray-300" : "border-red-500"
+              } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
+              type="text"
+              placeholder="Enter Roll Number (e.g., BTECH/10XXX/YY)"
+              value={rollNumber}
+              onChange={(e) => {
+                setRollNumber(e.target.value.toUpperCase());
+                setIsRollNumberValid(true);
+                setError(null);
+              }}
+              onKeyDown={handleKeyDown}
             />
-            <div>
-              <p className="font-semibold text-gray-900 text-sm sm:text-lg">{capitalizeWords(user.fullName)}</p>
-              <p className="text-gray-600 text-xs sm:text-sm">{user.rollNumber}</p>
-              <p className="text-gray-600 text-xs sm:text-sm">{user.email}</p>
-            </div>
+            <button
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold px-6 py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all"
+              onClick={findStudent}
+            >
+              Search
+            </button>
           </div>
-            
-          <li className="flex items-center text-sm sm:text-base font-semibold text-gray-800">
-  <span className="font-bold text-gray-800">Branch:</span>
-  <span className="  ml-6 text-gray-800 text-xs sm:text-sm">{user.branch.toUpperCase()}</span>
-</li>
+          {loading && (
+            <p className="text-center text-blue-600 mt-4">Loading...</p>
+          )}
+          {error && (
+            <p className="text-center text-red-500 mt-4">{error}</p>
+          )}
+        </div>
 
-<li className="flex items-center text-sm sm:text-base font-semibold text-gray-700">
-  <span className="font-bold text-gray-700">Semester & Section:</span>
-  <span className="  ml-6 text-gray-800 text-xs sm:text-sm"> {user.semester} & {user.section}</span>
-</li>
+        {user && (
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="text-center">
+              <img
+                src={user.image || "https://via.placeholder.com/150"}
+                alt="Student"
+                className="w-24 h-24 mx-auto rounded-full border-4 border-white shadow-md"
+              />
+              <h2 className="text-2xl font-bold text-gray-800 mt-4">
+                {capitalizeWords(user.fullName)}
+              </h2>
+              <p className="text-gray-600">{user.rollNumber}</p>
+            </div>
 
-            <li className="flex items-center text-sm sm:text-base font-semibold text-gray-700">
-              <span className="font-bold text-gray-700">ABC ID:</span>
-              <span className="  ml-6 text-gray-800 text-xs sm:text-sm"> {user.abcId}</span>
-            </li>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold text-blue-600">Basic Details</h3>
+                <ul className="mt-2 space-y-2">
+                  <li>
+                    <span className="font-medium text-gray-700">Email:</span>{" "}
+                    {user.email}
+                  </li>
+                  <li>
+                    <span className="font-medium text-gray-700">Branch:</span>{" "}
+                    {user.branch.toUpperCase()}
+                  </li>
+                  <li>
+                    <span className="font-medium text-gray-700">Semester & Section:</span>{" "}
+                    {user.semester} & {user.section}
+                  </li>
+                  <li>
+                    <span className="font-medium text-gray-700">ABC ID:</span>{" "}
+                    {user.abcId}
+                  </li>
+                  {isAdmin && (
+                    <li>
+                      <span className="font-medium text-gray-700">CGPA:</span>{" "}
+                      {user.cgpa}
+                    </li>
+                  )}
+                </ul>
+              </div>
 
               {isAdmin && (
-               <li className="flex items-center text-sm sm:text-base font-semibold text-gray-700 py-1 mt-2">
-               <span className="font-bold text-gray-700">CGPA:</span>
-               <span className="  ml-6 text-gray-800 text-xs sm:text-sm"> {user.cgpa}</span>
-             </li>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold text-blue-600">Academics</h3>
+                  <table className="w-full mt-2">
+                    <thead>
+                      <tr>
+                        <th className="text-left text-sm text-gray-600">Semester</th>
+                        <th className="text-left text-sm text-gray-600">SGPA</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {user.academics[0]?.academicRecords?.map((ele, index) => (
+                        <tr key={index}>
+                          <td className="text-sm text-gray-700 py-1">{ele.semester}</td>
+                          <td className="text-sm text-gray-700 py-1">{ele.gpa}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
-           
-           {isAdmin && (
-  <div className="mt-4">
-    <p className="font-semibold text-blue-600">Academics</p>
-    <table className="w-full border-2 border-black border-collapse">
-      <thead>
-        <tr>
-          <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Semester</th>
-          <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">SGPA</th>
-        </tr>
-      </thead>
-      {user.academics[0]?.academicRecords?.map((ele, index) => (
-        <tr className="text-center" key={index}>
-          <td className="border border-black">{ele.semester}</td>
-          <td className="border border-black">{ele.gpa}</td>
-        </tr>
-      ))}
-    </table>
-  </div>
-)}
+            </div>
 
-{isAdmin && (
-  <div className="mt-4">
-    <p className="font-semibold text-blue-600">Backlogs</p>
-    <table className="w-full border-2 border-black border-collapse">
-      <thead>
-        <tr>
-          <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Course Code</th>
-          <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Course Name</th>
-        </tr>
-      </thead>
-      {user.backlogs?.map((ele, index) => (
-        <tr className="text-center" key={index}>
-          <td className="border border-black">{ele?.subjectCode}</td>
-          <td className="border border-black">{ele?.subjectName}</td>
-        </tr>
-      ))}
-    </table>
-  </div>
-)}
+            {isAdmin && (
+              <div className="mt-6 bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold text-blue-600">Backlogs</h3>
+                <table className="w-full mt-2">
+                  <thead>
+                    <tr>
+                      <th className="text-left text-sm text-gray-600">Course Code</th>
+                      <th className="text-left text-sm text-gray-600">Course Name</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {user.backlogs?.map((ele, index) => (
+                      <tr key={index}>
+                        <td className="text-sm text-gray-700 py-1">{ele?.subjectCode}</td>
+                        <td className="text-sm text-gray-700 py-1">{ele?.subjectName}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
+            <div className="mt-6 bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-600">Internships</h3>
+              <table className="w-full mt-2">
+                <thead>
+                  <tr>
+                    <th className="text-left text-sm text-gray-600">Company</th>
+                    <th className="text-left text-sm text-gray-600">Role</th>
+                    <th className="text-left text-sm text-gray-600">Start Date</th>
+                    <th className="text-left text-sm text-gray-600">End Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {user.internShips?.map((ele, index) => (
+                    <tr key={index}>
+                      <td className="text-sm text-gray-700 py-1">{ele.company}</td>
+                      <td className="text-sm text-gray-700 py-1">{ele.role}</td>
+                      <td className="text-sm text-gray-700 py-1">
+                        {ele?.startDate ? new Date(ele.startDate).toLocaleDateString() : ""}
+                      </td>
+                      <td className="text-sm text-gray-700 py-1">
+                        {ele?.endDate ? new Date(ele.endDate).toLocaleDateString() : ""}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-          <div className="mt-4">
-            <p className="font-semibold text-blue-600">Internships</p>
-            <table className="w-full border-2 border-black border-collapse">
-              <thead>
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Company</th>
-                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Role</th>
-                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Start Date</th>
-                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">End Date</th>
-                </tr>
-              </thead>
-              {user.internShips?.map((ele, index) => (
-                <tr className="text-center" key={index}>
-                  <td className="border border-black">{ele.company}</td>
-                  <td className="border border-black">{ele.role}</td>
-                  <td className="border border-black">{ele?.startDate ? new Date(ele.startDate).toLocaleDateString(): ''}</td>
-                  <td className="border border-black">{ele?.endDate ? new Date(ele.endDate).toLocaleDateString(): ''}</td>
-                </tr>
-              ))}
-            </table>
+            <div className="mt-6 bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-600">Placements</h3>
+              <table className="w-full mt-2">
+                <thead>
+                  <tr>
+                    <th className="text-left text-sm text-gray-600">Company</th>
+                    <th className="text-left text-sm text-gray-600">Role</th>
+                    <th className="text-left text-sm text-gray-600">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="text-sm text-gray-700 py-1">{user?.placementOne?.company}</td>
+                    <td className="text-sm text-gray-700 py-1">{user?.placementOne?.role}</td>
+                    <td className="text-sm text-gray-700 py-1">
+                      {user?.placementOne?.date ? new Date(user?.placementOne?.date).toLocaleDateString() : ""}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-
-          <div className="mt-4">
-            <p className="font-semibold text-blue-600">Placements</p>
-            <table className="w-full border-2 border-black border-collapse">
-              <thead>
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Company</th>
-                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Role</th>
-                  <th scope="col" className="px-6 py-3 text-xs font-medium uppercase tracking-wider border border-black">Date</th>
-                </tr>
-              </thead>
-                <tr className="text-center">
-                  <td className="border border-black">{user?.placementOne?.company}</td>
-                  <td className="border border-black">{user?.placementOne?.role}</td>
-                  <td className="border border-black">{user?.placementOne?.date ? new Date(user?.placementOne?.date).toLocaleDateString() : ''}</td>
-                </tr>
-            </table>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
-    </>
   );
 }

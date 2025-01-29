@@ -36,7 +36,7 @@
     "recharts": "^2.12.1",
     "slick-carousel": "^1.8.1",
     "sweetalert2": "^11.6.13",
-    "swiper": "^11.1.4",
+    "swiper": "^11.2.1",
     "tailwind-scrollbar": "^3.1.0"
   },
   "devDependencies": {
