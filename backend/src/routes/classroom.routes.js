@@ -2,10 +2,11 @@ import express from "express";
 import {
   createBookingRequest,
   getStudentBookings,
-  getPendingBookings, 
+  getPendingBookings,
   updateBookingStatus,
   getApprovedBookings,
   getRejectedBookings,
+  getDateSlots,
 } from "../controllers/classroom.controller.js";
 import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
 
@@ -20,12 +21,18 @@ router.get("/allBookings", verifyJWT, getApprovedBookings);
 // Get all pending bookings
 router.get("/bookings/pending", verifyAdmin, getPendingBookings);
 // Approve a booking
-router.put("/bookings/:id/approve", verifyAdmin, (req, res) => updateBookingStatus(req, res, "Approved"));
+router.put("/bookings/:id/approve", verifyAdmin, (req, res) =>
+  updateBookingStatus(req, res, "Approved")
+);
 // Reject a booking
-router.put("/bookings/:id/reject", verifyAdmin, (req, res) => updateBookingStatus(req, res, "Rejected"));
+router.put("/bookings/:id/reject", verifyAdmin, (req, res) =>
+  updateBookingStatus(req, res, "Rejected")
+);
 // Get all approved bookings
 router.get("/bookings/approved", verifyAdmin, getApprovedBookings);
 // Get all rejected bookings
 router.get("/bookings/rejected", verifyAdmin, getRejectedBookings);
+
+router.route("/bookedSlots").get(getDateSlots);
 
 export default router;

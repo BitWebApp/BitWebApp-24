@@ -71,7 +71,8 @@ import AdminApplicationDetails from "./components/AdminApplicationDetails";
 import AcceptStudents from "./components/AcceptStudents";
 import { HashLoader, SyncLoader } from "react-spinners";
 import IncreaseLimit from "./components/IncreaseLimit";
-// import AdminDashboard from "./components/AdminDashboard";
+// import AdminDashboard from "./components/AdminDashboard"
+import ClassroomBookingCalendar from "./components/ClassroomBookingCalendar";
 
 export default function App() {
   return (
@@ -118,6 +119,10 @@ export default function App() {
           <Route path="academic-form" element={<Academicform />} />
           <Route path="room-status" element={<RoomStatus />} />
           <Route path="booked-rooms" element={<BookedRooms />} />
+          <Route
+            path="booking-calendar"
+            element={<ClassroomBookingCalendar />}
+          />
         </Route>
         <Route
           path="/admin-db"
