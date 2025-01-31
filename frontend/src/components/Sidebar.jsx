@@ -13,6 +13,7 @@ import {
   HiPresentationChartLine,
   HiBriefcase,
 } from "react-icons/hi";
+import { FaCalendar } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
 import { IoIosArrowBack } from "react-icons/io";
@@ -47,40 +48,40 @@ export default function Sidebar() {
 
   // const links = isAdmin ? adminLinks : additionalLinks;
   const additionalLinks = [
-    { 
-      text: "Dashboard", 
-      icon: <HiHome />, 
-      to: "/db" 
+    {
+      text: "Dashboard",
+      icon: <HiHome />,
+      to: "/db",
     },
     {
-      text: "Alumni Profile", 
+      text: "Alumni Profile",
       icon: <HiUser />,
       to: "/db/alumni",
     },
     {
-      text: "Academic Records", 
+      text: "Academic Records",
       icon: <HiAcademicCap />,
       to: "/db/academic-table",
     },
-    { 
-      text: "Backlogs", 
-      icon: <HiAcademicCap />, 
-      to: "/db/backlogs" 
+    {
+      text: "Backlogs",
+      icon: <HiAcademicCap />,
+      to: "/db/backlogs",
     },
-    { 
-      text: "PE-Course", 
-      icon: <HiAcademicCap />, 
-      to: "/db/PE-form" 
+    {
+      text: "PE-Course",
+      icon: <HiAcademicCap />,
+      to: "/db/PE-form",
     },
     {
       text: "Awards & Achievements",
       icon: <HiBadgeCheck />,
       to: "/db/award-form",
     },
-    { 
-      text: "Examinations", 
-      icon: <HiDocumentReport />, 
-      to: "/db/exam-form" 
+    {
+      text: "Examinations",
+      icon: <HiDocumentReport />,
+      to: "/db/exam-form",
     },
     {
       text: "Higher Education",
@@ -98,12 +99,21 @@ export default function Sidebar() {
       to: "/db/project-form",
     },
     { text: "Internships", icon: <HiBriefcase />, to: "/db/internship-form" },
-    { text: "Interview Experience", icon: <HiBriefcase />, to: "/db/interview" },
-   
-    { 
-      text: "Request Classroom", 
-      icon: <HiBriefcase />, 
-      to: "/db/classroom-form" 
+    {
+      text: "Interview Experience",
+      icon: <HiBriefcase />,
+      to: "/db/interview",
+    },
+
+    {
+      text: "Request Classroom",
+      icon: <HiBriefcase />,
+      to: "/db/classroom-form",
+    },
+    {
+      text: "Check Classroom Bookings",
+      icon: <FaCalendar />,
+      to: "/db/booking-calendar",
     },
     {
       text: "Summer Training",
@@ -112,7 +122,6 @@ export default function Sidebar() {
     },
   ];
 
-  
   const links = additionalLinks;
   const navigate = useNavigate();
   const handleLogout = async () => {
