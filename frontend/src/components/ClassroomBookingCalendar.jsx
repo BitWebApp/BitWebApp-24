@@ -6,6 +6,34 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 
 const localizer = momentLocalizer(moment);
 
+const classroomOptions = {
+  "Main Building": [
+    "201",
+    "202",
+    "203",
+    "204",
+    "205",
+    "206",
+    "207",
+    "208",
+    "209",
+    "210",
+    "211",
+    "212",
+    "213",
+    "214",
+    "215",
+    "216",
+    "217",
+    "218",
+    "219",
+    "231",
+  ],
+  RnD: ["Lab 1", "Lab 2", "Lab 3", "Lab 4", "Lab 5", "Lab 6", "Lab 7"],
+  "Lecture Hall": ["LH1", "LH2", "LH3", "LH4"],
+  "Cat Hall": ["CAT HALL"],
+};
+
 const ClassroomBookingCalendar = () => {
   const [events, setEvents] = useState([]);
   const [building, setBuilding] = useState("");
@@ -41,43 +69,64 @@ const ClassroomBookingCalendar = () => {
   }, [building, classroomNumber, bookingDate]);
 
   return (
-    <div>
-      <h2>Classroom Booking Calendar</h2>
-      <div>
-        <label>
-          Building:
-          <input
-            type="text"
+    <div className="container mx-auto p-4">
+      <h2 className="text-2xl font-semibold text-center mb-4">
+        Classroom Booking Calendar
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div>
+          <label className="block font-medium mb-2">Building:</label>
+          <select
             value={building}
             onChange={(e) => setBuilding(e.target.value)}
-          />
-        </label>
+            className="w-full p-2 border rounded-md"
+          >
+            <option value="">Select Building</option>
+            {Object.keys(classroomOptions).map((buildingKey) => (
+              <option key={buildingKey} value={buildingKey}>
+                {buildingKey}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        <label>
-          Classroom Number:
-          <input
-            type="text"
+        <div>
+          <label className="block font-medium mb-2">Classroom Number:</label>
+          <select
             value={classroomNumber}
             onChange={(e) => setClassroomNumber(e.target.value)}
-          />
-        </label>
+            disabled={!building}
+            className="w-full p-2 border rounded-md"
+          >
+            <option value="">Select Classroom</option>
+            {building &&
+              classroomOptions[building] &&
+              classroomOptions[building].map((classroom) => (
+                <option key={classroom} value={classroom}>
+                  {classroom}
+                </option>
+              ))}
+          </select>
+        </div>
 
-        <label>
-          Booking Date:
+        <div>
+          <label className="block font-medium mb-2">Booking Date:</label>
           <input
             type="date"
             value={bookingDate}
             onChange={(e) => setBookingDate(e.target.value)}
+            className="w-full p-2 border rounded-md"
           />
-        </label>
+        </div>
       </div>
-      <div style={{ height: "500px" }}>
+
+      <div className="calendar-container">
         <Calendar
           localizer={localizer}
           events={events}
           startAccessor="start"
           endAccessor="end"
-          style={{ height: 500 }}
+          style={{ height: "500px" }}
           defaultView="day"
           views={["day"]}
           date={bookingDate ? new Date(bookingDate) : new Date()}
@@ -85,6 +134,7 @@ const ClassroomBookingCalendar = () => {
             timeGutterFormat: "HH:mm",
             agendaTimeFormat: "HH:mm",
           }}
+          toolbar={false}
         />
       </div>
     </div>
