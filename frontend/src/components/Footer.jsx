@@ -47,7 +47,7 @@ function Footer() {
             className="w-28 h-auto"
           />
           <h1 className="text-lg font-semibold tracking-wider">All Rights Reserved</h1>
-          <p className="text-sm">&copy; 2024 | bitacademicapp.ac.in</p>
+          <p className="text-sm">&copy; 2025 | bitacademicapp.ac.in</p>
           <a
             href="https://www.bitmesra.ac.in"
             className="text-blue-400 hover:text-blue-300 transition-all duration-200"
