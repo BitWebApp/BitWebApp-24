@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const About = () => {
   return (
@@ -71,7 +72,9 @@ const About = () => {
             journey to the next level.
           </p>
           <button className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300">
-            Get Started
+            <Link to="/sg">
+              Get Started
+            </Link>
           </button>
         </div>
       </div>

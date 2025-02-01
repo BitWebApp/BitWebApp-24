@@ -26,7 +26,7 @@ const linkclasses =
 export default function Sidebar() {
   const Sidebar_animation = {
     open: {
-      width: "15rem",
+      width: "16.5rem",
       transition: {
         damping: 40,
       },

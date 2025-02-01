@@ -11,7 +11,7 @@ const ReviewCarousel = () => {
     { name: "Kushagra Sahay", post: "Team Leader", roll: "123458", role: "Leader" },
     { name: "Sumit Kumar", post: "Team Leader", roll: "123459", role: "Leader" },
     { name: "Garvit Raj", post: "Backend Developer", roll: "123456", role: "Backend" },
-    { name: "Ankit Kumar", post: "Backend Developer", roll: "123457", role: "Backend" },
+    { name: "Ankit Verma", post: "Backend Developer", roll: "123457", role: "Backend" },
     { name: "Hritabhash Ray", post: "Frontend Developer", roll: "123460", role: "Frontend" },
     { name: "Parth Shresth", post: "Frontend Developer", roll: "123461", role: "Frontend" },
     { name: "Akshat Tambi", post: "Full Stack Developer", roll: "123462", role: "Full Stack" },
