@@ -43,6 +43,7 @@ const GroupManagement = () => {
       console.log(response.data.data);
       setGroup(response.data.data);
     } catch (error) {
+      console.log(error);
       setGroup(null);
     }
   };
@@ -109,10 +110,10 @@ const GroupManagement = () => {
                 <h2 className="text-xl font-bold text-gray-800">
                   Group Details
                 </h2>
-                <p className="mt-2 text-gray-600">Group ID: {group.groupId}</p>
+                <p className="mt-2 text-gray-600">Group ID: {group?.groupId}</p>
                 <p className="mt-2 font-semibold text-gray-700">
                   Professor:{" "}
-                  {group.summerAllocatedProf.fullName || "Not Allocated"}
+                  {group?.summerAllocatedProf?.fullName || "Not Allocated"}
                 </p>
                 <p className="mt-2 font-semibold text-gray-700">
                   Leader: {group.leader.fullName}
@@ -147,7 +148,7 @@ const GroupManagement = () => {
                 </div>
                 <div className="mt-4">
                   <input
-                    disabled={group.summerAllocatedProf.fullName}
+                    disabled={group?.summerAllocatedProf?.fullName}
                     type="text"
                     placeholder="Enter Faculty ID"
                     value={facultyId}
@@ -155,7 +156,7 @@ const GroupManagement = () => {
                     className="p-2 border rounded-md w-full"
                   />
                   <button
-                    disabled={group.summerAllocatedProf.fullName}
+                    disabled={group?.summerAllocatedProf?.fullName}
                     onClick={applyToFaculty}
                     className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-full"
                   >
