@@ -27,6 +27,7 @@ const createGroup = asyncHandler(async (req, res) => {
 
 const addMember = asyncHandler(async (req, res) => {
   const { rollNumber, groupId } = req.body;
+  console.log(groupId);
   const group = await Group.findById({ _id: groupId });
   if (!group) throw new ApiError(404, "Group not found");
   if (group.summerAllocatedProf) {

@@ -73,6 +73,7 @@ import { HashLoader, SyncLoader } from "react-spinners";
 import IncreaseLimit from "./components/IncreaseLimit";
 // import AdminDashboard from "./components/AdminDashboard"
 import ClassroomBookingCalendar from "./components/ClassroomBookingCalendar";
+import GroupManagement from "./components/GroupManagement";
 
 export default function App() {
   return (
@@ -117,6 +118,7 @@ export default function App() {
           <Route path="add-work-experience" element={<AddWorkExperience />} />
           <Route path="show-work-experience" element={<ShowWorkExperience />} />
           <Route path="academic-form" element={<Academicform />} />
+          <Route path="manage-group" element={<GroupManagement />} />
           <Route path="room-status" element={<RoomStatus />} />
           <Route path="booked-rooms" element={<BookedRooms />} />
           <Route

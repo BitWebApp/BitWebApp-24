@@ -120,6 +120,11 @@ export default function Sidebar() {
       icon: <HiPresentationChartLine />,
       to: "/db/apply-summer",
     },
+    {
+      text: "Manage Group",
+      icon: <HiPresentationChartLine />,
+      to: "/db/manage-group",
+    },
   ];
 
   const links = additionalLinks;
