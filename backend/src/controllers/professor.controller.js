@@ -536,13 +536,14 @@ const denyGroup = asyncHandler(async(req, res) => {
 const acceptGroup = asyncHandler(async(req, res) => {
   const {_id} = req.body;
   const profId = req?.professor?._id
+  const prof = await Professor.findOne({_id: profId})
+  const numOfMem = group.members.length;
+  if(prof.currentCount.summer_training+numOfMem>prof.limits.summer_training) throw new ApiError(409, "Limit will exceed, you cannot accept above the limit.")
   const group = await Group.findById({_id})
   if(!group) throw new ApiError(409, "Group not exists")
   group.summerAllocatedProf = profId;
   group.summerAppliedProfs = [];
   await group.save();
-  const numOfMem = group.members.length;
-  const prof = await Professor.findOne({_id: profId})
   prof.currentCount.summer_training+=numOfMem;
   await prof.save();
   return res.status(200).json(new ApiResponse(200, "Group accepted"));

@@ -55,9 +55,9 @@ const applyToFaculty = asyncHandler(async (req, res) => {
     const group = await Group.findById({_id: groupId });
     if (!group) throw new ApiError(404, "Group not found");
     if(group.deniedProf.includes(facultyId)) throw new ApiError(409, "Denied by this professor")
+    if(group.summerAllocatedProf) throw new ApiError(409, "You already have a faculty assigned");
     const faculty = await Professor.findById(facultyId);
     if (!faculty) throw new ApiError(404, "Faculty not found");
-    if(group.summerAllocatedProf) throw new ApiError(409, "You already have a faculty assigned");
 
     if (group.summerAppliedProfs.includes(facultyId)) {
         throw new ApiError(409, "Already applied to this faculty");
