@@ -2,6 +2,30 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
 
+const extractErrorMessage = (htmlString) => {
+  const match = htmlString.match(/<pre>(.*?)<\/pre>/s);
+  if (match && match[1]) {
+    return match[1].split("<br>")[0].replace("Error: ", "").trim();
+  }
+  return "An unknown error occurred";
+};
+
+const handleError = (error, defaultMessage) => {
+  console.error("Full error:", error);
+
+  let message = defaultMessage;
+  if (error.response) {
+    if (typeof error.response.data === "string") {
+      message = extractErrorMessage(error.response.data);
+    } else if (error.response.data?.message) {
+      message = error.response.data.message;
+    }
+  }
+  console.log(message);
+
+  toast.error(message);
+};
+
 const GroupManagement = () => {
   const [group, setGroup] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -36,22 +60,28 @@ const GroupManagement = () => {
   const addMember = async () => {
     if (!rollNumber) return toast.error("Please enter a roll number");
     try {
-      await axios.post("/api/v1/group/add-member", { rollNumber, groupId: group?._id });
+      await axios.post("/api/v1/group/add-member", {
+        rollNumber,
+        groupId: group?._id,
+      });
       toast.success("Member added successfully");
       setRollNumber("");
       fetchGroup();
     } catch (error) {
-      toast.error("Failed to add member");
+      handleError(error, "Failed to add member");
     }
   };
 
   const removeMember = async (rollNumber) => {
     try {
-      await axios.post("/api/v1/group/remove-member", { rollNumber, groupId: group?._id });
+      await axios.post("/api/v1/group/remove-member", {
+        rollNumber,
+        groupId: group?._id,
+      });
       toast.success("Member removed successfully");
       fetchGroup();
     } catch (error) {
-      toast.error("Failed to remove member");
+      handleError(error, "Failed to remove member");
     }
   };
 
@@ -62,10 +92,16 @@ const GroupManagement = () => {
         <div className="w-full max-w-4xl bg-white p-8 rounded-xl shadow-lg text-gray-800">
           {group ? (
             <div>
-              <h2 className="text-2xl font-bold text-center text-blue-600">Group Details</h2>
-              <p className="mt-2 text-center font-semibold">Group ID: {group?.groupId}</p>
-              <p className="mt-2 text-center font-semibold">Leader: {group?.leader?.fullName || "Not Assigned"}</p>
-              
+              <h2 className="text-2xl font-bold text-center text-blue-600">
+                Group Details
+              </h2>
+              <p className="mt-2 text-center font-semibold">
+                Group ID: {group?.groupId}
+              </p>
+              <p className="mt-2 text-center font-semibold">
+                Leader: {group?.leader?.fullName || "Not Assigned"}
+              </p>
+
               <div className="mt-4 flex space-x-2">
                 <input
                   type="text"
@@ -81,24 +117,41 @@ const GroupManagement = () => {
                   Add Member
                 </button>
               </div>
-              
-              <h3 className="mt-6 text-lg font-semibold text-gray-700">Members</h3>
+
+              <h3 className="mt-6 text-lg font-semibold text-gray-700">
+                Members
+              </h3>
               {group.members.length > 0 ? (
                 <table className="w-full mt-2 border-collapse border border-gray-300">
                   <thead>
                     <tr className="bg-blue-500 text-white">
                       <th className="border border-gray-300 px-4 py-2">Name</th>
-                      <th className="border border-gray-300 px-4 py-2">Roll Number</th>
-                      <th className="border border-gray-300 px-4 py-2">Email</th>
-                      <th className="border border-gray-300 px-4 py-2">Action</th>
+                      <th className="border border-gray-300 px-4 py-2">
+                        Roll Number
+                      </th>
+                      <th className="border border-gray-300 px-4 py-2">
+                        Email
+                      </th>
+                      <th className="border border-gray-300 px-4 py-2">
+                        Action
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {group.members.map((member) => (
-                      <tr key={member._id} className="text-center hover:bg-gray-100">
-                        <td className="border border-gray-300 px-4 py-2">{member.fullName}</td>
-                        <td className="border border-gray-300 px-4 py-2">{member.rollNumber}</td>
-                        <td className="border border-gray-300 px-4 py-2">{member.email}</td>
+                      <tr
+                        key={member._id}
+                        className="text-center hover:bg-gray-100"
+                      >
+                        <td className="border border-gray-300 px-4 py-2">
+                          {member.fullName}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2">
+                          {member.rollNumber}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2">
+                          {member.email}
+                        </td>
                         <td className="border border-gray-300 px-4 py-2">
                           <button
                             onClick={() => removeMember(member.rollNumber)}
@@ -117,7 +170,9 @@ const GroupManagement = () => {
             </div>
           ) : (
             <>
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">No Group Found</h2>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+                No Group Found
+              </h2>
               <button
                 onClick={createGroup}
                 disabled={loading}
