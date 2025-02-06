@@ -590,14 +590,32 @@ const acceptGroup = asyncHandler(async (req, res) => {
     prof.appliedGroups.summer_training.pull(group._id);
     prof.students.summer_training.push(group._id);
     await prof.save({ session });
-    const internships = group.members.map((studentId) => ({
-      student: studentId,
-      type: group.typeOfSummer,
-      location:
-        group.typeOfSummer === "research" ? "inside_bit" : "outside_bit",
-      company: group.typeOfSummer === "industrial" ? group.org : null,
-      mentor: profId,
-    }));
+    let internships;
+    if (group.typeOfSummer === "research") {
+      internships = group.members.map((studentId) => ({
+        student: studentId,
+        type: group.typeOfSummer,
+        location: "inside_bit",
+        mentor: profId,
+      }));
+    } else {
+      internships = group.members.map((studentId) => ({
+        student: studentId,
+        type: group.typeOfSummer,
+        location: "outside_bit",
+        company: group.org,
+        mentor: profId,
+      }));
+    }
+
+    // const internships = group.members.map((studentId) => ({
+    //   student: studentId,
+    //   type: group.typeOfSummer,
+    //   location:
+    //     group.typeOfSummer === "research" ? "inside_bit" : "outside_bit",
+    //   company: group.typeOfSummer === "industrial" ? group.org : null,
+    //   mentor: profId,
+    // }));
     await Internship.insertMany(internships, { session });
     await session.commitTransaction();
     session.endSession();
