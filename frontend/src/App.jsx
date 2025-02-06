@@ -74,6 +74,7 @@ import IncreaseLimit from "./components/IncreaseLimit";
 // import AdminDashboard from "./components/AdminDashboard"
 import ClassroomBookingCalendar from "./components/ClassroomBookingCalendar";
 import GroupManagement from "./components/GroupManagement";
+import FacultyForgotPassword from "./components/FacultyForgotPassword";
 
 export default function App() {
   return (
@@ -181,7 +182,7 @@ export default function App() {
         <Route path="/log.a" element={<Loginadmin />} />
         <Route path="/sg.a" element={<Signupadmin />} />
         <Route path="/faculty-login" element={<LoginFaculty />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/forgot-password" element={<FacultyForgotPassword />} />
       </Routes>
     </Router>
   );
