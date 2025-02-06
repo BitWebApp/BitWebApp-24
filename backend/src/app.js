@@ -59,4 +59,7 @@ app.use("/api/v1/profProject", profProjectRouter);
 
 import profRouter from "./routes/professor.routes.js"
 app.use("/api/v1/prof", profRouter);
+
+import groupRouter from "./routes/group.routes.js"
+app.use("/api/v1/group", groupRouter)
 export { app };
