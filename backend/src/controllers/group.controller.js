@@ -65,6 +65,7 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   if (!user) {
     throw new ApiError(404, "User not found");
   }
+  if(user.summerAppliedProfs.includes(facultyId)) throw new ApiError(409, "Already applied to this professor")
   const groupId = user.group;
   const group = await Group.findById({ _id: groupId });
   if (!group) throw new ApiError(404, "Group not found");
@@ -81,7 +82,7 @@ const applyToFaculty = asyncHandler(async (req, res) => {
 
   group.summerAppliedProfs.push(facultyId);
   if (group.summerAppliedProfs.length === 1) {
-    faculty.students.summer_training.push(group._id);
+    faculty.appliedGroups.summer_training.push(group._id);
     await faculty.save();
   }
   await group.save();
@@ -105,4 +106,34 @@ const getGroup = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, group, "Group details returned"));
 });
 
-export { createGroup, addMember, removeMember, applyToFaculty, getGroup };
+const getAppliedProfs = asyncHandler(async(req, res) => {
+  const userid = req?.user?._id;
+  const user = await User.findById(userid);
+  const group = await Group.findById({_id: user.group})
+  if(!group) throw new ApiError(409, "Group not found");
+  let prof = null;
+
+  if (group.summerAllocatedProf) {
+    prof = await Professor.findById({_id: group?.summerAllocatedProf});
+  }
+  return res.status(200).json(new ApiResponse(200, {
+    summerAppliedProfs: group.summerAppliedProfs,
+    isSummerAllocated: group.summerAllocatedProf ? true : false,
+    prof
+  }, "Applied profs and allocation details returned"));
+})
+
+const summerSorted = asyncHandler(async(req, res) => {
+  const userid = req?.user?._id;
+  const user = await User.findById(userid);
+  const group = await Group.findById({_id: user.group})
+  if(!group) throw new ApiError(409, "Group not found");
+  let sorted = false
+  let prof;
+  if(group.summerAllocatedProf) {
+    sorted = true
+    prof = await Professor.findById({_id: group.summerAllocatedProf})
+  }
+  return res.status(200).json(new ApiResponse(200, sorted, "Summer status returned"))
+})
+export { createGroup, addMember, removeMember, applyToFaculty, getGroup, getAppliedProfs, summerSorted};

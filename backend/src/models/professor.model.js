@@ -77,6 +77,26 @@ const professorSchema = new Schema(
         },
       ],
     },
+    appliedGroups: {
+      summer_training: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "Group",
+        },
+      ],
+      minor_project: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "Group",
+        },
+      ],
+      major_project: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "Group",
+        },
+      ],
+    },
   },
   { timestamps: true }
 );

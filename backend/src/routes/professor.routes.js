@@ -10,7 +10,7 @@ import {
   getProf,
   loginProf,
   logoutProf,
-  getAppliedStudents,
+  getAppliedGroups,
   selectSummerStudents,
   getcurrentProf,
   incrementLimit,
@@ -30,7 +30,7 @@ router.route("/getProf").get(getProf);
 router.route("/login").post(loginProf);
 router.route("/logout").post(verifyProfessor, logoutProf);
 
-router.route("/getAppliedStudents").get(verifyProfessor, getAppliedStudents);
+router.route("/getAppliedGroups").get(verifyProfessor, getAppliedGroups);
 router
   .route("/selectSummerStudents")
   .post(verifyProfessor, selectSummerStudents);
