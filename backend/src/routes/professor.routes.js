@@ -15,8 +15,14 @@ import {
   getcurrentProf,
   incrementLimit,
   getAcceptedStudents,
+  denyGroup,
+  acceptGroup,
+  addRemark,
+  groupAttendance,
+  acceptedGroups,
+  mergeGroups
 } from "../controllers/professor.controller.js";
-// import { verify } from "jsonwebtoken";
+
 const router = Router();
 router.route("/addprof").post(verifyAdmin, addProf);
 router.route("/getProf").get(getProf);
@@ -34,5 +40,12 @@ router.route("/getcurrentProf").get(verifyProfessor, getcurrentProf);
 router.route("/incrementLimit").post(verifyAdmin, incrementLimit);
 
 router.route("/getAcceptedStudents").get(verifyProfessor, getAcceptedStudents);
+
+router.route("/deny-group").post(verifyProfessor, denyGroup);
+router.route("/accept-group").post(verifyProfessor, acceptGroup);
+router.route("/add-remark").post(verifyProfessor, addRemark);
+router.route("/meet-attend").post(verifyProfessor, groupAttendance);
+router.route("/accepted-groups").get(verifyProfessor, acceptedGroups);
+router.route("/merge-groups").post(verifyProfessor, mergeGroups);
 
 export default router;
