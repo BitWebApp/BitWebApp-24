@@ -9,6 +9,7 @@ import { Professor } from "../models/professor.model.js";
 const createGroup = asyncHandler(async (req, res) => {
   const leader = req?.user?._id;
   const { typeofSummer, org } = req.body;
+  console.log(typeofSummer, org);
   const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
   const members = [leader];
   const user = await User.findById(leader);
@@ -22,17 +23,31 @@ const createGroup = asyncHandler(async (req, res) => {
       "Organisation Name is required for industrial summer internship"
     );
   }
+  let newGroup;
 
-  const newGroup = await Group.create({
-    groupId: nanoid(),
-    leader,
-    members,
-    type: "summer",
-    typeOfSummer: typeofSummer,
-    org,
-  });
-  user.group = newGroup._id;
-  user.save();
+  if (org) {
+    newGroup = await Group.create({
+      groupId: nanoid(),
+      leader,
+      members,
+      type: "industrial",
+      typeOfSummer: typeofSummer,
+      org,
+    });
+    user.group = newGroup._id;
+    user.save();
+  } else {
+    newGroup = await Group.create({
+      groupId: nanoid(),
+      leader,
+      members,
+      type: "summer",
+      typeOfSummer: typeofSummer,
+    });
+    user.group = newGroup._id;
+    user.save();
+  }
+
   return res
     .status(200)
     .json(new ApiResponse(200, newGroup, "Group created successfully"));
