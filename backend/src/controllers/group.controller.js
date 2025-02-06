@@ -8,15 +8,28 @@ import { Professor } from "../models/professor.model.js";
 
 const createGroup = asyncHandler(async (req, res) => {
   const leader = req?.user?._id;
+  const { typeofSummer, org } = req.body;
   const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
   const members = [leader];
   const user = await User.findById(leader);
   if (user.group) throw new ApiError(409, "Already in a group");
+  if (!typeofSummer) {
+    throw new ApiError(400, "Type of summer internship is required");
+  }
+  if (typeofSummer === "industrial" && !org) {
+    throw new ApiError(
+      400,
+      "Organisation Name is required for industrial summer internship"
+    );
+  }
+
   const newGroup = await Group.create({
     groupId: nanoid(),
     leader,
     members,
     type: "summer",
+    typeOfSummer: typeofSummer,
+    org,
   });
   user.group = newGroup._id;
   user.save();
@@ -65,7 +78,8 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   if (!user) {
     throw new ApiError(404, "User not found");
   }
-  if(user.summerAppliedProfs.includes(facultyId)) throw new ApiError(409, "Already applied to this professor")
+  if (user.summerAppliedProfs.includes(facultyId))
+    throw new ApiError(409, "Already applied to this professor");
   const groupId = user.group;
   const group = await Group.findById({ _id: groupId });
   if (!group) throw new ApiError(404, "Group not found");
@@ -106,34 +120,50 @@ const getGroup = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, group, "Group details returned"));
 });
 
-const getAppliedProfs = asyncHandler(async(req, res) => {
+const getAppliedProfs = asyncHandler(async (req, res) => {
   const userid = req?.user?._id;
   const user = await User.findById(userid);
-  const group = await Group.findById({_id: user.group})
-  if(!group) throw new ApiError(409, "Group not found");
+  const group = await Group.findById({ _id: user.group });
+  if (!group) throw new ApiError(409, "Group not found");
   let prof = null;
 
   if (group.summerAllocatedProf) {
-    prof = await Professor.findById({_id: group?.summerAllocatedProf});
+    prof = await Professor.findById({ _id: group?.summerAllocatedProf });
   }
-  return res.status(200).json(new ApiResponse(200, {
-    summerAppliedProfs: group.summerAppliedProfs,
-    isSummerAllocated: group.summerAllocatedProf ? true : false,
-    prof
-  }, "Applied profs and allocation details returned"));
-})
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        summerAppliedProfs: group.summerAppliedProfs,
+        isSummerAllocated: group.summerAllocatedProf ? true : false,
+        prof,
+      },
+      "Applied profs and allocation details returned"
+    )
+  );
+});
 
-const summerSorted = asyncHandler(async(req, res) => {
+const summerSorted = asyncHandler(async (req, res) => {
   const userid = req?.user?._id;
   const user = await User.findById(userid);
-  const group = await Group.findById({_id: user.group})
-  if(!group) throw new ApiError(409, "Group not found");
-  let sorted = false
+  const group = await Group.findById({ _id: user.group });
+  if (!group) throw new ApiError(409, "Group not found");
+  let sorted = false;
   let prof;
-  if(group.summerAllocatedProf) {
-    sorted = true
-    prof = await Professor.findById({_id: group.summerAllocatedProf})
+  if (group.summerAllocatedProf) {
+    sorted = true;
+    prof = await Professor.findById({ _id: group.summerAllocatedProf });
   }
-  return res.status(200).json(new ApiResponse(200, sorted, "Summer status returned"))
-})
-export { createGroup, addMember, removeMember, applyToFaculty, getGroup, getAppliedProfs, summerSorted};
+  return res
+    .status(200)
+    .json(new ApiResponse(200, sorted, "Summer status returned"));
+});
+export {
+  createGroup,
+  addMember,
+  removeMember,
+  applyToFaculty,
+  getGroup,
+  getAppliedProfs,
+  summerSorted,
+};

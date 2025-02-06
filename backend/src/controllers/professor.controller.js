@@ -7,9 +7,9 @@ import { Internship } from "../models/internship.model.js";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
-import {nanoid, customAlphabet} from "nanoid"
+import { nanoid, customAlphabet } from "nanoid";
 import mongoose, { mongo } from "mongoose";
-import {Group} from "../models/group.model.js"
+import { Group } from "../models/group.model.js";
 const url = "https://bitacademia.vercel.app/faculty-login";
 
 const addProf = asyncHandler(async (req, res) => {
@@ -176,7 +176,7 @@ const addProf = asyncHandler(async (req, res) => {
 //         </body>
 //         `,
 //       };
-      
+
 //       await transporter.sendMail(mailOptions);
 
 //       const newProfessor = await Professor.create({
@@ -343,7 +343,6 @@ const applyToSummer = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, responseMessage.message, responseMessage));
 });
 
-
 const getAppliedGroups = asyncHandler(async (req, res) => {
   try {
     const profId = req.professor._id;
@@ -353,7 +352,8 @@ const getAppliedGroups = asyncHandler(async (req, res) => {
       path: "appliedGroups.summer_training",
       populate: {
         path: "members", // Populate members inside each group
-        select: "fullName rollNumber email linkedin codingProfiles cgpa section branch image",
+        select:
+          "fullName rollNumber email linkedin codingProfiles cgpa section branch image",
       },
     });
 
@@ -363,13 +363,11 @@ const getAppliedGroups = asyncHandler(async (req, res) => {
 
     const groups = professor.appliedGroups.summer_training || [];
 
-    res.status(200).json(
-      new ApiResponse(
-        200,
-        groups,
-        "Applied groups retrieved successfully!"
-      )
-    );
+    res
+      .status(200)
+      .json(
+        new ApiResponse(200, groups, "Applied groups retrieved successfully!")
+      );
   } catch (error) {
     console.error(error);
     throw new ApiError(
@@ -379,7 +377,6 @@ const getAppliedGroups = asyncHandler(async (req, res) => {
     );
   }
 });
-
 
 const selectSummerStudents = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
@@ -523,68 +520,128 @@ const getAcceptedStudents = asyncHandler(async (req, res) => {
     );
 });
 
-const denyGroup = asyncHandler(async(req, res) => {
-  const {_id} = req.body;
-  const profId = req?.professor?._id
-  const group = await Group.findById({_id})
-  if(!group) throw new ApiError(409, "Group not exists")
-  group.summerAppliedProfs.pull(profId)
-  group.deniedProf.push(profId)
+const denyGroup = asyncHandler(async (req, res) => {
+  const { _id } = req.body;
+  const profId = req?.professor?._id;
+  const group = await Group.findById({ _id });
+  if (!group) throw new ApiError(409, "Group not exists");
+  group.summerAppliedProfs.pull(profId);
+  group.deniedProf.push(profId);
   await group.save();
-  if(group.summerAppliedProfs.length>0){
+  if (group.summerAppliedProfs.length > 0) {
     const profToApply = group.summerAppliedProfs[0];
-    const prof = await Professor.findById({_id: profToApply})
-    prof.appliedGroups.summer_training.push(_id)
+    const prof = await Professor.findById({ _id: profToApply });
+    prof.appliedGroups.summer_training.push(_id);
     await prof.save();
   }
-  return res.status(200).json(new ApiResponse(200, "Group denied and passed to next faculty in choice"));
-})
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, "Group denied and passed to next faculty in choice")
+    );
+});
 
-const acceptGroup = asyncHandler(async(req, res) => {
-  const {_id} = req.body;
-  const profId = req?.professor?._id
-  const prof = await Professor.findOne({_id: profId})
-  const group = await Group.findById({_id})
-  const numOfMem = group.members.length;
-  if(prof.currentCount.summer_training+numOfMem>prof.limits.summer_training) throw new ApiError(409, "Limit will exceed, you cannot accept above the limit.")
-  if(!group) throw new ApiError(409, "Group not exists")
-  group.summerAllocatedProf = profId;
-  group.summerAppliedProfs = [];
-  await group.save();
-  prof.currentCount.summer_training+=numOfMem;
-  prof.appliedGroups.summer_training.pull(group._id)
-  prof.students.summer_training.push(group._id)
-  await prof.save();
-  return res.status(200).json(new ApiResponse(200, "Group accepted"));
-})
+// const acceptGroup = asyncHandler(async(req, res) => {
+//   const {_id} = req.body;
+//   const profId = req?.professor?._id
+//   const prof = await Professor.findOne({_id: profId})
+//   const group = await Group.findById({_id})
+//   const numOfMem = group.members.length;
+//   if(prof.currentCount.summer_training+numOfMem>prof.limits.summer_training) throw new ApiError(409, "Limit will exceed, you cannot accept above the limit.")
+//   if(!group) throw new ApiError(409, "Group not exists")
+//   group.summerAllocatedProf = profId;
+//   group.summerAppliedProfs = [];
+//   await group.save();
+//   prof.currentCount.summer_training+=numOfMem;
+//   prof.appliedGroups.summer_training.pull(group._id)
+//   prof.students.summer_training.push(group._id)
+//   await prof.save();
+//   return res.status(200).json(new ApiResponse(200, "Group accepted"));
+// })
+
+const acceptGroup = asyncHandler(async (req, res) => {
+  const { _id } = req.body;
+  const profId = req?.professor?._id;
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const prof = await Professor.findById(profId).session(session);
+    const group = await Group.findById(_id).session(session);
+    if (!prof) {
+      throw new ApiError(404, "Professor not found");
+    }
+    if (!group) {
+      throw new ApiError(404, "Group not found");
+    }
+    const numOfMem = group.members.length;
+    if (
+      prof.currentCount.summer_training + numOfMem >
+      prof.limits.summer_training
+    ) {
+      throw new ApiError(
+        409,
+        "Limit will exceed, you cannot accept above the limit."
+      );
+    }
+    group.summerAllocatedProf = profId;
+    group.summerAppliedProfs = [];
+    await group.save({ session });
+    prof.currentCount.summer_training += numOfMem;
+    prof.appliedGroups.summer_training.pull(group._id);
+    prof.students.summer_training.push(group._id);
+    await prof.save({ session });
+    const internships = group.members.map((studentId) => ({
+      student: studentId,
+      type: group.typeOfSummer,
+      location:
+        group.typeOfSummer === "research" ? "inside_bit" : "outside_bit",
+      company: group.typeOfSummer === "industrial" ? group.org : null,
+      mentor: profId,
+    }));
+    await Internship.insertMany(internships, { session });
+    await session.commitTransaction();
+    session.endSession();
+    return res.status(200).json(new ApiResponse(200, "Group accepted"));
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.log(error);
+    throw new ApiError(
+      500,
+      "Something went wrong while accepting group",
+      error.message
+    );
+  }
+});
 
 const acceptedGroups = asyncHandler(async (req, res) => {
   const profId = req?.professor?._id;
   const professor = await Professor.findById(profId);
-  
+
   if (!professor) {
     throw new ApiError(404, "Professor not found!");
   }
 
   const groupIds = professor.students.summer_training;
   const groups = await Group.find({ _id: { $in: groupIds } })
-    .populate("leader") 
+    .populate("leader")
     .populate("members")
-    .populate("summerAppliedProfs") 
-    .populate("summerAllocatedProf") 
-    .populate("deniedProf") 
+    .populate("summerAppliedProfs")
+    .populate("summerAllocatedProf")
+    .populate("deniedProf")
     .populate({
       path: "discussion.absent",
     })
     .populate({
-      path: "discussion.description", 
+      path: "discussion.description",
     });
 
-  return res.status(200).json(
-    new ApiResponse(200, "Accepted groups retrieved successfully!", groups)
-  );
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, "Accepted groups retrieved successfully!", groups)
+    );
 });
-
 
 const addRemark = asyncHandler(async (req, res) => {
   const { remark, _id, discussionId } = req.body;
@@ -598,9 +655,9 @@ const addRemark = asyncHandler(async (req, res) => {
   }
   discussion.remark = remark;
   await group.save();
-  return res.status(200).json(
-    new ApiResponse(200, "Remark added successfully!", group)
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Remark added successfully!", group));
 });
 
 const groupAttendance = asyncHandler(async (req, res) => {
@@ -616,7 +673,7 @@ const groupAttendance = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Discussion entry not found");
   }
 
-  absentees.forEach(absenteeId => {
+  absentees.forEach((absenteeId) => {
     if (!discussion.absent.includes(absenteeId)) {
       discussion.absent.push(absenteeId);
     }
@@ -624,14 +681,14 @@ const groupAttendance = asyncHandler(async (req, res) => {
 
   await group.save();
 
-  return res.status(200).json(
-    new ApiResponse(200, "Attendance updated successfully!", group)
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Attendance updated successfully!", group));
 });
 
 const mergeGroups = asyncHandler(async (req, res) => {
   const { groupIds, rollNumber } = req.body;
-  const profId = req?.professor?._id; 
+  const profId = req?.professor?._id;
   if (!profId) {
     throw new ApiError(401, "Professor not authenticated");
   }
@@ -641,40 +698,46 @@ const mergeGroups = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Groups not found");
   }
 
-  const isValidProf = groups.every(group => group.summerAllocatedProf?.toString() === profId.toString());
+  const isValidProf = groups.every(
+    (group) => group.summerAllocatedProf?.toString() === profId.toString()
+  );
   if (!isValidProf) {
-    throw new ApiError(403, "Not all groups are allocated to the current professor");
+    throw new ApiError(
+      403,
+      "Not all groups are allocated to the current professor"
+    );
   }
 
   let allMembers = [];
-  groups.forEach(group => {
+  groups.forEach((group) => {
     allMembers = [...allMembers, ...group.members];
   });
 
-  const leader = allMembers.find(member => member.rollNumber === rollNumber);
+  const leader = allMembers.find((member) => member.rollNumber === rollNumber);
   if (!leader) {
-    throw new ApiError(404, "Leader with given roll number not found in merged groups");
+    throw new ApiError(
+      404,
+      "Leader with given roll number not found in merged groups"
+    );
   }
 
   await Group.deleteMany({ _id: { $in: groupIds } });
 
-  const nanoid = customAlphabet('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', 6);
+  const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
   const newGroup = new Group({
-    groupId: nanoid(), 
+    groupId: nanoid(),
     leader: leader._id,
     members: allMembers,
     summerAppliedProfs: [],
-    summerAllocatedProf: profId, 
+    summerAllocatedProf: profId,
   });
   // delete accepted students from prof model and add new one
-  
+
   await newGroup.save();
-  return res.status(200).json(
-    new ApiResponse(200, "Groups merged successfully!", newGroup)
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Groups merged successfully!", newGroup));
 });
-
-
 
 export {
   addProf,
@@ -692,5 +755,5 @@ export {
   addRemark,
   groupAttendance,
   acceptedGroups,
-  mergeGroups
+  mergeGroups,
 };
