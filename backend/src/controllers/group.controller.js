@@ -138,10 +138,11 @@ const getGroup = asyncHandler(async (req, res) => {
 const getAppliedProfs = asyncHandler(async (req, res) => {
   const userid = req?.user?._id;
   const user = await User.findById(userid);
+  // yha pe error html me jaa r
+  if(!user.group) throw new ApiError(409, "Not in any group")
   const group = await Group.findById({ _id: user.group });
   if (!group) throw new ApiError(409, "Group not found");
   let prof = null;
-
   if (group.summerAllocatedProf) {
     prof = await Professor.findById({ _id: group?.summerAllocatedProf });
   }
