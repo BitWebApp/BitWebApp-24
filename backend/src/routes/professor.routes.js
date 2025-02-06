@@ -20,7 +20,9 @@ import {
   addRemark,
   groupAttendance,
   acceptedGroups,
-  mergeGroups
+  mergeGroups,
+  otpForgotPassword,
+  changePassword
 } from "../controllers/professor.controller.js";
 
 const router = Router();
@@ -45,6 +47,8 @@ router.route("/deny-group").post(verifyProfessor, denyGroup);
 router.route("/accept-group").post(verifyProfessor, acceptGroup);
 router.route("/add-remark").post(verifyProfessor, addRemark);
 router.route("/meet-attend").post(verifyProfessor, groupAttendance);
+router.route("/forgot-pass").post(otpForgotPassword);
+router.route("/change-pass").post(changePassword);
 router.route("/accepted-groups").get(verifyProfessor, acceptedGroups);
 router.route("/merge-groups").post(verifyProfessor, mergeGroups);
 
