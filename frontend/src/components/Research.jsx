@@ -24,9 +24,8 @@ const Research = () => {
 
       console.log(appliedProfsResponse);
 
-      const { summerAppliedProfs, isSummerAllocated, prof } =
+      const { isSummerAllocated, prof, summerAppliedProfs } =
         appliedProfsResponse?.data?.data || {};
-
       const sortedProfessors = allProfsResponse.data.message.sort((a, b) => {
         const seatsA =
           a.limits.summer_training - a.currentCount.summer_training;
@@ -35,7 +34,7 @@ const Research = () => {
         return seatsB - seatsA;
       });
 
-      setAppliedProfessors(summerAppliedProfs.map((prof) => prof._id));
+      setAppliedProfessors(summerAppliedProfs);
 
       if (isSummerAllocated && prof) setAllocatedProf(prof);
 
@@ -120,17 +119,17 @@ const Research = () => {
                   const seatsAvailable =
                     prof.limits.summer_training - prof.currentCount.summer_training;
                   const isApplied = appliedProfessors.includes(prof._id);
+                  console.log(appliedProfessors)
                   const isAllocated = allocatedProf?._id === prof._id;
                   const isDisabled = isApplied || isAllocated || seatsAvailable === 0;
                   
-                  let seatStatus = "";
-                  if (seatsAvailable === 0) {
-                    seatStatus = "❌ No Seats Available";
-                  } else if (seatsAvailable < 3) {
-                    seatStatus = "⚠️ High Demand";
-                  } else {
-                    seatStatus = "✅ Available";
-                  }
+                  let seatStatus = isApplied
+                    ? "✅ Applied"
+                    : seatsAvailable === 0
+                    ? "❌ No Seats Available"
+                    : seatsAvailable < 3
+                    ? "⚠️ High Demand"
+                    : "✅ Available";
 
                   return (
                     <tr key={prof._id} className="hover:bg-gray-50">

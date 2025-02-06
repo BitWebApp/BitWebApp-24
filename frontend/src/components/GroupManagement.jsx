@@ -42,7 +42,6 @@ const GroupManagement = () => {
       console.log(response.data.data);
       setGroup(response.data.data);
     } catch (error) {
-      handleError(error, "Failed to fetch group details");
       setGroup(null);
     }
     setLoading(false);
@@ -64,6 +63,7 @@ const GroupManagement = () => {
       });
       setGroup(response.data.data);
       toast.success("Group created successfully");
+      fetchGroup()
     } catch (error) {
       handleError(error, "Failed to create group");
     }
@@ -171,7 +171,7 @@ const GroupManagement = () => {
                         </td>
                         <td className="border border-gray-300 px-4 py-2">
                           <button
-                            onClick={() => removeMember(member.rollNumber)}
+                            onClick={() => removeMember(member.rollNumber.toUpperCase())}
                             className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
                           >
                             Remove
