@@ -110,7 +110,7 @@ const HigherEduTable = () => {
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Higher Education Records");
-
+  
     worksheet.columns = [
       { header: "Institution", key: "institution", width: 25 },
       { header: "Degree", key: "degree", width: 20 },
@@ -119,9 +119,25 @@ const HigherEduTable = () => {
       { header: "End Date", key: "endDate", width: 15 },
       { header: "Supporting Docs", key: "docs", width: 30 },
     ];
-
+  
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: "FFFFFF" } };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "4472C4" }, 
+      };
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+    });
+  
     filteredHigherEducations.forEach((record, index) => {
-      worksheet.addRow({
+      const row = worksheet.addRow({
         institution: record.institution,
         degree: record.degree,
         fieldOfStudy: record.fieldOfStudy,
@@ -129,8 +145,27 @@ const HigherEduTable = () => {
         endDate: record.endDate.substring(0, 10),
         docs: record.docs.join(", "),
       });
+  
+      if (index % 2 === 0) {
+        row.eachCell((cell) => {
+          cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "DDEBF7" },
+          };
+        });
+      }
+  
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+      });
     });
-
+  
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
