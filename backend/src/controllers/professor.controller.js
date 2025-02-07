@@ -633,6 +633,30 @@ const acceptGroup = asyncHandler(async (req, res) => {
   }
 });
 
+//***************************************************************** */
+const getAllInternshipRecords = asyncHandler(async (req, res) => {
+  const internships = await Internship.find()
+    .populate({
+      path: "student",
+      select: "rollNumber fullName email branch section",
+    })
+    .populate({
+      path: "mentor",
+      select: "fullName",
+    })
+    .populate({
+      path: "company",
+      select: "companyName",
+    })
+    .select("type location");
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, "All Internship records", internships));
+});
+
+//******************************************************************** */
+
 const acceptedGroups = asyncHandler(async (req, res) => {
   const profId = req?.professor?._id;
   const professor = await Professor.findById(profId);
@@ -921,4 +945,5 @@ export {
   mergeGroups,
   otpForgotPassword,
   changePassword,
+  getAllInternshipRecords,
 };
