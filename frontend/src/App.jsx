@@ -75,6 +75,7 @@ import IncreaseLimit from "./components/IncreaseLimit";
 import ClassroomBookingCalendar from "./components/ClassroomBookingCalendar";
 import GroupManagement from "./components/GroupManagement";
 import FacultyForgotPassword from "./components/FacultyForgotPassword";
+import MajorProject from "./components/MajorProject";
 
 export default function App() {
   return (
@@ -122,6 +123,8 @@ export default function App() {
           <Route path="manage-group" element={<GroupManagement />} />
           <Route path="room-status" element={<RoomStatus />} />
           <Route path="booked-rooms" element={<BookedRooms />} />
+          <Route path="major-project" element={<MajorProject />} />
+          <Route path="minor-project" element={<MajorProject />} />
           <Route
             path="booking-calendar"
             element={<ClassroomBookingCalendar />}
@@ -177,6 +180,8 @@ export default function App() {
         >
           <Route index element={<Dashboard />} />
           <Route path="accept-students" element={<AcceptStudents />} />
+          <Route path="major-project" element={<MajorProject />} />
+          <Route path="minor-project" element={<MajorProject />} />
         </Route>
         <Route path="/sg" element={<Signup />} />
         <Route path="/log.a" element={<Loginadmin />} />

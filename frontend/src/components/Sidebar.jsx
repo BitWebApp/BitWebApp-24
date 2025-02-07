@@ -12,6 +12,9 @@ import {
   HiOutlineBriefcase,
   HiPresentationChartLine,
   HiBriefcase,
+  HiChat,
+  HiSun,
+  HiUserGroup,
 } from "react-icons/hi";
 import { FaCalendar } from "react-icons/fa";
 import { motion } from "framer-motion";
@@ -20,6 +23,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import useLinks from "./admin/user-links";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+
 const linkclasses =
   "flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base";
 
@@ -39,14 +43,7 @@ export default function Sidebar() {
     },
   };
   const [isOpen, setIsOpen] = useState(true);
-  // const [isAdmin, setIsAdmin] = useState(true);
-
-  // useEffect(() => {
-  //     const user = JSON.parse(localStorage.getItem("user"));
-  //             setIsAdmin(user.username === "admin");
-  // }, []);
-
-  // const links = isAdmin ? adminLinks : additionalLinks;
+  
   const additionalLinks = [
     {
       text: "Dashboard",
@@ -65,7 +62,7 @@ export default function Sidebar() {
     },
     {
       text: "Backlogs",
-      icon: <HiAcademicCap />,
+      icon: <HiDocumentReport />,
       to: "/db/backlogs",
     },
     {
@@ -90,7 +87,7 @@ export default function Sidebar() {
     },
     {
       text: "Placement Records",
-      icon: <HiOutlineBriefcase />,
+      icon: <HiBriefcase />,
       to: "/db/placement",
     },
     {
@@ -98,17 +95,30 @@ export default function Sidebar() {
       icon: <HiPresentationChartLine />,
       to: "/db/project-form",
     },
-    { text: "Internships", icon: <HiBriefcase />, to: "/db/internship-form" },
+    {
+      text: "Internships",
+      icon: <HiBriefcase />,
+      to: "/db/internship-form",
+    },
     {
       text: "Interview Experience",
-      icon: <HiBriefcase />,
+      icon: <HiChat />,
       to: "/db/interview",
     },
-
     {
       text: "Request Classroom",
-      icon: <HiBriefcase />,
+      icon: <HiChat />,
       to: "/db/classroom-form",
+    },
+    {
+      text: "Major Project",
+      icon: <HiPresentationChartLine />,
+      to: "/db/major-project",
+    },
+    {
+      text: "Minor Project",
+      icon: <HiPresentationChartLine />,
+      to: "/db/minor-project",
     },
     {
       text: "Check Classroom Bookings",
@@ -117,18 +127,18 @@ export default function Sidebar() {
     },
     {
       text: "Summer Training",
-      icon: <HiPresentationChartLine />,
+      icon: <HiSun />,
       to: "/db/apply-summer",
     },
     {
       text: "Manage Group",
-      icon: <HiPresentationChartLine />,
+      icon: <HiUserGroup />,
       to: "/db/manage-group",
     },
   ];
-
   const links = additionalLinks;
   const navigate = useNavigate();
+  
   const handleLogout = async () => {
     try {
       const response = await axios.post("/api/v1/users/logout");
@@ -137,14 +147,6 @@ export default function Sidebar() {
       navigate("/");
     } catch (error) {
       console.log(error);
-      // try {
-      //   const resp = await axios.post("/api/v1/admin/logout");
-      //   console.log(resp);
-      //   localStorage.removeItem("user");
-      //   navigate("/");
-      // } catch (err) {
-      //   console.log(err);
-      // }
     } finally {
       navigate("/");
     }
