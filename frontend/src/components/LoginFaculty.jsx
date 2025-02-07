@@ -77,7 +77,7 @@ export default function LoginFaculty() {
           <div className="flex justify-between">
             <label className="block text-left text-sm mb-1">Password</label>
             <Link
-              to="/faculty-forget-password"
+              to="/forgot-password"
               className="text-sm text-blue-500 hover:underline"
             >
               Forget password?
