@@ -5,6 +5,7 @@ import { User } from "../models/user.model.js";
 import { Group } from "../models/group.model.js";
 import { customAlphabet, nanoid } from "nanoid";
 import { Professor } from "../models/professor.model.js";
+import { Company } from "../models/company.model.js";
 
 const createGroup = asyncHandler(async (req, res) => {
   const leader = req?.user?._id;
@@ -24,13 +25,14 @@ const createGroup = asyncHandler(async (req, res) => {
     );
   }
   let newGroup;
-
   if (org) {
+    const company = await Company.findById(org);
+    if (!company) throw new ApiError(404, "Company not found");
     newGroup = await Group.create({
       groupId: nanoid(),
       leader,
       members,
-      type: "industrial",
+      type: "summer",
       typeOfSummer: typeofSummer,
       org,
     });
@@ -54,12 +56,14 @@ const createGroup = asyncHandler(async (req, res) => {
 });
 
 const addMember = asyncHandler(async (req, res) => {
-  const loggedIn = req?.user?._id
+  const loggedIn = req?.user?._id;
   const { rollNumber, groupId } = req.body;
   console.log(groupId);
   const group = await Group.findById({ _id: groupId });
   if (!group) throw new ApiError(404, "Group not found");
-  if(group.leader!==loggedIn) throw new ApiError(409, "Only Leader can add");
+  if (!group.leader.equals(loggedIn)) {
+    throw new ApiError(409, "Only Leader can add");
+  }
   if (group.summerAllocatedProf) {
     throw new ApiError(409, "Cannot add member after faculty allocation");
   }
@@ -73,17 +77,20 @@ const addMember = asyncHandler(async (req, res) => {
 });
 
 const removeMember = asyncHandler(async (req, res) => {
-  const loggedIn = req?.user?._id
+  const loggedIn = req?.user?._id;
   const { rollNumber, groupId } = req.body;
   const group = await Group.findById({ _id: groupId });
   if (!group) throw new ApiError(404, "Group not found");
-  if(group.leader!==loggedIn) throw new ApiError(409, "Only Leader can remove");
+  if (!group.leader.equals(loggedIn)) {
+    throw new ApiError(409, "Only Leader can remove");
+  }
   if (group.summerAllocatedProf) {
     throw new ApiError(409, "Cannot remove member after faculty allocation");
   }
   const user = await User.findOne({ rollNumber });
   if (!user.group) throw new ApiError(409, "Not in a group");
-  if(group.leader===user?._id) throw new ApiError(409, "Leader cannot be removed");
+  if (group.leader === user?._id)
+    throw new ApiError(409, "Leader cannot be removed");
   group.members.pull(user?._id);
   user.group = null;
   await user.save();
@@ -92,7 +99,7 @@ const removeMember = asyncHandler(async (req, res) => {
 });
 
 const applyToFaculty = asyncHandler(async (req, res) => {
-  const loggedIn = req?.user?._id
+  const loggedIn = req?.user?._id;
   const { facultyId } = req.body;
   const userId = req?.user?._id;
   const user = await User.findById(userId);
@@ -104,7 +111,9 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   const groupId = user.group;
   const group = await Group.findById({ _id: groupId });
   if (!group) throw new ApiError(404, "Group not found");
-  if(group.leader!==loggedIn) throw new ApiError(409, "Only Leader can apply to faculty");
+  if (!group.leader.equals(loggedIn)) {
+    throw new ApiError(409, "Only Leader can apply to faculty");
+  }
   if (group.deniedProf.includes(facultyId))
     throw new ApiError(409, "Denied by this professor");
   if (group.summerAllocatedProf)
@@ -146,7 +155,7 @@ const getAppliedProfs = asyncHandler(async (req, res) => {
   const userid = req?.user?._id;
   const user = await User.findById(userid);
   // yha pe error html me jaa r
-  if(!user.group) throw new ApiError(409, "Not in any group")
+  if (!user.group) throw new ApiError(409, "Not in any group");
   const group = await Group.findById({ _id: user.group });
   if (!group) throw new ApiError(409, "Group not found");
   let prof = null;
