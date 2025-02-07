@@ -96,11 +96,6 @@ export default function Sidebar() {
       to: "/db/project-form",
     },
     {
-      text: "Internships",
-      icon: <HiBriefcase />,
-      to: "/db/internship-form",
-    },
-    {
       text: "Interview Experience",
       icon: <HiChat />,
       to: "/db/interview",
