@@ -30,10 +30,30 @@ const GroupManagement = () => {
   const [rollNumber, setRollNumber] = useState("");
   const [typeofSummer, setTypeofSummer] = useState("");
   const [org, setOrg] = useState("");
+  const [companies, setCompanies] = useState([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
 
   useEffect(() => {
     fetchGroup();
   }, []);
+
+  useEffect(() => {
+    if (typeofSummer === "industrial") {
+      fetchCompanies();
+    }
+  }, [typeofSummer]);
+
+  const fetchCompanies = async () => {
+    setLoadingCompanies(true);
+    try {
+      const response = await axios.get("/api/v1/admin/get-companies");
+      setCompanies(response.data.data);
+    } catch (error) {
+      handleError(error, "Failed to fetch companies");
+      setCompanies([]);
+    }
+    setLoadingCompanies(false);
+  };
 
   const fetchGroup = async () => {
     setLoading(true);
@@ -52,7 +72,7 @@ const GroupManagement = () => {
       return toast.error("Type of summer internship is required");
     if (typeofSummer === "industrial" && !org)
       return toast.error(
-        "Organisation Name is required for industrial internship"
+        "Organisation selection is required for industrial internship"
       );
 
     setLoading(true);
@@ -63,7 +83,7 @@ const GroupManagement = () => {
       });
       setGroup(response.data.data);
       toast.success("Group created successfully");
-      fetchGroup()
+      fetchGroup();
     } catch (error) {
       handleError(error, "Failed to create group");
     }
@@ -193,7 +213,10 @@ const GroupManagement = () => {
               <div className="flex flex-col space-y-4">
                 <select
                   value={typeofSummer}
-                  onChange={(e) => setTypeofSummer(e.target.value)}
+                  onChange={(e) => {
+                    setTypeofSummer(e.target.value);
+                    setOrg(""); // Reset org when type changes
+                  }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select Type of Internship</option>
@@ -201,13 +224,19 @@ const GroupManagement = () => {
                   <option value="industrial">Industrial</option>
                 </select>
                 {typeofSummer === "industrial" && (
-                  <input
-                    type="text"
+                  <select
                     value={org}
                     onChange={(e) => setOrg(e.target.value)}
-                    placeholder="Enter Organization Name"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                    disabled={loadingCompanies}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  >
+                    <option value="">Select Company</option>
+                    {companies.map((company) => (
+                      <option key={company._id} value={company._id}>
+                        {company.companyName}
+                      </option>
+                    ))}
+                  </select>
                 )}
                 <button
                   onClick={createGroup}
