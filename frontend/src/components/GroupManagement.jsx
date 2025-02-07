@@ -29,11 +29,23 @@ const GroupManagement = () => {
   const [loading, setLoading] = useState(false);
   const [rollNumber, setRollNumber] = useState("");
   const [typeofSummer, setTypeofSummer] = useState("");
-  const [org, setOrg] = useState("");
-
+  const [company, setCompany] = useState([]);
+  const [org, setOrg] = useState('');
   useEffect(() => {
+    fetchCompanies();
     fetchGroup();
   }, []);
+
+  const fetchCompanies = async () => {
+    try {
+      const { data } = await axios.get("/api/v1/users/get-user-companies");
+      console.log(data)
+      setCompany(data?.data || []);
+    } catch (error) {
+      console.error("Error fetching companies:", error);
+      toast.error("Failed to load company list!");
+    }
+  };
 
   const fetchGroup = async () => {
     setLoading(true);
@@ -201,13 +213,12 @@ const GroupManagement = () => {
                   <option value="industrial">Industrial</option>
                 </select>
                 {typeofSummer === "industrial" && (
-                  <input
-                    type="text"
-                    value={org}
-                    onChange={(e) => setOrg(e.target.value)}
-                    placeholder="Enter Organization Name"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <select onClick={(e) => setOrg(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option> Select Company</option>
+                  {company?.map((ele, index) => 
+                    <option value={ele._id}>{ele.companyName}</option>
+                  )}
+                  </select>
                 )}
                 <button
                   onClick={createGroup}

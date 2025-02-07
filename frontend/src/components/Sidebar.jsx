@@ -98,7 +98,6 @@ export default function Sidebar() {
       icon: <HiPresentationChartLine />,
       to: "/db/project-form",
     },
-    { text: "Internships", icon: <HiBriefcase />, to: "/db/internship-form" },
     {
       text: "Interview Experience",
       icon: <HiBriefcase />,

@@ -1,6 +1,29 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { toast, Toaster } from "react-hot-toast";
+
+const extractErrorMessage = (htmlString) => {
+  const match = htmlString.match(/<pre>(.*?)<\/pre>/s);
+  if (match && match[1]) {
+    return match[1].split("<br>")[0].replace("Error: ", "").trim();
+  }
+  return "An unknown error occurred";
+};
+
+const handleError = (error, defaultMessage) => {
+  console.error("Full error:", error);
+
+  let message = defaultMessage;
+  if (error.response) {
+    if (typeof error.response.data === "string") {
+      message = extractErrorMessage(error.response.data);
+    } else if (error.response.data?.message) {
+      message = error.response.data.message;
+    }
+  }
+  toast.error(message);
+};
 
 const Research = () => {
   const [professors, setProfessors] = useState([]);
@@ -21,9 +44,6 @@ const Research = () => {
           axios.get("/api/v1/prof/getProf"),
           axios.get("/api/v1/group/get-app-profs")
         ]);
-
-      console.log(appliedProfsResponse);
-
       const { isSummerAllocated, prof, summerAppliedProfs } =
         appliedProfsResponse?.data?.data || {};
       const sortedProfessors = allProfsResponse.data.message.sort((a, b) => {
@@ -44,11 +64,7 @@ const Research = () => {
     } catch (error) {
       console.error(error);
       setLoading(false);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Failed to fetch data. Please try again later.",
-      });
+      handleError(error)
     }
   };
 
@@ -91,6 +107,8 @@ const Research = () => {
   };
 
   return (
+    <>
+    <Toaster position="top-right" />
     <div className="container mx-auto p-6">
       {allocatedProf ? (
         <div className="text-center bg-green-100 p-6 rounded-lg shadow-md">
@@ -170,6 +188,7 @@ const Research = () => {
         </>
       )}
     </div>
+    </>
   );
 };
 

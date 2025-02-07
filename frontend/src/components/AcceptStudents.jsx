@@ -5,6 +5,7 @@ const AcceptStudents = () => {
   const [appliedGroups, setAppliedGroups] = useState([]);
   const [acceptedGroups, setAcceptedGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
+  const [selectedAcceptedGroups, setSelectedAcceptedGroups] = useState([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -27,6 +28,31 @@ const AcceptStudents = () => {
     setSelectedGroup(selectedGroup === group._id ? null : group._id);
   };
 
+  const handleAcceptedGroupSelect = (groupId) => {
+    setSelectedAcceptedGroups((prev) =>
+      prev.includes(groupId)
+        ? prev.filter((id) => id !== groupId)
+        : [...prev, groupId]
+    );
+  };
+
+  const mergeGroups = async () => {
+    if (selectedAcceptedGroups.length < 2) {
+      setError("Select at least two groups to merge.");
+      return;
+    }
+    try {
+      const response = await axios.post("/api/v1/prof/merge-groups", {
+        groupIds: selectedAcceptedGroups,
+      });
+      setMessage(response.data.message);
+      setSelectedAcceptedGroups([]);
+      setError("");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to merge groups.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-50 to-blue-100 p-8">
       <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-xl p-6">
@@ -42,6 +68,7 @@ const AcceptStudents = () => {
                 <table className="min-w-full bg-white border border-gray-200">
                   <thead>
                     <tr>
+                      {title === "Accepted Groups" && <th className="px-4 py-2 border">Select</th>}
                       <th className="px-4 py-2 border">Group ID</th>
                       <th className="px-4 py-2 border">Number of Members</th>
                       <th className="px-4 py-2 border">Actions</th>
@@ -51,6 +78,15 @@ const AcceptStudents = () => {
                     {groups.map((group) => (
                       <React.Fragment key={group._id}>
                         <tr className="hover:bg-gray-50">
+                          {title === "Accepted Groups" && (
+                            <td className="px-4 py-2 border text-center">
+                              <input
+                                type="checkbox"
+                                checked={selectedAcceptedGroups.includes(group._id)}
+                                onChange={() => handleAcceptedGroupSelect(group._id)}
+                              />
+                            </td>
+                          )}
                           <td className="px-4 py-2 border text-center">{group.groupId}</td>
                           <td className="px-4 py-2 border text-center">{group.members.length} members</td>
                           <td className="px-4 py-2 border text-center">
@@ -61,43 +97,21 @@ const AcceptStudents = () => {
                         </tr>
                         {selectedGroup === group._id && (
                           <tr>
-                            <td colSpan="3" className="border bg-gray-100">
+                            <td colSpan={title === "Accepted Groups" ? "4" : "3"} className="border bg-gray-100">
                               <div className="p-4">
                                 <h4 className="text-lg font-semibold text-gray-700">Members</h4>
                                 <table className="min-w-full bg-white border border-gray-300 mt-2">
                                   <thead>
                                     <tr>
-                                      <th className="px-4 py-2 border">Avatar</th>
                                       <th className="px-4 py-2 border">Full Name</th>
                                       <th className="px-4 py-2 border">Roll Number</th>
-                                      <th className="px-4 py-2 border">Branch</th>
-                                      <th className="px-4 py-2 border">Section</th>
-                                      <th className="px-4 py-2 border">LinkedIn</th>
-                                      <th className="px-4 py-2 border">Coding Profiles</th>
-                                      <th className="px-4 py-2 border">CGPA</th>
                                     </tr>
                                   </thead>
                                   <tbody>
                                     {group.members.map((member) => (
                                       <tr key={member._id} className="hover:bg-gray-50">
-                                        <td className="px-4 py-2 border"><img src={member.image} alt="Avatar" className="w-10 h-10 rounded-full" /></td>
                                         <td className="px-4 py-2 border">{member.fullName}</td>
                                         <td className="px-4 py-2 border">{member.rollNumber}</td>
-                                        <td className="px-4 py-2 border">{member.branch}</td>
-                                        <td className="px-4 py-2 border">{member.section}</td>
-                                        <td className="px-4 py-2 border"><a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">LinkedIn</a></td>
-                                        <td className="px-4 py-2 border">
-                                          <div className="flex flex-col space-y-1">
-                                            {Object.entries(member.codingProfiles || {}).map(([key, value]) =>
-                                              value && (
-                                                <a key={key} href={value} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                                                  {key.charAt(0).toUpperCase() + key.slice(1)}
-                                                </a>
-                                              )
-                                            )}
-                                          </div>
-                                        </td>
-                                        <td className="px-4 py-2 border text-center">{member.cgpa || "N/A"}</td>
                                       </tr>
                                     ))}
                                   </tbody>
@@ -116,6 +130,11 @@ const AcceptStudents = () => {
             )}
           </div>
         ))}
+        {selectedAcceptedGroups.length > 1 && (
+          <div className="mt-6 text-center">
+            <button onClick={mergeGroups} className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Merge Selected Groups</button>
+          </div>
+        )}
       </div>
     </div>
   );
