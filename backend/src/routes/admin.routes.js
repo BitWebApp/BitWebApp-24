@@ -12,7 +12,6 @@ import {
 } from "../controllers/admin.controller.js";
 import { addbacklogSubject } from "../controllers/backlog.controller.js";
 
-import { getAllInternshipRecords } from "../controllers/professor.controller.js";
 import {
   addCompany,
   getAllCompanies,
@@ -31,6 +30,5 @@ router.route("/rejectUser").patch(verifyAdmin, rejectUser);
 router.route("/add-company").post(verifyAdmin, addCompany);
 router.route("/get-companies").get(getAllCompanies);
 router.route("/assign-company").post(verifyAdmin, assignCompany);
-router.route("/internship-records").get(verifyAdmin, getAllInternshipRecords);
 
 export default router;

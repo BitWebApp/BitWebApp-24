@@ -527,8 +527,11 @@ const denyGroup = asyncHandler(async (req, res) => {
   const group = await Group.findById({ _id });
   if (!group) throw new ApiError(409, "Group not exists");
   group.summerAppliedProfs.pull(profId);
+  const prof = await Professor.findById(profId);
+  prof.appliedGroups.summer_training.pull(_id);
   group.deniedProf.push(profId);
   await group.save();
+  await prof.save();
   if (group.summerAppliedProfs.length > 0) {
     const profToApply = group.summerAppliedProfs[0];
     const prof = await Professor.findById({ _id: profToApply });
@@ -632,30 +635,6 @@ const acceptGroup = asyncHandler(async (req, res) => {
     );
   }
 });
-
-//***************************************************************** */
-const getAllInternshipRecords = asyncHandler(async (req, res) => {
-  const internships = await Internship.find()
-    .populate({
-      path: "student",
-      select: "rollNumber fullName email branch section",
-    })
-    .populate({
-      path: "mentor",
-      select: "fullName",
-    })
-    .populate({
-      path: "company",
-      select: "companyName",
-    })
-    .select("type location");
-
-  res
-    .status(200)
-    .json(new ApiResponse(200, "All Internship records", internships));
-});
-
-//******************************************************************** */
 
 const acceptedGroups = asyncHandler(async (req, res) => {
   const profId = req?.professor?._id;
@@ -775,7 +754,6 @@ const mergeGroups = asyncHandler(async (req, res) => {
     summerAllocatedProf: profId,
   });
   // delete accepted students from prof model and add new one
-
   await newGroup.save();
   return res
     .status(200)
@@ -945,5 +923,4 @@ export {
   mergeGroups,
   otpForgotPassword,
   changePassword,
-  getAllInternshipRecords,
 };

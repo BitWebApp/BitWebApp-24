@@ -68,10 +68,14 @@ import AdminAddCompanies from "./components/AdminAddCompanies";
 import CompanyAssignmentForm from "./components/CompanyAssignmentForm";
 import AdminApplications from "./components/AdminApplications";
 import AdminApplicationDetails from "./components/AdminApplicationDetails";
+import ViewProfProjectDetails from "./components/ViewProfProjectDetails";
+import StudentProjectDashboard from "./components/StudentProjectDashboard";
+import StudentViewProfProjectDetails from "./components/StudentViewProfProjectDetails";
+import StudentApplyProject from "./components/StudentApplyProject";
 import AcceptStudents from "./components/AcceptStudents";
 import { HashLoader, SyncLoader } from "react-spinners";
 import IncreaseLimit from "./components/IncreaseLimit";
-// import AdminDashboard from "./components/AdminDashboard"
+import AdminDashboard from "./components/AdminDashboard"
 import ClassroomBookingCalendar from "./components/ClassroomBookingCalendar";
 import GroupManagement from "./components/GroupManagement";
 import FacultyForgotPassword from "./components/FacultyForgotPassword";
@@ -100,6 +104,10 @@ export default function App() {
         >
           <Route index element={<Dashboard />} />
           <Route path="alumni" element={<Alumni />} />
+           
+          <Route path="student-projects-dashboard" element={< StudentProjectDashboard />} />
+          <Route path="student-prof-project/:id" element={< StudentViewProfProjectDetails />} />
+          <Route path="student-apply-project/:id" element={< StudentApplyProject />} />
           <Route path="academic-table" element={<AcademicTable />} />
           <Route path="backlogs" element={<AddBacklog />} />
           <Route path="PE-form" element={<PECourseForm />} />
@@ -159,8 +167,10 @@ export default function App() {
           <Route path="assign-company" element={<CompanyAssignmentForm />} />
           <Route path="add-prof" element={<AddProfessor />} />
           <Route path="review" element={<Review />} />
-          {/* <Route path="admin-projects-dashboard" element={<AdminDashboard />} /> */}
+          <Route path="admin-projects-dashboard" element={<AdminDashboard />} />
           <Route path="student-award-table" element={<StudentAwardTable />} />
+          <Route path="admin-projects-dashboard" element={<AdminDashboard />} />
+          <Route path="prof-project/:id" element={<ViewProfProjectDetails />} />
           <Route path="backlogs-table" element={<BacklogTable />} />
           <Route path="PE-table" element={<PeCoursesTable />} />
           <Route path="admin-applications" element={<AdminApplications />} />

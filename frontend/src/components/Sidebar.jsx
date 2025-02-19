@@ -130,6 +130,11 @@ export default function Sidebar() {
       icon: <HiUserGroup />,
       to: "/db/manage-group",
     },
+    {
+      text: "Prof Project",
+      icon: <HiUserGroup />,
+      to: "/db/student-projects-dashboard",
+    },
   ];
   const links = additionalLinks;
   const navigate = useNavigate();
