@@ -5,6 +5,7 @@ const AcceptStudents = () => {
   const [appliedGroups, setAppliedGroups] = useState([]);
   const [acceptedGroups, setAcceptedGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
+  const [selectedAcceptedGroups, setSelectedAcceptedGroups] = useState([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -15,8 +16,8 @@ const AcceptStudents = () => {
         setAppliedGroups(appliedResponse.data.data);
 
         const acceptedResponse = await axios.get("/api/v1/prof/accepted-groups");
-        console.log(acceptedGroups)
-        setAcceptedGroups(acceptedResponse.data.data);
+        console.log(acceptedGroups);
+        setAcceptedGroups(acceptedResponse.data.message);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to fetch groups.");
       }
@@ -32,7 +33,7 @@ const AcceptStudents = () => {
     try {
       const response = await axios.post("/api/v1/prof/accept-group", { _id: groupId });
       setMessage(response.data.message);
-      if(response.status === 200) window.location.reload()
+      if (response.status === 200) window.location.reload();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to accept group.");
     }
@@ -41,11 +42,33 @@ const AcceptStudents = () => {
   const handleDenyGroup = async (groupId) => {
     try {
       const response = await axios.post("/api/v1/prof/deny-group", { _id: groupId });
-      console.log(response)
+      console.log(response);
       setMessage(response.data.message);
-      if(response.status === 200) window.location.reload()
+      if (response.status === 200) window.location.reload();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to deny group.");
+    }
+  };
+
+  // New function: Toggle group selection for accepted groups
+  const handleSelectAcceptedGroup = (groupId) => {
+    setSelectedAcceptedGroups((prev) =>
+      prev.includes(groupId) ? prev.filter((id) => id !== groupId) : [...prev, groupId]
+    );
+  };
+
+  // New function: Merge groups API call
+  const handleMergeGroups = async () => {
+    if (selectedAcceptedGroups.length < 2) {
+      setError("Select at least two groups to merge.");
+      return;
+    }
+    try {
+      const response = await axios.post("/api/v1/prof/merge-groups", { groupIds: selectedAcceptedGroups });
+      setMessage(response.data.message);
+      if (response.status === 200) window.location.reload();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to merge groups.");
     }
   };
 
@@ -56,14 +79,18 @@ const AcceptStudents = () => {
         {message && <p className="text-green-600 font-semibold text-center mb-4">{message}</p>}
         {error && <p className="text-red-600 font-semibold text-center mb-4">{error}</p>}
 
-        {[{ title: "Applied Groups", groups: appliedGroups }, { title: "Accepted Groups", groups: acceptedGroups }].map(({ title, groups }) => (
+        {[
+          { title: "Applied Groups", groups: appliedGroups },
+          { title: "Accepted Groups", groups: acceptedGroups }
+        ].map(({ title, groups }) => (
           <div key={title} className="mt-8">
             <h3 className={`text-xl font-semibold ${title === "Accepted Groups" ? "text-green-600" : "text-blue-600"} mb-4`}>{title}</h3>
-            { Array.isArray(groups) && groups?.length > 0 ? (
+            {Array.isArray(groups) && groups?.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full bg-white border border-gray-200">
                   <thead>
                     <tr>
+                      {title === "Accepted Groups" && <th className="px-4 py-2 border">Select</th>}
                       <th className="px-4 py-2 border">Group ID</th>
                       <th className="px-4 py-2 border">Number of Members</th>
                       <th className="px-4 py-2 border">Actions</th>
@@ -73,6 +100,15 @@ const AcceptStudents = () => {
                     {groups.map((group) => (
                       <React.Fragment key={group._id}>
                         <tr className="hover:bg-gray-50">
+                          {title === "Accepted Groups" && (
+                            <td className="px-4 py-2 border text-center">
+                              <input
+                                type="checkbox"
+                                checked={selectedAcceptedGroups.includes(group._id)}
+                                onChange={() => handleSelectAcceptedGroup(group._id)}
+                              />
+                            </td>
+                          )}
                           <td className="px-4 py-2 border text-center">{group.groupId}</td>
                           <td className="px-4 py-2 border text-center">{group.members.length} members</td>
                           <td className="px-4 py-2 border text-center">
@@ -89,7 +125,7 @@ const AcceptStudents = () => {
                         </tr>
                         {selectedGroup === group._id && (
                           <tr>
-                            <td colSpan="3" className="border bg-gray-100">
+                            <td colSpan={title === "Accepted Groups" ? "4" : "3"} className="border bg-gray-100">
                               <div className="p-4">
                                 <h4 className="text-lg font-semibold text-gray-700">Members</h4>
                                 <table className="min-w-full bg-white border border-gray-300 mt-2">
@@ -113,9 +149,21 @@ const AcceptStudents = () => {
                                         <td className="px-4 py-2 border">{member.rollNumber}</td>
                                         <td className="px-4 py-2 border">{member.cgpa}</td>
                                         <td className="px-4 py-2 border">{(member.branch==="computer science and engineering") ? "CSE" : (member.branch==="artificial intelligence and machine learning") ? "AIML": "NA"}</td>
-                                        <td className="px-4 py-2 border"><a href={member.codingProfiles.leetcode}><button className="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105">Click</button></a></td>
-                                        <td className="px-4 py-2 border"><a href={member.codingProfiles.github}><button className="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105">Click</button></a></td>
-                                        <td className="px-4 py-2 border"><a href={member.linkedin}><button className="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105">Click</button></a></td>
+                                        <td className="px-4 py-2 border">
+                                          <a href={member.codingProfiles.leetcode}>
+                                            <button className="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105">Click</button>
+                                          </a>
+                                        </td>
+                                        <td className="px-4 py-2 border">
+                                          <a href={member.codingProfiles.github}>
+                                            <button className="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105">Click</button>
+                                          </a>
+                                        </td>
+                                        <td className="px-4 py-2 border">
+                                          <a href={member.linkedin}>
+                                            <button className="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105">Click</button>
+                                          </a>
+                                        </td>
                                       </tr>
                                     ))}
                                   </tbody>
@@ -128,6 +176,13 @@ const AcceptStudents = () => {
                     ))}
                   </tbody>
                 </table>
+                {title === "Accepted Groups" && selectedAcceptedGroups.length > 1 && (
+                  <div className="text-center mt-4">
+                    <button onClick={handleMergeGroups} className="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600">
+                      Merge Selected Groups
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <p className="text-gray-600 text-center">No groups found.</p>

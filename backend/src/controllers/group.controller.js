@@ -168,6 +168,7 @@ const getAppliedProfs = asyncHandler(async (req, res) => {
       {
         summerAppliedProfs: group.summerAppliedProfs,
         isSummerAllocated: group.summerAllocatedProf ? true : false,
+        denied: group.deniedProf,
         prof,
       },
       "Applied profs and allocation details returned"

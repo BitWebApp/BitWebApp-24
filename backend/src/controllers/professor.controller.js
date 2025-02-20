@@ -711,18 +711,32 @@ const groupAttendance = asyncHandler(async (req, res) => {
 const mergeGroups = asyncHandler(async (req, res) => {
   const { groupIds, rollNumber } = req.body;
   const profId = req?.professor?._id;
+  
   if (!profId) {
     throw new ApiError(401, "Professor not authenticated");
   }
 
+  const prof = await Professor.findById({ _id: profId });
   const groups = await Group.find({ _id: { $in: groupIds } });
+
   if (!groups || groups.length === 0) {
     throw new ApiError(404, "Groups not found");
+  }
+
+  const allGroupsAreResearch = groups.every(
+    (group) => group.typeOfSummer === "research"
+  );
+  if (!allGroupsAreResearch) {
+    throw new ApiError(
+      403,
+      "All groups must be of type research to be merged"
+    );
   }
 
   const isValidProf = groups.every(
     (group) => group.summerAllocatedProf?.toString() === profId.toString()
   );
+
   if (!isValidProf) {
     throw new ApiError(
       403,
@@ -735,7 +749,11 @@ const mergeGroups = asyncHandler(async (req, res) => {
     allMembers = [...allMembers, ...group.members];
   });
 
-  const leader = allMembers.find((member) => member.rollNumber === rollNumber);
+  const uniqueMembers = Array.from(new Set(allMembers.map(m => m.toString())))
+    .map(id => allMembers.find(m => m._id.toString() === id));
+
+  const leader = uniqueMembers.find((member) => member.rollNumber === rollNumber);
+
   if (!leader) {
     throw new ApiError(
       404,
@@ -749,19 +767,36 @@ const mergeGroups = asyncHandler(async (req, res) => {
   const newGroup = new Group({
     groupId: nanoid(),
     leader: leader._id,
-    members: allMembers,
+    type: "summer",
+    typeOfSummer: "research",
+    members: uniqueMembers,
     summerAppliedProfs: [],
     summerAllocatedProf: profId,
   });
-  // delete accepted students from prof model and add new one
+
+  prof.students.summer_training = prof.students.summer_training.filter(
+    (group) => !groupIds.includes(group.toString())
+  );
+
+  prof.students.summer_training.push(newGroup._id);
+
+  await prof.save();
   await newGroup.save();
+
+  // For each student in the merged groups, update their group field to the new group object id
+  await Student.updateMany(
+    { _id: { $in: uniqueMembers.map((member) => member._id) } },
+    { $set: { group: newGroup._id } }
+  );
+
   return res
     .status(200)
     .json(new ApiResponse(200, "Groups merged successfully!", newGroup));
 });
 
+
+
 const otpForgotPassword = asyncHandler(async (req, res) => {
-  // console.log(req.body);
   const { email } = req.body;
   console.log(email);
   if (!email) {
