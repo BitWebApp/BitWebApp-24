@@ -14,6 +14,7 @@ import {
   HiPresentationChartLine,
   HiBriefcase,
   HiOutlineLogout,
+  HiUserGroup,
   HiArchive,
 } from "react-icons/hi";
 import useLinks from './admin/user-links';
