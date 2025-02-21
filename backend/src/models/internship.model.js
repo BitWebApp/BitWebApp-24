@@ -24,34 +24,11 @@ const internshipSchema = new Schema(
         return this.type === "industrial";
       },
     },
-    role: {
-      type: String,
-      uppercase: true,
-      required: function () {
-        return this.type === "industrial";
-      },
-    },
     mentor: {
       type: Schema.Types.ObjectId,
-      ref: 'Professor',
-      required: function () {
-        return this.type === "research";
-      },
+      ref: "Professor",
+      required: true,
     },
-    startDate: {
-      type: Date,
-      required: [true, "Start date is required!"],
-    },
-    endDate: {
-      type: Date,
-      required: [true, "End date is required!"],
-    },
-    doc: {
-      type: String,
-      required: function () {
-        return this.location === "outside_bit";
-      },
-    }
   },
   { timestamps: true }
 );

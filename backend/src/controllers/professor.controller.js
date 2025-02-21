@@ -7,7 +7,10 @@ import { Internship } from "../models/internship.model.js";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
+import { nanoid, customAlphabet } from "nanoid";
 import mongoose, { mongo } from "mongoose";
+import { Group } from "../models/group.model.js";
+import { Otp } from "../models/otp.model.js";
 const url = "https://bitacademia.vercel.app/faculty-login";
 
 const addProf = asyncHandler(async (req, res) => {
@@ -174,7 +177,7 @@ const addProf = asyncHandler(async (req, res) => {
 //         </body>
 //         `,
 //       };
-      
+
 //       await transporter.sendMail(mailOptions);
 
 //       const newProfessor = await Professor.create({
@@ -341,32 +344,36 @@ const applyToSummer = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, responseMessage.message, responseMessage));
 });
 
-//*************************************************************** */
-const getAppliedStudents = asyncHandler(async (req, res) => {
+const getAppliedGroups = asyncHandler(async (req, res) => {
   try {
     const profId = req.professor._id;
-    const professor = await Professor.findById(profId);
+
+    // Fetch professor and populate appliedGroups.summer_training
+    const professor = await Professor.findById(profId).populate({
+      path: "appliedGroups.summer_training",
+      populate: {
+        path: "members", // Populate members inside each group
+        select:
+          "fullName rollNumber email linkedin codingProfiles cgpa section branch image",
+      },
+    });
+
     if (!professor) {
       throw new ApiError(404, "Professor not found!");
     }
-    const students = await User.find({
-      summerAppliedProfs: profId,
-      isSummerAllocated: false,
-    });
+
+    const groups = professor.appliedGroups.summer_training || [];
+
     res
       .status(200)
       .json(
-        new ApiResponse(
-          200,
-          "Applied students retrieved successfully!",
-          students
-        )
+        new ApiResponse(200, groups, "Applied groups retrieved successfully!")
       );
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw new ApiError(
       500,
-      "Something went wrong while getting applied students!",
+      "Something went wrong while getting applied groups!",
       error.message
     );
   }
@@ -514,15 +521,441 @@ const getAcceptedStudents = asyncHandler(async (req, res) => {
     );
 });
 
+const denyGroup = asyncHandler(async (req, res) => {
+  const { _id } = req.body;
+  const profId = req?.professor?._id;
+  const group = await Group.findById({ _id });
+  if (!group) throw new ApiError(409, "Group not exists");
+  group.summerAppliedProfs.pull(profId);
+  const prof = await Professor.findById(profId);
+  prof.appliedGroups.summer_training.pull(_id);
+  group.deniedProf.push(profId);
+  await group.save();
+  await prof.save();
+  if (group.summerAppliedProfs.length > 0) {
+    const profToApply = group.summerAppliedProfs[0];
+    const prof = await Professor.findById({ _id: profToApply });
+    prof.appliedGroups.summer_training.push(_id);
+    await prof.save();
+  }
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, "Group denied and passed to next faculty in choice")
+    );
+});
+
+// const acceptGroup = asyncHandler(async(req, res) => {
+//   const {_id} = req.body;
+//   const profId = req?.professor?._id
+//   const prof = await Professor.findOne({_id: profId})
+//   const group = await Group.findById({_id})
+//   const numOfMem = group.members.length;
+//   if(prof.currentCount.summer_training+numOfMem>prof.limits.summer_training) throw new ApiError(409, "Limit will exceed, you cannot accept above the limit.")
+//   if(!group) throw new ApiError(409, "Group not exists")
+//   group.summerAllocatedProf = profId;
+//   group.summerAppliedProfs = [];
+//   await group.save();
+//   prof.currentCount.summer_training+=numOfMem;
+//   prof.appliedGroups.summer_training.pull(group._id)
+//   prof.students.summer_training.push(group._id)
+//   await prof.save();
+//   return res.status(200).json(new ApiResponse(200, "Group accepted"));
+// })
+
+const acceptGroup = asyncHandler(async (req, res) => {
+  const { _id } = req.body;
+  const profId = req?.professor?._id;
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const prof = await Professor.findById(profId).session(session);
+    const group = await Group.findById(_id).session(session);
+    if (!prof) {
+      throw new ApiError(404, "Professor not found");
+    }
+    if (!group) {
+      throw new ApiError(404, "Group not found");
+    }
+    const numOfMem = group.members.length;
+    if (
+      prof.currentCount.summer_training + numOfMem >
+      prof.limits.summer_training
+    ) {
+      throw new ApiError(
+        409,
+        "Limit will exceed, you cannot accept above the limit."
+      );
+    }
+    group.summerAllocatedProf = profId;
+    group.summerAppliedProfs = [];
+    await group.save({ session });
+    prof.currentCount.summer_training += numOfMem;
+    prof.appliedGroups.summer_training.pull(group._id);
+    prof.students.summer_training.push(group._id);
+    await prof.save({ session });
+    let internships;
+    if (group.typeOfSummer === "research") {
+      internships = group.members.map((studentId) => ({
+        student: studentId,
+        type: group.typeOfSummer,
+        location: "inside_bit",
+        mentor: profId,
+      }));
+    } else {
+      internships = group.members.map((studentId) => ({
+        student: studentId,
+        type: group.typeOfSummer,
+        location: "outside_bit",
+        company: group.org,
+        mentor: profId,
+      }));
+    }
+
+    // const internships = group.members.map((studentId) => ({
+    //   student: studentId,
+    //   type: group.typeOfSummer,
+    //   location:
+    //     group.typeOfSummer === "research" ? "inside_bit" : "outside_bit",
+    //   company: group.typeOfSummer === "industrial" ? group.org : null,
+    //   mentor: profId,
+    // }));
+    await Internship.insertMany(internships, { session });
+    await session.commitTransaction();
+    session.endSession();
+    return res.status(200).json(new ApiResponse(200, "Group accepted"));
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.log(error);
+    throw new ApiError(
+      500,
+      "Something went wrong while accepting group",
+      error.message
+    );
+  }
+});
+
+const acceptedGroups = asyncHandler(async (req, res) => {
+  const profId = req?.professor?._id;
+  const professor = await Professor.findById(profId);
+
+  if (!professor) {
+    throw new ApiError(404, "Professor not found!");
+  }
+
+  const groupIds = professor.students.summer_training;
+  const groups = await Group.find({ _id: { $in: groupIds } })
+    .populate("leader")
+    .populate("members")
+    .populate("summerAppliedProfs")
+    .populate("summerAllocatedProf")
+    .populate("deniedProf")
+    .populate({
+      path: "discussion.absent",
+    })
+    .populate({
+      path: "discussion.description",
+    });
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, "Accepted groups retrieved successfully!", groups)
+    );
+});
+
+const addRemark = asyncHandler(async (req, res) => {
+  const { remark, _id, discussionId } = req.body;
+  const group = await Group.findById(_id);
+  if (!group) {
+    throw new ApiError(404, "Group not found");
+  }
+  const discussion = group.discussion.id(discussionId);
+  if (!discussion) {
+    throw new ApiError(404, "Discussion entry not found");
+  }
+  discussion.remark = remark;
+  await group.save();
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Remark added successfully!", group));
+});
+
+const groupAttendance = asyncHandler(async (req, res) => {
+  const { absentees, _id, discussionId } = req.body;
+
+  const group = await Group.findById(_id);
+  if (!group) {
+    throw new ApiError(404, "Group not found");
+  }
+
+  const discussion = group.discussion.id(discussionId);
+  if (!discussion) {
+    throw new ApiError(404, "Discussion entry not found");
+  }
+
+  absentees.forEach((absenteeId) => {
+    if (!discussion.absent.includes(absenteeId)) {
+      discussion.absent.push(absenteeId);
+    }
+  });
+
+  await group.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Attendance updated successfully!", group));
+});
+
+const mergeGroups = asyncHandler(async (req, res) => {
+  const { groupIds, rollNumber } = req.body;
+  const profId = req?.professor?._id;
+  
+  if (!profId) {
+    throw new ApiError(401, "Professor not authenticated");
+  }
+
+  const prof = await Professor.findById({ _id: profId });
+  const groups = await Group.find({ _id: { $in: groupIds } });
+
+  if (!groups || groups.length === 0) {
+    throw new ApiError(404, "Groups not found");
+  }
+
+  const allGroupsAreResearch = groups.every(
+    (group) => group.typeOfSummer === "research"
+  );
+  if (!allGroupsAreResearch) {
+    throw new ApiError(
+      403,
+      "All groups must be of type research to be merged"
+    );
+  }
+
+  const isValidProf = groups.every(
+    (group) => group.summerAllocatedProf?.toString() === profId.toString()
+  );
+
+  if (!isValidProf) {
+    throw new ApiError(
+      403,
+      "Not all groups are allocated to the current professor"
+    );
+  }
+
+  let allMembers = [];
+  groups.forEach((group) => {
+    allMembers = [...allMembers, ...group.members];
+  });
+
+  const uniqueMembers = Array.from(new Set(allMembers.map(m => m.toString())))
+    .map(id => allMembers.find(m => m._id.toString() === id));
+
+  const leader = uniqueMembers.find((member) => member.rollNumber === rollNumber);
+
+  if (!leader) {
+    throw new ApiError(
+      404,
+      "Leader with given roll number not found in merged groups"
+    );
+  }
+
+  await Group.deleteMany({ _id: { $in: groupIds } });
+
+  const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
+  const newGroup = new Group({
+    groupId: nanoid(),
+    leader: leader._id,
+    type: "summer",
+    typeOfSummer: "research",
+    members: uniqueMembers,
+    summerAppliedProfs: [],
+    summerAllocatedProf: profId,
+  });
+
+  prof.students.summer_training = prof.students.summer_training.filter(
+    (group) => !groupIds.includes(group.toString())
+  );
+
+  prof.students.summer_training.push(newGroup._id);
+
+  await prof.save();
+  await newGroup.save();
+
+  // For each student in the merged groups, update their group field to the new group object id
+  await Student.updateMany(
+    { _id: { $in: uniqueMembers.map((member) => member._id) } },
+    { $set: { group: newGroup._id } }
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Groups merged successfully!", newGroup));
+});
+
+
+
+const otpForgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  console.log(email);
+  if (!email) {
+    throw new ApiError(400, "email is req");
+  }
+  const prof = await Professor.findOne({ email: email.toLowerCase() });
+  if (!prof) {
+    throw new ApiError(404, "Professor does not exists");
+  }
+  const otp = `${Math.floor(Math.random() * 9000 + 1000)}`;
+  await Otp.create({ email, otp });
+
+  const tOtp = await Otp.findOne({ email });
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.AUTH_EMAIL,
+      pass: process.env.AUTH_PASSWORD,
+    },
+  });
+
+  const mailOptions = {
+    from: process.env.AUTH_EMAIL,
+    to: email,
+    subject: "Forgot Password",
+    html: `
+        <html>
+        <head>
+          <style>
+            .email-container {
+              font-family: Arial, sans-serif;
+              line-height: 1.6;
+              max-width: 600px;
+              margin: 0 auto;
+              border: 1px solid #dddddd;
+              border-radius: 5px;
+              overflow: hidden;
+            }
+            .header {
+              background-color: #007bff;
+              color: white;
+              padding: 20px;
+              text-align: center;
+              font-size: 24px;
+            }
+            .content {
+              padding: 30px;
+              background-color: #ffffff;
+            }
+            .content p {
+              font-size: 18px;
+              margin: 0 0 15px;
+            }
+            .otp {
+              font-weight: bold;
+              color: #007bff;
+              font-size: 22px;
+            }
+            .footer {
+              background-color: #f2f2f2;
+              padding: 15px;
+              text-align: center;
+              font-size: 14px;
+              color: #888888;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="email-container">
+            <div class="header">
+              OTP for Verification
+            </div>
+            <div class="content">
+              <p>Hello,</p>
+              <p>Thank you for choosing BITAcademia. To reset your password, please use the following One-Time Password (OTP):</p>
+              <p class="otp">${tOtp.otp}</p>
+              <p>If you did not request this OTP, please ignore this email or contact our support team.</p>
+              <p>Best regards,</p>
+              <p>TEAM BITACADEMIA</p>
+            </div>
+            <div class="footer">
+              &copy; BITAcademia 2024. All rights reserved.
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+  };
+
+  transporter.sendMail(mailOptions, async (error) => {
+    if (error) {
+      console.log("Error sending email to:", email, error);
+    } else {
+      console.log("Email sent to:", email);
+    }
+  });
+  res.status(200).send("Mail sent!");
+});
+
+const changePassword = asyncHandler(async (req, res) => {
+  try {
+    const { email, otp, newpassword } = req.body;
+    if (!email || !otp || !newpassword)
+      throw new ApiError(400, "enter all fields");
+    const prof = await Professor.findOne({ email });
+    const otpverify = await Otp.find({
+      email,
+    });
+    if (otpverify.length <= 0) {
+      throw new ApiError(
+        401,
+        "Account record doesn't exist or has been verified already. please login"
+      );
+    }
+    const hashedOTP = otpverify[0].otp;
+    // console.log(hashedOTP)
+    const validOTP = otp === hashedOTP;
+    // console.log(validOTP)
+    if (!validOTP) {
+      throw new ApiError("Invalid code. Check your Inbox");
+    } else {
+      const savepass = await bcrypt.hash(newpassword, 12);
+      const response = await Professor.updateOne(
+        { _id: prof?._id },
+        { $set: { password: savepass } }
+      );
+      await Otp.deleteMany({ email });
+      return res.json({
+        status: "Verified",
+        message: "user email verified successfully",
+        response,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.json({
+      status: "Failed",
+      message: error.message,
+    });
+  }
+});
+
 export {
   addProf,
   getProf,
   loginProf,
   logoutProf,
   applyToSummer,
-  getAppliedStudents,
+  getAppliedGroups,
   selectSummerStudents,
   getcurrentProf,
   incrementLimit,
   getAcceptedStudents,
+  denyGroup,
+  acceptGroup,
+  addRemark,
+  groupAttendance,
+  acceptedGroups,
+  mergeGroups,
+  otpForgotPassword,
+  changePassword,
 };

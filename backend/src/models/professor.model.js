@@ -32,15 +32,15 @@ const professorSchema = new Schema(
     limits: {
       summer_training: {
         type: Number,
-        default: 5,
+        default: 6,
       },
       minor_project: {
         type: Number,
-        default: 5,
+        default: 6,
       },
       major_project: {
         type: Number,
-        default: 5,
+        default: 6,
       },
     },
     currentCount: {
@@ -61,19 +61,39 @@ const professorSchema = new Schema(
       summer_training: [
         {
           type: Schema.Types.ObjectId,
-          ref: "User",
+          ref: "Group",
         },
       ],
       minor_project: [
         {
           type: Schema.Types.ObjectId,
-          ref: "User",
+          ref: "Group",
         },
       ],
       major_project: [
         {
           type: Schema.Types.ObjectId,
-          ref: "User",
+          ref: "Group",
+        },
+      ],
+    },
+    appliedGroups: {
+      summer_training: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "Group",
+        },
+      ],
+      minor_project: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "Group",
+        },
+      ],
+      major_project: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "Group",
         },
       ],
     },

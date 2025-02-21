@@ -225,6 +225,10 @@ const userSchema = new Schema(
         ref: "Professor",
       },
     ],
+    group: {
+      type: Schema.Types.ObjectId,
+      ref: "Group"
+    },
     summerAllocatedProf: {
       type: Schema.Types.ObjectId,
       ref: "Professor",
@@ -232,6 +236,20 @@ const userSchema = new Schema(
     isSummerAllocated: {
       type: Boolean,
       default: false,
+    },
+    marks: {
+      summerTraining:{
+        type: Number,
+        default: 0
+      },
+      minorProject:{
+        type: Number,
+        default: 0
+      },
+      majorProject:{
+        type: Number,
+        default: 0
+      },
     },
     refreshToken: {
       type: String,

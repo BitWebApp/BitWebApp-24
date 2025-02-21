@@ -109,25 +109,60 @@ export default function ExamTable() {
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Exam Records");
-
+  
     worksheet.columns = [
-      { header: "Student", key: "name.fullName", width: 25 },
-      { header: "Roll No", key: "name.rollNumber", width: 20 },
+      { header: "Student", key: "fullName", width: 25 },
+      { header: "Roll No", key: "rollNumber", width: 20 },
       { header: "Exam Name", key: "examName", width: 25 },
       { header: "Score", key: "score", width: 15 },
       { header: "Supporting Docs", key: "docs", width: 30 },
     ];
-
+  
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: "FFFFFF" } };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "4472C4" },
+      };
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+    });
+  
     filteredExams.forEach((record, index) => {
-      worksheet.addRow({
-        name: record.name.fullName,
+      const row = worksheet.addRow({
+        fullName: record.name.fullName,
         rollNumber: record.name.rollNumber,
         examName: record.examName,
         score: record.score,
-        docs: record.docs.map((doc) => doc).join(", "),
+        docs: record.docs.join(", "),
+      });
+  
+      if (index % 2 === 0) {
+        row.eachCell((cell) => {
+          cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "DDEBF7" },
+          };
+        });
+      }
+  
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
       });
     });
-
+  
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -141,6 +176,7 @@ export default function ExamTable() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+  
 
 
   const getSortDirection = (key) => {

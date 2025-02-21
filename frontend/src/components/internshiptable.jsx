@@ -9,9 +9,6 @@ export default function InternshipTable() {
   const [filteredData, setFilteredData] = useState([]);
   const [filters, setFilters] = useState({
     company: "",
-    role: "",
-    startDate: "",
-    endDate: "",
     section: "",
     branch: "",
   });
@@ -56,11 +53,6 @@ export default function InternshipTable() {
         record.company.toLowerCase().includes(filters.company.toLowerCase())
       );
     }
-    if (filters.role) {
-      data = data.filter((record) =>
-        record.role.toLowerCase().includes(filters.role.toLowerCase())
-      );
-    }
     if (filters.section) {
       data = data.filter((record) =>
         record.student.section.toLowerCase().includes(filters.section.toLowerCase())
@@ -74,12 +66,6 @@ export default function InternshipTable() {
     setFilteredData(data);
   };
 
-  const formatDate = (date) => {
-    date = new Date(date);
-    const newDate = date.toLocaleDateString("en-IN");
-    return newDate;
-  };
-
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Internships");
@@ -89,14 +75,11 @@ export default function InternshipTable() {
       { header: "#", key: "index", width: 5 },
       { header: "Roll Number", key: "rollNumber", width: 15 },
       { header: "Name", key: "name", width: 20 },
+      { header: "Email", key: "email", width: 20 },
       { header: "Company", key: "company", width: 20 },
-      { header: "Role", key: "role", width: 20 },
       { header: "Internship Type", key: "type", width: 20 },
       { header: "Location", key: "location", width: 15 },
       { header: "Mentor", key: "mentor", width: 30 },
-      { header: "Starting Date", key: "startDate", width: 15 },
-      { header: "Ending Date", key: "endDate", width: 15 },
-      { header: "Supporting Doc", key: "doc", width: 30 },
     ];
   
     // Style the header row
@@ -120,14 +103,11 @@ export default function InternshipTable() {
         index: index + 1,
         rollNumber: record?.student?.rollNumber,
         name: record?.student?.fullName.toUpperCase(),
+        email:  record?.student?.email,
         company: record?.company?.companyName.toUpperCase(),
-        role: record?.role,
         type: record?.type,
         location: record?.location,
         mentor: mentor,
-        startDate: formatDate(record?.startDate),
-        endDate: formatDate(record?.endDate),
-        doc: record?.doc ? record?.doc : "N/A",
       });
   
       // Add alternating row colors for better readability
@@ -185,14 +165,6 @@ export default function InternshipTable() {
           onChange={handleFilterChange}
           className="mr-2 p-2 border border-gray-300 rounded"
         />
-        <input
-          type="text"
-          name="role"
-          placeholder="Filter by Role"
-          value={filters.role}
-          onChange={handleFilterChange}
-          className="mr-2 p-2 border border-gray-300 rounded"
-        />
         <select
           name="section"
           value={filters.section}
@@ -234,14 +206,11 @@ export default function InternshipTable() {
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">#</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Roll Number</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Name</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Email</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Company</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Role</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Internship Type</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Location</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Mentor</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Starting Date</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Ending Date</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Supporting-Doc</th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -250,16 +219,11 @@ export default function InternshipTable() {
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{index + 1}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record?.student?.rollNumber}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record?.student?.fullName.toUpperCase()}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record?.student?.email}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record?.company?.companyName.toUpperCase()}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record?.role}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record?.type}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record?.location}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{(record?.mentor) ? record?.mentor?.idNumber+": "+record?.mentor?.fullName : "N/A"}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(record?.startDate)}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(record?.endDate)}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <a href={record.doc} target="_blank" rel="noopener noreferrer">View</a>
-              </td>
             </tr>
           ))}
         </tbody>

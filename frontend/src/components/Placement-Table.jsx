@@ -26,40 +26,79 @@ export default function PlacementTable() {
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Placements");
-
+  
     worksheet.columns = [
       { header: "#", key: "index", width: 5 },
-      { header: "Full Name", key: "fullName", width: 15 },
-      { header: "Roll Number", key: "rollNumber", width: 15 },
+      { header: "Full Name", key: "fullName", width: 25 },
+      { header: "Roll Number", key: "rollNumber", width: 20 },
       { header: "Branch", key: "branch", width: 20 },
-      { header: "Company 1", key: "comp1", width: 20 },
+      { header: "Company 1", key: "comp1", width: 25 },
       { header: "CTC 1", key: "ctc1", width: 15 },
-      { header: "Company 2", key: "comp2", width: 20 },
+      { header: "Company 2", key: "comp2", width: 25 },
       { header: "CTC 2", key: "ctc2", width: 15 },
-      { header: "Company 3", key: "comp3", width: 20 },
+      { header: "Company 3", key: "comp3", width: 25 },
       { header: "CTC 3", key: "ctc3", width: 15 },
     ];
-
+  
+    // Style header row
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: "FFFFFF" } };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "4472C4" },
+      };
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+    });
+  
     let index = 1;
-    placementData.forEach((record) => {
+    placementData.forEach((record, rowIndex) => {
       const formattedCtc1 = formatCTC(record.placementOne?.ctc);
       const formattedCtc2 = formatCTC(record.placementTwo?.ctc);
       const formattedCtc3 = formatCTC(record.placementThree?.ctc);
-
-      worksheet.addRow({
+  
+      const row = worksheet.addRow({
         index: index++,
         fullName: record.fullName,
         rollNumber: record.rollNumber,
         branch: record.branch,
-        comp1: record.placementOne?.company,
-        ctc1: formattedCtc1,
-        comp2: record.placementTwo?.company,
-        ctc2: formattedCtc2,
-        comp3: record.placementThree?.company,
-        ctc3: formattedCtc3,
+        comp1: record.placementOne?.company || "-",
+        ctc1: record.placementOne?.ctc || "-",
+        comp2: record.placementTwo?.company || "-",
+        ctc2: record.placementTwo?.ctc || "-",
+        comp3: record.placementThree?.company || "-",
+        ctc3: record.placementThree?.ctc || "-",
+      });
+  
+      // Apply alternating row colors for better readability
+      if (rowIndex % 2 === 0) {
+        row.eachCell((cell) => {
+          cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "DDEBF7" },
+          };
+        });
+      }
+  
+      // Apply border to each cell
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
       });
     });
-
+  
+    // Generate and download the Excel file
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -73,6 +112,7 @@ export default function PlacementTable() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+
 
   const formatCTC = (ctc) => {
     if (!ctc) return "-";

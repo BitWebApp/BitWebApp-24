@@ -39,16 +39,26 @@ export default function Sidebar() {
   };
   const [isOpen, setIsOpen] = useState(true);
   const facultyLinks = [
-    { 
-      text: "Dashboard", 
-      icon: <HiHome />, 
-      to: "/faculty-db" 
+    {
+      text: "Dashboard",
+      icon: <HiHome />,
+      to: "/faculty-db",
     },
     {
       text: "Summer Training",
-      icon: <HiHome/>,
-      to: "/faculty-db/accept-students"
-    }
+      icon: <HiHome />,
+      to: "/faculty-db/accept-students",
+    },
+    {
+      text: "Major Project",
+      icon: <HiPresentationChartLine />,
+      to: "/faculty-db/major-project",
+    },
+    {
+      text: "Minor Project",
+      icon: <HiPresentationChartLine />,
+      to: "/faculty-db/minor-project",
+    },
   ];
   // const [isAdmin, setIsAdmin] = useState(true);
 
@@ -68,15 +78,14 @@ export default function Sidebar() {
     //   navigate("/");
     // } catch (error) {
     //   console.log(error);
-      try {
-        const resp = await axios.post("/api/v1/prof/logout");
-        console.log(resp);
-        localStorage.removeItem("faculty");
-        navigate("/");
-      } catch (err) {
-        console.log(err);
-      }
-     finally {
+    try {
+      const resp = await axios.post("/api/v1/prof/logout");
+      console.log(resp);
+      localStorage.removeItem("faculty");
+      navigate("/");
+    } catch (err) {
+      console.log(err);
+    } finally {
       navigate("/");
     }
   };

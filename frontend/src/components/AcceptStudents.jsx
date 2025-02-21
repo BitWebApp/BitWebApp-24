@@ -1,233 +1,197 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const AcceptStudents = () => {
-    const [appliedStudents, setAppliedStudents] = useState([]);
-    const [acceptedStudents, setAcceptedStudents] = useState([]);
-    const [selectedStudents, setSelectedStudents] = useState([]);
-    const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
+  const [appliedGroups, setAppliedGroups] = useState([]);
+  const [acceptedGroups, setAcceptedGroups] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [selectedAcceptedGroups, setSelectedAcceptedGroups] = useState([]);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
-    // Fetch applied students
-    useEffect(() => {
-        const fetchAppliedStudents = async () => {
-            try {
-                const response = await axios.get('/api/v1/prof/getAppliedStudents');
-                setAppliedStudents(response.data.message);
-            } catch (err) {
-                setError(err.response?.data?.message || 'Failed to fetch applied students.');
-            }
-        };
-        fetchAppliedStudents();
-    }, []);
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const appliedResponse = await axios.get("/api/v1/prof/getAppliedGroups");
+        setAppliedGroups(appliedResponse.data.data);
 
-    // Fetch accepted students
-    useEffect(() => {
-        const fetchAcceptedStudents = async () => {
-            try {
-                const response = await axios.get('/api/v1/prof/getAcceptedStudents');
-                setAcceptedStudents(response.data.message);
-            } catch (err) {
-                setError(err.response?.data?.message || 'Failed to fetch accepted students.');
-            }
-        };
-        fetchAcceptedStudents();
-    }, []);
-
-    // Handle student selection
-    const handleSelectionChange = (studentId) => {
-        if (selectedStudents.includes(studentId)) {
-            setSelectedStudents(selectedStudents.filter((id) => id !== studentId));
-        } else {
-            setSelectedStudents([...selectedStudents, studentId]);
-        }
+        const acceptedResponse = await axios.get("/api/v1/prof/accepted-groups");
+        console.log(acceptedGroups);
+        setAcceptedGroups(acceptedResponse.data.message);
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to fetch groups.");
+      }
     };
+    fetchGroups();
+  }, []);
 
-    // Submit selected students
-    const handleSubmit = async () => {
-        setMessage('');
-        setError('');
-        try {
-            const response = await axios.post('/api/v1/prof/selectSummerStudents', {
-                selectedStudents,
-            });
-            setMessage(response.data.message);
-            setSelectedStudents([]);
-            setAppliedStudents(
-                appliedStudents.filter((student) => !selectedStudents.includes(student._id))
-            );
-            // Update accepted students list
-            const acceptedResponse = await axios.get('/api/v1/prof/getAcceptedStudents');
-            setAcceptedStudents(acceptedResponse.data.message);
-        } catch (err) {
-            setError(err.response?.data?.message || 'Failed to select students.');
-        }
-    };
+  const handleGroupClick = (group) => {
+    setSelectedGroup(selectedGroup === group._id ? null : group._id);
+  };
 
-    return (
-        <div className="min-h-screen bg-gradient-to-r from-blue-50 to-blue-100 p-8">
-            <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-xl p-6">
-                <h2 className="text-3xl font-bold text-center text-blue-700">Students are waiting !! Train them this summer.</h2>
-                <p className="text-center text-gray-600 italic mb-6">"Your best effort can help BITIANS to land into big MNCs as a Software Engineer, start their techpreneur journey, or become a highly skilled CSE grad."</p>
-                {message && <p className="text-green-600 font-semibold text-center mb-4">{message}</p>}
-                {error && <p className="text-red-600 font-semibold text-center mb-4">{error}</p>}
+  const handleAcceptGroup = async (groupId) => {
+    try {
+      const response = await axios.post("/api/v1/prof/accept-group", { _id: groupId });
+      setMessage(response.data.message);
+      if (response.status === 200) window.location.reload();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to accept group.");
+    }
+  };
 
-                {/* Applied Students Section */}
-                <h3 className="text-xl font-semibold text-blue-600 mb-4">Applied Students</h3>
-                {appliedStudents.length > 0 ? (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full bg-white border border-gray-200">
-                            <thead>
-                                <tr>
-                                    <th className="px-4 py-2 border">Image</th>
-                                    <th className="px-4 py-2 border">Name</th>
-                                    <th className="px-4 py-2 border">Semester</th>
-                                    <th className="px-4 py-2 border">Roll Number</th>
-                                    <th className="px-4 py-2 border">Section</th>
-                                    <th className="px-4 py-2 border">Branch</th>
-                                    <th className="px-4 py-2 border">LinkedIn</th>
-                                    <th className="px-4 py-2 border">Coding Profiles</th>
-                                    <th className="px-4 py-2 border">Select</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {appliedStudents.map((student) => (
-                                    <tr key={student._id} className="hover:bg-gray-50">
-                                        <td className="px-4 py-2 border text-center">
-                                            <img
-                                                src={student.image}
-                                                alt={student.fullName}
-                                                className="w-12 h-12 rounded-full mx-auto"
-                                            />
-                                        </td>
-                                        <td className="px-4 py-2 border">{student.fullName.toUpperCase()}</td>
-                                        <td className="px-4 py-2 border">{student.semester}</td>
-                                        <td className="px-4 py-2 border">{student.rollNumber}</td>
-                                        <td className="px-4 py-2 border">{student.section}</td>
-                                        <td className="px-4 py-2 border">{student.branch}</td>
-                                        <td className="px-4 py-2 border">
-                                            <a
-                                                href={student.linkedin}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-600 underline"
-                                            >
-                                                LinkedIn
-                                            </a>
-                                        </td>
-                                        <td className="px-4 py-2 border">
-                                            <div className="flex flex-col space-y-1">
-                                                {Object.entries(student.codingProfiles).map(([key, value]) => (
-                                                    value && (
-                                                        <a
-                                                            key={key}
-                                                            href={value}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="text-blue-600 underline"
-                                                        >
-                                                            {key.charAt(0).toUpperCase() + key.slice(1)}
-                                                        </a>
-                                                    )
-                                                ))}
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-2 border text-center">
-                                            <input
-                                                type="checkbox"
-                                                className="w-5 h-5 text-blue-600"
-                                                checked={selectedStudents.includes(student._id)}
-                                                onChange={() => handleSelectionChange(student._id)}
-                                            />
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                ) : (
-                    <p className="text-gray-600 text-center">No students have applied yet.</p>
-                )}
+  const handleDenyGroup = async (groupId) => {
+    try {
+      const response = await axios.post("/api/v1/prof/deny-group", { _id: groupId });
+      console.log(response);
+      setMessage(response.data.message);
+      if (response.status === 200) window.location.reload();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to deny group.");
+    }
+  };
 
-                {appliedStudents.length > 0 && (
-                    <button
-                        onClick={handleSubmit}
-                        className="mt-6 w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-blue-700 transition"
-                    >
-                        Submit Selected Students
-                    </button>
-                )}
-
-                {/* Accepted Students Section */}
-                <h3 className="text-xl font-semibold text-green-600 mt-8 mb-4">Accepted Students</h3>
-                {acceptedStudents.length > 0 ? (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full bg-white border border-gray-200">
-                            <thead>
-                                <tr>
-                                    <th className="px-4 py-2 border">Image</th>
-                                    <th className="px-4 py-2 border">Name</th>
-                                    <th className="px-4 py-2 border">Semester</th>
-                                    <th className="px-4 py-2 border">Roll Number</th>
-                                    <th className="px-4 py-2 border">Section</th>
-                                    <th className="px-4 py-2 border">Branch</th>
-                                    <th className="px-4 py-2 border">LinkedIn</th>
-                                    <th className="px-4 py-2 border">Coding Profiles</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {acceptedStudents.map((student) => (
-                                    <tr key={student._id} className="hover:bg-gray-50">
-                                        <td className="px-4 py-2 border text-center">
-                                            <img
-                                                src={student.image}
-                                                alt={student.fullName}
-                                                className="w-12 h-12 rounded-full mx-auto"
-                                            />
-                                        </td>
-                                        <td className="px-4 py-2 border">{student.fullName.toUpperCase()}</td>
-                                        <td className="px-4 py-2 border">{student.semester}</td>
-                                        <td className="px-4 py-2 border">{student.rollNumber}</td>
-                                        <td className="px-4 py-2 border">{student.section}</td>
-                                        <td className="px-4 py-2 border">{student.branch}</td>
-                                        <td className="px-4 py-2 border">
-                                            <a
-                                                href={student.linkedin}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-600 underline"
-                                            >
-                                                LinkedIn
-                                            </a>
-                                        </td>
-                                        <td className="px-4 py-2 border">
-                                            <div className="flex flex-col space-y-1">
-                                                {Object.entries(student.codingProfiles).map(([key, value]) => (
-                                                    value && (
-                                                        <a
-                                                            key={key}
-                                                            href={value}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="text-blue-600 underline"
-                                                        >
-                                                            {key.charAt(0).toUpperCase() + key.slice(1)}
-                                                        </a>
-                                                    )
-                                                ))}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                ) : (
-                    <p className="text-gray-600 text-center">No students have been accepted yet.</p>
-                )}
-            </div>
-        </div>
+  // New function: Toggle group selection for accepted groups
+  const handleSelectAcceptedGroup = (groupId) => {
+    setSelectedAcceptedGroups((prev) =>
+      prev.includes(groupId) ? prev.filter((id) => id !== groupId) : [...prev, groupId]
     );
+  };
+
+  // New function: Merge groups API call
+  const handleMergeGroups = async () => {
+    if (selectedAcceptedGroups.length < 2) {
+      setError("Select at least two groups to merge.");
+      return;
+    }
+    try {
+      const response = await axios.post("/api/v1/prof/merge-groups", { groupIds: selectedAcceptedGroups });
+      setMessage(response.data.message);
+      if (response.status === 200) window.location.reload();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to merge groups.");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-r from-blue-50 to-blue-100 p-8">
+      <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-xl p-6">
+        <h2 className="text-3xl font-bold text-center text-blue-700">Groups are waiting! Train them this summer.</h2>
+        {message && <p className="text-green-600 font-semibold text-center mb-4">{message}</p>}
+        {error && <p className="text-red-600 font-semibold text-center mb-4">{error}</p>}
+
+        {[
+          { title: "Applied Groups", groups: appliedGroups },
+          { title: "Accepted Groups", groups: acceptedGroups }
+        ].map(({ title, groups }) => (
+          <div key={title} className="mt-8">
+            <h3 className={`text-xl font-semibold ${title === "Accepted Groups" ? "text-green-600" : "text-blue-600"} mb-4`}>{title}</h3>
+            {Array.isArray(groups) && groups?.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border border-gray-200">
+                  <thead>
+                    <tr>
+                      {title === "Accepted Groups" && <th className="px-4 py-2 border">Select</th>}
+                      <th className="px-4 py-2 border">Group ID</th>
+                      <th className="px-4 py-2 border">Number of Members</th>
+                      <th className="px-4 py-2 border">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groups.map((group) => (
+                      <React.Fragment key={group._id}>
+                        <tr className="hover:bg-gray-50">
+                          {title === "Accepted Groups" && (
+                            <td className="px-4 py-2 border text-center">
+                              <input
+                                type="checkbox"
+                                checked={selectedAcceptedGroups.includes(group._id)}
+                                onChange={() => handleSelectAcceptedGroup(group._id)}
+                              />
+                            </td>
+                          )}
+                          <td className="px-4 py-2 border text-center">{group.groupId}</td>
+                          <td className="px-4 py-2 border text-center">{group.members.length} members</td>
+                          <td className="px-4 py-2 border text-center">
+                            <button onClick={() => handleGroupClick(group)} className="bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600">
+                              {selectedGroup === group._id ? "Hide Members" : "View Members"}
+                            </button>
+                            {title === "Applied Groups" && (
+                              <>
+                                <button onClick={() => handleAcceptGroup(group._id)} className="ml-2 bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600">Accept</button>
+                                <button onClick={() => handleDenyGroup(group._id)} className="ml-2 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">Deny</button>
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                        {selectedGroup === group._id && (
+                          <tr>
+                            <td colSpan={title === "Accepted Groups" ? "4" : "3"} className="border bg-gray-100">
+                              <div className="p-4">
+                                <h4 className="text-lg font-semibold text-gray-700">Members</h4>
+                                <table className="min-w-full bg-white border border-gray-300 mt-2">
+                                  <thead>
+                                    <tr>
+                                      <th className="px-4 py-2 border">Photo</th>
+                                      <th className="px-4 py-2 border">Full Name</th>
+                                      <th className="px-4 py-2 border">Roll Number</th>
+                                      <th className="px-4 py-2 border">CGPA</th>
+                                      <th className="px-4 py-2 border">Branch</th>
+                                      <th className="px-4 py-2 border">DSA skills</th>
+                                      <th className="px-4 py-2 border">GitHub</th>
+                                      <th className="px-4 py-2 border">LinkedIn</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {group.members.map((member) => (
+                                      <tr key={member._id} className="hover:bg-gray-50">
+                                        <td className="px-4 py-2 border"><img className="w-1/2 m-auto" src={member.image} alt="" /></td>
+                                        <td className="px-4 py-2 border">{member.fullName.toUpperCase()}</td>
+                                        <td className="px-4 py-2 border">{member.rollNumber}</td>
+                                        <td className="px-4 py-2 border">{member.cgpa}</td>
+                                        <td className="px-4 py-2 border">{(member.branch==="computer science and engineering") ? "CSE" : (member.branch==="artificial intelligence and machine learning") ? "AIML": "NA"}</td>
+                                        <td className="px-4 py-2 border">
+                                          <a href={member.codingProfiles.leetcode}>
+                                            <button className="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105">Click</button>
+                                          </a>
+                                        </td>
+                                        <td className="px-4 py-2 border">
+                                          <a href={member.codingProfiles.github}>
+                                            <button className="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105">Click</button>
+                                          </a>
+                                        </td>
+                                        <td className="px-4 py-2 border">
+                                          <a href={member.linkedin}>
+                                            <button className="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105">Click</button>
+                                          </a>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
+                {title === "Accepted Groups" && selectedAcceptedGroups.length > 1 && (
+                  <div className="text-center mt-4">
+                    <button onClick={handleMergeGroups} className="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600">
+                      Merge Selected Groups
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-gray-600 text-center">No groups found.</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 export default AcceptStudents;
