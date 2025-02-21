@@ -61,7 +61,17 @@ export default function Header() {
         text: "Summer Training",
         icon: <HiHome/>,
         to: "/faculty-db/accept-students"
-      }
+      },
+      {
+        text: "Major Project",
+        icon: <HiPresentationChartLine />,
+        to: "/faculty-db/major-project",
+      },
+      {
+        text: "Minor Project",
+        icon: <HiPresentationChartLine />,
+        to: "/faculty-db/minor-project",
+      },
     ];
   const links = facultyLinks;
 
