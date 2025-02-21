@@ -58,58 +58,63 @@ export default function Header() {
         icon: <HiHome />, 
         to: "/db" 
       },
-      {
-        text: "Alumni Profile", 
-        icon: <HiUser />,
-        to: "/db/alumni",
-      },
+      // {
+      //   text: "Alumni Profile", 
+      //   icon: <HiUser />,
+      //   to: "/db/alumni",
+      // },
       {
         text: "Academic Records", 
         icon: <HiAcademicCap />,
         to: "/db/academic-table",
       },
-      { 
-        text: "Backlogs", 
-        icon: <HiAcademicCap />, 
-        to: "/db/backlogs" 
-      },
-      { 
-        text: "PE-Course", 
-        icon: <HiAcademicCap />, 
-        to: "/db/PE-form" 
-      },
-      {
-        text: "Awards & Achievements",
-        icon: <HiBadgeCheck />,
-        to: "/db/award-form",
-      },
-      { 
-        text: "Examinations", 
-        icon: <HiDocumentReport />, 
-        to: "/db/exam-form" 
-      },
-      {
-        text: "Higher Education",
-        icon: <HiAcademicCap />,
-        to: "/db/higher-education",
-      },
-      {
-        text: "Placement Records",
-        icon: <HiOutlineBriefcase />,
-        to: "/db/placement",
-      },
-      {
-        text: "Projects",
-        icon: <HiPresentationChartLine />,
-        to: "/db/project-form",
-      },
-      { text: "Internships", icon: <HiBriefcase />, to: "/db/internship-form" },
+      // { 
+      //   text: "Backlogs", 
+      //   icon: <HiAcademicCap />, 
+      //   to: "/db/backlogs" 
+      // },
+      // { 
+      //   text: "PE-Course", 
+      //   icon: <HiAcademicCap />, 
+      //   to: "/db/PE-form" 
+      // },
+      // {
+      //   text: "Awards & Achievements",
+      //   icon: <HiBadgeCheck />,
+      //   to: "/db/award-form",
+      // },
+      // { 
+      //   text: "Examinations", 
+      //   icon: <HiDocumentReport />, 
+      //   to: "/db/exam-form" 
+      // },
+      // {
+      //   text: "Higher Education",
+      //   icon: <HiAcademicCap />,
+      //   to: "/db/higher-education",
+      // },
+      // {
+      //   text: "Placement Records",
+      //   icon: <HiOutlineBriefcase />,
+      //   to: "/db/placement",
+      // },
+      // {
+      //   text: "Projects",
+      //   icon: <HiPresentationChartLine />,
+      //   to: "/db/project-form",
+      // },
+      // { text: "Internships", icon: <HiBriefcase />, to: "/db/internship-form" },
       { text: "Interview Experience", icon: <HiBriefcase />, to: "/db/interview" },
      
-      { 
-        text: "Request Classroom", 
-        icon: <HiBriefcase />, 
-        to: "/db/classroom-form" 
+      // { 
+      //   text: "Request Classroom", 
+      //   icon: <HiBriefcase />, 
+      //   to: "/db/classroom-form" 
+      // },
+      {
+        text: "Manage Group",
+        icon: <HiUserGroup />,
+        to: "/db/manage-group",
       },
       {
         text: "Summer Training",
