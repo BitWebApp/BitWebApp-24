@@ -71,7 +71,7 @@ const checkAndNotifyProf = async () => {
 cron.schedule(
   "30 0 * * *",
   () => {
-    console.log("Running a task every day at 6:30 PM");
+    console.log("Running a task every day at 6:00 AM IST");
     checkAndNotifyProf();
   },
   {
