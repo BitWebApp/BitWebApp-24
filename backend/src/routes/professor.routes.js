@@ -17,6 +17,7 @@ import {
   getAcceptedStudents,
   denyGroup,
   acceptGroup,
+  getLimits,
   addRemark,
   groupAttendance,
   acceptedGroups,
@@ -51,5 +52,5 @@ router.route("/forgot-pass").post(otpForgotPassword);
 router.route("/change-pass").post(changePassword);
 router.route("/accepted-groups").get(verifyProfessor, acceptedGroups);
 router.route("/merge-groups").post(verifyProfessor, mergeGroups);
-
+router.route("/get-limit").get(verifyProfessor, getLimits);
 export default router;
