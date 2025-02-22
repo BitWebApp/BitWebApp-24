@@ -6,6 +6,7 @@ const AcceptStudents = () => {
   const [acceptedGroups, setAcceptedGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [selectedAcceptedGroups, setSelectedAcceptedGroups] = useState([]);
+  const [limits, setLimits] = useState(0);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -14,7 +15,10 @@ const AcceptStudents = () => {
       try {
         const appliedResponse = await axios.get("/api/v1/prof/getAppliedGroups");
         setAppliedGroups(appliedResponse.data.data);
-
+        console.log(appliedResponse)
+        const getLimits = await axios.get("/api/v1/prof/get-limit");
+        console.log(getLimits)
+        setLimits(getLimits.data.data);
         const acceptedResponse = await axios.get("/api/v1/prof/accepted-groups");
         console.log(acceptedGroups);
         setAcceptedGroups(acceptedResponse.data.message);
@@ -76,6 +80,7 @@ const AcceptStudents = () => {
     <div className="min-h-screen bg-gradient-to-r from-blue-50 to-blue-100 p-8">
       <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-xl p-6">
         <h2 className="text-3xl font-bold text-center text-blue-700">Groups are waiting! Train them this summer.</h2>
+        <h2 className="text-3xl font-bold text-center text-blue-700">You can only accept {limits} students.</h2>
         {message && <p className="text-green-600 font-semibold text-center mb-4">{message}</p>}
         {error && <p className="text-red-600 font-semibold text-center mb-4">{error}</p>}
 

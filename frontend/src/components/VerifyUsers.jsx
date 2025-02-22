@@ -71,7 +71,7 @@ const UnverifiedUsers = () => {
       const updatedUsersResponse = await axios.get(
         "api/v1/admin/unverifiedUsers"
       )
-      setUsers(updatedUsersResponse.data.data.us)
+      setUsers(updatedUsersResponse?.data?.data?.us)
     } catch (err) {
       console.log("Error rejecting users", err)
     } finally {

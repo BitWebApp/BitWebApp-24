@@ -938,12 +938,22 @@ const changePassword = asyncHandler(async (req, res) => {
     });
   }
 });
-
+  const getLimits = asyncHandler(async(req, res) => {
+    const profid = req?.professor?._id;
+    console.log(profid)
+    const prof = await Professor.findById({_id: profid});
+    if(!prof) throw new ApiError(404, "Professor not found")
+    const currentCount = prof.currentCount.summer_training;
+    const totalCount = prof.limits.summer_training;
+    const limitleft = totalCount-currentCount;
+    return res.status(200).json(new ApiResponse(200, limitleft, "limit returned"))
+  })
 export {
   addProf,
   getProf,
   loginProf,
   logoutProf,
+  getLimits,
   applyToSummer,
   getAppliedGroups,
   selectSummerStudents,
