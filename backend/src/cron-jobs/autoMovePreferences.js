@@ -94,3 +94,5 @@ cron.schedule(
     timezone: "UTC",
   }
 );
+
+export { preprocessGroups, moveApplications };
