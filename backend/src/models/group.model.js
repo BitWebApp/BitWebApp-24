@@ -72,5 +72,9 @@ const groupSchema = new Schema({
       },
     },
   ],
+  preferenceLastMovedAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 export const Group = mongoose.model("Group", groupSchema);
