@@ -251,6 +251,10 @@ const userSchema = new Schema(
         default: 0
       },
     },
+    groupReq:[{
+      type: Schema.Types.ObjectId,
+      ref: "Group"
+    }],
     refreshToken: {
       type: String,
     },
