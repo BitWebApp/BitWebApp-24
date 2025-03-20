@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { toast, Toaster } from "react-hot-toast";
 
 const AcceptStudents = () => {
   const [appliedGroups, setAppliedGroups] = useState([]);
@@ -7,23 +8,26 @@ const AcceptStudents = () => {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [selectedAcceptedGroups, setSelectedAcceptedGroups] = useState([]);
   const [limits, setLimits] = useState(0);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [description, setDescription] = useState("");
+  const [absentees, setAbsentees] = useState([]);
+  const [remark, setRemark] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [discussionLogs, setDiscussionLogs] = useState([]);
 
   useEffect(() => {
     const fetchGroups = async () => {
       try {
         const appliedResponse = await axios.get("/api/v1/prof/getAppliedGroups");
         setAppliedGroups(appliedResponse.data.data);
-        console.log(appliedResponse)
+        console.log(appliedResponse);
         const getLimits = await axios.get("/api/v1/prof/get-limit");
-        console.log(getLimits)
+        console.log(getLimits);
         setLimits(getLimits.data.data);
         const acceptedResponse = await axios.get("/api/v1/prof/accepted-groups");
         console.log(acceptedGroups);
         setAcceptedGroups(acceptedResponse.data.message);
       } catch (err) {
-        setError(err.response?.data?.message || "Failed to fetch groups.");
+        toast.error(err.response?.data?.message || "Failed to fetch groups.");
       }
     };
     fetchGroups();
@@ -36,10 +40,10 @@ const AcceptStudents = () => {
   const handleAcceptGroup = async (groupId) => {
     try {
       const response = await axios.post("/api/v1/prof/accept-group", { _id: groupId });
-      setMessage(response.data.message);
+      toast.success(response.data.message);
       if (response.status === 200) window.location.reload();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to accept group.");
+      toast.error(err.response?.data?.message || "Failed to accept group.");
     }
   };
 
@@ -47,47 +51,73 @@ const AcceptStudents = () => {
     try {
       const response = await axios.post("/api/v1/prof/deny-group", { _id: groupId });
       console.log(response);
-      setMessage(response.data.message);
+      toast.success(response.data.message);
       if (response.status === 200) window.location.reload();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to deny group.");
+      toast.error(err.response?.data?.message || "Failed to deny group.");
     }
   };
 
-  // New function: Toggle group selection for accepted groups
   const handleSelectAcceptedGroup = (groupId) => {
     setSelectedAcceptedGroups((prev) =>
       prev.includes(groupId) ? prev.filter((id) => id !== groupId) : [...prev, groupId]
     );
   };
 
-  // New function: Merge groups API call
   const handleMergeGroups = async () => {
     if (selectedAcceptedGroups.length < 2) {
-      setError("Select at least two groups to merge.");
+      toast.error("Select at least two groups to merge.");
       return;
     }
     try {
       const response = await axios.post("/api/v1/prof/merge-groups", { groupIds: selectedAcceptedGroups });
-      setMessage(response.data.message);
+      toast.success(response.data.message);
       if (response.status === 200) window.location.reload();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to merge groups.");
+      toast.error(err.response?.data?.message || "Failed to merge groups.");
     }
+  };
+
+  const handleCreateDiscussionLog = async () => {
+    try {
+      const response = await axios.post("/api/v1/group/add-remark", {
+        groupId: selectedGroup,
+        description,
+        absent: absentees,
+        remark,
+      });
+      toast.success(response.data.message);
+      if (response.status === 200) {
+        await handleGetDiscussionLogs();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to create discussion log.");
+    }
+    setShowModal(false);
+  };
+
+  const handleGetDiscussionLogs = async () => {
+    try {
+      const response = await axios.post("/api/v1/group/get-disc", {
+        groupId: selectedGroup,
+      });
+      setDiscussionLogs(response.data.message);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to fetch discussion logs.");
+    }
+  };
+
+  const handleDescriptionChange = (e) => {
+    setDescription(e.target.value);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-50 to-blue-100 p-8">
+      <Toaster position="top-right" />
       <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-xl p-6">
         <h2 className="text-3xl font-bold text-center text-blue-700">Groups are waiting! Train them this summer.</h2>
         <h2 className="text-3xl font-bold text-center text-blue-700">You can only accept {limits} students.</h2>
-        {message && <p className="text-green-600 font-semibold text-center mb-4">{message}</p>}
-        {error && <p className="text-red-600 font-semibold text-center mb-4">{error}</p>}
-
-        {[
-          { title: "Applied Groups", groups: appliedGroups },
-          { title: "Accepted Groups", groups: acceptedGroups }
-        ].map(({ title, groups }) => (
+        {[{ title: "Applied Groups", groups: appliedGroups }, { title: "Accepted Groups", groups: acceptedGroups }].map(({ title, groups }) => (
           <div key={title} className="mt-8">
             <h3 className={`text-xl font-semibold ${title === "Accepted Groups" ? "text-green-600" : "text-blue-600"} mb-4`}>{title}</h3>
             {Array.isArray(groups) && groups?.length > 0 ? (
@@ -153,7 +183,7 @@ const AcceptStudents = () => {
                                         <td className="px-4 py-2 border">{member.fullName.toUpperCase()}</td>
                                         <td className="px-4 py-2 border">{member.rollNumber}</td>
                                         <td className="px-4 py-2 border">{member.cgpa}</td>
-                                        <td className="px-4 py-2 border">{(member.branch==="computer science and engineering") ? "CSE" : (member.branch==="artificial intelligence and machine learning") ? "AIML": "NA"}</td>
+                                        <td className="px-4 py-2 border">{(member.branch === "computer science and engineering") ? "CSE" : (member.branch === "artificial intelligence and machine learning") ? "AIML" : "NA"}</td>
                                         <td className="px-4 py-2 border">
                                           <a href={member.codingProfiles.leetcode}>
                                             <button className="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105">Click</button>
@@ -173,6 +203,26 @@ const AcceptStudents = () => {
                                     ))}
                                   </tbody>
                                 </table>
+                                <button
+                                  onClick={() => setShowModal(true)}
+                                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                                >
+                                  Create Discussion Log
+                                </button>
+                                {discussionLogs.length > 0 && (
+                                  <div className="mt-4">
+                                    <h4 className="text-lg font-semibold text-gray-700">Discussion Logs</h4>
+                                    <ul>
+                                      {discussionLogs.map((log, index) => (
+                                        <li key={index} className="bg-gray-100 p-4 mb-2 rounded">
+                                          <p>Description: {log.description}</p>
+                                          <p>Absentees: {log.absent.map((absentee) => absentee.fullName).join(", ")}</p>
+                                          <p>Remarks: {log.remark}</p>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -194,6 +244,77 @@ const AcceptStudents = () => {
             )}
           </div>
         ))}
+        {showModal && (
+          <div className="fixed top-0 left-0 right-0 bottom-0 bg-black/50 flex items-center justify-center">
+            <div className="bg-white rounded-lg p-4 w-1/2 shadow-lg">
+              <h2 className="text-lg font-bold mb-4">Create Discussion Log</h2>
+              <form>
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">
+                  Description:
+                </label>
+                <input
+                  id="description"
+                  type="text"
+                  className="block w-full p-2 border border-gray-200 rounded mb-4"
+                  value={description}
+                  onChange={handleDescriptionChange}
+                />
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="absentees">
+                  Absentees:
+                </label>
+                <div className="flex flex-wrap mb-4">
+                  {selectedGroup &&
+                    acceptedGroups.find((group) => group._id === selectedGroup).members.map((member) => (
+                      <div key={member._id} className="mr-2">
+                        <input
+                          type="checkbox"
+                          checked={absentees.includes(member._id)}
+                          onChange={() =>
+                            setAbsentees((prev) =>
+                              prev.includes(member._id)
+                                ? prev.filter((id) => id !== member._id)
+                                : [...prev, member._id]
+                            )
+                          }
+                        />
+                        <span className="ml-1">{member.fullName}</span>
+                      </div>
+                    ))}
+                </div>
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="remark">
+                  Remarks:
+                </label>
+                <select
+                  id="remark"
+                  className="block w-full p-2 border border-gray-200 rounded mb-4"
+                  value={remark}
+                  onChange={(e) => setRemark(e.target.value)}
+                >
+                  <option value="">Select Remark</option>
+                  <option value="satisfactory">Satisfactory</option>
+                  <option value="poor">Poor</option>
+                  <option value="good">Good</option>
+                  <option value="average">Average</option>
+                  <option value="excellent">Excellent</option>
+                </select>
+              </form>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="bg-gray-200 text-gray-600 px-4 py-2 rounded-md hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateDiscussionLog}
+                  className="ml-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                >
+                  Create
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -138,7 +138,6 @@ const GroupManagement = () => {
       <Toaster position="top-right" />
       <div className="flex flex-col items-center justify-center min-h-screen p-6 text-white">
         <div className="w-full max-w-4xl bg-white p-8 rounded-xl shadow-lg text-gray-800">
-          {/* Display Group Requests */}
           {requests.length > 0 && (
             <div className="mb-6">
               <h2 className="text-xl font-bold text-gray-800 mb-2">Pending Group Requests</h2>
@@ -151,6 +150,9 @@ const GroupManagement = () => {
                     <span>
                       {request.groupId} -{" "}
                       {request.leader?.fullName}
+                      {request.members.length > 0 && (
+                        <span> + {request.members.length-1} members</span>
+                      )}
                     </span>
                     <button
                       onClick={() => acceptRequest(request._id)}

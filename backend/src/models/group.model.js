@@ -64,8 +64,7 @@ const groupSchema = new Schema({
         ref: "User",
       },
       description: {
-        type: Schema.Types.ObjectId,
-        ref: "User",
+        type: String,
       },
       remark: {
         type: String,
