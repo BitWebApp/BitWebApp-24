@@ -229,6 +229,54 @@ const summerSorted = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, sorted, "Summer status returned"));
 });
+
+const addDiscussion = asyncHandler(async (req, res) => {
+  const { groupId, description } = req.body;
+  const group = await Group.findById({
+    _id: groupId,
+  });
+  if (!group) throw new ApiError(404, "Group not found");
+  const loggedIn = req?.user?._id;
+  if (!group.leader.equals(loggedIn)) {
+    throw new ApiError(409, "Only Leader can add discussion");
+  }
+  group.discussion.push({ description });
+  await group.save();
+  return res
+    .status(200)
+    .json(new ApiResponse(200, group, "Discussion added successfully"));
+})
+
+const addRemarkAbsent = asyncHandler(async (req, res) => {
+  const { groupId, description, remark, absent } = req.body;
+  console.log(groupId, description, remark, absent);
+  if (!groupId || !description || !remark || !absent) {
+    throw new ApiError(400, "All fields are required.");
+  }
+
+  const group = await Group.findById(groupId);
+  if (!group) throw new ApiError(404, "Group not found");
+
+  const loggedIn = req?.professor?._id;
+  if (!group.summerAllocatedProf.equals(loggedIn)) {
+    throw new ApiError(403, "Only allocated professor can add remarks");
+  }
+
+  group.discussion.push({
+    description: description,  
+    remark: remark,
+    absent: absent,
+    date: new Date()
+  });
+
+  await group.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { groupId: group._id }, "Remark added successfully"));
+});
+
+
 export {
   createGroup,
   addMember,
@@ -238,5 +286,7 @@ export {
   getAppliedProfs,
   summerSorted,
   acceptReq,
-  getReq
+  getReq,
+  addDiscussion,
+  addRemarkAbsent
 };

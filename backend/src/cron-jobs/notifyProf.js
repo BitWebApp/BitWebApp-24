@@ -36,7 +36,7 @@ async function sendNotificationEmail(professor) {
           <a href="https://bitacademia.vercel.app/faculty-login" style="background-color: #007bff; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-size: 16px;">Review Applications</a>
         </div>
 
-        <p style="margin-top: 20px; color: #777; font-size: 12px; text-align: center;">Best regards,<br><strong>BIT Academia</strong></p>
+        <p style="margin-top: 20px; color: #777; font-size: 12px; text-align: center;">Best regards,<br><strong>BITACADEMIA</strong></p>
       </div>
     `,
   };
