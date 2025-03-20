@@ -119,12 +119,19 @@ const removeMember = asyncHandler(async (req, res) => {
   }
   const user = await User.findOne({ rollNumber });
   if (!user.group) throw new ApiError(409, "Not in a group");
-  if (group.leader === user?._id)
-    throw new ApiError(409, "Leader cannot be removed");
   group.members.pull(user?._id);
   user.group = null;
-  await user.save();
   await group.save();
+  if (group?.leader.equals(user?._id)){
+    if(group.members.length > 0){
+      group.leader = group.members[0];
+      await group.save();
+    }
+    else{
+      await group.deleteOne();
+    }
+  }
+  await user.save();
   return res.status(200).json(new ApiResponse(200, "member removed"));
 });
 
@@ -157,6 +164,7 @@ const applyToFaculty = asyncHandler(async (req, res) => {
 
   group.summerAppliedProfs.push(facultyId);
   if (group.summerAppliedProfs.length === 1) {
+    group.preferenceLastMovedAt = Date.now();
     faculty.appliedGroups.summer_training.push(group._id);
     await faculty.save();
   }

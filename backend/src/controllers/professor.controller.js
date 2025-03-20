@@ -530,6 +530,7 @@ const denyGroup = asyncHandler(async (req, res) => {
   const prof = await Professor.findById(profId);
   prof.appliedGroups.summer_training.pull(_id);
   group.deniedProf.push(profId);
+  group.preferenceLastMovedAt = Date.now();
   await group.save();
   await prof.save();
   if (group.summerAppliedProfs.length > 0) {
