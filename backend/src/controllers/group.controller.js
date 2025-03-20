@@ -69,13 +69,43 @@ const addMember = asyncHandler(async (req, res) => {
   }
   const user = await User.findOne({ rollNumber });
   if (user.group) throw new ApiError(409, "Already in a group");
-  group.members.push(user?._id);
-  user.group = group._id;
+  // group.members.push(user?._id);
+  // user.group = group._id;
+  user.groupReq.push(group._id);
   await user.save();
-  await group.save();
-  return res.status(200).json(new ApiResponse(200, "New member added"));
+  return res.status(200).json(new ApiResponse(200, "Request sent"));
 });
 
+const acceptReq = asyncHandler(async (req, res) => {
+  const userId = req?.user?._id;
+  const { groupId } = req.body;
+  console.log(groupId);
+  const user = await User.findById({_id: userId});
+  const group = await Group.findById({ _id: groupId });
+  if (!group) throw new ApiError(404, "Group not found");
+  if (group.summerAllocatedProf) {
+    throw new ApiError(409, "Cannot join as group has a faculty assigned.");
+  }
+  if (user.group) throw new ApiError(409, "You are already in a group");
+  group.members.push(user?._id);
+  user.group = group._id;
+  user.groupReq = [];
+  await user.save();
+  await group.save();
+  return res.status(200).json(new ApiResponse(200, "Joined successfully"));
+});
+
+const getReq = asyncHandler(async (req, res) => {
+  const userId = req?.user?._id;
+  const user = await User.findById(userId)
+  .populate({
+    path: 'groupReq',
+    populate: {
+      path: 'leader', 
+    }
+  });
+  return res.status(200).json(new ApiResponse(200, user?.groupReq, "All requests fetched"))
+})
 const removeMember = asyncHandler(async (req, res) => {
   const loggedIn = req?.user?._id;
   const { rollNumber, groupId } = req.body;
@@ -199,4 +229,6 @@ export {
   getGroup,
   getAppliedProfs,
   summerSorted,
+  acceptReq,
+  getReq
 };
