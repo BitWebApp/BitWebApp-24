@@ -96,5 +96,4 @@ cron.schedule(
   }
 );
 
-moveApplications();
 export { preprocessGroups, moveApplications };
