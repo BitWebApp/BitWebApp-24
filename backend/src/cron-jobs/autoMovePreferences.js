@@ -36,7 +36,8 @@ const preprocessGroups = async () => {
 const moveApplications = async () => {
   try {
     console.log("Checking and moving pending applications...");
-    const fiveDaysAgo = moment().subtract(5, "days").toDate();
+    const fiveDaysAgo = moment().subtract(3, "days").toDate();
+    console.log(fiveDaysAgo)
     console.log(`Looking for groups with no movement since: ${fiveDaysAgo}`);
     const groups = await Group.find({
       summerAppliedProfs: { $exists: true, $ne: [] },
