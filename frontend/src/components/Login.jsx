@@ -75,7 +75,7 @@ export default function Login() {
           />
         </div>
         <div className="w-full md:w-1/2 bg-gradient-to-b from-gray-50 to-white flex flex-col p-6 md:p-20 justify-between">
-        <h3 className="text-2xl font-bold text-blue-600 mb-4"> Welcome to BIT WEB APP </h3>
+        <h3 className="text-2xl font-bold text-blue-600 mb-4"> Welcome to BITACADEMIA </h3>
           <form
             onKeyDown={handleKeyDown}
             className="w-full flex flex-col max-w-[500px]"

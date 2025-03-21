@@ -61,6 +61,7 @@ const addMember = asyncHandler(async (req, res) => {
   console.log(groupId);
   const group = await Group.findById({ _id: groupId });
   if (!group) throw new ApiError(404, "Group not found");
+  if(group.typeOfSummer === "industrial") throw new ApiError(409, "Cannot add member to industrial group");
   if (!group.leader.equals(loggedIn)) {
     throw new ApiError(409, "Only Leader can add");
   }
