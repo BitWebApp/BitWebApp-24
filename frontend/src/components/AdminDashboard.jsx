@@ -325,8 +325,8 @@ const AdminDashboard = () => {
           </button>
         </form>
 
-        <div className="mt-6">
-        <ViewProfProjectSummary refreshTrigger={refreshProjects} />
+        <div className="mt-6 flex justify-center">
+          <ViewProfProjectSummary refreshTrigger={refreshProjects} />
         </div>
       </div>
 

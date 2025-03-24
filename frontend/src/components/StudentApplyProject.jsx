@@ -90,15 +90,23 @@ const StudentApplyProject = ({ project }) => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto">
       <ToastContainer />
       <h2 className="text-2xl font-bold mb-4">Apply to {project.title}</h2>
 
       {/* Show application status if not "notapplied" */}
       {status && status !== "notapplied" ? (
-        <p className="text-green-500 font-semibold">
-          You have successfully applied to this project. Status: {status}
-        </p>
+        <>
+          <p className={`${status.toLowerCase() === "accepted" ? "text-green-500" : status.toLowerCase() === "rejected" ? "text-red-500" : "text-orange-500"} font-semibold`}>
+            You have successfully applied to this project.
+          </p>
+          <p>
+            Status:{" "}
+            <span className={`${status.toLowerCase() === "accepted" ? "text-green-500" : status.toLowerCase() === "rejected" ? "text-red-500" : "text-orange-500"} font-semibold`}>
+              {status.toUpperCase()}
+            </span>
+          </p>
+        </>
       ) : (
         // Only show form if status is "notapplied"
         <form

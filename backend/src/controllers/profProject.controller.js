@@ -38,7 +38,14 @@ const addNewProject = asyncHandler(async (req, res) => {
 });
 
 const getAllProjectsSummary = asyncHandler(async (req, res) => {
-    const projects = await AdhocProject.find().select('title startDate endDate closed');
+    let projects = await AdhocProject.find()
+      .select('title startDate endDate closed professor')
+      .populate({ path: "professor", select: "fullName" });
+    projects = projects.map((project) => {
+      const projObj = project.toObject();
+      projObj.profName = projObj.professor.fullName; 
+      return projObj;
+    });
     res.status(200).json({ success: true, data: projects });
 });
 
@@ -71,7 +78,7 @@ const editProject = asyncHandler(async (req, res) => {
       project.categories = categories || project.categories;
       project.startDate = startDate || project.startDate;
       project.endDate = endDate || project.endDate;
-      project.relevantLinks = relevantLinks || project.relevantLinks; // Assign array directly
+      project.relevantLinks = relevantLinks || []; // Assign array directly
       project.closed = closed !== undefined ? closed : project.closed; // Ensure 'closed' is updated correctly
   
       if (deleteUrls && Array.isArray(deleteUrls) && deleteUrls.length > 0) {

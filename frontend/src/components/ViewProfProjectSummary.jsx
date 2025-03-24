@@ -50,7 +50,7 @@ const ViewProfProjectSummary = ({ refreshTrigger }) =>
     }, [refreshTrigger]);
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto">
             <ToastContainer />
             <h2 className="text-2xl font-bold mb-4">Professor's Projects</h2>
             {loading ? (
@@ -67,20 +67,22 @@ const ViewProfProjectSummary = ({ refreshTrigger }) =>
                                 <strong>Start Date:</strong> {new Date(project.startDate).toLocaleDateString()} <br />
                                 <strong>End Date:</strong> {new Date(project.endDate).toLocaleDateString()}
                             </p>
-                            <button
-                                className="bg-blue-500 text-white py-1 px-2 rounded mt-4"
-                                onClick={() => navigate(`/faculty-db/adhoc-project/${project._id}`)}
-                            >
-                                View Details
-                            </button>
-                            {!project.closed && (
+                            <div className="flex mt-4">
                                 <button
-                                    className="bg-red-500 text-white py-1 px-2 rounded mt-4"
+                                className="bg-blue-500 text-white py-1 px-4 rounded hover:bg-blue-600 mr-6"
+                                onClick={() => navigate(`/faculty-db/adhoc-project/${project._id}`)}
+                                >
+                                View Details
+                                </button>
+                                {!project.closed && (
+                                <button
+                                    className="bg-red-500 text-white py-1 px-4 rounded hover:bg-red-600"
                                     onClick={() => handleCloseProject(project._id)}
                                 >
                                     Close Project
                                 </button>
-                            )}
+                                )}
+                            </div>
                         </div>
                     ))}
                 </div>
