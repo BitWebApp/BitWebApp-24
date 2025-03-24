@@ -247,6 +247,42 @@ const getApplicationDetails = async (req, res) => {
   }
 };
 
+const getApplicationsForProject = asyncHandler(async (req, res) => {
+  const { projectId, status } = req.params;
+  const applications = await RequestProj.find({ projectId, status })
+    .populate('studentId', 'fullName email rollNumber mobileNumber')
+    .populate('projectId', 'title profName')
+    .select('status applicationDate doc projectId');
+  res.status(200).json({ success: true, data: applications });
+});
+
+const getApplicationDetailsForProject = asyncHandler(async (req, res) => {
+  const { projectId, applicationId } = req.params;
+  const application = await RequestProj.findOne({ _id: applicationId, projectId })
+    .populate('studentId', 'fullName email')
+    .populate('projectId', 'title profName startDate endDate');
+  if (!application) {
+    return res.status(404).json({ message: 'Application not found' });
+  }
+  res.status(200).json({ success: true, data: application });
+});
+
+const updateApplicationStatusForProject = asyncHandler(async (req, res) => {
+  const { projectId, applicationId } = req.params;
+  const { status } = req.body;
+  if (!["accepted", "rejected"].includes(status)) {
+    throw new ApiError(400, "Invalid status value. Allowed values are 'accepted', or 'rejected'.");
+  }
+  // Ensure application belongs to the given project
+  const application = await RequestProj.findOne({ _id: applicationId, projectId });
+  if (!application) {
+    throw new ApiError(404, "Application not found for this project");
+  }
+  application.status = status;
+  await application.save();
+  res.status(200).json({ success: true, data: application });
+});
+
 export { 
   addNewProject, 
   getAllProjectsSummary,
@@ -257,5 +293,8 @@ export {
   updateApplicationStatus,
   getStudentApplications,
   closeProject,
-  getApplicationDetails
+  getApplicationDetails,
+  getApplicationsForProject,
+  getApplicationDetailsForProject,
+  updateApplicationStatusForProject
 };

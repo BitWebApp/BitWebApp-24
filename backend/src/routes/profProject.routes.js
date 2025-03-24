@@ -9,7 +9,11 @@ import {
   updateApplicationStatus, 
   getStudentApplications,
   closeProject,
-  getApplicationDetails
+  getApplicationDetails,
+  // New functions for project-specific applications
+  getApplicationsForProject,
+  getApplicationDetailsForProject,
+  updateApplicationStatusForProject
 } from "../controllers/profProject.controller.js";
 import { verifyJWT, verifyProfessor } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
@@ -97,5 +101,10 @@ router.get("/applications/:applicationId", verifyProfessor, getApplicationDetail
 router.put("/projects/close/:id", verifyProfessor, closeProject);
 router.put("/projects/:id", verifyProfessor, upload.array('files'), editProject);
 router.put("/applications/:applicationId", verifyProfessor, updateApplicationStatus);
+
+// New routes for project-specific application management
+router.get("/projects/:projectId/applications/status/:status", verifyProfessor, getApplicationsForProject);
+router.get("/projects/:projectId/applications/:applicationId", verifyProfessor, getApplicationDetailsForProject);
+router.put("/projects/:projectId/applications/:applicationId", verifyProfessor, updateApplicationStatusForProject);
 
 export default router;

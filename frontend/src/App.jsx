@@ -186,11 +186,14 @@ export default function App() {
           <Route path="minor-project" element={<MajorProject />} />
           <Route path="adhoc-projects-dashboard" element={<AdminDashboard />} />
           <Route path="adhoc-project/:id" element={<ViewProfProjectDetails />} />
-          <Route path="adhoc-project-applications" element={<AdminApplications />} />
-          <Route
-            path="adhoc-project-applications/:applicationId"
-            element={<AdminApplicationDetails />}
-          />
+          {/* Replace old adhoc-project-applications routes with project-specific routes */}
+          {/* Old: */}
+          {/* <Route path="adhoc-project-applications" element={<AdminApplications />} />
+          <Route path="adhoc-project-applications/:applicationId" element={<AdminApplicationDetails />} /> */}
+          
+          {/* New routes for project-specific application management */}
+          <Route path="adhoc-project-applications/status/:projectId" element={<AdminApplications />} />
+          <Route path="adhoc-project-applications/status/:projectId/:applicationId" element={<AdminApplicationDetails />} />
         </Route>
         <Route path="/sg" element={<Signup />} />
         <Route path="/log.a" element={<Loginadmin />} />

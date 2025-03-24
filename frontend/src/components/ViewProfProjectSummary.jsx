@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
+import Swal from 'sweetalert2';
 import 'react-toastify/dist/ReactToastify.css';
 
 const api = axios.create({
@@ -34,14 +35,34 @@ const ViewProfProjectSummary = ({ refreshTrigger }) =>
     };
 
     const handleCloseProject = async (projectId) => {
-        try {
-            await api.put(`/projects/close/${projectId}`);
-            toast.success('Project closed successfully');
-            fetchProjects(); // Refresh the projects list
-        } catch (error) {
-            console.error('Error closing project:', error);
-            toast.error('Failed to close project');
-        }
+        Swal.fire({
+            title: 'Are you sure?',
+            html: `<p>Do you want to close this project?</p>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, close project!',
+            cancelButtonText: 'No, cancel!',
+            buttonsStyling: true,
+            customClass: {
+                confirmButton: 'btn btn-success',
+                cancelButton: 'btn btn-danger'
+            },
+            showLoaderOnConfirm: true,
+            preConfirm: async () => {
+                try {
+                    await api.put(`/projects/close/${projectId}`);
+                } catch (error) {
+                    Swal.showValidationMessage(
+                        `Request failed: ${error.response?.data?.message || error.message}`
+                    );
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                toast.success('Project closed successfully');
+                fetchProjects(); // Refresh the projects list
+            }
+        });
     };
 
     useEffect(() =>
@@ -63,25 +84,30 @@ const ViewProfProjectSummary = ({ refreshTrigger }) =>
                             <p className="text-gray-700 mb-2">{project.description}</p>
                             <p className="text-gray-700 mb-2">Status: {project.closed ? "Closed" : "Open"}</p>
                             <p>
-                                <strong>Professor: {project.profName}</strong> <br />
                                 <strong>Start Date:</strong> {new Date(project.startDate).toLocaleDateString()} <br />
                                 <strong>End Date:</strong> {new Date(project.endDate).toLocaleDateString()}
                             </p>
                             <div className="flex mt-4">
                                 <button
-                                className="bg-blue-500 text-white py-1 px-4 rounded hover:bg-blue-600 mr-6"
+                                className="bg-blue-500 text-white py-1 px-4 rounded hover:bg-blue-600 mr-4"
                                 onClick={() => navigate(`/faculty-db/adhoc-project/${project._id}`)}
                                 >
                                 View Details
                                 </button>
                                 {!project.closed && (
                                 <button
-                                    className="bg-red-500 text-white py-1 px-4 rounded hover:bg-red-600"
+                                    className="bg-red-500 text-white py-1 px-4 rounded hover:bg-red-600 mr-4"
                                     onClick={() => handleCloseProject(project._id)}
                                 >
                                     Close Project
                                 </button>
                                 )}
+                                <button
+                                    className="bg-green-500 text-white py-1 px-4 rounded hover:bg-green-600"
+                                    onClick={() => navigate(`/faculty-db/adhoc-project-applications/status/${project._id}`)}
+                                >
+                                    Manage Applications
+                                </button>
                             </div>
                         </div>
                     ))}

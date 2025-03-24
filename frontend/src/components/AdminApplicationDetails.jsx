@@ -11,27 +11,26 @@ const api = axios.create({
   });
 
 const AdminApplicationDetails = () => {
-  const { applicationId } = useParams();
+  const { projectId, applicationId } = useParams();
   const navigate = useNavigate();
   const [application, setApplication] = useState(null);
 
   useEffect(() => {
     const fetchApplication = async () => {
       try {
-        const res = await api.get(`/applications/${applicationId}`);
-        console.log(res.data.data);
+        const res = await api.get(`/projects/${projectId}/applications/${applicationId}`);
         setApplication(res.data.data);
       } catch (error) {
         console.error(error);
       }
     };
     fetchApplication();
-  }, [applicationId]);
+  }, [projectId, applicationId]);
 
   const handleStatusChange = async (newStatus) => {
     try {
-      await api.put(`/applications/${applicationId}`, { status: newStatus });
-      navigate('/faculty-db/adhoc-project-applications');
+      await api.put(`/projects/${projectId}/applications/${applicationId}`, { status: newStatus });
+      navigate(`/faculty-db/adhoc-project-applications/status/${projectId}`);
     } catch (err) {
       console.error(err);
     }
@@ -39,7 +38,7 @@ const AdminApplicationDetails = () => {
 
   if (!application) return <div>Loading...</div>;
 
-  const { studentId, projectId, doc, status } = application;
+  const { studentId, projectId: proj, doc, status } = application;
 
   return (
     <div className="container mx-auto p-6">
@@ -61,11 +60,11 @@ const AdminApplicationDetails = () => {
           </div>
         <div>
           <label className="block text-gray-700 font-semibold mb-2">Project Title:</label>
-          <p className="text-gray-900">{projectId?.title}</p>
+          <p className="text-gray-900">{proj?.title}</p>
         </div>
         <div>
           <label className="block text-gray-700 font-semibold mb-2">Project Duration:</label>
-          <p className="text-gray-900">{`${projectId?.startDate?.split('T')[0]} to ${projectId?.endDate?.split('T')[0]}`}</p>
+          <p className="text-gray-900">{`${proj?.startDate?.split('T')[0]} to ${proj?.endDate?.split('T')[0]}`}</p>
         </div>
         <div>
           <label className="block text-gray-700 font-semibold mb-2">Status:</label>
@@ -103,7 +102,7 @@ const AdminApplicationDetails = () => {
         </div>
       )}
       <button
-        onClick={() => navigate('/faculty-db/adhoc-project-applications')}
+        onClick={() => navigate(`/faculty-db/adhoc-project-applications/status/${projectId}`)}
         className="mt-6 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
       >
         Back to Applications
