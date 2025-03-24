@@ -31,7 +31,7 @@ const AdminApplicationDetails = () => {
   const handleStatusChange = async (newStatus) => {
     try {
       await api.put(`/applications/${applicationId}`, { status: newStatus });
-      navigate('/db/admin-applications');
+      navigate('/faculty-db/adhoc-project-applications');
     } catch (err) {
       console.error(err);
     }
@@ -57,10 +57,6 @@ const AdminApplicationDetails = () => {
         <div>
           <label className="block text-gray-700 font-semibold mb-2">Project Title:</label>
           <p className="text-gray-900">{projectId?.title}</p>
-        </div>
-        <div>
-          <label className="block text-gray-700 font-semibold mb-2">Professor Name:</label>
-          <p className="text-gray-900">{projectId?.profName}</p>
         </div>
         <div>
           <label className="block text-gray-700 font-semibold mb-2">Project Duration:</label>
@@ -102,7 +98,7 @@ const AdminApplicationDetails = () => {
         </div>
       )}
       <button
-        onClick={() => navigate('/db/admin-applications')}
+        onClick={() => navigate('/faculty-db/adhoc-project-applications')}
         className="mt-6 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
       >
         Back to Applications

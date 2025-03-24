@@ -11,7 +11,7 @@ import {
   closeProject,
   getApplicationDetails
 } from "../controllers/profProject.controller.js";
-import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
+import { verifyJWT, verifyProfessor } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
 const router = express.Router();
@@ -19,7 +19,7 @@ const router = express.Router();
 router.post("/apply", verifyJWT, upload.array('files'), applyToProject);
 router.get("/student/applications", verifyJWT, getStudentApplications);
 
-//both for admin and students
+//both for prof and students
 router.get(
   "/projects/summary",
   async (req, res, next) => {
@@ -34,9 +34,9 @@ router.get(
       });
     });
 
-    // Run verifyAdmin
+    // Run verifyProfessor
     await new Promise((resolve) => {
-      verifyAdmin(req, res, (err) => {
+      verifyProfessor(req, res, (err) => {
         if (!err) adminPassed = true;
         resolve();
       });
@@ -69,9 +69,9 @@ router.get(
       });
     });
 
-    // Run verifyAdmin
+    // Run verifyProfessor
     await new Promise((resolve) => {
-      verifyAdmin(req, res, (err) => {
+      verifyProfessor(req, res, (err) => {
         if (!err) adminPassed = true;
         resolve();
       });
@@ -90,12 +90,12 @@ router.get(
   getProjectDetails
 );
 
-// admin routes
-router.post("/projects", verifyAdmin, upload.array('files'), addNewProject);
-router.get("/applications/status/:status", verifyAdmin,getAllApplications);
-router.get("/applications/:applicationId", verifyAdmin, getApplicationDetails);
-router.put("/projects/close/:id", verifyAdmin, closeProject);
-router.put("/projects/:id", verifyAdmin, upload.array('files'), editProject);
-router.put("/applications/:applicationId", verifyAdmin, updateApplicationStatus);
+// prof routes
+router.post("/projects", verifyProfessor, upload.array('files'), addNewProject);
+router.get("/applications/status/:status", verifyProfessor,getAllApplications);
+router.get("/applications/:applicationId", verifyProfessor, getApplicationDetails);
+router.put("/projects/close/:id", verifyProfessor, closeProject);
+router.put("/projects/:id", verifyProfessor, upload.array('files'), editProject);
+router.put("/applications/:applicationId", verifyProfessor, updateApplicationStatus);
 
 export default router;

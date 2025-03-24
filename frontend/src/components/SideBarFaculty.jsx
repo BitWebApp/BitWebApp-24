@@ -59,6 +59,11 @@ export default function Sidebar() {
       icon: <HiPresentationChartLine />,
       to: "/faculty-db/minor-project",
     },
+     {
+      text: "Ad-hoc Projects",
+      icon: <HiPresentationChartLine />,
+      to: "/faculty-db/adhoc-projects-dashboard",
+    },
   ];
   // const [isAdmin, setIsAdmin] = useState(true);
 

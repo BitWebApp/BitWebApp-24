@@ -13,8 +13,7 @@ const ViewProfProjectDetails = () => {
     const [project, setProject] = useState({
       title: '',
       desc: '',
-      profName: '',
-      profEmail: '',
+      professor: { fullName: '', email: '' },
       startDate: '',
       endDate: '',
       categories: [],
@@ -176,7 +175,7 @@ const ViewProfProjectDetails = () => {
   
     return (
       <div className="container mx-auto px-4 py-8">
-        <button onClick={() => navigate('/db/admin-projects-dashboard')} className="mb-4 px-4 py-2 bg-gray-500 text-white rounded">
+        <button onClick={() => navigate('/faculty-db/adhoc-projects-dashboard')} className="mb-4 px-4 py-2 bg-gray-500 text-white rounded">
           Back
         </button>
   
@@ -198,15 +197,13 @@ const ViewProfProjectDetails = () => {
             </div>
   
             <div>
-              <label htmlFor="profName" className="block font-medium text-gray-700">Professor Name</label>
+              <label htmlFor="professorName" className="block font-medium text-gray-700">Professor Name</label>
               <input
-                id="profName"
-                name="profName"
-                value={project.profName}
-                onChange={handleInputChange}
+                id="professorName"
+                name="professorName"
+                value={project.professor.fullName}
                 className="w-full p-2 border border-gray-300 rounded"
-                required
-                disabled={!isEditMode}
+                readOnly
               />
             </div>
           </div>
@@ -226,16 +223,13 @@ const ViewProfProjectDetails = () => {
   
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="profEmail" className="block font-medium text-gray-700">Professor Email</label>
+              <label htmlFor="professorEmail" className="block font-medium text-gray-700">Professor Email</label>
               <input
-                id="profEmail"
-                name="profEmail"
-                value={project.profEmail}
-                onChange={handleInputChange}
-                type="email"
+                id="professorEmail"
+                name="professorEmail"
+                value={project.professor.email}
                 className="w-full p-2 border border-gray-300 rounded"
-                required
-                disabled={!isEditMode}
+                readOnly
               />
             </div>
   

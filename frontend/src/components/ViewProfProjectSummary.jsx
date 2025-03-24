@@ -69,7 +69,7 @@ const ViewProfProjectSummary = ({ refreshTrigger }) =>
                             </p>
                             <button
                                 className="bg-blue-500 text-white py-1 px-2 rounded mt-4"
-                                onClick={() => navigate(`/db/prof-project/${project._id}`)}
+                                onClick={() => navigate(`/faculty-db/adhoc-project/${project._id}`)}
                             >
                                 View Details
                             </button>

@@ -17,9 +17,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [projectDetails, setProjectDetails] = useState({
-    profId: JSON.parse(localStorage.getItem('user'))?._id || '',
-    profName: '',
-    profEmail: '',
+    profId: JSON.parse(localStorage.getItem('faculty'))?._id || '',
     categories: [],
     title: '',
     desc: '',
@@ -61,8 +59,6 @@ const AdminDashboard = () => {
 
       const formData = new FormData();
       formData.append('profId', projectDetails.profId);
-      formData.append('profName', projectDetails.profName);
-      formData.append('profEmail', projectDetails.profEmail);
       formData.append('title', title);
       formData.append('desc', desc);
       formData.append('startDate', startDate);
@@ -83,8 +79,6 @@ const AdminDashboard = () => {
       toast.success(isEditing ? 'Project updated successfully!' : 'Project added successfully!');
       setProjectDetails({
         profId: JSON.parse(localStorage.getItem('user'))?._id || '',
-        profName: '',
-        profEmail: '',
         categories: [],
         title: '',
         desc: '',
@@ -198,22 +192,6 @@ const AdminDashboard = () => {
       <div>
         <h2 className="text-2xl font-bold mb-4">Manage Projects</h2>
         <form onSubmit={handleProjectSubmit}>
-          <input
-            type="text"
-            placeholder="Professor's Name"
-            value={projectDetails.profName}
-            onChange={(e) => setProjectDetails({ ...projectDetails, profName: e.target.value })}
-            required
-            className="mb-2 p-2 border rounded w-full"
-          />
-          <input
-            type="text"
-            placeholder="Professor's Email"
-            value={projectDetails.profEmail}
-            onChange={(e) => setProjectDetails({ ...projectDetails, profEmail: e.target.value })}
-            required
-            className="mb-2 p-2 border rounded w-full"
-          />
           <input
             type="text"
             placeholder="Project Title"
@@ -353,7 +331,7 @@ const AdminDashboard = () => {
       </div>
 
       <button
-        onClick={() => navigate('/db/admin-applications')}
+        onClick={() => navigate('/faculty-db/adhoc-project-applications')}
         className="mt-6 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
       >
         Manage Applications

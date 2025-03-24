@@ -167,17 +167,9 @@ export default function App() {
           <Route path="assign-company" element={<CompanyAssignmentForm />} />
           <Route path="add-prof" element={<AddProfessor />} />
           <Route path="review" element={<Review />} />
-          <Route path="admin-projects-dashboard" element={<AdminDashboard />} />
           <Route path="student-award-table" element={<StudentAwardTable />} />
-          <Route path="admin-projects-dashboard" element={<AdminDashboard />} />
-          <Route path="prof-project/:id" element={<ViewProfProjectDetails />} />
           <Route path="backlogs-table" element={<BacklogTable />} />
           <Route path="PE-table" element={<PeCoursesTable />} />
-          <Route path="admin-applications" element={<AdminApplications />} />
-          <Route
-            path="admin-applications/:applicationId"
-            element={<AdminApplicationDetails />}
-          />
           <Route path="increase-limit" element={<IncreaseLimit />} />
         </Route>
         <Route
@@ -192,6 +184,13 @@ export default function App() {
           <Route path="accept-students" element={<AcceptStudents />} />
           <Route path="major-project" element={<MajorProject />} />
           <Route path="minor-project" element={<MajorProject />} />
+          <Route path="adhoc-projects-dashboard" element={<AdminDashboard />} />
+          <Route path="adhoc-project/:id" element={<ViewProfProjectDetails />} />
+          <Route path="adhoc-project-applications" element={<AdminApplications />} />
+          <Route
+            path="adhoc-project-applications/:applicationId"
+            element={<AdminApplicationDetails />}
+          />
         </Route>
         <Route path="/sg" element={<Signup />} />
         <Route path="/log.a" element={<Loginadmin />} />

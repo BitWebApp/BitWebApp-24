@@ -135,11 +135,6 @@ export default function Sidebar() {
       icon: <HiArchive />,
       to: "/admin-db/review",
     },
-    // {
-    //   text: "Prof. Projects",
-    //   icon: <HiPresentationChartLine />,
-    //   to: "/admin-db/admin-projects-dashboard",
-    // },
   ];
   // const [isAdmin, setIsAdmin] = useState(true);
 
