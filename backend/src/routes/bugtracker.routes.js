@@ -2,6 +2,7 @@ import express from 'express';
 import { createBug, getBugs, getBugById, updateBug } from '../controllers/bugtracker.controller.js';
 import { verifyJWT, verifyAdmin, verifyProfessor } from '../middlewares/auth.middleware.js';
 import { createRateLimiter, requestIpMiddleware } from '../middlewares/ratelimiter.middleware.js';
+import { upload } from "../middlewares/multer.middleware.js";
 
 const router = express.Router();
 const bugRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 100 });
@@ -25,6 +26,7 @@ router.post(
       });
     });
   },
+  upload.array("files"),
   createBug
 );
 

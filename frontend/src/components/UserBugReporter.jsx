@@ -16,7 +16,10 @@ export default function UserBugReporter () {
 	const location = useLocation();
 	const [reporterType, setReporterType] = useState('');
 	const [reporterId, setReporterId] = useState('');
+	const [title, setTitle] = useState('');
 	const [reportDescription, setReportDescription] = useState('');
+	const [attachments, setAttachments] = useState([]);
+	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
 		const token = localStorage.getItem('accessToken');
@@ -34,18 +37,34 @@ export default function UserBugReporter () {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		const payload = {
-			reportDescription,
-			requesterType: reporterType
-		};
+		setLoading(true);
+		const formData = new FormData();
+		formData.append('title', title);
+		formData.append('reportDescription', reportDescription);
+		attachments.forEach((file) => {
+			formData.append('files', file);
+		});
+
 		try {
-			await axios.post("/api/v1/tracker/bugs", payload);
+			await axios.post("/api/v1/tracker/bugs", formData, {
+				headers: { "Content-Type": "multipart/form-data" },
+			});
 			toast.success('Bug reported successfully!');
+			setTitle('');
 			setReportDescription('');
+			setAttachments([]);
 		} catch (error) {
 			const errorMessage = error.response?.data?.message || error.message;
 			toast.error(`Error: ${errorMessage}`);
+		} finally {
+			setLoading(false);
 		}
+	};
+
+	const handleFileChange = (e) => {
+		const files = e.target.files;
+		const newFiles = Array.from(files);
+		setAttachments([...attachments, ...newFiles]);
 	};
 
 	return (
@@ -58,25 +77,48 @@ export default function UserBugReporter () {
           <p className="text-base mb-2">Please describe the bug below.</p>
           <form onSubmit={handleSubmit} className="flex flex-col">
             <div className="mb-4">
+              <label className="block text-black mb-2">Bug Title:</label>
+              <input
+                type="text"
+                placeholder="Enter bug title..."
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="w-full p-2 border-b border-black bg-transparent outline-none focus:outline-none"
+              />
+            </div>
+            <div className="mb-4">
               <label className="block text-black mb-2">Report Description:</label>
               <textarea
                 placeholder="Describe the bug here..."
-                rows="1"
+                rows="3"
                 value={reportDescription}
                 onChange={(e) => setReportDescription(e.target.value)}
                 required
                 className="w-full p-2 border-b border-black bg-transparent outline-none focus:outline-none"
               />
             </div>
+            <div className="mb-4">
+              <label className="block text-black mb-2">Upload Attachments:</label>
+              <input
+                type="file"
+                multiple
+                onChange={handleFileChange}
+                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
+              />
+            </div>
             <button
               type="submit"
-              className="w-full py-2 px-4 text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 transition-all duration-200"
+              disabled={loading}
+              className={`w-full py-2 px-4 rounded-lg shadow-md transition-all duration-200 ${
+                loading ? 'bg-gray-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
             >
-              Submit Bug
+              {loading ? 'Reporting...' : 'Submit Bug'}
             </button>
           </form>
         </div>
       </div>
 		</div>
 	);
-};
+}
