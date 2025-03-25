@@ -15,6 +15,7 @@ import {
   HiChat,
   HiSun,
   HiUserGroup,
+  HiBeaker
 } from "react-icons/hi";
 import { FaCalendar } from "react-icons/fa";
 import { motion } from "framer-motion";
@@ -134,6 +135,11 @@ export default function Sidebar() {
       text: "Professor Projects",
       icon: <HiPresentationChartLine />,
       to: "/db/student-projects-dashboard",
+    },
+    {
+      text: "Report Issues",
+      icon: <HiBeaker />,
+      to: "/db/report-bug",
     },
   ];
   const links = additionalLinks;

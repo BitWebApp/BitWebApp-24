@@ -80,6 +80,7 @@ import ClassroomBookingCalendar from "./components/ClassroomBookingCalendar";
 import GroupManagement from "./components/GroupManagement";
 import FacultyForgotPassword from "./components/FacultyForgotPassword";
 import MajorProject from "./components/MajorProject";
+import UserBugReporter from "./components/UserBugReporter";
 
 export default function App() {
   return (
@@ -133,6 +134,7 @@ export default function App() {
           <Route path="booked-rooms" element={<BookedRooms />} />
           <Route path="major-project" element={<MajorProject />} />
           <Route path="minor-project" element={<MajorProject />} />
+          <Route path="report-bug" element={<UserBugReporter />} />
           <Route
             path="booking-calendar"
             element={<ClassroomBookingCalendar />}
@@ -194,6 +196,7 @@ export default function App() {
           {/* New routes for project-specific application management */}
           <Route path="adhoc-project-applications/status/:projectId" element={<AdminApplications />} />
           <Route path="adhoc-project-applications/status/:projectId/:applicationId" element={<AdminApplicationDetails />} />
+          <Route path="report-bug" element={<UserBugReporter />} />
         </Route>
         <Route path="/sg" element={<Signup />} />
         <Route path="/log.a" element={<Loginadmin />} />
