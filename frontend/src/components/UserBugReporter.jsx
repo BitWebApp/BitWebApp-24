@@ -91,7 +91,7 @@ export default function UserBugReporter () {
               <label className="block text-black mb-2">Report Description:</label>
               <textarea
                 placeholder="Describe the bug here..."
-                rows="3"
+                rows="1"
                 value={reportDescription}
                 onChange={(e) => setReportDescription(e.target.value)}
                 required
