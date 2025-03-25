@@ -6,7 +6,7 @@ const BugTrackerSchema = new Schema({
       required: [true, "Bug report title is required!"],
     },
     reporter: {
-      kind: { type: String, required: true, enum: ['User', 'Faculty'] },
+      kind: { type: String, required: true, enum: ['User', 'Professor'] },
       id: { type: Schema.Types.ObjectId, required: true, refPath: 'reporter.kind' }
     },
     status: {
