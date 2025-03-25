@@ -1,22 +1,34 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
-import { ProfProject } from "../models/profProject.model.js";
+import { AdhocProject } from "../models/profProject.model.js";
 import { RequestProj } from "../models/requestProj.model.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/Cloudinary.js";
+import { Professor } from "../models/professor.model.js";
 
 const addNewProject = asyncHandler(async (req, res) => {
-  const { profId, profName, profEmail, title, desc, categories, startDate, endDate, relevantLinks } = req.body;
+  const { profId, title, desc, categories, startDate, endDate, relevantLinks } = req.body;
+  const professor = await Professor.findById(profId);
+  if (!professor) {
+    throw new ApiError(404, "Professor not found!");
+  }
 
   const docsURL = [];
-  if (req.files &&  req.files.length) {
+  if (req.files && req.files.length) {
     for (const file of req.files) {
       const cloudinaryResponse = await uploadOnCloudinary(file.path);
       docsURL.push(cloudinaryResponse.secure_url);
     }
   }
 
-  const newProject = await ProfProject.create({
-    profId, profName, profEmail, title, desc, categories, startDate, endDate, doc: docsURL, relevantLinks
+  const newProject = await AdhocProject.create({
+    professor: profId,
+    title,
+    desc,
+    categories,
+    startDate,
+    endDate,
+    doc: docsURL,
+    relevantLinks
   });
 
   res.status(201).json({ 
@@ -26,19 +38,28 @@ const addNewProject = asyncHandler(async (req, res) => {
 });
 
 const getAllProjectsSummary = asyncHandler(async (req, res) => {
-    const projects = await ProfProject.find().select('profName title startDate endDate closed');
+    let projects = await AdhocProject.find()
+      .select('title startDate endDate closed professor')
+      .populate({ path: "professor", select: "fullName" });
+    projects = projects.map((project) => {
+      const projObj = project.toObject();
+      projObj.profName = projObj.professor.fullName; 
+      return projObj;
+    });
     res.status(200).json({ success: true, data: projects });
 });
 
 const getProjectDetails = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const project = await ProfProject.findById(id);
-
+    const project = await AdhocProject.findById(id)
+      .populate({ path: "professor", select: "fullName email" });
     if (!project) {
         throw new ApiError(404, "Project not found");
     }
-
-    res.status(200).json({ success: true, data: project });
+    const projectData = project.toObject();
+    projectData.profName = project.professor.fullName;
+    projectData.profEmail = project.professor.email;
+    res.status(200).json({ success: true, data: projectData });
 });
 
 const editProject = asyncHandler(async (req, res) => {
@@ -46,7 +67,7 @@ const editProject = asyncHandler(async (req, res) => {
     const { title, desc, categories, startDate, endDate, relevantLinks, deleteUrls, closed } = req.body; // 'relevantLinks' is now an array
   
     try {
-      const project = await ProfProject.findById(id);
+      const project = await AdhocProject.findById(id);
   
       if (!project) {
         throw new ApiError(404, "Project not found");
@@ -57,7 +78,7 @@ const editProject = asyncHandler(async (req, res) => {
       project.categories = categories || project.categories;
       project.startDate = startDate || project.startDate;
       project.endDate = endDate || project.endDate;
-      project.relevantLinks = relevantLinks || project.relevantLinks; // Assign array directly
+      project.relevantLinks = relevantLinks || []; // Assign array directly
       project.closed = closed !== undefined ? closed : project.closed; // Ensure 'closed' is updated correctly
   
       if (deleteUrls && Array.isArray(deleteUrls) && deleteUrls.length > 0) {
@@ -106,7 +127,7 @@ const applyToProject = asyncHandler(async (req, res) => {
   const { projectId } = req.body;
   
   // Check if the project exists
-  const project = await ProfProject.findById(projectId);
+  const project = await AdhocProject.findById(projectId);
   if (!project) {
     throw new ApiError(404, "Project not found");
   }
@@ -197,7 +218,7 @@ const getStudentApplications = asyncHandler(async (req, res) => {
 const closeProject = asyncHandler(async (req, res) => {
     const { id } = req.params;
     
-    const project = await ProfProject.findById(id);
+    const project = await AdhocProject.findById(id);
     if (!project) {
       throw new ApiError(404, "Project not found");
     }
@@ -226,6 +247,42 @@ const getApplicationDetails = async (req, res) => {
   }
 };
 
+const getApplicationsForProject = asyncHandler(async (req, res) => {
+  const { projectId, status } = req.params;
+  const applications = await RequestProj.find({ projectId, status })
+    .populate('studentId', 'fullName email rollNumber mobileNumber')
+    .populate('projectId', 'title profName')
+    .select('status applicationDate doc projectId');
+  res.status(200).json({ success: true, data: applications });
+});
+
+const getApplicationDetailsForProject = asyncHandler(async (req, res) => {
+  const { projectId, applicationId } = req.params;
+  const application = await RequestProj.findOne({ _id: applicationId, projectId })
+    .populate('studentId', 'fullName email')
+    .populate('projectId', 'title profName startDate endDate');
+  if (!application) {
+    return res.status(404).json({ message: 'Application not found' });
+  }
+  res.status(200).json({ success: true, data: application });
+});
+
+const updateApplicationStatusForProject = asyncHandler(async (req, res) => {
+  const { projectId, applicationId } = req.params;
+  const { status } = req.body;
+  if (!["accepted", "rejected"].includes(status)) {
+    throw new ApiError(400, "Invalid status value. Allowed values are 'accepted', or 'rejected'.");
+  }
+  // Ensure application belongs to the given project
+  const application = await RequestProj.findOne({ _id: applicationId, projectId });
+  if (!application) {
+    throw new ApiError(404, "Application not found for this project");
+  }
+  application.status = status;
+  await application.save();
+  res.status(200).json({ success: true, data: application });
+});
+
 export { 
   addNewProject, 
   getAllProjectsSummary,
@@ -236,5 +293,8 @@ export {
   updateApplicationStatus,
   getStudentApplications,
   closeProject,
-  getApplicationDetails
+  getApplicationDetails,
+  getApplicationsForProject,
+  getApplicationDetailsForProject,
+  updateApplicationStatusForProject
 };

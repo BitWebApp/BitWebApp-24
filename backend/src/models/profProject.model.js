@@ -1,19 +1,11 @@
 import mongoose, { Schema } from "mongoose";
 
-const profProjectSchema = new Schema(
+const adhocProjectSchema = new Schema(
   {
-    profId: {
+    professor: {
       type: Schema.Types.ObjectId,
-      ref: "Admin",
-      required: [true, "profId is required!"],
-    },
-    profName: {
-        type: String,
-        required: [true, "prof name is required!"],
-    },
-    profEmail: {
-        type: String,
-        required: [true, "prof email is required!"],
+      ref: "Professor",
+      required: [true, "Professor reference is required!"],
     },
     title: {
       type: String,
@@ -28,14 +20,14 @@ const profProjectSchema = new Schema(
     },
     startDate: {
       type: Date,
-      required: [true, "Placement date is required!"],
+      required: [true, "Start date is required!"],
     },
     endDate: {
-        type: Date,
-        required: [true, "Placement date is required!"],
+      type: Date,
+      required: [true, "End date is required!"],
     },
     relevantLinks: {
-        type: [String]
+      type: [String]
     },
     doc: {
       type: [String],
@@ -48,4 +40,4 @@ const profProjectSchema = new Schema(
   { timestamps: true }
 );
 
-export const ProfProject = mongoose.model("ProfProject", profProjectSchema);
+export const AdhocProject = mongoose.model("AdhocProject", adhocProjectSchema);

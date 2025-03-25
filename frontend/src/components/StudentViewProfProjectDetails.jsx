@@ -65,7 +65,12 @@ const StudentViewProfProjectDetails = () => {
 
           <div>
             <h2 className="text-lg font-semibold">Professor Email</h2>
-            <p className="text-gray-700">{project.profEmail}</p>
+            <a 
+              href={`mailto:${project.profEmail}`} 
+              className="list-disc list-inside text-blue-500"
+            >
+              {project.profEmail}
+            </a>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -81,37 +86,53 @@ const StudentViewProfProjectDetails = () => {
 
           <div>
             <h2 className="text-lg font-semibold">Categories</h2>
-            <ul className="list-disc list-inside text-gray-700">
-              {project.categories.map((category, index) => (
-                <li key={index}>{category}</li>
-              ))}
-            </ul>
+            {project.categories && project.categories.length > 0 ? (
+              <ul className="list-disc list-inside text-gray-700">
+                {project.categories.map((category, index) => (
+                  <li key={index}>{category}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No categories available</p>
+            )}
           </div>
-
+          
           <div>
             <h2 className="text-lg font-semibold">Relevant Links</h2>
-            <ul className="list-disc list-inside text-blue-500">
-              {project.relevantLinks.map((link, index) => (
-                <li key={index}>
-                  <a href={link} target="_blank" rel="noopener noreferrer">
-                    {link}
-                  </a>
-                </li>
-              ))}
-            </ul>
+            {project.relevantLinks && project.relevantLinks.length > 0 ? (
+              <ul className="list-disc list-inside text-blue-500">
+                {project.relevantLinks.map((link, index) => (
+                  <li key={index}>
+                    <a 
+                      href={/^https?:\/\//.test(link) ? link : `http://${link}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No relevant links available</p>
+            )}
           </div>
-
+          
           <div>
             <h2 className="text-lg font-semibold">Documents</h2>
-            <ul className="list-disc list-inside text-blue-500">
-              {project.doc.map((doc, index) => (
-                <li key={index}>
-                  <a href={doc} target="_blank" rel="noopener noreferrer">
-                    {doc}
-                  </a>
-                </li>
-              ))}
-            </ul>
+            {project.doc && project.doc.length > 0 ? (
+              <ul className="list-disc list-inside text-blue-500">
+                {project.doc.map((doc, index) => (
+                  <li key={index}>
+                    <a href={doc} target="_blank" rel="noopener noreferrer">
+                      {`Document No. ${index + 1}`}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No documents uploaded</p>
+            )}
           </div>
 
           <div>
