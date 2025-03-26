@@ -1,96 +1,96 @@
-import React, { useEffect, useState } from "react"
-import axios from "axios"
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 const UnverifiedUsers = () => {
-  const [users, setUsers] = useState([])
-  const [error, setError] = useState("")
-  const [selectedUserIds, setSelectedUserIds] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [rejectLoading, setRejectLoading] = useState(false)
-  const [rejectReason, setRejectReason] = useState("")
-  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [users, setUsers] = useState([]);
+  const [error, setError] = useState("");
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [rejectLoading, setRejectLoading] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [showRejectModal, setShowRejectModal] = useState(false);
 
   useEffect(() => {
     fetchUnverifiedUsers();
   }, []);
   const fetchUnverifiedUsers = async () => {
-      const response = await axios.get("/api/v1/admin/unverifiedUsers")
-      console.log(response)
-      setUsers(response.data.data)
-  }
+    const response = await axios.get("/api/v1/admin/unverifiedUsers");
+    console.log(response);
+    setUsers(response.data.data);
+  };
   const handleCheckboxChange = (userId) => {
     setSelectedUserIds((prevSelectedUserIds) =>
       prevSelectedUserIds.includes(userId)
         ? prevSelectedUserIds.filter((id) => id !== userId)
         : [...prevSelectedUserIds, userId]
-    )
-  }
+    );
+  };
 
   const handleVerifySubmit = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       for (let i = 0; i < selectedUserIds.length; i++) {
         try {
-          const response = await axios.patch("api/v1/admin/verifyUser", {
+          const response = await axios.patch("/api/v1/admin/verifyUser", {
             userId: selectedUserIds[i],
-          })
-          console.log(response)
+          });
+          console.log(response);
         } catch (err) {
-          console.log("Error verifying user", selectedUserIds[i], err)
+          console.log("Error verifying user", selectedUserIds[i], err);
         }
       }
       const updatedUsersResponse = await axios.get(
-        "api/v1/admin/unverifiedUsers"
-      )
-      setUsers(updatedUsersResponse.data.data.us)
+        "/api/v1/admin/unverifiedUsers"
+      );
+      setUsers(updatedUsersResponse.data.data);
     } catch (err) {
-      console.log("Error verifying users", err)
+      console.log("Error verifying users", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleRejectSubmit = async () => {
     if (!rejectReason) {
-      alert("Please provide a reason for rejection")
-      return
+      alert("Please provide a reason for rejection");
+      return;
     }
     try {
-      setRejectLoading(true)
+      setRejectLoading(true);
       for (let i = 0; i < selectedUserIds.length; i++) {
         try {
-          const response = await axios.patch("api/v1/admin/rejectUser", {
+          const response = await axios.patch("/api/v1/admin/rejectUser", {
             userId: selectedUserIds[i],
             reason: rejectReason,
-          })
-          console.log(response)
+          });
+          console.log(response);
         } catch (err) {
-          console.log("Error rejecting user", selectedUserIds[i], err)
+          console.log("Error rejecting user", selectedUserIds[i], err);
         }
       }
       const updatedUsersResponse = await axios.get(
-        "api/v1/admin/unverifiedUsers"
-      )
-      setUsers(updatedUsersResponse?.data?.data?.us)
+        "/api/v1/admin/unverifiedUsers"
+      );
+      setUsers(updatedUsersResponse?.data?.data);
     } catch (err) {
-      console.log("Error rejecting users", err)
+      console.log("Error rejecting users", err);
     } finally {
-      setRejectLoading(false)
-      setShowRejectModal(false)
-      setRejectReason("")
+      setRejectLoading(false);
+      setShowRejectModal(false);
+      setRejectReason("");
     }
-  }
+  };
 
   const openRejectModal = () => {
     if (selectedUserIds.length === 0) {
-      alert("Please select at least one user")
-      return
+      alert("Please select at least one user");
+      return;
     }
-    setShowRejectModal(true)
-  }
+    setShowRejectModal(true);
+  };
 
   if (error) {
-    return <div className="text-red-500 text-center mt-4">{error}</div>
+    return <div className="text-red-500 text-center mt-4">{error}</div>;
   }
 
   return (
@@ -188,7 +188,7 @@ const UnverifiedUsers = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default UnverifiedUsers
+export default UnverifiedUsers;
