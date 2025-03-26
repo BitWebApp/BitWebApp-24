@@ -11,27 +11,26 @@ const api = axios.create({
   });
 
 const AdminApplicationDetails = () => {
-  const { applicationId } = useParams();
+  const { projectId, applicationId } = useParams();
   const navigate = useNavigate();
   const [application, setApplication] = useState(null);
 
   useEffect(() => {
     const fetchApplication = async () => {
       try {
-        const res = await api.get(`/applications/${applicationId}`);
-        console.log(res.data.data);
+        const res = await api.get(`/projects/${projectId}/applications/${applicationId}`);
         setApplication(res.data.data);
       } catch (error) {
         console.error(error);
       }
     };
     fetchApplication();
-  }, [applicationId]);
+  }, [projectId, applicationId]);
 
   const handleStatusChange = async (newStatus) => {
     try {
-      await api.put(`/applications/${applicationId}`, { status: newStatus });
-      navigate('/db/admin-applications');
+      await api.put(`/projects/${projectId}/applications/${applicationId}`, { status: newStatus });
+      navigate(`/faculty-db/adhoc-project-applications/status/${projectId}`);
     } catch (err) {
       console.error(err);
     }
@@ -39,7 +38,7 @@ const AdminApplicationDetails = () => {
 
   if (!application) return <div>Loading...</div>;
 
-  const { studentId, projectId, doc, status } = application;
+  const { studentId, projectId: proj, doc, status } = application;
 
   return (
     <div className="container mx-auto p-6">
@@ -51,20 +50,21 @@ const AdminApplicationDetails = () => {
           <p className="text-gray-900">{studentId?.fullName}</p> {/* Changed from name to fullName */}
         </div>
         <div>
-          <label className="block text-gray-700 font-semibold mb-2">Student Email:</label>
-          <p className="text-gray-900">{studentId?.email}</p>
-        </div>
+            <h2 className="text-lg font-semibold">Student Email</h2>
+            <a 
+              href={`mailto:${studentId?.email}`} 
+              className="list-disc list-inside text-blue-500"
+            >
+              {studentId.email}
+            </a>
+          </div>
         <div>
           <label className="block text-gray-700 font-semibold mb-2">Project Title:</label>
-          <p className="text-gray-900">{projectId?.title}</p>
-        </div>
-        <div>
-          <label className="block text-gray-700 font-semibold mb-2">Professor Name:</label>
-          <p className="text-gray-900">{projectId?.profName}</p>
+          <p className="text-gray-900">{proj?.title}</p>
         </div>
         <div>
           <label className="block text-gray-700 font-semibold mb-2">Project Duration:</label>
-          <p className="text-gray-900">{`${projectId?.startDate?.split('T')[0]} to ${projectId?.endDate?.split('T')[0]}`}</p>
+          <p className="text-gray-900">{`${proj?.startDate?.split('T')[0]} to ${proj?.endDate?.split('T')[0]}`}</p>
         </div>
         <div>
           <label className="block text-gray-700 font-semibold mb-2">Status:</label>
@@ -75,15 +75,15 @@ const AdminApplicationDetails = () => {
       </div>
       <div className="mt-6">
         <h4 className="text-lg font-semibold mb-2">Attached Files:</h4>
-        <ul className="list-disc list-inside">
-          {doc?.map((fileUrl, idx) => (
-            <li key={idx}>
-              <a href={fileUrl} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">
-                {fileUrl}
-              </a>
-            </li>
-          ))}
-        </ul>
+        <ul className="list-disc list-inside text-blue-500">
+              {doc.map((doc, index) => (
+                <li key={index}>
+                  <a href={doc} target="_blank" rel="noopener noreferrer">
+                    {`Document No. ${index + 1}`}
+                  </a>
+                </li>
+              ))}
+            </ul>
       </div>
       {status === 'pending' && (
         <div className="mt-6 flex space-x-4">
@@ -102,7 +102,7 @@ const AdminApplicationDetails = () => {
         </div>
       )}
       <button
-        onClick={() => navigate('/db/admin-applications')}
+        onClick={() => navigate(`/faculty-db/adhoc-project-applications/status/${projectId}`)}
         className="mt-6 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
       >
         Back to Applications

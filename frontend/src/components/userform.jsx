@@ -30,6 +30,13 @@ export default function UserForm() {
   const [graduationYear, setGraduationYear] = useState("");
   const [workExperiences, setWorkExperiences] = useState([]);
 
+  // Additional Information state
+  const [alternateEmail, setAlternateEmail] = useState("");
+  const [fatherName, setFatherName] = useState("");
+  const [fatherMobileNumber, setFatherMobileNumber] = useState("");
+  const [motherName, setMotherName] = useState("");
+  const [residentialAddress, setResidentialAddress] = useState("");
+
   useEffect(() => {
     axios.get("/api/v1/users/get-user")
       .then(response => {
@@ -56,6 +63,11 @@ export default function UserForm() {
           setGraduationYear(userData.graduationYear || "");
           setWorkExperiences(userData.workExperiences || []);
         }
+        setAlternateEmail(userData.alternateEmail || "");
+        setFatherName(userData.fatherName || "");
+        setFatherMobileNumber(userData.fatherMobileNumber || "");
+        setMotherName(userData.motherName || "");
+        setResidentialAddress(userData.residentialAddress || "");
       })
       .catch(error => {
         console.log(error);
@@ -98,6 +110,11 @@ export default function UserForm() {
       formData.append("graduationYear", graduationYear);
       formData.append("workExperiences", JSON.stringify(workExperiences));
     }
+    formData.append("alternateEmail", alternateEmail);
+    formData.append("fatherName", fatherName);
+    formData.append("fatherMobileNumber", fatherMobileNumber);
+    formData.append("motherName", motherName);
+    formData.append("residentialAddress", residentialAddress);
 
     axios.patch(`/api/v1/users/update`, formData, {
       headers: {
@@ -139,6 +156,11 @@ export default function UserForm() {
     setProfilePicture(null);
     setGraduationYear("");
     setWorkExperiences([]);
+    setAlternateEmail(user.alternateEmail || "");
+    setFatherName(user.fatherName || "");
+    setFatherMobileNumber(user.fatherMobileNumber || "");
+    setMotherName(user.motherName || "");
+    setResidentialAddress(user.residentialAddress || "");
     setIsEditMode(false);
   };
 
@@ -343,10 +365,60 @@ export default function UserForm() {
               disabled={!isEditMode}
             />
 
+            {/* Additional Information */}
+            <div className="mt-4">
+              <h3 className="text-2xl font-semibold mb-4">Additional Information</h3>
+              <label>Alternate E-mail</label>
+              <input
+                type="email"
+                value={alternateEmail}
+                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+                onChange={(e) => setAlternateEmail(e.target.value)}
+                disabled={!isEditMode}
+                placeholder="Enter alternate email"
+              />
+              <label>Father's Name</label>
+              <input
+                type="text"
+                value={fatherName}
+                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+                onChange={(e) => setFatherName(e.target.value)}
+                disabled={!isEditMode}
+                placeholder="Enter father's name"
+              />
+              <label>Father's Mobile No:</label>
+              <input
+                type="tel"
+                value={fatherMobileNumber}
+                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+                onChange={(e) => setFatherMobileNumber(e.target.value)}
+                disabled={!isEditMode}
+                placeholder="Enter father's mobile number"
+              />
+              <label>Mother's Name</label>
+              <input
+                type="text"
+                value={motherName}
+                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+                onChange={(e) => setMotherName(e.target.value)}
+                disabled={!isEditMode}
+                placeholder="Enter mother's name"
+              />
+              <label>Residential Address</label>
+              <input
+                type="text"
+                value={residentialAddress}
+                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+                onChange={(e) => setResidentialAddress(e.target.value)}
+                disabled={!isEditMode}
+                placeholder="Enter your residential address"
+              />
+            </div>
+
             {/* Alumni Section */}
             {semester === "Graduated" && (
               <div className="mt-5">
- <h3 className="text-2xl font-semibold mb-4">Alumni Section</h3>
+                <h3 className="text-2xl font-semibold mb-4">Alumni Section</h3>
                 <label>Graduation Year</label>
                 <input
                   type="text"

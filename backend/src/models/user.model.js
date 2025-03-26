@@ -36,6 +36,26 @@ const userSchema = new Schema(
       unique: true,
       lowercase: true,
     },
+    alternateEmail: {
+      type: String,
+      default: "",
+    },
+    fatherName: {
+      type: String,
+      default: "",
+    },
+    fatherMobileNumber: {
+      type: String,
+      default: "",
+    },
+    motherName: {
+      type: String,
+      default: "",
+    },
+    residentialAddress: {
+      type: String,
+      default: "",
+    },
     resume: {
       type: String,
     },

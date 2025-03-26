@@ -17,9 +17,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [projectDetails, setProjectDetails] = useState({
-    profId: JSON.parse(localStorage.getItem('user'))?._id || '',
-    profName: '',
-    profEmail: '',
+    profId: JSON.parse(localStorage.getItem('faculty'))?._id || '',
     categories: [],
     title: '',
     desc: '',
@@ -30,6 +28,7 @@ const AdminDashboard = () => {
   });
   const [loading, setLoading] = useState(false);
   const [refreshProjects, setRefreshProjects] = useState(false);
+  const [activeTab, setActiveTab] = useState('manage'); // new state for tab
 
   const fetchProjects = async () => {
     try {
@@ -61,8 +60,6 @@ const AdminDashboard = () => {
 
       const formData = new FormData();
       formData.append('profId', projectDetails.profId);
-      formData.append('profName', projectDetails.profName);
-      formData.append('profEmail', projectDetails.profEmail);
       formData.append('title', title);
       formData.append('desc', desc);
       formData.append('startDate', startDate);
@@ -83,8 +80,6 @@ const AdminDashboard = () => {
       toast.success(isEditing ? 'Project updated successfully!' : 'Project added successfully!');
       setProjectDetails({
         profId: JSON.parse(localStorage.getItem('user'))?._id || '',
-        profName: '',
-        profEmail: '',
         categories: [],
         title: '',
         desc: '',
@@ -194,170 +189,148 @@ const AdminDashboard = () => {
     <div className="container mx-auto px-4 py-8">
       <ScrollToTop />
       <ToastContainer />
-      {/* Project Management */}
-      <div>
-        <h2 className="text-2xl font-bold mb-4">Manage Projects</h2>
-        <form onSubmit={handleProjectSubmit}>
-          <input
-            type="text"
-            placeholder="Professor's Name"
-            value={projectDetails.profName}
-            onChange={(e) => setProjectDetails({ ...projectDetails, profName: e.target.value })}
-            required
-            className="mb-2 p-2 border rounded w-full"
-          />
-          <input
-            type="text"
-            placeholder="Professor's Email"
-            value={projectDetails.profEmail}
-            onChange={(e) => setProjectDetails({ ...projectDetails, profEmail: e.target.value })}
-            required
-            className="mb-2 p-2 border rounded w-full"
-          />
-          <input
-            type="text"
-            placeholder="Project Title"
-            value={projectDetails.title}
-            onChange={(e) => setProjectDetails({ ...projectDetails, title: e.target.value })}
-            required
-            className="mb-2 p-2 border rounded w-full"
-          />
-          <textarea
-            placeholder="Project Description"
-            value={projectDetails.desc}
-            onChange={(e) => setProjectDetails({ ...projectDetails, desc: e.target.value })}
-            required
-            className="mb-2 p-2 border rounded w-full"
-          />
-          <input
-            type="date"
-            placeholder="Start Date"
-            value={projectDetails.startDate}
-            onChange={(e) => setProjectDetails({ ...projectDetails, startDate: e.target.value })}
-            required
-            className="mb-2 p-2 border rounded w-full"
-          />
-          <input
-            type="date"
-            placeholder="End Date"
-            value={projectDetails.endDate}
-            onChange={(e) => setProjectDetails({ ...projectDetails, endDate: e.target.value })}
-            required
-            className="mb-2 p-2 border rounded w-full"
-          />
 
-          {/* Categories input field */}
-          <div className="mt-4 mb-2">
-            <label htmlFor="categories" className="block text-sm font-semibold">Categories:</label>
-            <input
-              type="text"
-              id="categories"
-              value={inputValue}
-              onChange={handleInputChange}
-              onKeyPress={handleKeyPress}
-              placeholder="Enter categories (comma separated)"
-              className="p-2 border rounded w-full"
-            />
-          </div>
-
-          {/* Display categories in a single line */}
-          <div className="mt-2 mb-4">
-            <div className="flex flex-wrap gap-2">
-              {stringArray.map((item, index) => (
-                <span
-                  key={index}
-                  className="bg-gray-200 px-3 py-1 rounded-full text-sm flex items-center"
-                >
-                  {item}
-                  <span
-                    className="ml-2 cursor-pointer text-red-500"
-                    onClick={() => removeBlock(item)}
-                  >
-                    &times;
-                  </span>
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Relevant Links */}
-          <div className="mt-4 mb-2">
-            <label htmlFor="relevantLinks" className="block text-sm font-semibold">Relevant Links:</label>
-            <input
-              type="text"
-              value={linkInput}
-              onChange={handleLinkChange}
-              onKeyPress={handleLinkKeyPress}
-              placeholder="Enter URL"
-              className="p-2 border rounded w-full"
-            />
-            <div className="mt-2">
-              {projectDetails.relevantLinks.map((link, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-500">{link}</a>
-                  <button
-                    type="button"
-                    onClick={() => handleLinkRemove(link)}
-                    className="text-red-500"
-                  >
-                    &times;
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* File Upload */}
-          <div className="mt-4 mb-4">
-            <label htmlFor="files" className="block text-sm font-semibold">Upload Files:</label>
-            <input
-              type="file"
-              id="files"
-              multiple
-              onChange={handleFileChange}
-              className="p-2 border rounded w-full"
-            />
-            <div className="mt-2">
-              {projectDetails.files.length > 0 && (
-                <div>
-                  <p className="font-semibold">Uploaded Files:</p>
-                  {projectDetails.files.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <span>{file.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleFileRemove(file)}
-                        className="text-red-500"
-                      >
-                        &times;
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="bg-blue-500 text-white py-2 px-4 rounded"
-            disabled={loading}
-          >
-            {loading ? 'Saving...' : projectDetails.id ? 'Update Project' : 'Add Project'}
-          </button>
-        </form>
-
-        <div className="mt-6">
-        <ViewProfProjectSummary refreshTrigger={refreshProjects} />
-        </div>
+      {/* Tab Header */}
+      <div className="flex mb-4 border-b">
+        <button
+          className={`px-4 py-2 ${activeTab === 'manage' ? 'border-b-2 border-blue-500 font-bold' : 'text-gray-600'}`}
+          onClick={() => setActiveTab('manage')}
+        >
+          Manage Projects
+        </button>
+        <button
+          className={`px-4 py-2 ${activeTab === 'summary' ? 'border-b-2 border-blue-500 font-bold' : 'text-gray-600'}`}
+          onClick={() => setActiveTab('summary')}
+        >
+          Project Summary
+        </button>
       </div>
 
-      <button
-        onClick={() => navigate('/db/admin-applications')}
-        className="mt-6 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
-      >
-        Manage Applications
-      </button>
+      {/* Conditionally Render Tab Content */}
+      {activeTab === 'manage' && (
+        <div>
+          <form onSubmit={handleProjectSubmit}>
+            <input
+              type="text"
+              placeholder="Project Title"
+              value={projectDetails.title}
+              onChange={(e) => setProjectDetails({ ...projectDetails, title: e.target.value })}
+              required
+              className="mb-2 p-2 border rounded w-full"
+            />
+            <textarea
+              placeholder="Project Description"
+              value={projectDetails.desc}
+              onChange={(e) => setProjectDetails({ ...projectDetails, desc: e.target.value })}
+              required
+              className="mb-2 p-2 border rounded w-full"
+            />
+            <input
+              type="date"
+              placeholder="Start Date"
+              value={projectDetails.startDate}
+              onChange={(e) => setProjectDetails({ ...projectDetails, startDate: e.target.value })}
+              required
+              className="mb-2 p-2 border rounded w-full"
+            />
+            <input
+              type="date"
+              placeholder="End Date"
+              value={projectDetails.endDate}
+              onChange={(e) => setProjectDetails({ ...projectDetails, endDate: e.target.value })}
+              required
+              className="mb-2 p-2 border rounded w-full"
+            />
+
+            {/* Categories input field */}
+            <div className="mt-4 mb-2">
+              <label htmlFor="categories" className="block text-sm font-semibold">Categories:</label>
+              <input
+                type="text"
+                id="categories"
+                value={inputValue}
+                onChange={handleInputChange}
+                onKeyPress={handleKeyPress}
+                placeholder="Enter categories (comma separated)"
+                className="p-2 border rounded w-full"
+              />
+            </div>
+
+            {/* Display categories */}
+            <div className="mt-2 mb-4">
+              <div className="flex flex-wrap gap-2">
+                {stringArray.map((item, index) => (
+                  <span key={index} className="bg-gray-200 px-3 py-1 rounded-full text-sm flex items-center">
+                    {item}
+                    <span className="ml-2 cursor-pointer text-red-500" onClick={() => removeBlock(item)}>
+                      &times;
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Relevant Links */}
+            <div className="mt-4 mb-2">
+              <label htmlFor="relevantLinks" className="block text-sm font-semibold">Relevant Links:</label>
+              <input
+                type="text"
+                value={linkInput}
+                onChange={handleLinkChange}
+                onKeyPress={handleLinkKeyPress}
+                placeholder="Enter URL"
+                className="p-2 border rounded w-full"
+              />
+              <div className="mt-2">
+                {projectDetails.relevantLinks.map((link, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-500">{link}</a>
+                    <button type="button" onClick={() => handleLinkRemove(link)} className="text-red-500">
+                      &times;
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* File Upload */}
+            <div className="mt-4 mb-4">
+              <label htmlFor="files" className="block text-sm font-semibold">Upload Files:</label>
+              <input
+                type="file"
+                id="files"
+                multiple
+                onChange={handleFileChange}
+                className="p-2 border rounded w-full"
+              />
+              <div className="mt-2">
+                {projectDetails.files.length > 0 && (
+                  <div>
+                    <p className="font-semibold">Uploaded Files:</p>
+                    {projectDetails.files.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <span>{file.name}</span>
+                        <button type="button" onClick={() => handleFileRemove(file)} className="text-red-500">
+                          &times;
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <button type="submit" className="bg-blue-500 text-white py-2 px-4 rounded" disabled={loading}>
+              {loading ? 'Saving...' : projectDetails.id ? 'Update Project' : 'Add Project'}
+            </button>
+          </form>
+        </div>
+      )}
+      {activeTab === 'summary' && (
+        <div className="mt-6">
+          <ViewProfProjectSummary refreshTrigger={refreshProjects} />
+        </div>
+      )}
     </div>
   );
 };

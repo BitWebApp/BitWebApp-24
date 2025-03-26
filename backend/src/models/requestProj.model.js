@@ -9,7 +9,7 @@ const requestProjSchema = new Schema(
     },
     projectId: {
       type: Schema.Types.ObjectId,
-      ref: "ProfProject",
+      ref: "AdhocProject",
       required: [true, "Project ID is required!"],
     },
     status: {

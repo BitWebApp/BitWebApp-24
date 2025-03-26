@@ -62,4 +62,7 @@ app.use("/api/v1/prof", profRouter);
 
 import groupRouter from "./routes/group.routes.js";
 app.use("/api/v1/group", groupRouter);
+
+import bugRouter from "./routes/bugtracker.routes.js";
+app.use("/api/v1/tracker", bugRouter);
 export { app };

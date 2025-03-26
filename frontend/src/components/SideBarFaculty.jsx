@@ -12,6 +12,7 @@ import {
   HiOutlineBriefcase,
   HiPresentationChartLine,
   HiBriefcase,
+  HiBeaker
 } from "react-icons/hi";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
@@ -58,6 +59,16 @@ export default function Sidebar() {
       text: "Minor Project",
       icon: <HiPresentationChartLine />,
       to: "/faculty-db/minor-project",
+    },
+     {
+      text: "Ad-hoc Projects",
+      icon: <HiPresentationChartLine />,
+      to: "/faculty-db/adhoc-projects-dashboard",
+    },
+    {
+      text: "Report Issues",
+      icon: <HiBeaker />,
+      to: "/faculty-db/report-bug",
     },
   ];
   // const [isAdmin, setIsAdmin] = useState(true);

@@ -13,8 +13,7 @@ const ViewProfProjectDetails = () => {
     const [project, setProject] = useState({
       title: '',
       desc: '',
-      profName: '',
-      profEmail: '',
+      professor: { fullName: '', email: '' },
       startDate: '',
       endDate: '',
       categories: [],
@@ -139,8 +138,7 @@ const ViewProfProjectDetails = () => {
       payload.append('closed', otherFields.closed); 
     
       
-      const deleteUrls = [...removedDocs, ...removedLinks];
-      deleteUrls.forEach(url => {
+      removedDocs.forEach(url => {
         payload.append('deleteUrls[]', url);  
       });
     
@@ -176,7 +174,7 @@ const ViewProfProjectDetails = () => {
   
     return (
       <div className="container mx-auto px-4 py-8">
-        <button onClick={() => navigate('/db/admin-projects-dashboard')} className="mb-4 px-4 py-2 bg-gray-500 text-white rounded">
+        <button onClick={() => navigate('/faculty-db/adhoc-projects-dashboard')} className="mb-4 px-4 py-2 bg-gray-500 text-white rounded">
           Back
         </button>
   
@@ -198,15 +196,13 @@ const ViewProfProjectDetails = () => {
             </div>
   
             <div>
-              <label htmlFor="profName" className="block font-medium text-gray-700">Professor Name</label>
+              <label htmlFor="professorName" className="block font-medium text-gray-700">Professor Name</label>
               <input
-                id="profName"
-                name="profName"
-                value={project.profName}
-                onChange={handleInputChange}
+                id="professorName"
+                name="professorName"
+                value={project.professor.fullName}
                 className="w-full p-2 border border-gray-300 rounded"
-                required
-                disabled={!isEditMode}
+                readOnly
               />
             </div>
           </div>
@@ -226,16 +222,13 @@ const ViewProfProjectDetails = () => {
   
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="profEmail" className="block font-medium text-gray-700">Professor Email</label>
+              <label htmlFor="professorEmail" className="block font-medium text-gray-700">Professor Email</label>
               <input
-                id="profEmail"
-                name="profEmail"
-                value={project.profEmail}
-                onChange={handleInputChange}
-                type="email"
+                id="professorEmail"
+                name="professorEmail"
+                value={project.professor.email}
                 className="w-full p-2 border border-gray-300 rounded"
-                required
-                disabled={!isEditMode}
+                readOnly
               />
             </div>
   
@@ -270,108 +263,121 @@ const ViewProfProjectDetails = () => {
 
           <div>
             <label htmlFor="categories" className="block font-medium text-gray-700">Categories</label>
-            <input
+            {isEditMode && (
+              <input
                 type="text"
                 placeholder="Add a category..."
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
                 onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAddCategory();
-                    }
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddCategory();
+                  }
                 }}
                 className="w-full p-2 border border-gray-300 rounded"
                 disabled={!isEditMode}
               />
-            <div className="mt-2 flex flex-wrap">
-              {project.categories.map((cat, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center m-1 px-2 py-1 rounded bg-gray-200 text-gray-700"
-                >
-                  {cat}
-                  {isEditMode && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveItem('categories', index)}
-                      className="ml-2 text-red-500 hover:text-red-700"
-                    >
-                      ×
-                    </button>
-                  )}
-                </span>
-              ))}
-            </div>
+            )}
+            {project.categories && project.categories.length > 0 ? (
+              <div className="mt-2 flex flex-wrap">
+                {project.categories.map((cat, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center m-1 px-2 py-1 rounded bg-gray-200 text-gray-700"
+                  >
+                    {cat}
+                    {isEditMode && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItem('categories', index)}
+                        className="ml-2 text-red-500 hover:text-red-700"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-2 text-gray-500">No categories available</p>
+            )}
           </div>
   
           <div>
             <label htmlFor="relevantLinks" className="block font-medium text-gray-700">Relevant Links</label>
             {isEditMode && (
-                    <input
-                        type="text"
-                        placeholder="Add a link..."
-                        value={newLink}
-                        onChange={(e) => setNewLink(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                e.preventDefault();
-                                handleAddLink();
-                            }
-                        }}
-                        className="w-full p-2 border border-gray-300 rounded"
-                    />
-                )}
-            <ul className="mt-2">
+              <input
+                type="text"
+                placeholder="Add a link..."
+                value={newLink}
+                onChange={(e) => setNewLink(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddLink();
+                  }
+                }}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+            )}
+            {project.relevantLinks && project.relevantLinks.length > 0 ? (
+              <ul className="mt-2">
                 {project.relevantLinks.map((link, index) => (
-                    <li key={index} className="flex items-center space-x-2">
-                        <a 
-                            href={link} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="text-blue-500 underline"
-                        >
-                            {link}
-                        </a>
-                        {isEditMode && (
-                            <button
-                                type="button"
-                                onClick={() => handleRemoveItem('relevantLinks', index)}
-                                className="text-red-500 hover:text-red-700"
-                            >
-                                ×
-                            </button>
-                        )}
-                    </li>
+                  <li key={index} className="flex items-center space-x-2  text-blue-500">
+                    <a 
+                      href={/^https?:\/\//.test(link) ? link : `http://${link}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      {link}
+                    </a>
+                    {isEditMode && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItem('relevantLinks', index)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </li>
                 ))}
-            </ul>
+              </ul>
+            ) : (
+              <p className="mt-2 text-gray-500">No relevant links available</p>
+            )}
           </div>
   
           <div>
             <label htmlFor="doc" className="block font-medium text-gray-700">Documents</label>
-            <ul className="mt-2">
+            {project.doc && project.doc.length > 0 ? (
+              <ul className="mt-2">
                 {project.doc.map((docLink, index) => (
-                    <li key={index} className="flex items-center space-x-2">
-                        <a
-                            href={docLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-500 underline"
-                        >
-                            {docLink}
-                        </a>
-                        {isEditMode && (
-                            <button
-                                type="button"
-                                onClick={() => handleRemoveItem('doc', index)}
-                                className="text-red-500 hover:text-red-700"
-                            >
-                                ×
-                            </button>
-                        )}
-                    </li>
+                  <li key={index} className="flex items-center space-x-2">
+                    <a
+                      href={docLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 underline"
+                    >
+                      Document No. {index + 1}
+                    </a>
+                    {isEditMode && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItem('doc', index)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </li>
                 ))}
-            </ul>
+              </ul>
+            ) : (
+              <p className="mt-2 text-gray-500">No documents uploaded</p>
+            )}
           </div>
 
           {isEditMode && (
