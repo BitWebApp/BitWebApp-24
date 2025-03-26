@@ -324,12 +324,11 @@ const ViewProfProjectDetails = () => {
             {project.relevantLinks && project.relevantLinks.length > 0 ? (
               <ul className="mt-2">
                 {project.relevantLinks.map((link, index) => (
-                  <li key={index} className="flex items-center space-x-2">
+                  <li key={index} className="flex items-center space-x-2  text-blue-500">
                     <a 
-                      href={link} 
+                      href={/^https?:\/\//.test(link) ? link : `http://${link}`} 
                       target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-blue-500 underline"
+                      rel="noopener noreferrer"
                     >
                       {link}
                     </a>

@@ -81,6 +81,8 @@ import GroupManagement from "./components/GroupManagement";
 import FacultyForgotPassword from "./components/FacultyForgotPassword";
 import MajorProject from "./components/MajorProject";
 import UserBugReporter from "./components/UserBugReporter";
+import AdminBugTrackerSummary from "./components/AdminBugTrackerSummary";
+import AdminBugTrackerDetails from "./components/AdminBugTrackerDetails";
 
 export default function App() {
   return (
@@ -173,6 +175,8 @@ export default function App() {
           <Route path="backlogs-table" element={<BacklogTable />} />
           <Route path="PE-table" element={<PeCoursesTable />} />
           <Route path="increase-limit" element={<IncreaseLimit />} />
+          <Route path="bug-tracker" element={<AdminBugTrackerSummary />} />
+          <Route path="bug-tracker/:bugId" element={<AdminBugTrackerDetails />} />
         </Route>
         <Route
           path="/faculty-db"

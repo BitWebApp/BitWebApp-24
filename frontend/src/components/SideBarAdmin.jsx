@@ -12,7 +12,8 @@ import {
   HiOutlineBriefcase,
   HiPresentationChartLine,
   HiBriefcase,
-  HiArchive
+  HiArchive,
+  HiBeaker
 } from "react-icons/hi";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
@@ -134,6 +135,11 @@ export default function Sidebar() {
       text: "Student Reviews",
       icon: <HiArchive />,
       to: "/admin-db/review",
+    },
+    {
+      text: "Bug Tracker",
+      icon: <HiBeaker/>,
+      to: "/admin-db/bug-tracker",
     },
   ];
   // const [isAdmin, setIsAdmin] = useState(true);

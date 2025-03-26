@@ -414,6 +414,12 @@ const updateUser1 = asyncHandler(async (req, res) => {
     abcId,
     graduationYear,
     workExp,
+    // New fields from req.body
+    alternateEmail,
+    fatherName,
+    fatherMobileNumber,
+    motherName,
+    residentialAddress,
   } = req.body;
 
   const updateFields = {};
@@ -467,6 +473,12 @@ const updateUser1 = asyncHandler(async (req, res) => {
     abcId,
     graduationYear,
     workExp,
+    // New fields mapping
+    alternateEmail,
+    fatherName,
+    fatherMobileNumber,
+    motherName,
+    residentialAddress,
   };
 
   // Add provided fields to updateFields
