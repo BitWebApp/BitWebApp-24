@@ -29,7 +29,7 @@ const Research = () => {
   const [professors, setProfessors] = useState([]);
   const [filteredProfessors, setFilteredProfessors] = useState([]);
   const [appliedProfessors, setAppliedProfessors] = useState([]);
-  const [denied, setDenied] = useState([]); // New state for denied professors
+  const [denied, setDenied] = useState([]);
   const [allocatedProf, setAllocatedProf] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterOption, setFilterOption] = useState("all");
@@ -47,20 +47,16 @@ const Research = () => {
         ]);
       const { isSummerAllocated, prof, summerAppliedProfs, denied } =
         appliedProfsResponse?.data?.data || {};
-      console.log(denied);
+      
       const sortedProfessors = allProfsResponse.data.message.sort((a, b) => {
-        const seatsA =
-          a.limits.summer_training - a.currentCount.summer_training;
-        const seatsB =
-          b.limits.summer_training - b.currentCount.summer_training;
+        const seatsA = a.limits.summer_training - a.currentCount.summer_training;
+        const seatsB = b.limits.summer_training - b.currentCount.summer_training;
         return seatsB - seatsA;
       });
 
       setAppliedProfessors(summerAppliedProfs);
-      setDenied(denied || []); // Set denied state
-
+      setDenied(denied || []);
       if (isSummerAllocated && prof) setAllocatedProf(prof);
-
       setProfessors(sortedProfessors);
       setFilteredProfessors(sortedProfessors);
       setLoading(false);
@@ -81,6 +77,7 @@ const Research = () => {
         icon: "error",
         title: "No Selection",
         text: "Please select a professor to apply.",
+        confirmButtonColor: "#3b82f6",
       });
       return;
     }
@@ -96,6 +93,7 @@ const Research = () => {
         icon: "success",
         title: "Success",
         text: "Applied successfully",
+        confirmButtonColor: "#10b981",
       });
       setSelectedProf(null);
     } catch (error) {
@@ -105,6 +103,7 @@ const Research = () => {
         icon: "error",
         title: "Application Failed",
         text: error.response?.data?.message || "Failed to apply. Try again.",
+        confirmButtonColor: "#ef4444",
       });
     }
   };
@@ -112,87 +111,203 @@ const Research = () => {
   return (
     <>
       <Toaster position="top-right" />
-      <div className="container mx-auto p-6">
-        {allocatedProf ? (
-          <div className="text-center bg-green-100 p-6 rounded-lg shadow-md">
-            <h1 className="text-3xl font-bold text-green-700">Congratulations!</h1>
-            <p className="text-lg mt-4">
-              Your summer training has been successfully sorted under{" "}
-              {allocatedProf?.fullName || "an assigned professor"}.
-            </p>
-          </div>
-        ) : (
-          <>
-            <h1 className="text-3xl font-bold mb-6">Apply for Summer Training</h1>
-            <div className="bg-white shadow-md rounded-lg p-4">
-              <table className="w-full table-auto border-collapse border border-gray-300">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border px-4 py-2">ID No</th>
-                    <th className="border px-4 py-2">Full Name</th>
-                    <th className="border px-4 py-2">Seats Available</th>
-                    <th className="border px-4 py-2">Status</th>
-                    <th className="border px-4 py-2">Select</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredProfessors.map((prof) => {
-                    const seatsAvailable =
-                      prof.limits.summer_training - prof.currentCount.summer_training;
-                    const isApplied = appliedProfessors.includes(prof._id);
-                    console.log(appliedProfessors);
-                    const isAllocated = allocatedProf?._id === prof._id;
-                    const isDenied = denied.includes(prof._id); // Check if professor is in denied list
-                    const isDisabled = isApplied || isAllocated || seatsAvailable === 0 || isDenied;
-                    
-                    let seatStatus = isDenied
-                      ? "❌ Denied"
-                      : isApplied
-                      ? "✅ Applied"
-                      : seatsAvailable === 0
-                      ? "❌ No Seats Available"
-                      : seatsAvailable < 3
-                      ? "⚠️ High Demand"
-                      : "✅ Available";
-
-                    return (
-                      <tr key={prof._id} className="hover:bg-gray-50">
-                        <td className="border px-4 py-2 text-center">{prof.idNumber}</td>
-                        <td className="border px-4 py-2 text-center">{prof.fullName}</td>
-                        <td className="border px-4 py-2 text-center">{seatsAvailable}</td>
-                        <td className="border px-4 py-2 text-center font-bold">
-                          {seatStatus}
-                        </td>
-                        <td className="border px-4 py-2 text-center">
-                          <input
-                            type="radio"
-                            name="professor"
-                            disabled={isDisabled}
-                            checked={selectedProf === prof._id}
-                            onChange={() => setSelectedProf(prof._id)}
-                            className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                          />
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
+        <div className="max-w-6xl mx-auto">
+          {allocatedProf ? (
+            <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl shadow-xl overflow-hidden text-white">
+              <div className="p-8 text-center">
+                <div className="mx-auto w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h1 className="text-3xl font-bold mb-4">Congratulations!</h1>
+                <p className="text-xl mb-6">
+                  Your summer training has been successfully allocated under
+                </p>
+                <div className="bg-white/10 rounded-lg p-4 inline-block">
+                  <h2 className="text-2xl font-semibold">{allocatedProf?.fullName}</h2>
+                  <p className="text-sm opacity-80">Professor ID: {allocatedProf?.idNumber}</p>
+                </div>
+                <div className="mt-8">
+                  <button 
+                    onClick={() => window.location.reload()}
+                    className="px-6 py-3 bg-white text-green-600 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    View Details
+                  </button>
+                </div>
+              </div>
             </div>
+          ) : (
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
+                <h1 className="text-2xl md:text-3xl font-bold">Summer Training Application</h1>
+                <p className="text-blue-100 mt-1">
+                  Select a professor for your summer research training
+                </p>
+              </div>
 
-            <div className="mt-6">
-              <button
-                onClick={handleSubmit}
-                disabled={loading || !selectedProf}
-                className={`w-full bg-blue-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ${
-                  loading || !selectedProf ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
-                {loading ? "Applying..." : "Submit Application"}
-              </button>
+              {/* Content */}
+              <div className="p-6">
+                {/* Search and Filter */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">Search Professors</label>
+                    <input
+                      type="text"
+                      id="search"
+                      placeholder="Search by name or ID..."
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="filter" className="block text-sm font-medium text-gray-700 mb-1">Filter by Availability</label>
+                    <select
+                      id="filter"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="all">All Professors</option>
+                      <option value="available">Available Seats Only</option>
+                      <option value="applied">Applied Professors</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Professors Table */}
+                <div className="overflow-hidden border border-gray-200 rounded-lg">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Professor</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seats</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Select</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {filteredProfessors.map((prof) => {
+                          const seatsAvailable = prof.limits.summer_training - prof.currentCount.summer_training;
+                          const isApplied = appliedProfessors.includes(prof._id);
+                          const isDenied = denied.includes(prof._id);
+                          const isDisabled = isApplied || allocatedProf?._id === prof._id || seatsAvailable === 0 || isDenied;
+                          
+                          const statusConfig = {
+                            denied: { text: "Denied", color: "bg-red-100 text-red-800", icon: "❌" },
+                            applied: { text: "Applied", color: "bg-green-100 text-green-800", icon: "✅" },
+                            full: { text: "No Seats", color: "bg-gray-100 text-gray-800", icon: "❌" },
+                            limited: { text: "High Demand", color: "bg-yellow-100 text-yellow-800", icon: "⚠️" },
+                            available: { text: "Available", color: "bg-blue-100 text-blue-800", icon: "✅" }
+                          };
+
+                          let status;
+                          if (isDenied) status = statusConfig.denied;
+                          else if (isApplied) status = statusConfig.applied;
+                          else if (seatsAvailable === 0) status = statusConfig.full;
+                          else if (seatsAvailable < 3) status = statusConfig.limited;
+                          else status = statusConfig.available;
+
+                          return (
+                            <tr key={prof._id} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                                    <span className="text-indigo-600 font-medium">
+                                      {prof.fullName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <div className="ml-4">
+                                    <div className="text-sm font-medium text-gray-900">{prof.fullName}</div>
+                                    <div className="text-sm text-gray-500">{prof.department}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {prof.idNumber}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
+                                    <div 
+                                      className={`h-2.5 rounded-full ${
+                                        seatsAvailable === 0 ? 'bg-red-500' :
+                                        seatsAvailable < 3 ? 'bg-yellow-500' : 'bg-green-500'
+                                      }`}
+                                      style={{ width: `${(seatsAvailable / prof.limits.summer_training) * 100}%` }}
+                                    ></div>
+                                  </div>
+                                  <span className="text-sm font-medium">
+                                    {seatsAvailable}/{prof.limits.summer_training}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${status.color}`}>
+                                  {status.icon} {status.text}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <input
+                                  type="radio"
+                                  name="professor"
+                                  disabled={isDisabled}
+                                  checked={selectedProf === prof._id}
+                                  onChange={() => setSelectedProf(prof._id)}
+                                  className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 ${
+                                    isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                  }`}
+                                />
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Empty State */}
+                {filteredProfessors.length === 0 && (
+                  <div className="text-center py-12">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h3 className="mt-2 text-sm font-medium text-gray-900">No professors found</h3>
+                    <p className="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria.</p>
+                  </div>
+                )}
+
+                {/* Submit Button */}
+                <div className="mt-8">
+                  <button
+                    onClick={handleSubmit}
+                    disabled={loading || !selectedProf}
+                    className={`w-full py-3 px-4 rounded-lg font-medium text-white shadow-md transition-all ${
+                      loading || !selectedProf
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800'
+                    }`}
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Applying...
+                      </span>
+                    ) : (
+                      'Submit Application'
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
     </>
   );

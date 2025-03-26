@@ -352,10 +352,10 @@ const getAppliedGroups = asyncHandler(async (req, res) => {
     const professor = await Professor.findById(profId).populate({
       path: "appliedGroups.summer_training",
       populate: {
-        path: "members", // Populate members inside each group
+        path: "members org",
         select:
-          "fullName rollNumber email linkedin codingProfiles cgpa section branch image",
-      },
+          "fullName rollNumber email linkedin codingProfiles cgpa section branch image companyName",
+      }
     });
 
     if (!professor) {
