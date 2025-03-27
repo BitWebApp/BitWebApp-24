@@ -65,25 +65,25 @@ export default function Login() {
   return (
     <>
       <NavBar />
-      <div className="w-full h-screen flex flex-col md:flex-row items-stretch overflow-hidden">
+      <div className="min-h-screen w-full flex flex-col md:flex-row overflow-auto">
         <ToastContainer />
-        <div className="relative w-full md:w-1/2 flex-shrink-0 hidden md:block">
+        <div className="relative w-full md:w-1/2 h-64 md:h-auto flex-shrink-0 md:sticky md:top-0">
           <img
             src="/static/images/bitphoto.JPG"
             className="w-full h-full object-cover"
             alt="bit-mesra"
           />
         </div>
-        <div className="w-full md:w-1/2 bg-gradient-to-b from-gray-50 to-white flex flex-col p-6 md:p-12 items-center">
-          <div className="w-full max-w-[400px]">
-            <h3 className="text-2xl font-bold text-blue-600 mb-2">Welcome to BITACADEMIA</h3>
+        <div className="w-full md:w-1/2 bg-gradient-to-b from-gray-50 to-white flex flex-col p-4 md:p-8 lg:p-12">
+          <div className="w-full max-w-[500px] mx-auto">
+            <h3 className="text-xl md:text-2xl font-bold text-blue-600 mb-2">Welcome to BITACADEMIA</h3>
             <form
               onKeyDown={handleKeyDown}
               className="w-full flex flex-col"
             >
               <div className="flex flex-col w-full mb-4">
-                <h3 className="text-4xl font-semibold mb-2 text-gray-800">Student Login</h3>
-                <p className="text-lg mb-2 text-gray-600">Enter your login details below.</p>
+                <h3 className="text-3xl md:text-4xl font-semibold mb-2 text-gray-800">Student Login</h3>
+                <p className="text-base md:text-lg mb-2 text-gray-600">Enter your login details below.</p>
               </div>
               <div className="w-full flex flex-col mb-4">
                 <label className="text-gray-700 text-sm mb-1">Email</label>
@@ -136,7 +136,7 @@ export default function Login() {
                 >
                   {isLoading ? (
                     <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -163,7 +163,7 @@ export default function Login() {
 
               <div className="w-full border-t pt-2 mt-2">
                 <p className="text-sm text-gray-600 mb-2">Helpful Resources:</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <a 
                     href="/documents/BTech Project Evaluation Rubric.pdf" 
                     target="_blank"
@@ -196,7 +196,7 @@ export default function Login() {
                 </div>
               </div>
 
-              <div className="w-full flex items-center justify-center mt-2">
+              <div className="w-full flex items-center justify-center mt-4">
                 <p className="text-sm text-gray-600">
                   Don't have an account?{" "}
                   <Link to="/sg" className="font-medium text-orange-600 hover:underline">

@@ -75,7 +75,7 @@ export default function SignInPage() {
             <div className="flex justify-between items-center">
               <label className="block text-left text-sm font-medium text-gray-700">Password</label>
               <Link
-                to="/forget-password"
+                to="/forgot-password"
                 className="text-sm text-blue-500 hover:text-blue-700 font-medium"
               >
                 Forget password?
