@@ -123,6 +123,14 @@ const userSchema = new Schema(
     },
     mobileNumber: {
       type: String,
+      trim: true,  // Removes leading & trailing spaces
+      validate: {
+        validator: function (v) {
+          return /^\d{10}$/.test(v); // Ensures exactly 10 digits
+        },
+        message: "Enter 10 digits of your mobile number!"
+      },
+      default: "0000000000",
     },
     semester: {
       type: String,
