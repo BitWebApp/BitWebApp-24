@@ -122,7 +122,7 @@ export default function Sidebar() {
     //   to: "/db/booking-calendar",
     // },
     {
-      text: "Summer Training",
+      text: "Apply to Profs",
       icon: <HiSun />,
       to: "/db/apply-summer",
     },

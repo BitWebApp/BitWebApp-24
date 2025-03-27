@@ -118,7 +118,7 @@ export default function Header() {
         to: "/db/manage-group",
       },
       {
-        text: "Summer Training",
+        text: "Apply to Profs",
         icon: <HiPresentationChartLine />,
         to: "/db/apply-summer",
       },
