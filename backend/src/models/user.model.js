@@ -123,9 +123,6 @@ const userSchema = new Schema(
     },
     mobileNumber: {
       type: String,
-      minLength: [10, "Enter 10 digits of your mobile number!"],
-      maxLength: [10, "Enter 10 digits of your mobile number!"],
-      default: "0000000000",
     },
     semester: {
       type: String,
