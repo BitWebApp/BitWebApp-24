@@ -76,7 +76,7 @@ const Research = () => {
     if (allocatedProf) {
       try {
         setLoading(true);
-        const response = await axios.post("/api/v1/group/get-disc-student");
+        const response = await axios.post("/api/v1/group/get-disc");
         
         setDiscussionLogs(response.data.data);
         setShowLogs(true);
