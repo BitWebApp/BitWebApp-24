@@ -97,6 +97,7 @@ export default function App() {
           path="interview-experiences"
           element={<InterviewExperiences />}
         />
+        <Route path="/forgot-password" element={<ForgotPassword/>}/>
         <Route
           path="/db"
           element={
@@ -142,6 +143,7 @@ export default function App() {
             element={<ClassroomBookingCalendar />}
           />
         </Route>
+
         <Route
           path="/admin-db"
           element={
@@ -178,6 +180,7 @@ export default function App() {
           <Route path="bug-tracker" element={<AdminBugTrackerSummary />} />
           <Route path="bug-tracker/:bugId" element={<AdminBugTrackerDetails />} />
         </Route>
+
         <Route
           path="/faculty-db"
           element={
@@ -206,7 +209,7 @@ export default function App() {
         <Route path="/log.a" element={<Loginadmin />} />
         <Route path="/sg.a" element={<Signupadmin />} />
         <Route path="/faculty-login" element={<LoginFaculty />} />
-        <Route path="/forgot-password" element={<FacultyForgotPassword />} />
+        <Route path="/faculty-forget-password" element={<FacultyForgotPassword />} />
       </Routes>
     </Router>
   );
