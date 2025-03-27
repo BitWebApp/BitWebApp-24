@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
-import { FaUsers, FaCheckCircle, FaTimesCircle, FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
+import {
+  FaUsers,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaSearch,
+} from "react-icons/fa";
 import Swal from "sweetalert2";
 
 const AcceptStudents = () => {
@@ -21,12 +29,13 @@ const AcceptStudents = () => {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const [appliedResponse, getLimits, acceptedResponse] = await Promise.all([
-          axios.get("/api/v1/prof/getAppliedGroups"),
-          axios.get("/api/v1/prof/get-limit"),
-          axios.get("/api/v1/prof/accepted-groups")
-        ]);
-        
+        const [appliedResponse, getLimits, acceptedResponse] =
+          await Promise.all([
+            axios.get("/api/v1/prof/getAppliedGroups"),
+            axios.get("/api/v1/prof/get-limit"),
+            axios.get("/api/v1/prof/accepted-groups"),
+          ]);
+
         setAppliedGroups(appliedResponse.data.data);
         setLimits(getLimits.data.data);
         setAcceptedGroups(acceptedResponse.data.message);
@@ -38,12 +47,16 @@ const AcceptStudents = () => {
   }, []);
 
   // Filter groups based on search term
-  const filteredGroups = (viewMode === "applied" ? appliedGroups : acceptedGroups).filter(group => 
-    group.groupId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    group.members.some(member => 
-      member.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.rollNumber.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+  const filteredGroups = (
+    viewMode === "applied" ? appliedGroups : acceptedGroups
+  ).filter(
+    (group) =>
+      group.groupId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      group.members.some(
+        (member) =>
+          member.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          member.rollNumber.toLowerCase().includes(searchTerm.toLowerCase())
+      )
   );
 
   const handleGroupClick = (group) => {
@@ -74,12 +87,14 @@ const AcceptStudents = () => {
         url("/images/confetti.gif")
         left top
         no-repeat
-      `
+      `,
     });
 
     if (result.isConfirmed) {
       try {
-        const response = await axios.post("/api/v1/prof/accept-group", { _id: groupId });
+        const response = await axios.post("/api/v1/prof/accept-group", {
+          _id: groupId,
+        });
         toast.success(response.data.message);
         if (response.status === 200) window.location.reload();
       } catch (err) {
@@ -98,12 +113,14 @@ const AcceptStudents = () => {
       cancelButtonColor: "#6B7280",
       confirmButtonText: "Yes, deny",
       cancelButtonText: "Cancel",
-      background: "#F9FAFB"
+      background: "#F9FAFB",
     });
 
     if (result.isConfirmed) {
       try {
-        const response = await axios.post("/api/v1/prof/deny-group", { _id: groupId });
+        const response = await axios.post("/api/v1/prof/deny-group", {
+          _id: groupId,
+        });
         toast.success(response.data.message);
         if (response.status === 200) window.location.reload();
       } catch (err) {
@@ -114,7 +131,9 @@ const AcceptStudents = () => {
 
   const handleSelectAcceptedGroup = (groupId) => {
     setSelectedAcceptedGroups((prev) =>
-      prev.includes(groupId) ? prev.filter((id) => id !== groupId) : [...prev, groupId]
+      prev.includes(groupId)
+        ? prev.filter((id) => id !== groupId)
+        : [...prev, groupId]
     );
   };
 
@@ -133,12 +152,14 @@ const AcceptStudents = () => {
       cancelButtonColor: "#6B7280",
       confirmButtonText: "Confirm Merge",
       cancelButtonText: "Cancel",
-      background: "#F9FAFB"
+      background: "#F9FAFB",
     });
 
     if (result.isConfirmed) {
       try {
-        const response = await axios.post("/api/v1/prof/merge-groups", { groupIds: selectedAcceptedGroups });
+        const response = await axios.post("/api/v1/prof/merge-groups", {
+          groupIds: selectedAcceptedGroups,
+        });
         toast.success(response.data.message);
         if (response.status === 200) window.location.reload();
       } catch (err) {
@@ -162,7 +183,9 @@ const AcceptStudents = () => {
       setRemark("");
       await handleGetDiscussionLogs(selectedGroup);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to create discussion log.");
+      toast.error(
+        err.response?.data?.message || "Failed to create discussion log."
+      );
     }
   };
 
@@ -172,7 +195,9 @@ const AcceptStudents = () => {
       setDiscussionLogs(response.data.data);
       console.log(response.data.data)
     } catch (err) {
-      toast.error(err.response?.data?.data || "Failed to fetch discussion logs.");
+      toast.error(
+        err.response?.data?.message || "Failed to fetch discussion logs."
+      );
     }
   };
 
@@ -182,9 +207,11 @@ const AcceptStudents = () => {
       <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
-          <h1 className="text-3xl md:text-4xl font-bold text-center">Summer Training Groups</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-center">
+            Summer Training Groups
+          </h1>
           <p className="text-center text-blue-100 mt-2">
-            You can accept up to {limits} students this summer
+            You can accept up to {limits} more students this summer
           </p>
         </div>
 
@@ -232,9 +259,16 @@ const AcceptStudents = () => {
           {filteredGroups.length > 0 ? (
             <div className="space-y-4">
               {filteredGroups.map((group) => (
-                <div key={group._id} className="border border-gray-200 rounded-lg overflow-hidden">
+                <div
+                  key={group._id}
+                  className="border border-gray-200 rounded-lg overflow-hidden"
+                >
                   {/* Group Header */}
-                  <div className={`p-4 flex items-center justify-between ${selectedGroup === group._id ? 'bg-blue-50' : 'bg-white'} hover:bg-gray-50 cursor-pointer`}>
+                  <div
+                    className={`p-4 flex items-center justify-between ${
+                      selectedGroup === group._id ? "bg-blue-50" : "bg-white"
+                    } hover:bg-gray-50 cursor-pointer`}
+                  >
                     <div className="flex items-center space-x-4">
                       {viewMode === "accepted" && (
                         <input
@@ -245,9 +279,15 @@ const AcceptStudents = () => {
                         />
                       )}
                       <div>
-                        <h3 className="font-bold text-lg text-gray-800">Group ID: {group.groupId}</h3>
-                        <p className="text-gray-600">{group.members.length} members</p>
-                        <p className="text-gray-600">{group?.org?.companyName}</p>
+                        <h3 className="font-bold text-lg text-gray-800">
+                          Group ID: {group.groupId}
+                        </h3>
+                        <p className="text-gray-600">
+                          {group.members.length} members
+                        </p>
+                        <p className="text-gray-600">
+                          {group?.org?.companyName}
+                        </p>
                       </div>
                     </div>
                     <div className="flex space-x-2">
@@ -282,25 +322,42 @@ const AcceptStudents = () => {
                   {/* Expanded Members View */}
                   {selectedGroup === group._id && (
                     <div className="p-4 bg-gray-50 border-t">
-                      <h4 className="font-semibold text-lg text-gray-800 mb-4">Group Members</h4>
+                      <h4 className="font-semibold text-lg text-gray-800 mb-4">
+                        Group Members
+                      </h4>
                       <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                           <thead className="bg-gray-100">
                             <tr>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Photo</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Roll No</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CGPA</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profiles</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Photo
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Name
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Roll No
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                CGPA
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Branch
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Profiles
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
                             {group.members.map((member) => (
                               <tr key={member._id} className="hover:bg-gray-50">
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                  <img 
-                                    src={member.image || "/images/default-avatar.png"} 
+                                  <img
+                                    src={
+                                      member.image ||
+                                      "/images/default-avatar.png"
+                                    }
                                     alt={member.fullName}
                                     className="h-10 w-10 rounded-full object-cover"
                                   />
@@ -315,15 +372,19 @@ const AcceptStudents = () => {
                                   {member.cgpa}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                                  {member.branch === "computer science and engineering" ? "CSE" : 
-                                   member.branch === "artificial intelligence and machine learning" ? "AIML" : 
-                                   member.branch}
+                                  {member.branch ===
+                                  "computer science and engineering"
+                                    ? "CSE"
+                                    : member.branch ===
+                                      "artificial intelligence and machine learning"
+                                    ? "AIML"
+                                    : member.branch}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap space-x-2">
                                   {member.codingProfiles?.leetcode && (
-                                    <a 
-                                      href={member.codingProfiles.leetcode} 
-                                      target="_blank" 
+                                    <a
+                                      href={member.codingProfiles.leetcode}
+                                      target="_blank"
                                       rel="noopener noreferrer"
                                       className="inline-block px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs hover:bg-orange-200"
                                     >
@@ -331,9 +392,9 @@ const AcceptStudents = () => {
                                     </a>
                                   )}
                                   {member.codingProfiles?.github && (
-                                    <a 
-                                      href={member.codingProfiles.github} 
-                                      target="_blank" 
+                                    <a
+                                      href={member.codingProfiles.github}
+                                      target="_blank"
                                       rel="noopener noreferrer"
                                       className="inline-block px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs hover:bg-gray-200"
                                     >
@@ -341,9 +402,9 @@ const AcceptStudents = () => {
                                     </a>
                                   )}
                                   {member.linkedin && (
-                                    <a 
-                                      href={member.linkedin} 
-                                      target="_blank" 
+                                    <a
+                                      href={member.linkedin}
+                                      target="_blank"
                                       rel="noopener noreferrer"
                                       className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs hover:bg-blue-200"
                                     >
@@ -361,7 +422,9 @@ const AcceptStudents = () => {
                       {viewMode === "accepted" && (
                         <div className="mt-6">
                           <div className="flex justify-between items-center mb-4">
-                            <h4 className="font-semibold text-lg text-gray-800">Discussion Logs</h4>
+                            <h4 className="font-semibold text-lg text-gray-800">
+                              Discussion Logs
+                            </h4>
                             <button
                               onClick={() => setShowModal(true)}
                               className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -370,31 +433,45 @@ const AcceptStudents = () => {
                               Add Log
                             </button>
                           </div>
-                          
+
                           {discussionLogs.length > 0 ? (
                             <div className="space-y-3">
                               {discussionLogs.map((log, index) => (
-                                <div key={index} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                                <div
+                                  key={index}
+                                  className="bg-white p-4 rounded-lg shadow-sm border border-gray-200"
+                                >
                                   <div className="flex justify-between items-start">
                                     <div>
-                                      <p className="text-gray-700"><span className="font-medium">Description:</span> {log.description}</p>
+                                      <p className="text-gray-700">
+                                        <span className="font-medium">
+                                          Description:
+                                        </span>{" "}
+                                        {log.description}
+                                      </p>
                                       {log.absent?.length > 0 && (
                                         <p className="text-gray-700 mt-1">
-                                          <span className="font-medium">Absentees:</span> {log.absent.map(a => a.fullName).join(", ")}
+                                          <span className="font-medium">
+                                            Absentees:
+                                          </span>{" "}
+                                          {log.absent
+                                            .map((a) => a.fullName)
+                                            .join(", ")}
                                         </p>
                                       )}
                                       {log.remark && (
                                         <p className="text-gray-700 mt-1">
-                                          <span className="font-medium">Remark:</span> <span className="capitalize">{log.remark}</span>
+                                          <span className="font-medium">
+                                            Remark:
+                                          </span>{" "}
+                                          <span className="capitalize">
+                                            {log.remark}
+                                          </span>
                                         </p>
                                       )}
                                     </div>
                                     <span className="text-xs text-gray-500">
-                                      {new Intl.DateTimeFormat("en-IN", {
-                                        timeZone: "Asia/Kolkata",
-                                        dateStyle: "medium",
-                                        timeStyle: "short",
-                                      }).format(new Date(log.date))}
+                                      {new Date(log.createdAt).toLocaleDateString()}
                                     </span>
                                   </div>
                                 </div>
@@ -417,9 +494,15 @@ const AcceptStudents = () => {
               <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                 <FaUsers className="text-gray-400 text-3xl" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900">No groups found</h3>
+              <h3 className="text-lg font-medium text-gray-900">
+                No groups found
+              </h3>
               <p className="mt-1 text-gray-500">
-                {searchTerm ? "Try adjusting your search" : `No ${viewMode === "applied" ? "applied" : "accepted"} groups at this time`}
+                {searchTerm
+                  ? "Try adjusting your search"
+                  : `No ${
+                      viewMode === "applied" ? "applied" : "accepted"
+                    } groups at this time`}
               </p>
             </div>
           )}
@@ -431,11 +514,15 @@ const AcceptStudents = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
             <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Create Discussion Log</h2>
-              
+              <h2 className="text-xl font-bold text-gray-800 mb-4">
+                Create Discussion Log
+              </h2>
+
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
                   <input
                     type="text"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
@@ -443,32 +530,40 @@ const AcceptStudents = () => {
                     onChange={(e) => setDescription(e.target.value)}
                   />
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Absentees</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Absentees
+                  </label>
                   <div className="space-y-2">
-                    {acceptedGroups.find(g => g._id === selectedGroup)?.members.map(member => (
-                      <div key={member._id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={absentees.includes(member._id)}
-                          onChange={() => setAbsentees(prev => 
-                            prev.includes(member._id) 
-                              ? prev.filter(id => id !== member._id) 
-                              : [...prev, member._id]
-                          )}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                        <label className="ml-2 text-sm text-gray-700">
-                          {member.fullName} ({member.rollNumber})
-                        </label>
-                      </div>
-                    ))}
+                    {acceptedGroups
+                      .find((g) => g._id === selectedGroup)
+                      ?.members.map((member) => (
+                        <div key={member._id} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={absentees.includes(member._id)}
+                            onChange={() =>
+                              setAbsentees((prev) =>
+                                prev.includes(member._id)
+                                  ? prev.filter((id) => id !== member._id)
+                                  : [...prev, member._id]
+                              )
+                            }
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                          <label className="ml-2 text-sm text-gray-700">
+                            {member.fullName} ({member.rollNumber})
+                          </label>
+                        </div>
+                      ))}
                   </div>
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Remark</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Remark
+                  </label>
                   <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                     value={remark}
@@ -482,7 +577,7 @@ const AcceptStudents = () => {
                   </select>
                 </div>
               </div>
-              
+
               <div className="mt-6 flex justify-end space-x-3">
                 <button
                   onClick={() => setShowModal(false)}
@@ -505,4 +600,4 @@ const AcceptStudents = () => {
   );
 };
 
-export default AcceptStudents;  
+export default AcceptStudents;
