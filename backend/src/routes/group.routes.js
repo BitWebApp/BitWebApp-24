@@ -2,7 +2,8 @@ import { Router } from "express";
 import { 
     createGroup, addMember, removeMember, applyToFaculty, getGroup,
     getAppliedProfs,
-    summerSorted, acceptReq, getReq, addDiscussion, addRemarkAbsent
+    summerSorted, acceptReq, getReq, addDiscussion, addRemarkAbsent, getDiscussion,
+    getDiscussionByStudent
 } from "../controllers/group.controller.js";
 import { verifyAdmin, verifyJWT, verifyProfessor } from "../middlewares/auth.middleware.js";
 
@@ -20,4 +21,6 @@ router.route("/get-req").get(verifyJWT, getReq);
 
 router.route("/add-discussion").post(verifyJWT, addDiscussion);
 router.route("/add-remark").post(verifyProfessor, addRemarkAbsent);
+router.route("/get-disc").post(verifyAdmin, getDiscussion);
+router.route("/get-disc-student").post(verifyJWT, getDiscussionByStudent);
 export default router;

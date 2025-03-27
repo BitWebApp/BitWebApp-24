@@ -12,7 +12,7 @@ const extractErrorMessage = (htmlString) => {
 };
 
 const handleError = (error, defaultMessage) => {
-  console.error("Full error:", error);
+  console.log("Full error:", error);
 
   let message = defaultMessage;
   if (error.response) {
@@ -35,7 +35,8 @@ const Research = () => {
   const [filterOption, setFilterOption] = useState("all");
   const [selectedProf, setSelectedProf] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [summerSorted, setSummerSorted] = useState(false);
+  const [discussionLogs, setDiscussionLogs] = useState(null);
+  const [showLogs, setShowLogs] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -70,6 +71,24 @@ const Research = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleViewDetails = async () => {
+    if (allocatedProf) {
+      try {
+        setLoading(true);
+        const response = await axios.post("/api/v1/group/get-disc-student");
+        
+        setDiscussionLogs(response.data.data);
+        setShowLogs(true);
+        setLoading(false);
+      } catch (error) {
+        setLoading(false);
+        handleError(error, "Failed to fetch discussion logs");
+      }
+    } else {
+      window.location.reload();
+    }
+  };
 
   const handleSubmit = async () => {
     if (!selectedProf) {
@@ -108,35 +127,123 @@ const Research = () => {
     }
   };
 
+  const handleSearchAndFilter = () => {
+    let filtered = professors;
+  
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (prof) =>
+          prof.fullName.toLowerCase().includes(query) ||
+          prof.idNumber.toLowerCase().includes(query)
+      );
+    }
+  
+    // Apply availability filter
+    if (filterOption !== "all") {
+      filtered = filtered.filter((prof) => {
+        const availableSeats =
+          prof.limits.summer_training - prof.currentCount.summer_training;
+        return filterOption === "available" ? availableSeats > 0 : availableSeats === 0;
+      });
+    }
+  
+    setFilteredProfessors(filtered);
+  };
+  
+  // Call this function whenever the search query or filter option changes
+  useEffect(() => {
+    handleSearchAndFilter();
+  }, [searchQuery, filterOption, professors]);
+
   return (
     <>
       <Toaster position="top-right" />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
           {allocatedProf ? (
-            <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl shadow-xl overflow-hidden text-white">
-              <div className="p-8 text-center">
-                <div className="mx-auto w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-6">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h1 className="text-3xl font-bold mb-4">Congratulations!</h1>
-                <p className="text-xl mb-6">
-                  Your summer training has been successfully allocated under
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white">
+                <h1 className="text-2xl md:text-3xl font-bold">Summer Training Allocation</h1>
+                <p className="text-green-100 mt-1">
+                  Your summer training details
                 </p>
-                <div className="bg-white/10 rounded-lg p-4 inline-block">
-                  <h2 className="text-2xl font-semibold">{allocatedProf?.fullName}</h2>
-                  <p className="text-sm opacity-80">Professor ID: {allocatedProf?.idNumber}</p>
+              </div>
+              <div className="p-8">
+                <div className="text-center">
+                  <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h1 className="text-3xl font-bold mb-4 text-gray-900">Congratulations!</h1>
+                  <p className="text-xl mb-6 text-gray-700">
+                    Your summer training has been successfully allocated under
+                  </p>
+                  <div className="bg-gray-100 rounded-lg p-4 inline-block">
+                    <h2 className="text-2xl font-semibold text-gray-900">{allocatedProf?.fullName}</h2>
+                    <p className="text-sm text-gray-600">Professor ID: {allocatedProf?.idNumber}</p>
+                  </div>
+                  <div className="mt-8">
+                    <button 
+                      onClick={handleViewDetails}
+                      className="px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      {loading ? 'Loading...' : 'View Discussion Logs'}
+                    </button>
+                  </div>
                 </div>
-                <div className="mt-8">
-                  <button 
-                    onClick={() => window.location.reload()}
-                    className="px-6 py-3 bg-white text-green-600 font-medium rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    View Details
-                  </button>
-                </div>
+
+                {showLogs && discussionLogs && (
+                  <div className="mt-8">
+                    <h3 className="text-xl font-semibold mb-4 text-gray-900">Discussion Logs</h3>
+                    {discussionLogs.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Absentees</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remark</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {discussionLogs.map((log, index) => (
+                              <tr key={index} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {new Intl.DateTimeFormat("en-IN", {
+                                        timeZone: "Asia/Kolkata",
+                                        dateStyle: "medium",
+                                        timeStyle: "short",
+                                      }).format(new Date(log.date))}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-900">
+                                  {log.description || 'No description'}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {log.absent?.length > 0 && (
+                                        <p className="text-gray-700 mt-1">
+                                          <span className="font-medium">Absentees:</span> {log.absent.map(a => a.fullName).join(", ")}
+                                        </p>
+                                      )}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-900">
+                                  {log.remark || 'No remark'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 text-gray-500">
+                        No discussion logs available
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -159,6 +266,8 @@ const Research = () => {
                       type="text"
                       id="search"
                       placeholder="Search by name or ID..."
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      value={searchQuery}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
@@ -166,6 +275,8 @@ const Research = () => {
                     <label htmlFor="filter" className="block text-sm font-medium text-gray-700 mb-1">Filter by Availability</label>
                     <select
                       id="filter"
+                      onChange={(e) => setFilterOption(e.target.value)}
+                      value={filterOption}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="all">All Professors</option>

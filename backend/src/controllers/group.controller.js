@@ -140,36 +140,95 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   const loggedIn = req?.user?._id;
   const { facultyId } = req.body;
   const userId = req?.user?._id;
+  console.log("hello")
   const user = await User.findById(userId);
   if (!user) {
     throw new ApiError(404, "User not found");
   }
-  if (user.summerAppliedProfs.includes(facultyId))
+  
+  if (user.summerAppliedProfs.includes(facultyId)) {
     throw new ApiError(409, "Already applied to this professor");
+  }
+  
   const groupId = user.group;
-  const group = await Group.findById({ _id: groupId });
+  const group = await Group.findById(groupId).populate("members");
   if (!group) throw new ApiError(404, "Group not found");
+  
   if (!group.leader.equals(loggedIn)) {
     throw new ApiError(409, "Only Leader can apply to faculty");
   }
-  if (group.deniedProf.includes(facultyId))
+  
+  if (group.deniedProf.includes(facultyId)) {
     throw new ApiError(409, "Denied by this professor");
-  if (group.summerAllocatedProf)
+  }
+  
+  if (group.summerAllocatedProf) {
     throw new ApiError(409, "You already have a faculty assigned");
-  const faculty = await Professor.findById(facultyId);
-  if (!faculty) throw new ApiError(404, "Faculty not found");
-
+  }
+  
   if (group.summerAppliedProfs.includes(facultyId)) {
     throw new ApiError(409, "Already applied to this faculty");
   }
+  
+  const members = group.members;
+  const incompleteProfiles = [];
+  
+  for (const member of members) {
+    const missingFields = [];
 
+    if (!member.branch) missingFields.push("branch");
+    if (!member.section) missingFields.push("section");
+    if (!member.email) missingFields.push("email");
+    if (!member.mobileNumber || member.mobileNumber === "0000000000") missingFields.push("mobileNumber");
+    if (!member.semester) missingFields.push("semester");
+    if (!member.cgpa) missingFields.push("cgpa");
+    if (!member.abcId) missingFields.push("abcId");
+    if (!member.linkedin) missingFields.push("linkedin");
+    if (!member.codingProfiles.github) missingFields.push("github profile");
+    if (!member.resume) missingFields.push("resume");
+    if (!member.image) missingFields.push("profile picture");
+    if (!member.alternateEmail) missingFields.push("alternate email");
+    if (!member.fatherName) missingFields.push("father's name");
+    if (!member.fatherMobileNumber) missingFields.push("father's mobile number");
+    if (!member.motherName) missingFields.push("mother's name");
+    if (!member.residentialAddress) missingFields.push("address");
+    
+    const hasCodingProfile = member.codingProfiles.leetcode || 
+                            member.codingProfiles.codeforces || 
+                            member.codingProfiles.codechef || 
+                            member.codingProfiles.atcoder;
+    if (!hasCodingProfile) {
+      missingFields.push("at least one coding profile (leetcode/codeforces/codechef/atcoder)");
+    }
+    
+    if (missingFields.length > 0) {
+      incompleteProfiles.push({
+        memberId: member._id,
+        memberName: member.fullName,
+        missingFields
+      });
+    }
+  }
+  
+  if (incompleteProfiles.length > 0) {
+    throw new ApiError(400, "Some group members have incomplete profiles", {
+      incompleteProfiles
+    });
+  }
+  
+  const faculty = await Professor.findById(facultyId);
+  if (!faculty) throw new ApiError(404, "Faculty not found");
+  
   group.summerAppliedProfs.push(facultyId);
+  
   if (group.summerAppliedProfs.length === 1) {
     group.preferenceLastMovedAt = Date.now();
     faculty.appliedGroups.summer_training.push(group._id);
     await faculty.save();
   }
+  
   await group.save();
+  
   return res
     .status(200)
     .json(new ApiResponse(200, group, "Applied to faculty successfully"));
@@ -278,13 +337,35 @@ const addRemarkAbsent = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { groupId: group._id }, "Remark added successfully"));
 });
 
+const getDiscussion = asyncHandler(async (req, res) => {
+  const { groupId } = req.body;
+  const group = await Group.findById({_id: groupId}).populate("discussion.absent");
+  if (!group) throw new ApiError(404, "Group not found");
+  return res
+    .status(200)
+    .json(new ApiResponse(200, group.discussion, "Discussion fetched successfully"));
+});
 
+
+const getDiscussionByStudent = asyncHandler(async (req, res) => {
+  const userId = req?.user?._id;
+  const user = await User.findById(userId);
+  if (!user.group) throw new ApiError(404, "Group not found");
+  const groupId = user.group;
+  const group = await Group.findById({_id: groupId}).populate("discussion.absent");
+  if (!group) throw new ApiError(404, "Group not found");
+  return res
+    .status(200)
+    .json(new ApiResponse(200, group.discussion, "Discussion fetched successfully"));
+});
 export {
   createGroup,
+  getDiscussionByStudent,
   addMember,
   removeMember,
   applyToFaculty,
   getGroup,
+  getDiscussion,
   getAppliedProfs,
   summerSorted,
   acceptReq,

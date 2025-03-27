@@ -92,8 +92,8 @@ cron.schedule(
   "30 18 * * *",
   async () => {
     console.log();
-    await preprocessGroups();
-    await moveApplications();
+    // await preprocessGroups();
+    // await moveApplications();
     console.log("All pending applications moved successfully!");
   },
   {

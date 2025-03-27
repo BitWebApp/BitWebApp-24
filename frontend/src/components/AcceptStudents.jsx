@@ -169,9 +169,10 @@ const AcceptStudents = () => {
   const handleGetDiscussionLogs = async (groupId) => {
     try {
       const response = await axios.post("/api/v1/group/get-disc", { groupId });
-      setDiscussionLogs(response.data.message);
+      setDiscussionLogs(response.data.data);
+      console.log(response.data.data)
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to fetch discussion logs.");
+      toast.error(err.response?.data?.data || "Failed to fetch discussion logs.");
     }
   };
 
@@ -389,7 +390,11 @@ const AcceptStudents = () => {
                                       )}
                                     </div>
                                     <span className="text-xs text-gray-500">
-                                      {new Date(log.createdAt).toLocaleDateString()}
+                                      {new Intl.DateTimeFormat("en-IN", {
+                                        timeZone: "Asia/Kolkata",
+                                        dateStyle: "medium",
+                                        timeStyle: "short",
+                                      }).format(new Date(log.date))}
                                     </span>
                                   </div>
                                 </div>

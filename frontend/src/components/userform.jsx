@@ -240,6 +240,7 @@ export default function UserForm() {
             <input
               type="tel"
               value={mobileNumber}
+              pattern='[0-9]{10}'
               className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
               onChange={(e) => setMobileNumber(e.target.value)}
               disabled={!isEditMode}

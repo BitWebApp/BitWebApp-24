@@ -59,10 +59,10 @@ const groupSchema = new Schema({
         type: Date,
         default: new Date(),
       },
-      absent: {
+      absent: [{
         type: Schema.Types.ObjectId,
         ref: "User",
-      },
+      }],
       description: {
         type: String,
       },
