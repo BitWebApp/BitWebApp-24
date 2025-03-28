@@ -372,7 +372,7 @@ export default function UserForm() {
                       disabled={!isEditMode}
                     >
                       <option value="">Select Semester</option>
-                      {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+                      {[I, II, III, IV, V, VI, VII, VIII].map((sem) => (
                         <option key={sem} value={sem}>Semester {sem}</option>
                       ))}
                       <option value="Graduated">Graduated</option>
