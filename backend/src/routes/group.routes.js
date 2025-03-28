@@ -3,7 +3,8 @@ import {
     createGroup, addMember, removeMember, applyToFaculty, getGroup,
     getAppliedProfs,
     summerSorted, acceptReq, getReq, addDiscussion, addRemarkAbsent, getDiscussion,
-    getDiscussionByStudent
+    getDiscussionByStudent,
+    addMarks
 } from "../controllers/group.controller.js";
 import { verifyAdmin, verifyJWT, verifyProfessor } from "../middlewares/auth.middleware.js";
 
@@ -23,4 +24,5 @@ router.route("/add-discussion").post(verifyJWT, addDiscussion);
 router.route("/add-remark").post(verifyProfessor, addRemarkAbsent);
 router.route("/get-disc").post(verifyProfessor, getDiscussion);
 router.route("/get-disc-student").post(verifyJWT, getDiscussionByStudent);
+router.route("/give-marks").post(verifyProfessor, addMarks);
 export default router;

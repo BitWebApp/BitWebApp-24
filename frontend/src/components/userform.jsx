@@ -400,6 +400,51 @@ export default function UserForm() {
                       disabled={!isEditMode}
                     />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Father's Name</label>
+                    <input
+                      value={fatherName}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setFatherName(e.target.value)}
+                      disabled={!isEditMode}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Alternate Email</label>
+                    <input
+                      value={alternateEmail}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setAlternateEmail(e.target.value)}
+                      disabled={!isEditMode}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Father's Mobile</label>
+                    <input
+                      value={fatherMobileNumber}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setFatherMobileNumber(e.target.value)}
+                      disabled={!isEditMode}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Mother's Name</label>
+                    <input
+                      value={motherName}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setMotherName(e.target.value)}
+                      disabled={!isEditMode}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Residential Address</label>
+                    <input
+                      value={residentialAddress}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setResidentialAddress(e.target.value)}
+                      disabled={!isEditMode}
+                    />
+                  </div>
                 </div>
               </div>
 

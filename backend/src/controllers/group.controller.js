@@ -359,7 +359,18 @@ const getDiscussionByStudent = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, group.discussion, "Discussion fetched successfully"));
 });
+
+const addMarks = asyncHandler(async (req, res) => {
+  const {userId, marks} = req.body;
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "User not found").select("fullName rollNumber group");
+  user.marks.summerTraining = marks;
+  await user.save();
+  return res.status(200).json(new ApiResponse(200, user, "Marks added successfully"));
+});
+
 export {
+  addMarks,
   createGroup,
   getDiscussionByStudent,
   addMember,
