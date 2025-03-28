@@ -5,17 +5,25 @@ import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
+import Kushagra from "../assets/Kushagra.jpeg";
+import Sumit from "../assets/Sumit.png";
+import Parth from "../assets/Parth.jpeg";
+import Akshat from "../assets/Akshat.jpeg";
+import Ankit from "../assets/Ankit.jpeg";
+import Hritabhash from "../assets/Hritabhash.jpg";
+import Chirag from "../assets/Chirag.jpeg";
+import Garvit from "../assets/Garvit.jpeg";
 
 const ReviewCarousel = () => {
   const data = [
-    { name: "Kushagra Sahay", post: "Team Leader", roll: "123458", role: "Leader" },
-    { name: "Sumit Kumar", post: "Team Leader", roll: "123459", role: "Leader" },
-    { name: "Garvit Raj", post: "Backend Developer", roll: "123456", role: "Backend" },
-    { name: "Ankit Verma", post: "Backend Developer", roll: "123457", role: "Backend" },
-    { name: "Hritabhash Ray", post: "Frontend Developer", roll: "123460", role: "Frontend" },
-    { name: "Parth Shresth", post: "Frontend Developer", roll: "123461", role: "Frontend" },
-    { name: "Akshat Tambi", post: "Full Stack Developer", roll: "123462", role: "Full Stack" },
-    { name: "Chirag Bhuwalka", post: "Frontend Developer", roll: "123463", role: "Frontend" },
+    { name: "Kushagra Sahay", post: "Team Leader", roll: "BTECH/10058/22", role: "Leader", image:  Kushagra},
+    { name: "Sumit Kumar", post: "Team Leader", roll: "BTECH/10265/22", role: "Leader", image: Sumit },
+    { name: "Garvit Raj", post: "Backend Developer", roll: "BTECH/10086/22", role: "Backend", image: Garvit },
+    { name: "Ankit Verma", post: "Backend Developer", roll: "BTECH/10236/22", role: "Backend", image: Ankit },
+    { name: "Hritabhash Ray", post: "Frontend Developer", roll: "BTECH/10449/22", role: "Frontend", image: Hritabhash },
+    { name: "Parth Shresth", post: "Frontend Developer", roll: "BTECH/10325/22", role: "Frontend", image: Parth },
+    { name: "Akshat Tambi", post: "Full Stack Developer", roll: "BTECH/10763/22", role: "Full Stack", image: Akshat },
+    { name: "Chirag Bhuwalka", post: "Full Stack Developer", roll: "BTECH/10701/22", role: "Full Stack", image: Chirag }
   ];
 
   return (
@@ -54,6 +62,11 @@ const ReviewCarousel = () => {
               className="bg-white text-black rounded-2xl shadow-lg transform transition-transform hover:scale-105 duration-300 cursor-pointer p-4 flex flex-col items-center justify-center h-[300px] lg:h-[350px]"
             >
               <div className="flex flex-col items-center h-full w-full text-center">
+                <img
+                  src={dev.image}
+                  alt={dev.name}
+                  className="rounded-full w-24 h-24 object-cover mb-4"
+                />
                 <h1 className="text-2xl font-bold text-indigo-700">{dev.name}</h1>
                 <p className="text-lg text-gray-600 mt-2">{dev.post}</p>
                 <p className="text-sm text-gray-500 mt-1">Roll No: {dev.roll}</p>
