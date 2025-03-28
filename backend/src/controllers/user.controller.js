@@ -136,7 +136,12 @@ const registerUser = asyncHandler(async (req, res) => {
   const otpEntry = await Otp.findOne({ email });
 
   if (!otpEntry || usrOTP.toString() !== otpEntry.otp.toString()) {
-    throw new ApiError(400, "wrong otp, validation failed");
+    console.log("Invalid OTP:", usrOTP, otpEntry.otp);
+    return res.status(400).json({
+      success: false,
+      message: "Invalid OTP",
+    });
+    // throw new ApiError(400, "wrong otp, validation failed");
   }
 
   await Otp.deleteOne({ email });
@@ -146,7 +151,12 @@ const registerUser = asyncHandler(async (req, res) => {
       (field) => field?.trim() === ""
     )
   ) {
-    throw new ApiError(400, "All fields are required:");
+    console.log("All fields are req");
+    return res.status(400).json({
+      success: false,
+      message: "All fields are required",
+    });
+    // throw new ApiError(400, "All fields are required:");
   }
 
   const existedUser = await User.findOne({
@@ -154,17 +164,32 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 
   if (existedUser) {
-    throw new ApiError(409, "User with email/username already exists");
+    console.log("User with email/username already exists");
+    return res.status(409).json({
+      success: false,
+      message: "User with email/username already exists",
+    });
+    // throw new ApiError(409, "User with email/username already exists");
   }
 
   const idLocalPath = req.files?.idCard[0]?.path;
   if (!idLocalPath) {
-    throw new ApiError(400, "idCard file is required:");
+    console.log("idCard file is required");
+    return res.status(400).json({
+      success: false,
+      message: "idCard file is required",
+    });
+    // throw new ApiError(400, "idCard file is required:");
   }
 
   const idCard = await uploadOnCloudinary(idLocalPath);
   if (!idCard) {
-    throw new ApiError(500, "id card file is cannot be uploaded");
+    console.log("id card file is cannot be uploaded");
+    return res.status(500).json({
+      success: false,
+      message: "id card file is cannot be uploaded",
+    });
+    // throw new ApiError(500, "id card file is cannot be uploaded");
   }
 
   const user = await User.create({
@@ -181,7 +206,12 @@ const registerUser = asyncHandler(async (req, res) => {
   );
 
   if (!createdUser) {
-    throw new ApiError(500, "Something went wrong while registering the user");
+    console.log("Something went wrong while registering the user");
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while registering the user",
+    });
+    // throw new ApiError(500, "Something went wrong while registering the user");
   }
 
   return res
@@ -192,15 +222,30 @@ const registerUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   if (!email) {
-    throw new ApiError(400, "email is req");
+    console.log("email is req");
+    return res.status(400).json({
+      success: false,
+      message: "email is req",
+    });
+    // throw new ApiError(400, "email is req");
   }
   const user = await User.findOne({ email: email.toLowerCase() });
   if (!user) {
-    throw new ApiError(404, "User does not exists");
+    console.log("User does not exists");
+    return res.status(404).json({
+      success: false,
+      message: "User does not exists",
+    });
+    // throw new ApiError(404, "User does not exists");
   }
   const isPasswordValid = await user.isPasswordCorrect(password);
   if (!isPasswordValid) {
-    throw new ApiError(401, "Invalid Credentials!");
+    console.log("Invalid Credentials!");
+    return res.status(401).json({
+      success: false,
+      message: "Invalid Credentials!",
+    });
+    // throw new ApiError(401, "Invalid Credentials!");
   }
   const { accessToken, refreshToken } = await generateAcessAndRefreshToken(
     user._id
@@ -209,7 +254,13 @@ const loginUser = asyncHandler(async (req, res) => {
     "-password -refreshToken"
   );
   if (!user.isVerified) {
-    throw new ApiError(403, "You are not verified yet!");
+    console.log("You are not verified yet!");
+    return res.status(403).json({
+      success: false,
+      message: "You are not verified yet!",
+    });
+
+    //throw new ApiError(403, "You are not verified yet!");
   }
   const options = {
     httpOnly: true,
@@ -854,24 +905,34 @@ cron.schedule("0 0 1 1,8 *", async () => {
 
 const getAppliedProfs = asyncHandler(async (req, res) => {
   const userid = req?.user?._id;
-  const user = await User.findById(userid).populate('summerAppliedProfs');
+  const user = await User.findById(userid).populate("summerAppliedProfs");
 
   let prof = null;
 
   if (user.isSummerAllocated && user.summerAllocatedProf) {
     prof = await Professor.findById(user.summerAllocatedProf);
   }
-  return res.status(200).json(new ApiResponse(200, {
-    summerAppliedProfs: user.summerAppliedProfs,
-    isSummerAllocated: user.isSummerAllocated,
-    prof: prof
-  }, "Applied profs and allocation details returned"));
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        summerAppliedProfs: user.summerAppliedProfs,
+        isSummerAllocated: user.isSummerAllocated,
+        prof: prof,
+      },
+      "Applied profs and allocation details returned"
+    )
+  );
 });
 
-const summerSorted = asyncHandler(async(req, res) => {
-  const summer = await User.findById(req?.user?._id)
-  return res.status(200).json(new ApiResponse(200, summer.isSummerAllocated, "Returned summer status"))
-})
+const summerSorted = asyncHandler(async (req, res) => {
+  const summer = await User.findById(req?.user?._id);
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, summer.isSummerAllocated, "Returned summer status")
+    );
+});
 export {
   registerUser,
   loginUser,
@@ -891,5 +952,5 @@ export {
   fetchBranch,
   changepassword,
   getAppliedProfs,
-  summerSorted
+  summerSorted,
 };
