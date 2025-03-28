@@ -215,6 +215,7 @@ export default function UserForm() {
               onChange={(e) => setBranch(e.target.value)}
               disabled={!isEditMode}
             >
+              <option value="">Select</option>
               <option value="computer science">Computer Science</option>
               <option value="artificial intelligence and machine learning">
                 AI and ML
@@ -358,7 +359,7 @@ export default function UserForm() {
             />
 
             {/* Profile Picture Upload */}
-            <label>Upload Profile Picture</label>
+            <label>Upload Profile Picture {(profilePicture) ? "Pic uploaded" : "Not uploaded"}</label>
             <input
               type="file"
               accept="image/*"
