@@ -169,6 +169,7 @@ const AcceptStudents = () => {
   const handleGetDiscussionLogs = async (groupId) => {
     try {
       const response = await axios.post("/api/v1/group/get-disc", { groupId });
+      console.log("hello", response)
       setDiscussionLogs(response.data.data);
       console.log(response.data.data)
     } catch (err) {
@@ -184,7 +185,7 @@ const AcceptStudents = () => {
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
           <h1 className="text-3xl md:text-4xl font-bold text-center">Summer Training Groups</h1>
           <p className="text-center text-blue-100 mt-2">
-            You can accept up to {limits} students this summer
+            Limit Left : You are left to accept {limits} students only.
           </p>
         </div>
 
@@ -247,7 +248,7 @@ const AcceptStudents = () => {
                       <div>
                         <h3 className="font-bold text-lg text-gray-800">Group ID: {group.groupId}</h3>
                         <p className="text-gray-600">{group.members.length} members</p>
-                        <p className="text-gray-600">{group?.org?.companyName}</p>
+                        <p className="text-gray-600">{group?.org?.companyName.toUpperCase()}</p>
                       </div>
                     </div>
                     <div className="flex space-x-2">
@@ -296,63 +297,70 @@ const AcceptStudents = () => {
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
-                            {group.members.map((member) => (
-                              <tr key={member._id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap">
+                          {group.members.map((member, index) => (
+                            <tr key={member._id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex flex-col items-center">
                                   <img 
                                     src={member.image || "/images/default-avatar.png"} 
                                     alt={member.fullName}
                                     className="h-10 w-10 rounded-full object-cover"
                                   />
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
-                                  {member.fullName}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                                  {member.rollNumber}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                                  {member.cgpa}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                                  {member.branch === "computer science and engineering" ? "CSE" : 
-                                   member.branch === "artificial intelligence and machine learning" ? "AIML" : 
-                                   member.branch}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap space-x-2">
-                                  {member.codingProfiles?.leetcode && (
-                                    <a 
-                                      href={member.codingProfiles.leetcode} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="inline-block px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs hover:bg-orange-200"
-                                    >
-                                      LeetCode
-                                    </a>
+                                  {index === 0 && (
+                                    <span className="ml-2 px-2 py-0.5 bg-red-50 text-red-600 text-xs font-medium rounded-full">
+                                      Team Lead
+                                    </span>
                                   )}
-                                  {member.codingProfiles?.github && (
-                                    <a 
-                                      href={member.codingProfiles.github} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="inline-block px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs hover:bg-gray-200"
-                                    >
-                                      GitHub
-                                    </a>
-                                  )}
-                                  {member.linkedin && (
-                                    <a 
-                                      href={member.linkedin} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs hover:bg-blue-200"
-                                    >
-                                      LinkedIn
-                                    </a>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
+                                {member.fullName}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                                {member.rollNumber}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                                {member.cgpa}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                                {member.branch === "computer science and engineering" ? "CSE" : 
+                                member.branch === "artificial intelligence and machine learning" ? "AIML" : 
+                                member.branch}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap space-x-2">
+                                {member.codingProfiles?.leetcode && (
+                                  <a 
+                                    href={member.codingProfiles.leetcode} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="inline-block px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs hover:bg-orange-200"
+                                  >
+                                    LeetCode
+                                  </a>
+                                )}
+                                {member.codingProfiles?.github && (
+                                  <a 
+                                    href={member.codingProfiles.github} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="inline-block px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs hover:bg-gray-200"
+                                  >
+                                    GitHub
+                                  </a>
+                                )}
+                                {member.linkedin && (
+                                  <a 
+                                    href={member.linkedin} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs hover:bg-blue-200"
+                                  >
+                                    LinkedIn
+                                  </a>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
                           </tbody>
                         </table>
                       </div>

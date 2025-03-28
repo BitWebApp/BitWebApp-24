@@ -190,9 +190,7 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-  console.log(req.body);
   const { email, password } = req.body;
-  console.log(email);
   if (!email) {
     throw new ApiError(400, "email is req");
   }

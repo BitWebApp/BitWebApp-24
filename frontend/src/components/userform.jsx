@@ -405,6 +405,7 @@ export default function UserForm() {
 
               <div className="bg-white p-6 rounded-lg border border-gray-200">
                 <h3 className="text-xl font-semibold text-gray-800 mb-4">Professional Profiles</h3>
+                <p className="text-sm font-semibold text-red-500 mb-4">LinkedIn, Github and atleast one coding profile is required.</p>
                 <div className="space-y-4">
                   <div className="flex items-center">
                     <FaLinkedin className="text-blue-700 mr-3 text-xl" />

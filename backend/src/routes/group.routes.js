@@ -21,6 +21,6 @@ router.route("/get-req").get(verifyJWT, getReq);
 
 router.route("/add-discussion").post(verifyJWT, addDiscussion);
 router.route("/add-remark").post(verifyProfessor, addRemarkAbsent);
-router.route("/get-disc").post(verifyAdmin, getDiscussion);
+router.route("/get-disc").post(verifyProfessor, getDiscussion);
 router.route("/get-disc-student").post(verifyJWT, getDiscussionByStudent);
 export default router;

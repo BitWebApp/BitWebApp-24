@@ -30,25 +30,8 @@ export default function LoginFaculty() {
         navigate("/faculty-db");
       }, 2000);
     } catch (error) {
-      if (error.response && error.response.data) {
-        const htmlDoc = new DOMParser().parseFromString(
-          error.response.data,
-          "text/html"
-        );
-        const errorElement = htmlDoc.querySelector("body");
-        if (errorElement) {
-          const errorMessage = errorElement.textContent.trim();
-          const errormsg = errorMessage.split("at")[0].trim();
-          console.log(errormsg);
-          toast.error(errormsg);
-        } else {
-          console.log("Error: An unknown error occurred");
-          toast.error("An unknown error occurred");
-        }
-      } else {
-        console.log("Error:", error.message);
-        toast.error("Error occurred during login");
-      }
+        console.log(error)
+        toast.error(error.response.data.message || "Login failed. Please try again.");  
     } finally {
       setLoading(false);
     }

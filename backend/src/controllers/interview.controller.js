@@ -76,7 +76,7 @@ const getAllInterviewExps = asyncHandler(async (req, res) => {
 
   const interviewExps = await InterviewExp.find(filter)
     .populate("company", "companyName")
-    .populate("student", "fullName email")
+    .populate("student", "fullName email image branch cgpa")
     .sort(sort)
     .skip(skip)
     .limit(parseInt(limit, 10));
