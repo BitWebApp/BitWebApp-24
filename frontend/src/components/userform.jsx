@@ -68,6 +68,7 @@ export default function UserForm() {
         setFatherMobileNumber(userData.fatherMobileNumber || "");
         setMotherName(userData.motherName || "");
         setResidentialAddress(userData.residentialAddress || "");
+        setResume(userData.resume || null);
       })
       .catch(error => {
         console.log(error);
@@ -347,7 +348,7 @@ export default function UserForm() {
               placeholder="Enter Atcoder Profile URL"
             />
             {/* Resume Upload */}
-            <label>Upload Resume</label>
+            <label>Upload Resume {(resume)? "Resume uploaded" : "Resume not added"}</label>
             <input
               type="file"
               accept=".pdf,.doc,.docx"

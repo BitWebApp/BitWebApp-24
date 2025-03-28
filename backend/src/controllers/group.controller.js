@@ -211,6 +211,7 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   }
   
   if (incompleteProfiles.length > 0) {
+    console.log(incompleteProfiles);
     throw new ApiError(400, "Some group members have incomplete profiles", {
       incompleteProfiles
     });
