@@ -17,6 +17,8 @@ const AcceptStudents = () => {
   const [discussionLogs, setDiscussionLogs] = useState([]);
   const [viewMode, setViewMode] = useState("applied");
   const [searchTerm, setSearchTerm] = useState("");
+  const [marks, setMarks] = useState({});
+  const [showMarksInputFor, setShowMarksInputFor] = useState(null);
 
   useEffect(() => {
     const fetchGroups = async () => {
@@ -35,7 +37,7 @@ const AcceptStudents = () => {
       }
     };
     fetchGroups();
-  }, []);
+  }, [marks]);
 
   // Filter groups based on search term
   const filteredGroups = (viewMode === "applied" ? appliedGroups : acceptedGroups).filter(group => 
@@ -45,6 +47,25 @@ const AcceptStudents = () => {
       member.rollNumber.toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
+
+  const handleGiveMarks = async (studentId) => {
+    if (!marks[studentId] || isNaN(marks[studentId])) {
+      toast.error("Please enter valid marks");
+      return;
+    }
+  
+    try {
+      const response = await axios.post("/api/v1/group/give-marks", {
+        userId: studentId,
+        marks: parseFloat(marks[studentId])
+      });
+      toast.success(response.data.message);
+      setMarks(prev => ({ ...prev, [studentId]: "" }));
+      setShowMarksInputFor(null);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to submit marks");
+    }
+  };
 
   const handleGroupClick = (group) => {
     if (selectedGroup === group._id) {
@@ -288,6 +309,7 @@ const AcceptStudents = () => {
                         <table className="min-w-full divide-y divide-gray-200">
                           <thead className="bg-gray-100">
                             <tr>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marks</th>
                               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Photo</th>
                               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Roll No</th>
@@ -299,6 +321,60 @@ const AcceptStudents = () => {
                           <tbody className="bg-white divide-y divide-gray-200">
                           {group.members.map((member, index) => (
                             <tr key={member._id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                {showMarksInputFor === member._id ? (
+                                  <div className="flex items-center space-x-2">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="50"
+                                      step="1"
+                                      value={marks[member._id] ?? member.markssummerTraining ?? ""}
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        // Allow empty string or valid number between 0-50
+                                        if (value === "" || (!isNaN(value) && value >= 0 && value <= 50)) {
+                                          setMarks(prev => ({
+                                            ...prev,
+                                            [member._id]: value === "" ? "" : value
+                                          }));
+                                        }
+                                      }}
+                                      onBlur={(e) => {
+                                        if (e.target.value === "") {
+                                          setMarks(prev => ({
+                                            ...prev,
+                                            [member._id]: "0"
+                                          }));
+                                        }
+                                      }}
+                                      className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                      placeholder="0-50"
+                                    />
+                                    <span className="text-xs text-gray-500">/50</span>
+                                    <button
+                                      onClick={() => handleGiveMarks(member._id)}
+                                      className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm"
+                                    >
+                                      Submit
+                                    </button>
+                                    <button
+                                      onClick={() => setShowMarksInputFor(null)}
+                                      className="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors text-sm"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => setShowMarksInputFor(member._id)}
+                                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors flex items-center"
+                                  >
+                                    <span>{member.marks.summerTraining || 0}/50</span>
+                                    <FaEdit className="ml-2 text-sm" />
+                                  </button>
+                                )}
+                              </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex flex-col items-center">
                                   <img 

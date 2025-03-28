@@ -362,8 +362,9 @@ const getDiscussionByStudent = asyncHandler(async (req, res) => {
 
 const addMarks = asyncHandler(async (req, res) => {
   const {userId, marks} = req.body;
-  const user = await User.findById(userId);
-  if (!user) throw new ApiError(404, "User not found").select("fullName rollNumber group");
+  console.log(userId, marks)
+  const user = await User.findById(userId).select("fullName rollNumber group");
+  if (!user) throw new ApiError(404, "User not found")
   user.marks.summerTraining = marks;
   await user.save();
   return res.status(200).json(new ApiResponse(200, user, "Marks added successfully"));
