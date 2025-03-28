@@ -69,6 +69,7 @@ export default function UserForm() {
         setMotherName(userData.motherName || "");
         setResidentialAddress(userData.residentialAddress || "");
         setResume(userData.resume || null);
+        setProfilePicture(userData.image || null);
       })
       .catch(error => {
         console.log(error);
