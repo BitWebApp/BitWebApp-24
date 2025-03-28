@@ -3,25 +3,11 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { toast, Toaster } from "react-hot-toast";
 
-const extractErrorMessage = (htmlString) => {
-  const match = htmlString.match(/<pre>(.*?)<\/pre>/s);
-  if (match && match[1]) {
-    return match[1].split("<br>")[0].replace("Error: ", "").trim();
-  }
-  return "An unknown error occurred";
-};
 
 const handleError = (error, defaultMessage) => {
   console.log("Full error:", error);
 
-  let message = defaultMessage;
-  if (error.response) {
-    if (typeof error.response.data === "string") {
-      message = extractErrorMessage(error.response.data);
-    } else if (error.response.data?.message) {
-      message = error.response.data.message;
-    }
-  }
+  let message = error.response?.data?.message || defaultMessage || "An error occurred";
   toast.error(message);
 };
 
