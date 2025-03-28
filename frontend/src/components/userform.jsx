@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-
+import { FaEdit, FaSave, FaTimes, FaPlus, FaLinkedin, FaGithub, FaCode, FaFilePdf, FaUserCircle } from 'react-icons/fa';
 export default function UserForm() {
+  // State declarations remain the same
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [branch, setBranch] = useState("");
@@ -21,21 +21,18 @@ export default function UserForm() {
     atcoder: ""
   });
   const [resume, setResume] = useState(null);
-  const [user, setUser ] = useState(null);
+  const [user, setUser] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [profilePicture, setProfilePicture] = useState(null);
   const [availableSections, setAvailableSections] = useState([]);
-  
-  // Alumni section state
   const [graduationYear, setGraduationYear] = useState("");
   const [workExperiences, setWorkExperiences] = useState([]);
-
-  // Additional Information state
   const [alternateEmail, setAlternateEmail] = useState("");
   const [fatherName, setFatherName] = useState("");
   const [fatherMobileNumber, setFatherMobileNumber] = useState("");
   const [motherName, setMotherName] = useState("");
   const [residentialAddress, setResidentialAddress] = useState("");
+  const [profilePreview, setProfilePreview] = useState("");
 
   useEffect(() => {
     axios.get("/api/v1/users/get-user")
@@ -69,10 +66,15 @@ export default function UserForm() {
         setMotherName(userData.motherName || "");
         setResidentialAddress(userData.residentialAddress || "");
         setResume(userData.resume || null);
-        setProfilePicture(userData.image || null);
+        setProfilePreview(userData.image || "");
       })
       .catch(error => {
         console.log(error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to load user data'
+        });
       });
   }, []);
 
@@ -181,342 +183,411 @@ export default function UserForm() {
     setWorkExperiences(updatedExperiences);
   };
 
+  const handleProfilePictureChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfilePicture(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
-    <div className="w-full min-h-screen flex justify-center items-center">
-      <div className="w-full flex flex-col p-10 justify-between">
-        <h3 className="text-xl text-black font-semibold">BIT WEB APP</h3>
-        <div className="w-full flex flex-col">
-          <div className="flex flex-col w-full mb-5">
-            <h3 className="text-3xl font-semibold mb-4">Your Profile</h3>
-            <p className="text-base mb-2">Enter Your details.</p>
-          </div>
-          <form onSubmit={(e) => e.preventDefault()}>
-            {/* Full Name */}
-            <label>Full Name</label>
-            <input
-              type="text"
-              value={fullName}
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-              onChange={(e) => setFullName(e.target.value)}
-              disabled={!isEditMode}
-              placeholder="Enter your full name"
-            />
-
-            {/* Email */}
-            <label>Email</label>
-            <input
-              type="email"
-              value={email}
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={!isEditMode}
-              placeholder="Enter your email"
-            />
-
-            {/* Branch */}
-            <label>Branch</label>
-            <select
-              value={branch}
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-              onChange={(e) => setBranch(e.target.value)}
-              disabled={!isEditMode}
-            >
-              <option value="">Select</option>
-              <option value="computer science">Computer Science</option>
-              <option value="artificial intelligence and machine learning">
-                AI and ML
-              </option>
-            </select>
-
-            {/* Section */}
-            <label>Section</label>
-            <select
-              value={section}
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-              onChange={(e) => setSection(e.target.value)}
-              disabled={!isEditMode}
-            >
-              {availableSections.map((sec) => (
-                <option key={sec} value={sec}>
-                  {sec}
-                </option>
-              ))}
-            </select>
-
-            {/* Mobile Number */}
-            <label>Mobile Number</label>
-            <input
-              type="tel"
-              value={mobileNumber}
-              pattern='[0-9]{10}'
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-              onChange={(e) => setMobileNumber(e.target.value)}
-              disabled={!isEditMode}
-              placeholder="Enter your mobile number"
-            />
-
-            {/* Semester */}
-            <label>Semester</label>
-            <select
-              value={semester}
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-              onChange={(e) => setSemester(e.target.value)}
-              disabled={!isEditMode}
-            >
-              <option value="">Select Semester</option>
-              <option value="I">I</option>
-              <option value="II">II</option>
-              <option value="III">III</option>
-              <option value="IV">IV</option>
-              <option value="V">V</option>
-              <option value="VI">VI</option>
-              <option value="VII">VII</option>
-              <option value="VIII">VIII</option>
-              <option value="Graduated">Graduated</option>
-            </select>
-
-            {/* CGPA */}
-            <label>CGPA</label>
-            <input
-              type="number"
-              value={cgpa}
-              step="0.01"
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-              onChange={(e) => setCgpa(e.target.value)}
-              disabled={!isEditMode}
-              placeholder="Enter your CGPA"
-            />
-
-            {/* ABC ID */}
-            <label>ABC ID</label>
-            <input
-              value={abcId}
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-              onChange={(e) => setabcId(e.target.value)}
-              disabled={!isEditMode}
-              placeholder="Enter ABC ID"
-            />
-
-            {/* LinkedIn Profile */}
-            <label>LinkedIn Profile</label>
-            <input
-              type="url"
-              value={linkedin}
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-              onChange={(e) => setlinkedin(e.target.value)}
-              disabled={!isEditMode}
-              placeholder="Enter LinkedIn Profile URL"
-            />
-
-            {/* Coding Profiles */}
-            <label>GitHub Profile</label>
-            <input
-              type="url"
-              value={codingProfiles.github}
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-              onChange={(e) => setCodingProfiles({ ...codingProfiles, github: e.target.value })}
-              disabled={!isEditMode}
-              placeholder="Enter GitHub Profile URL"
-            />
-            <label>LeetCode Profile</label>
-            <input
-              type="url"
-              value={codingProfiles.leetcode}
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-              onChange={(e) => setCodingProfiles({ ...codingProfiles, leetcode: e.target.value })}
-              disabled={!isEditMode}
-              placeholder="Enter LeetCode Profile URL"
-            />
-            <label>Codeforces Profile</label>
-            <input
-              type="url"
-              value={codingProfiles.codeforces}
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-              onChange={(e) => setCodingProfiles({ ...codingProfiles, codeforces: e.target.value })}
-              disabled={!isEditMode}
-              placeholder="Enter Codeforces Profile URL"
-            />
-            <label>Codechef Profile</label>
-            <input
-              type="url"
-              value={codingProfiles.codechef}
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-              onChange={(e) => setCodingProfiles({ ...codingProfiles, codechef: e.target.value })}
-              disabled={!isEditMode}
-              placeholder="Enter Codechef Profile URL"
-            />
-            <label>Atcoder Profile</label>
-            <input
-              type="url"
-              value={codingProfiles.atcoder}
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-              onChange={(e) => setCodingProfiles({ ...codingProfiles, atcoder: e.target.value })}
-              disabled={!isEditMode}
-              placeholder="Enter Atcoder Profile URL"
-            />
-            {/* Resume Upload */}
-            <label>Upload Resume {(resume)? "Resume uploaded" : "Resume not added"}</label>
-            <input
-              type="file"
-              accept=".pdf,.doc,.docx"
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-              onChange={(e) => setResume(e.target.files[0])}
-              disabled={!isEditMode}
-            />
-
-            {/* Profile Picture Upload */}
-            <label>Upload Profile Picture {(profilePicture) ? "Pic uploaded" : "Not uploaded"}</label>
-            <input
-              type="file"
-              accept="image/*"
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-              onChange={(e) => setProfilePicture(e.target.files[0])}
-              disabled={!isEditMode}
-            />
-
-            {/* Additional Information */}
-            <div className="mt-4">
-              <h3 className="text-2xl font-semibold mb-4">Additional Information</h3>
-              <label>Alternate E-mail</label>
-              <input
-                type="email"
-                value={alternateEmail}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-                onChange={(e) => setAlternateEmail(e.target.value)}
-                disabled={!isEditMode}
-                placeholder="Enter alternate email"
-              />
-              <label>Father's Name</label>
-              <input
-                type="text"
-                value={fatherName}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-                onChange={(e) => setFatherName(e.target.value)}
-                disabled={!isEditMode}
-                placeholder="Enter father's name"
-              />
-              <label>Father's Mobile No:</label>
-              <input
-                type="tel"
-                value={fatherMobileNumber}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-                onChange={(e) => setFatherMobileNumber(e.target.value)}
-                disabled={!isEditMode}
-                placeholder="Enter father's mobile number"
-              />
-              <label>Mother's Name</label>
-              <input
-                type="text"
-                value={motherName}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-                onChange={(e) => setMotherName(e.target.value)}
-                disabled={!isEditMode}
-                placeholder="Enter mother's name"
-              />
-              <label>Residential Address</label>
-              <input
-                type="text"
-                value={residentialAddress}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-                onChange={(e) => setResidentialAddress(e.target.value)}
-                disabled={!isEditMode}
-                placeholder="Enter your residential address"
-              />
-            </div>
-
-            {/* Alumni Section */}
-            {semester === "Graduated" && (
-              <div className="mt-5">
-                <h3 className="text-2xl font-semibold mb-4">Alumni Section</h3>
-                <label>Graduation Year</label>
-                <input
-                  type="text"
-                  value={graduationYear}
-                  className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-                  onChange={(e) => setGraduationYear(e.target.value)}
-                  disabled={!isEditMode}
-                  placeholder="Enter your graduation year"
-                />
-
-                <h4 className="text-xl font-semibold mb-2">Work Experiences</h4>
-                {workExperiences.map((experience, index) => (
-                  <div key={index} className="mb-4 border p-4 rounded">
-                    <label>Company Name</label>
-                    <input
-                      type="text"
-                      value={experience.companyName}
-                      className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-                      onChange={(e) => handleExperienceChange(index, 'companyName', e.target.value)}
-                      disabled={!isEditMode}
-                      placeholder="Enter company name"
-                    />
-                    <label>Start Year</label>
-                    <input
-                      type="text"
-                      value={experience.startYear}
-                      className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-                      onChange={(e) => handleExperienceChange(index, 'startYear', e.target.value)}
-                      disabled={!isEditMode}
-                      placeholder="Enter start year"
-                    />
-                    <label>End Year</label>
-                    <input
-                      type="text"
-                      value={experience.endYear}
-                      className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-                      onChange={(e) => handleExperienceChange(index, 'endYear', e.target.value)}
-                      disabled={!isEditMode}
-                      placeholder="Enter end year"
-                    />
-                    <label>Role</label>
-                    <input
-                      type="text"
-                      value={experience.role}
-                      className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-                      onChange={(e) => handleExperienceChange(index, 'role', e.target.value)}
-                      disabled={!isEditMode}
-                      placeholder="Enter your role"
-                    />
-                    <label>Description</label>
-                    <textarea
-                      value={experience.description}
-                      className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
-                      onChange={(e) => handleExperienceChange(index, 'description', e.target.value)}
-                      disabled={!isEditMode}
-                      placeholder="Enter job description"
-                    />
-                  </div>
-                ))}
-                {isEditMode && (
-                  <button
-                    type="button"
-                    className="bg-blue-500 text-white rounded-md p-2"
-                    onClick={addWorkExperience}
-                  >
-                    + Add Work Experience
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Buttons */}
-            <div className="w-full flex items-center justify-between mt-4">
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">BITACADEMIA</h1>
+            <div className="flex items-center space-x-4">
               {isEditMode ? (
                 <>
-                  <button className="bg-green-500 text-white rounded-md p-2" onClick={handleUpdate}>
-                    Save
+                  <button 
+                    onClick={handleUpdate}
+                    className="flex items-center bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    <FaSave className="mr-2" /> Save
                   </button>
-                  <button className="bg-red-500 text-white rounded-md p-2" onClick={handleCancelEdit}>
-                    Cancel
+                  <button 
+                    onClick={handleCancelEdit}
+                    className="flex items-center bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    <FaTimes className="mr-2" /> Cancel
                   </button>
                 </>
               ) : (
-                <button className="bg-blue-500 text-white rounded-md p-2" onClick={() => setIsEditMode(true)}>
-                  Edit
+                <button 
+                  onClick={() => setIsEditMode(true)}
+                  className="flex items-center bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  <FaEdit className="mr-2" /> Edit Profile
                 </button>
               )}
             </div>
-          </form>
+          </div>
+          <p className="mt-2">Manage your profile information</p>
+        </div>
+
+        <div className="p-6">
+          <div className="flex flex-col md:flex-row gap-8">
+            {/* Left Column - Profile Picture and Basic Info */}
+            <div className="w-full md:w-1/3 space-y-6">
+              <div className="flex flex-col items-center">
+                <div className="relative mb-4">
+                  {profilePreview ? (
+                    <img 
+                      src={profilePreview} 
+                      alt="Profile" 
+                      className="w-40 h-40 rounded-full object-cover border-4 border-blue-100"
+                    />
+                  ) : (
+                    <div className="w-40 h-40 rounded-full bg-gray-200 flex items-center justify-center border-4 border-blue-100">
+                      <FaUserCircle className="text-gray-400 text-6xl" />
+                    </div>
+                  )}
+                  {isEditMode && (
+                    <div className="absolute bottom-0 right-0 bg-white p-2 rounded-full shadow-md">
+                      <label className="cursor-pointer">
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={handleProfilePictureChange}
+                        />
+                        <FaEdit className="text-blue-600" />
+                      </label>
+                    </div>
+                  )}
+                </div>
+                
+                <h2 className="text-xl font-bold text-center">{fullName || "Your Name"}</h2>
+                <p className="text-gray-600 text-center">{branch ? `${branch} (${section})` : "Branch"}</p>
+                <p className="text-gray-600 text-center">{semester || "Semester"}</p>
+              </div>
+
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-blue-800 mb-3">Contact Information</h3>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-gray-500">Email</p>
+                    <p className="font-medium">{email || "-"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Mobile</p>
+                    <p className="font-medium">{mobileNumber || "-"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">ABC ID</p>
+                    <p className="font-medium">{abcId || "-"}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-blue-800 mb-3">Academic Information</h3>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-gray-500">CGPA</p>
+                    <p className="font-medium">{cgpa || "-"}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Form Fields */}
+            <div className="w-full md:w-2/3 space-y-6">
+              <div className="bg-white p-6 rounded-lg border border-gray-200">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">Basic Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input
+                      type="text"
+                      value={fullName}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setFullName(e.target.value)}
+                      disabled={!isEditMode}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input
+                      type="email"
+                      value={email}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={!isEditMode}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
+                    <select
+                      value={branch}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => {
+                        setBranch(e.target.value);
+                        setAvailableSectionsBasedOnBranch(e.target.value);
+                      }}
+                      disabled={!isEditMode}
+                    >
+                      <option value="">Select Branch</option>
+                      <option value="computer science and engineering">Computer Science</option>
+                      <option value="artificial intelligence and machine learning">AI and ML</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
+                    <select
+                      value={section}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setSection(e.target.value)}
+                      disabled={!isEditMode || !branch}
+                    >
+                      {availableSections.map((sec) => (
+                        <option key={sec} value={sec}>
+                          Section {sec}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+                    <input
+                      type="tel"
+                      value={mobileNumber}
+                      pattern="[0-9]{10}"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setMobileNumber(e.target.value)}
+                      disabled={!isEditMode}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Semester</label>
+                    <select
+                      value={semester}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setSemester(e.target.value)}
+                      disabled={!isEditMode}
+                    >
+                      <option value="">Select Semester</option>
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+                        <option key={sem} value={sem}>Semester {sem}</option>
+                      ))}
+                      <option value="Graduated">Graduated</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">CGPA</label>
+                    <input
+                      type="number"
+                      value={cgpa}
+                      step="0.01"
+                      min="0"
+                      max="10"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setCgpa(e.target.value)}
+                      disabled={!isEditMode}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">ABC ID</label>
+                    <input
+                      value={abcId}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setabcId(e.target.value)}
+                      disabled={!isEditMode}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-lg border border-gray-200">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">Professional Profiles</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center">
+                    <FaLinkedin className="text-blue-700 mr-3 text-xl" />
+                    <input
+                      type="url"
+                      value={linkedin}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setlinkedin(e.target.value)}
+                      disabled={!isEditMode}
+                      placeholder="LinkedIn Profile URL"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <FaGithub className="text-gray-800 mr-3 text-xl" />
+                    <input
+                      type="url"
+                      value={codingProfiles.github}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setCodingProfiles({ ...codingProfiles, github: e.target.value })}
+                      disabled={!isEditMode}
+                      placeholder="GitHub Profile URL"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <p className="text-yellow-600 mr-3 text-sm">LC</p>
+                    <input
+                      type="url"
+                      value={codingProfiles.leetcode}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setCodingProfiles({ ...codingProfiles, leetcode: e.target.value })}
+                      disabled={!isEditMode}
+                      placeholder="LeetCode Profile URL"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <img src='https://codeforces.org/s/75877/favicon.ico' className="text-red-500 mr-3 text-xl" />
+                    <input
+                      type="url"
+                      value={codingProfiles.codeforces}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setCodingProfiles({ ...codingProfiles, codeforces: e.target.value })}
+                      disabled={!isEditMode}
+                      placeholder="Codeforces Profile URL"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <p className="text-brown-500 mr-3 text-sm">CC</p>
+                    <input
+                      type="url"
+                      value={codingProfiles.codechef}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setCodingProfiles({ ...codingProfiles, codechef: e.target.value })}
+                      disabled={!isEditMode}
+                      placeholder="CodeChef Profile URL"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-lg border border-gray-200">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">Documents</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Resume (.pdf,.doc,.docx)
+                      {resume && (
+                        <a 
+                          href={resume} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="ml-2 text-blue-600 hover:underline inline-flex items-center"
+                        >
+                          <FaFilePdf className="mr-1" /> View Current Resume
+                        </a>
+                      )}
+                    </label>
+                    <div className="flex items-center">
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        className="block w-full text-sm text-gray-500
+                          file:mr-4 file:py-2 file:px-4
+                          file:rounded-md file:border-0
+                          file:text-sm file:font-semibold
+                          file:bg-blue-50 file:text-blue-700
+                          hover:file:bg-blue-100"
+                        onChange={(e) => setResume(e.target.files[0])}
+                        disabled={!isEditMode}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional sections (Family, Alumni, etc.) would follow the same pattern */}
+              
+              {semester === "Graduated" && (
+                <div className="bg-white p-6 rounded-lg border border-gray-200">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-4">Alumni Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Graduation Year</label>
+                      <input
+                        type="text"
+                        value={graduationYear}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) => setGraduationYear(e.target.value)}
+                        disabled={!isEditMode}
+                      />
+                    </div>
+                  </div>
+                  
+                  <h4 className="text-lg font-semibold text-gray-700 mt-6 mb-3">Work Experience</h4>
+                  {workExperiences.map((exp, index) => (
+                    <div key={index} className="mb-6 p-4 border border-gray-200 rounded-lg">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+                          <input
+                            type="text"
+                            value={exp.companyName}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            onChange={(e) => handleExperienceChange(index, 'companyName', e.target.value)}
+                            disabled={!isEditMode}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                          <input
+                            type="text"
+                            value={exp.role}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            onChange={(e) => handleExperienceChange(index, 'role', e.target.value)}
+                            disabled={!isEditMode}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Start Year</label>
+                          <input
+                            type="text"
+                            value={exp.startYear}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            onChange={(e) => handleExperienceChange(index, 'startYear', e.target.value)}
+                            disabled={!isEditMode}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">End Year</label>
+                          <input
+                            type="text"
+                            value={exp.endYear}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            onChange={(e) => handleExperienceChange(index, 'endYear', e.target.value)}
+                            disabled={!isEditMode}
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea
+                          value={exp.description}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                          rows="3"
+                          onChange={(e) => handleExperienceChange(index, 'description', e.target.value)}
+                          disabled={!isEditMode}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {isEditMode && (
+                    <button
+                      type="button"
+                      onClick={addWorkExperience}
+                      className="flex items-center text-blue-600 hover:text-blue-800"
+                    >
+                      <FaPlus className="mr-1" /> Add Work Experience
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
