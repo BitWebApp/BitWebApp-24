@@ -6,7 +6,7 @@ import "swiper/css/effect-coverflow";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 import Kushagra from "../assets/Kushagra.jpeg";
-import Sumit from "../assets/Sumit.jpeg";
+import Sumit from "../assets/Sumit.png";
 import Parth from "../assets/Parth.jpeg";
 import Akshat from "../assets/Akshat.jpeg";
 import Ankit from "../assets/Ankit.jpeg";
