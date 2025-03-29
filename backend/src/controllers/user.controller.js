@@ -828,18 +828,14 @@ const getUserbyRoll = asyncHandler(async (req, res) => {
 
   let query = User.findOne({ rollNumber: rollNumber });
   
-  // If not admin, restrict the fields
   if (!isAdmin) {
     query = query.select('-password -username -refreshToken -fatherName -fatherMobileNumber -motherName -residentialAddress -alternateEmail -alumni -awards -backlogs -codingProfiles -companyInterview -createdAt -exams -graduationYear -group -groupReq -higherEd -idCard -isSummerAllocated -isVerified -linkedin -marks -mobileNumber -peCourses -proj -resume -summerAppliedProfs -updatedAt -workExp -__v -abcId');
-    
-    // Limited population for non-admin users
     query = query
       .populate('internShips', 'company role startDate endDate')
       .populate('placementOne', 'company role ctc date')
       .populate('placementTwo', 'company role ctc date')
       .populate('placementThree', 'company role ctc date');
   } else {
-    // For admin, populate everything
     query = query
       .populate('placementOne')
       .populate('placementTwo')
