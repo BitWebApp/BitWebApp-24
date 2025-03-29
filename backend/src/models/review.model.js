@@ -2,13 +2,15 @@ import mongoose from 'mongoose';
 
 const reviewSchema = new mongoose.Schema(
   {
-    name: { 
-      type: String, 
-      required: true 
+    user: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      required: true,
+      refPath: 'userModel'
     },
-    rollNumber: { 
-      type: String, 
-      required: true 
+    userModel: {
+      type: String,
+      required: true,
+      enum: ['User', 'Professor']
     },
     content: { 
       type: String, 

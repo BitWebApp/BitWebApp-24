@@ -11,6 +11,7 @@ import { nanoid, customAlphabet } from "nanoid";
 import mongoose, { mongo } from "mongoose";
 import { Group } from "../models/group.model.js";
 import { Otp } from "../models/otp.model.js";
+import { Review } from "../models/review.model.js";
 const url = "https://bitacademia.vercel.app/faculty-login";
 
 const addProf = asyncHandler(async (req, res) => {
@@ -248,6 +249,11 @@ const loginProf = asyncHandler(async (req, res) => {
   const loggedInProfessor = await Professor.findById(professor._id).select(
     "-password -refeshToken"
   );
+  const reviewLog = await Review.findOne({ user: professor._id });
+  let review = false;
+  if(reviewLog) {
+    review = true;
+  }
   const options = {
     httpOnly: true,
     secure: true,
@@ -261,6 +267,7 @@ const loginProf = asyncHandler(async (req, res) => {
         200,
         {
           professor: loggedInProfessor,
+          review: review,
           accessToken,
           refreshToken,
         },
