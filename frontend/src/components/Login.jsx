@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import NavBar from "./NavBar";
+import { useEffect } from "react";
 
 export default function Login() {
   const [email, setemail] = useState("");
@@ -11,7 +12,25 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get("/api/v1/users/get-user");
+        if (response.status == 200) {
+          toast.success("User already logged in! Navigating to dashboard...");
+          setTimeout(() => {
+            navigate("/db");
+          }, 3000);
+        }
+      } catch (error) {
+        console.log("User not logged in", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    checkUser();
+  }, [navigate]);
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
