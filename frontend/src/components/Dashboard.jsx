@@ -35,6 +35,7 @@ export default function Dashboard() {
     try {
       const response = await axios.post("/api/v1/users/getbyroll", {
         rollNumber,
+        isAdmin: isAdmin
       });
       setUser(response.data.data);
       setError(null);
@@ -63,9 +64,8 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
           <div className="flex flex-col sm:flex-row gap-4">
             <input
-              className={`flex-grow p-3 border ${
-                isRollNumberValid ? "border-gray-300" : "border-red-500"
-              } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
+              className={`flex-grow p-3 border ${isRollNumberValid ? "border-gray-300" : "border-red-500"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
               type="text"
               placeholder="Enter Roll Number (e.g., BTECH/10XXX/YY)"
               value={rollNumber}
@@ -121,15 +121,17 @@ export default function Dashboard() {
                     <span className="font-medium text-gray-700">Semester & Section:</span>{" "}
                     {user.semester} & {user.section}
                   </li>
-                  <li>
-                    <span className="font-medium text-gray-700">ABC ID:</span>{" "}
-                    {user.abcId}
-                  </li>
                   {isAdmin && (
-                    <li>
-                      <span className="font-medium text-gray-700">CGPA:</span>{" "}
-                      {user.cgpa}
-                    </li>
+                    <ul className="mt-4 space-y-2">
+                      <li>
+                        <span className="font-medium text-gray-700">CGPA:</span>{" "}
+                        {user.cgpa}
+                      </li>
+                      <li>
+                        <span className="font-medium mt-5 text-gray-700">ABC ID:</span>{" "}
+                        {user.abcId}
+                      </li>
+                    </ul>
                   )}
                 </ul>
               </div>
