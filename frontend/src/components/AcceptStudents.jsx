@@ -321,6 +321,7 @@ const AcceptStudents = () => {
                           <tbody className="bg-white divide-y divide-gray-200">
                           {group.members.map((member, index) => (
                             <tr key={member._id} className="hover:bg-gray-50">
+                              {(viewMode === "accepted") && (
                               <td className="px-6 py-4 whitespace-nowrap">
                                 {showMarksInputFor === member._id ? (
                                   <div className="flex items-center space-x-2">
@@ -329,7 +330,7 @@ const AcceptStudents = () => {
                                       min="0"
                                       max="50"
                                       step="1"
-                                      value={marks[member._id] ?? member.markssummerTraining ?? ""}
+                                      value={marks[member._id] ?? member.marks.summerTraining ?? ""}
                                       onChange={(e) => {
                                         const value = e.target.value;
                                         // Allow empty string or valid number between 0-50
@@ -375,6 +376,7 @@ const AcceptStudents = () => {
                                   </button>
                                 )}
                               </td>
+                              )}
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex flex-col items-center">
                                   <img 
