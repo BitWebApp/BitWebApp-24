@@ -251,7 +251,7 @@ const loginProf = asyncHandler(async (req, res) => {
   );
   const reviewLog = await Review.findOne({ user: professor._id });
   let review = false;
-  if(reviewLog) {
+  if (reviewLog) {
     review = true;
   }
   const options = {
@@ -362,7 +362,7 @@ const getAppliedGroups = asyncHandler(async (req, res) => {
         path: "members org",
         select:
           "fullName rollNumber email linkedin codingProfiles cgpa section branch image companyName",
-      }
+      },
     });
 
     if (!professor) {
@@ -664,6 +664,9 @@ const acceptedGroups = asyncHandler(async (req, res) => {
     })
     .populate({
       path: "discussion.description",
+    })
+    .populate({
+      path: "org",
     });
 
   return res
@@ -719,7 +722,7 @@ const groupAttendance = asyncHandler(async (req, res) => {
 const mergeGroups = asyncHandler(async (req, res) => {
   const { groupIds, rollNumber } = req.body;
   const profId = req?.professor?._id;
-  
+
   if (!profId) {
     throw new ApiError(401, "Professor not authenticated");
   }
@@ -735,10 +738,7 @@ const mergeGroups = asyncHandler(async (req, res) => {
     (group) => group.typeOfSummer === "research"
   );
   if (!allGroupsAreResearch) {
-    throw new ApiError(
-      403,
-      "All groups must be of type research to be merged"
-    );
+    throw new ApiError(403, "All groups must be of type research to be merged");
   }
 
   const isValidProf = groups.every(
@@ -757,10 +757,13 @@ const mergeGroups = asyncHandler(async (req, res) => {
     allMembers = [...allMembers, ...group.members];
   });
 
-  const uniqueMembers = Array.from(new Set(allMembers.map(m => m.toString())))
-    .map(id => allMembers.find(m => m._id.toString() === id));
+  const uniqueMembers = Array.from(
+    new Set(allMembers.map((m) => m.toString()))
+  ).map((id) => allMembers.find((m) => m._id.toString() === id));
 
-  const leader = uniqueMembers.find((member) => member.rollNumber === rollNumber);
+  const leader = uniqueMembers.find(
+    (member) => member.rollNumber === rollNumber
+  );
 
   if (!leader) {
     throw new ApiError(
@@ -801,8 +804,6 @@ const mergeGroups = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, "Groups merged successfully!", newGroup));
 });
-
-
 
 const otpForgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
@@ -946,16 +947,18 @@ const changePassword = asyncHandler(async (req, res) => {
     });
   }
 });
-  const getLimits = asyncHandler(async(req, res) => {
-    const profid = req?.professor?._id;
-    console.log(profid)
-    const prof = await Professor.findById({_id: profid});
-    if(!prof) throw new ApiError(404, "Professor not found")
-    const currentCount = prof.currentCount.summer_training;
-    const totalCount = prof.limits.summer_training;
-    const limitleft = totalCount-currentCount;
-    return res.status(200).json(new ApiResponse(200, limitleft, "limit returned"))
-  })
+const getLimits = asyncHandler(async (req, res) => {
+  const profid = req?.professor?._id;
+  console.log(profid);
+  const prof = await Professor.findById({ _id: profid });
+  if (!prof) throw new ApiError(404, "Professor not found");
+  const currentCount = prof.currentCount.summer_training;
+  const totalCount = prof.limits.summer_training;
+  const limitleft = totalCount - currentCount;
+  return res
+    .status(200)
+    .json(new ApiResponse(200, limitleft, "limit returned"));
+});
 export {
   addProf,
   getProf,
