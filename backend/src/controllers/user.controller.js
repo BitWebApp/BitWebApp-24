@@ -824,28 +824,44 @@ const fetchBranch = asyncHandler(async (req, res) => {
 });
 
 const getUserbyRoll = asyncHandler(async (req, res) => {
-  const { rollNumber } = req.body;
+  const { rollNumber, isAdmin } = req.body;
 
-  // Finding the user by roll number and populating all the fields
-  const user = await User.findOne({ rollNumber: rollNumber })
-    .populate("placementOne")
-    .populate("placementTwo")
-    .populate("placementThree")
-    .populate("proj")
-    .populate("awards")
-    .populate("higherEd")
-    .populate("internShips")
-    .populate("exams")
-    .populate("academics")
-    .populate("backlogs")
-    .select("-password -username");
-  if (!user) {
-    res.status(404).json(new ApiResponse(404, null, "User not found"));
-    return;
+  let query = User.findOne({ rollNumber: rollNumber });
+  
+  // If not admin, restrict the fields
+  if (!isAdmin) {
+    query = query.select('-password -username -refreshToken -fatherName -fatherMobileNumber -motherName -residentialAddress -alternateEmail -alumni -awards -backlogs -codingProfiles -companyInterview -createdAt -exams -graduationYear -group -groupReq -higherEd -idCard -isSummerAllocated -isVerified -linkedin -marks -mobileNumber -peCourses -proj -resume -summerAppliedProfs -updatedAt -workExp -__v -abcId');
+    
+    // Limited population for non-admin users
+    query = query
+      .populate('internShips', 'company role startDate endDate')
+      .populate('placementOne', 'company role ctc date')
+      .populate('placementTwo', 'company role ctc date')
+      .populate('placementThree', 'company role ctc date');
+  } else {
+    // For admin, populate everything
+    query = query
+      .populate('placementOne')
+      .populate('placementTwo')
+      .populate('placementThree')
+      .populate('proj')
+      .populate('awards')
+      .populate('higherEd')
+      .populate('internShips')
+      .populate('exams')
+      .populate('academics')
+      .populate('backlogs');
   }
 
-  res.status(200).json(new ApiResponse(200, user, "User data fetched"));
+  const user = await query;
+
+  if (!user) {
+    return res.status(404).json(new ApiResponse(404, null, "User not found"));
+  }
+
+  return res.status(200).json(new ApiResponse(200, user, "User data fetched"));
 });
+
 const getPlacementDetails = asyncHandler(async (req, res) => {
   try {
     const users = await User.find().populate([
