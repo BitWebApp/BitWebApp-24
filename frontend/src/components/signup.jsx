@@ -83,25 +83,28 @@ export default function Signup() {
         navigate("/log");
       }, 2000);
     } catch (error) {
-      if (error.response && error.response.data) {
-        const htmlDoc = new DOMParser().parseFromString(
-          error.response.data,
-          "text/html"
-        );
-        const errorElement = htmlDoc.querySelector("body");
-        if (errorElement) {
-          const errorMessage = errorElement.textContent.trim();
-          const errormsg = errorMessage.split("at")[0].trim();
-          console.log(errormsg);
-          toast.error(errormsg);
-        } else {
-          console.log("Error: An unknown error occurred");
-          toast.error("An unknown error occurred");
-        }
-      } else {
-        console.log("Error:", error.message);
-        toast.error("Error occurred during signup");
-      }
+      // if (error.response && error.response.data) {
+      //   const htmlDoc = new DOMParser().parseFromString(
+      //     error.response.data,
+      //     "text/html"
+      //   );
+      //   const errorElement = htmlDoc.querySelector("body");
+      //   if (errorElement) {
+      //     const errorMessage = errorElement.textContent.trim();
+      //     const errormsg = errorMessage.split("at")[0].trim();
+      //     console.log(errormsg);
+      //     toast.error(errormsg);
+      //   } else {
+      //     console.log("Error: An unknown error occurred");
+      //     toast.error("An unknown error occurred");
+      //   }
+      // } else {
+      //   console.log("Error:", error.message);
+      //   toast.error("Error occurred during signup");
+      // }
+      let errorMessage = error.response.data.message;
+      console.log(errorMessage);
+      toast.error(errorMessage || "Error occurred during signup");
     } finally {
       setSpin(false);
     }
