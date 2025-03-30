@@ -23,7 +23,12 @@ const preprocessGroups = async () => {
     console.log(`Found ${overLimitProfs.size} professors over their limits`);
     for (const group of groups) {
       group.summerAppliedProfs = group.summerAppliedProfs.filter(
-        (profId) => !overLimitProfs.has(profId.toString())
+        (prof, index) => {
+          if (index == 0) {
+            return true;
+          }
+          return !overLimitProfs.has(prof.toString());
+        }
       );
       await group.save();
     }
@@ -36,8 +41,8 @@ const preprocessGroups = async () => {
 const moveApplications = async () => {
   try {
     console.log("Checking and moving pending applications...");
-    const fiveDaysAgo = moment().subtract(7, "days").toDate();
-    console.log(fiveDaysAgo)
+    const fiveDaysAgo = moment().subtract(4, "days").toDate();
+    console.log(fiveDaysAgo);
     console.log(`Looking for groups with no movement since: ${fiveDaysAgo}`);
     const groups = await Group.find({
       summerAppliedProfs: { $exists: true, $ne: [] },
@@ -57,9 +62,10 @@ const moveApplications = async () => {
       group.deniedProf.push(profToMove);
       console.log(`Denied professors count: ${group.deniedProf.length}`);
       const prof = await Professor.findById(profToMove);
-      prof.appliedGroups.summer_training = prof.appliedGroups.summer_training.filter(
-        (group) => group.toString() !== group._id.toString()  
-      );
+      prof.appliedGroups.summer_training =
+        prof.appliedGroups.summer_training.filter(
+          (grpId) => grpId.toString() !== group._id.toString()
+        );
       await prof.save();
       console.log(`Updated professor ${prof.fullName}'s applied groups`);
       const nextProf = group.summerAppliedProfs[0];
