@@ -22,15 +22,14 @@ const preprocessGroups = async () => {
     );
     console.log(`Found ${overLimitProfs.size} professors over their limits`);
     for (const group of groups) {
-      group.summerAppliedProfs = group.summerAppliedProfs.filter(
-        (prof, index) => {
-          if (index == 0) {
-            return true;
-          }
-          return !overLimitProfs.has(prof.toString());
-        }
-      );
-      await group.save();
+      try {
+        group.summerAppliedProfs = group.summerAppliedProfs.filter(
+          (prof, index) => index === 0 || !overLimitProfs.has(prof.toString())
+        );
+        await group.save();
+      } catch (error) {
+        console.log(`Error saving group ${group._id}:`, error);
+      }
     }
     console.log("Preprocessing completed!");
   } catch (error) {
