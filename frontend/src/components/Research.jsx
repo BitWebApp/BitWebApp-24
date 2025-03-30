@@ -369,19 +369,12 @@ const Research = () => {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {filteredProfessors.map((prof) => {
-                          const seatsAvailable =
-                            prof.limits.summer_training -
-                            prof.currentCount.summer_training;
-                          const isApplied = appliedProfessors.includes(
-                            prof._id
-                          );
+                      {filteredProfessors.map((prof) => {
+                          const seatsAvailable = prof.limits.summer_training - prof.currentCount.summer_training;
+                          const appliedIndex = appliedProfessors.findIndex(id => id === prof._id);
+                          const isApplied = appliedIndex !== -1;
                           const isDenied = denied.includes(prof._id);
-                          const isDisabled =
-                            isApplied ||
-                            allocatedProf?._id === prof._id ||
-                            seatsAvailable === 0 ||
-                            isDenied;
+                          const isDisabled = isApplied || allocatedProf?._id === prof._id || seatsAvailable === 0 || isDenied;
 
                           const statusConfig = {
                             denied: {
@@ -390,7 +383,7 @@ const Research = () => {
                               icon: "❌",
                             },
                             applied: {
-                              text: "Applied",
+                              text: `Applied (Pref ${appliedIndex + 1})`,  // Show preference number
                               color: "bg-green-100 text-green-800",
                               icon: "✅",
                             },
