@@ -80,16 +80,62 @@ export default function InternshipTable() {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Internships");
 
-    // Define columns with headers and styles matching the frontend table
+    // Initialize variables to store max lengths for each column
+    let maxIndexLength = "#".length;
+    let maxRollNumberLength = "Roll Number".length;
+    let maxNameLength = "Name".length;
+    let maxEmailLength = "Email".length;
+    let maxCompanyLength = "Company".length;
+    let maxTypeLength = "Internship Type".length;
+    let maxLocationLength = "Location".length;
+    let maxMentorLength = "Mentor".length;
+
+    // Iterate through filteredData to find maximum lengths
+    filteredData.forEach((record, index) => {
+      const mentor =
+        record.mentor?.idNumber && record.mentor?.fullName
+          ? `${record.mentor.idNumber}: ${record.mentor.fullName}`
+          : "N/A";
+
+      maxIndexLength = Math.max(maxIndexLength, (index + 1).toString().length);
+      maxRollNumberLength = Math.max(
+        maxRollNumberLength,
+        (record?.student?.rollNumber || "").length
+      );
+      maxNameLength = Math.max(
+        maxNameLength,
+        (record?.student?.fullName || "").toUpperCase().length
+      );
+      maxEmailLength = Math.max(
+        maxEmailLength,
+        (record?.student?.email || "").length
+      );
+      maxCompanyLength = Math.max(
+        maxCompanyLength,
+        (record?.company?.companyName || "").toUpperCase().length
+      );
+      maxTypeLength = Math.max(maxTypeLength, (record?.type || "").length);
+      maxLocationLength = Math.max(
+        maxLocationLength,
+        (record?.location || "").length
+      );
+      maxMentorLength = Math.max(maxMentorLength, mentor.length);
+    });
+
+    // Define columns with dynamic widths
     worksheet.columns = [
-      { header: "#", key: "index", width: 5 },
-      { header: "Roll Number", key: "rollNumber", width: 15 },
-      { header: "Name", key: "name", width: 20 },
-      { header: "Email", key: "email", width: 20 },
-      { header: "Company", key: "company", width: 20 },
-      { header: "Internship Type", key: "type", width: 20 },
-      { header: "Location", key: "location", width: 15 },
-      { header: "Mentor", key: "mentor", width: 30 },
+      { header: "#", key: "index", width: maxIndexLength + 3 },
+      {
+        header: "Roll Number",
+        key: "rollNumber",
+        width: maxRollNumberLength + 3,
+      },
+      { header: "Name", key: "name", width: maxNameLength + 3 },
+      { header: "Email", key: "email", width: maxEmailLength + 3 },
+      { header: "Company", key: "company", width: maxCompanyLength + 3 },
+      { header: "Internship Type", key: "type", width: maxTypeLength + 3 },
+      { header: "Location", key: "location", width: maxLocationLength + 3 },
+      { header: "Mentor", key: "mentor", width: maxMentorLength + 3 },
     ];
 
     // Style the header row
@@ -117,7 +163,7 @@ export default function InternshipTable() {
         company: record?.company?.companyName.toUpperCase(),
         type: record?.type,
         location: record?.location,
-        mentor: mentor,
+        mentor,
       });
 
       // Add alternating row colors for better readability
@@ -156,7 +202,6 @@ export default function InternshipTable() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   };
 
   return (
