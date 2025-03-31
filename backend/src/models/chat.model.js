@@ -29,7 +29,9 @@ chatSchema.pre("save", async function (next) {
         if (!group) {
             return next(new Error("Group not found"));
         }
-        this.messages = [];
+        if (!this.messages || this.messages.length === 0) {
+            this.messages = [];
+        }
     }
     next();
 });
