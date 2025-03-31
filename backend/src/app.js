@@ -65,4 +65,8 @@ app.use("/api/v1/group", groupRouter);
 
 import bugRouter from "./routes/bugtracker.routes.js";
 app.use("/api/v1/tracker", bugRouter);
+
+import chatRouter from "./routes/chat.routes.js";
+app.use("/api/v1/chat", chatRouter);
+
 export { app };

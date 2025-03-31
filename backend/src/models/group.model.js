@@ -75,5 +75,9 @@ const groupSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  chats: {
+    type: String,
+    ref: "Chat",
+  }
 });
 export const Group = mongoose.model("Group", groupSchema);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { toast, Toaster } from "react-hot-toast";
+import ChatBox from "./ChatBox";
 
 const handleError = (error, defaultMessage) => {
   console.log("Full error:", error);
@@ -12,6 +13,7 @@ const handleError = (error, defaultMessage) => {
 };
 
 const Research = () => {
+  const [group, setGroup] = useState(null);
   const [professors, setProfessors] = useState([]);
   const [filteredProfessors, setFilteredProfessors] = useState([]);
   const [appliedProfessors, setAppliedProfessors] = useState([]);
@@ -23,6 +25,19 @@ const Research = () => {
   const [loading, setLoading] = useState(false);
   const [discussionLogs, setDiscussionLogs] = useState(null);
   const [showLogs, setShowLogs] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+
+  const fetchGroup = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get("/api/v1/group/get-group");
+      console.log(response.data.data.groupId);
+      setGroup(response.data.data.groupId);
+    } catch (error) {
+      setGroup(null);
+    }
+    setLoading(false);
+  };
 
   const fetchData = async () => {
     try {
@@ -57,6 +72,7 @@ const Research = () => {
 
   useEffect(() => {
     fetchData();
+    fetchGroup();
   }, []);
 
   const handleViewDetails = async () => {
@@ -112,14 +128,6 @@ const Research = () => {
         text: errorMessage || "Failed to apply. Try again.",
         confirmButtonColor: "#ef4444",
       });
-
-      // console.log(error);
-      // Swal.fire({
-      //   icon: "error",
-      //   title: "Application Failed",
-      //   text: error.response?.data?.message || "Failed to apply. Try again.",
-      //   confirmButtonColor: "#ef4444",
-      // });
     }
   };
 
@@ -209,6 +217,12 @@ const Research = () => {
                     >
                       {loading ? "Loading..." : "View Discussion Logs"}
                     </button>
+                    <button
+                      onClick={() => setShowChat(!showChat)}
+                      className="ml-4 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      {showChat ? "Hide Chat" : "Show Chat"}
+                    </button>
                   </div>
                 </div>
 
@@ -274,6 +288,14 @@ const Research = () => {
                         No discussion logs available
                       </div>
                     )}
+                  </div>
+                )}
+                {showChat && (
+                  <div className="mt-6">
+                    <h3 className="text-xl font-semibold mb-4 text-gray-900">
+                      Research Chat
+                    </h3>
+                    <ChatBox groupId={group ? group : "research-chat"} />
                   </div>
                 )}
               </div>
