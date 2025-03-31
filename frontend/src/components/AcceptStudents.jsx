@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
 import { FaUsers, FaCheckCircle, FaTimesCircle, FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 import Swal from "sweetalert2";
+import ChatBox from "./ChatBox";
 
 const AcceptStudents = () => {
   const [appliedGroups, setAppliedGroups] = useState([]);
@@ -493,6 +494,11 @@ const AcceptStudents = () => {
                           )}
                         </div>
                       )}
+
+                      <div className="mt-6">
+                        <h4 className="font-semibold text-lg text-gray-800 mb-4">Group Chat</h4>
+                        <ChatBox groupId={group.groupId} />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -591,4 +597,4 @@ const AcceptStudents = () => {
   );
 };
 
-export default AcceptStudents;  
+export default AcceptStudents;
