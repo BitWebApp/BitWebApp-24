@@ -7,8 +7,13 @@ const createSocket = () => {
     const API_URL = import.meta.env.VITE_CORS || "http://localhost:8000";
     socket = io(API_URL, {
       withCredentials: true,
-      transports: ["websocket", "polling"], // Explicitly set transports
-      reconnectionAttempts: 5, // Limit reconnection attempts
+      secure: true, // Force secure connection
+      transports: ["websocket"], // WebSocket only mode
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      timeout: 20000,
+      agent: false,
+      reconnectionAttempts: 5, 
     });
     socket.on("connect_error", (err) => {
       console.error("Connection error:", err.message);

@@ -25,6 +25,7 @@ connectDB()
         methods: ["GET", "POST"],
         credentials: true,
       },
+      transports: ["websocket"], 
     });
 
     io.on("connection", (socket) => {
