@@ -4,7 +4,7 @@ let socket = null;
 
 const createSocket = () => {
   if (!socket) {
-    const API_URL = import.meta.env.REACT_APP_API_URL || "http://localhost:8000";
+    const API_URL = import.meta.env.VITE_CORS || "http://localhost:8000";
     socket = io(API_URL, {
       withCredentials: true,
     });
