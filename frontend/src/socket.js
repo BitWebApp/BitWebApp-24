@@ -7,13 +7,15 @@ const createSocket = () => {
     const API_URL = import.meta.env.VITE_CORS || "http://localhost:8000";
     socket = io(API_URL, {
       withCredentials: true,
+      transports: ["websocket", "polling"], // Explicitly set transports
+      reconnectionAttempts: 5, // Limit reconnection attempts
     });
-
     socket.on("connect_error", (err) => {
-      console.error("Socket Connection Error:", err);
+      console.error("Connection error:", err.message);
+      console.error("Details:", err.description);
     });
-  }
   return socket;
+  }
 };
 
 export const joinRoom = (roomId) => {
