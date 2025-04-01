@@ -205,6 +205,7 @@ export default function App() {
           <Route path="adhoc-project-applications/status/:projectId" element={<AdminApplications />} />
           <Route path="adhoc-project-applications/status/:projectId/:applicationId" element={<AdminApplicationDetails />} />
           <Route path="report-bug" element={<UserBugReporter />} />
+          <Route path="academicanalysis" element ={<Academicanalysis />} />
         </Route>
         <Route path="/sg" element={<Signup />} />
         <Route path="/log.a" element={<Loginadmin />} />

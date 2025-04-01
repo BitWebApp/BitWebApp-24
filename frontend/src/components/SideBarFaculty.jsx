@@ -73,7 +73,7 @@ export default function Sidebar() {
     {
       text: "Academic Analysis",
       icon: <HiBeaker/>,
-      to: "/admin-db/academicanalysis",
+      to: "/faculty-db/academicanalysis",
     }
   ];
   // const [isAdmin, setIsAdmin] = useState(true);
