@@ -26,7 +26,7 @@ const Academicanalysis = () => {
       try {
         let response;
         if (selectedOption !== "compare_gpas") {
-          response = await fetch(`http://127.0.0.1:5000/${selectedOption}`);
+          response = await fetch(`https://bitwebapp-24-ohuu.onrender.com/${selectedOption}`);
         } else {
           const validRollNos = rollNumbers.filter((roll) => roll.trim() !== ""); // Remove empty roll numbers
           if (validRollNos.length === 0) {
@@ -38,7 +38,7 @@ const Academicanalysis = () => {
           const formData = new FormData();
           formData.append("rollnos", validRollNos.join(",")); // Send as comma-separated string
 
-          response = await fetch(`http://127.0.0.1:5000/${selectedOption}`, {
+          response = await fetch(`https://bitwebapp-24-ohuu.onrender.com/${selectedOption}`, {
             method: "POST",
             body: formData,
           });
