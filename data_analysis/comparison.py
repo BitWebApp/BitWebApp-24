@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg') 
 from get_data import get_academic_data
 import matplotlib.pyplot as plt
 import numpy as np

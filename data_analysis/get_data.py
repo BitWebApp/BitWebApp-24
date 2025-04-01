@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 from requests.exceptions import HTTPError
 
-load_dotenv("../.env")
+load_dotenv("etc/secrets/.env")
 admin_email = os.environ.get("ADMIN_EMAIL")
 admin_pwd = os.environ.get("ADMIN_PASSWORD")
 # print(str(admin_email),str(admin_pwd))
@@ -18,8 +18,8 @@ def get_academic_data():
     try:
         response = requests.post(admin_login_url,json=login_credentials)
         response.raise_for_status()
-        print(response.status_code)
-        print(response.json())
+        # print(response.status_code)
+        # print(response.json())
     # print(response.json()["data"]["accessToken"])
     except requests.exceptions.HTTPError as e:
         error_status = response.status_code
@@ -49,7 +49,7 @@ def get_academic_data():
         sem = "sem" + str(record["semester"])
         record_dict[record["rollNumber"]][sem] = record["gpa"]
 
-    print(record_dict["BTECH/10427/22"])
+    # print(record_dict["BTECH/10427/22"])
     return record_dict
 
 

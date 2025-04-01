@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg') 
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -44,7 +46,7 @@ def visualize_filtered_cgpa():
     
     # ✅ Compute overall average CGPA (after filtering)
     overall_avg_cgpa = df_filtered["Avg_CGPA"].mean()
-    print(f"📊 Overall Average CGPA (Filtered, Student-Wise): {overall_avg_cgpa:.2f}")
+    # print(f"📊 Overall Average CGPA (Filtered, Student-Wise): {overall_avg_cgpa:.2f}")
     
     buffers = []  # Store image buffers
 
@@ -57,18 +59,14 @@ def visualize_filtered_cgpa():
     ax1.set_ylabel("Frequency")
     ax1.legend()
     ax1.grid(axis="y", linestyle="--", alpha=0.7)
-
-    
     buffers.append(make_buffer(fig1))
    
-    # ✅ Box Plot Visualization
+    # ✅ Violin Plot Visualization (Replaces Box Plot)
     fig2, ax2 = plt.subplots(figsize=(8, 4))
-    sns.boxplot(x=df_filtered["Avg_CGPA"], color="lightblue", ax=ax2)
-    ax2.set_title("CGPA Box Plot (Filtered)")
+    sns.violinplot(x=df_filtered["Avg_CGPA"], color="lightblue", ax=ax2)  # Corrected line here
+    ax2.set_title("CGPA Violin Plot (Filtered)")
     ax2.set_xlabel("Average CGPA")
     ax2.grid()
     buffers.append(make_buffer(fig2))
-
-    
 
     return buffers

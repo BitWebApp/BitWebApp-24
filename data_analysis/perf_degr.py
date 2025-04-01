@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg') 
 from get_data import get_academic_data
 from numpy import corrcoef 
 import matplotlib.pyplot as plt
@@ -31,50 +33,70 @@ def performance_degrade():
 
     corr = [ele for ele in corr if ele[0]<0]
     corr = sorted(corr)
-    print(corr)
+    # print(corr)
 
-    # dict_arr = []
-    # for ele in corr[:10]:
-    #     dict_arr.append(record_dict[ele[1]])
-    rollnos = [rollno for [r,rollno] in corr[:5]]
+    rollnos = [rollno for [r, rollno] in corr[:5]]
     gpas = [[record_dict[rollno].get(f'sem{i}') for i in range(1, 9)] for rollno in rollnos]
-    print(gpas)
+    
+    fig, ax = plt.subplots(figsize=(8, 6))
+    
     for i, gpa_list in enumerate(gpas):
-        print(record_dict[rollnos[i]])
-        plot(gpa_list,rollnos[i])
-
-    plt.xlabel("sems")
-    plt.ylabel("gpas")
-    plt.title("Plot most degrading student performance")
-    plt.legend()
-    plt.grid(True)
+        # print(record_dict[rollnos[i]])
+        plot(gpa_list, rollnos[i], ax)
+    
+    ax.set_xlabel("Semesters")
+    ax.set_ylabel("GPAs")
+    ax.set_title("Plot of Most Degrading Student Performance")
+    ax.legend()
+    ax.grid(True)
+    # plt.show()
     buf = io.BytesIO()
-    plt.savefig(buf,format='png')
+    fig.savefig(buf, format='png')
     buf.seek(0)
-    img_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
     plt.close()
+    img_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
     return img_base64
 
-def plot(y,label):
-    sems = ["sem1","sem2", "sem3","sem4","sem5","sem6","sem7","sem8"]
-    x = [0,1,2,3,4,5,6,7]
+
+# def plot(y,label):
+#     sems = ["sem1","sem2", "sem3","sem4","sem5","sem6","sem7","sem8"]
+#     x = [0,1,2,3,4,5,6,7]
+#     # Convert lists to numpy arrays to handle None/NaN
+#     y1_np = np.array(y, dtype=float)
+
+#     # Find the index of None
+#     none_index = np.where(np.isnan(y1_np))[0]
+
+#     # Create a new x and y for the connected line segment
+#     if none_index.size > 0 and none_index[0] > 0 and none_index[0] < len(y) - 1:
+#         idx = none_index[0]
+#         x_connect = [x[idx - 1], x[idx + 1]]
+#         y_connect = [y1_np[idx - 1], y1_np[idx + 1]]
+#         plt.plot(x_connect, y_connect, linestyle='-') # Plot the connecting line
+
+#     # Plot the original data (ignoring None values)
+#     plt.plot(sems, y1_np, marker='o', linestyle='-', label=label)
+#     # plt.plot(x, y2, marker='x', linestyle='-', label='Second Data')
+
+def plot(y, label, ax):
+    sems = ["sem1", "sem2", "sem3", "sem4", "sem5", "sem6", "sem7", "sem8"]
+    x = np.arange(len(sems))
+    
     # Convert lists to numpy arrays to handle None/NaN
     y1_np = np.array(y, dtype=float)
-
+    
     # Find the index of None
     none_index = np.where(np.isnan(y1_np))[0]
-
+    
     # Create a new x and y for the connected line segment
     if none_index.size > 0 and none_index[0] > 0 and none_index[0] < len(y) - 1:
         idx = none_index[0]
         x_connect = [x[idx - 1], x[idx + 1]]
         y_connect = [y1_np[idx - 1], y1_np[idx + 1]]
-        plt.plot(x_connect, y_connect, linestyle='-') # Plot the connecting line
-
-    # Plot the original data (ignoring None values)
-    plt.plot(sems, y1_np, marker='o', linestyle='-', label=label)
-    # plt.plot(x, y2, marker='x', linestyle='-', label='Second Data')
-
+        ax.plot(x_connect, y_connect, linestyle='-')  # Plot the connecting line
     
+    # Plot the original data (ignoring None values)
+    ax.plot(sems, y1_np, marker='o', linestyle='-', label=label)
 
-performance_degrade()
+
+# performance_degrade()

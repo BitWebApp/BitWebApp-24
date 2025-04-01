@@ -70,6 +70,11 @@ export default function Sidebar() {
       icon: <HiBeaker />,
       to: "/faculty-db/report-bug",
     },
+    {
+      text: "Academic Analysis",
+      icon: <HiBeaker/>,
+      to: "/admin-db/academicanalysis",
+    }
   ];
   // const [isAdmin, setIsAdmin] = useState(true);
 

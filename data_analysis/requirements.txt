@@ -1,0 +1,8 @@
+flask
+pandas
+numpy
+gunicorn
+matplotlib
+seaborn
+requests
+python-dotenv

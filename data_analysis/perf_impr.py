@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg') 
 from get_data import get_academic_data
 from numpy import corrcoef 
 import numpy as np
@@ -34,7 +36,7 @@ def performance_improve():
     gpas = [[record_dict[rollno].get(f'sem{i}') for i in range(1, 9)] for rollno in rollnos]
     print(gpas)
     for i, gpa_list in enumerate(gpas):
-        print(record_dict[rollnos[i]])
+        # print(record_dict[rollnos[i]])
         plot(gpa_list,rollnos[i])
 
     plt.xlabel("sems")
@@ -67,4 +69,4 @@ def plot(y,label):
     plt.plot(sems, y1_np, marker='o', linestyle='-', label=label)
     # plt.plot(x, y2, marker='x', linestyle='-', label='Second Data')
 
-performance_improve()
+# performance_improve()

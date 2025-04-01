@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg') 
 from get_data import get_academic_data
 import matplotlib.pyplot as plt
 import numpy as np
@@ -32,20 +34,27 @@ def top_performers():
 
 def make_cgpa_bar_plot(cgpas, roll_nos):
     """Generates a bar plot of CGPAs with roll numbers as labels and returns a Base64 encoded PNG."""
-    plt.figure(figsize=(10, 6))  # Adjust figure size as needed
-    plt.bar(roll_nos, cgpas, color='skyblue')
-    plt.xlabel("Roll Number")
-    plt.ylabel("CGPA")
-    plt.title("Student CGPA")
+    fig, ax = plt.subplots(figsize=(10, 6))  # Use subplots for better figure handling
+    bars = ax.bar(roll_nos, cgpas, color='skyblue')
+    
+    # Display GPA values on top of bars
+    for bar, cgpa in zip(bars, cgpas):
+        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(), f'{cgpa:.2f}', ha='center', va='bottom', fontsize=10, color='black')
+    
+    ax.set_xlabel("Roll Number")
+    ax.set_ylabel("CGPA")
+    ax.set_title("Student CGPA")
+    
     major_yticks = np.arange(0, 11, 1)
-    plt.yticks(major_yticks)
-
+    ax.set_yticks(major_yticks)
+    
     # Set minor y-axis ticks at the desired locations
     minor_yticks = np.arange(0.2, 10, 0.2)  # Example: Ticks every 0.2
-    plt.gca().set_yticks(minor_yticks, minor=True)
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout() 
-    plt.show()
+    ax.set_yticks(minor_yticks, minor=True)
+    ax.set_xticklabels(roll_nos, rotation=45, ha="right")
+    
+    plt.tight_layout()
+    # plt.show()
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     buf.seek(0)
@@ -53,5 +62,4 @@ def make_cgpa_bar_plot(cgpas, roll_nos):
     plt.close()
     return img_base64
 
-
-top_performers()
+# top_performers()
