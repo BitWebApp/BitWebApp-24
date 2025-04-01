@@ -6,3 +6,4 @@ matplotlib
 seaborn
 requests
 python-dotenv
+flask_cors
