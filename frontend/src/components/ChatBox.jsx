@@ -155,7 +155,7 @@ const ChatBoxComponent = ({ groupId }) => {
   };
 
   return (
-    <div className="bg-white shadow rounded-2xl p-4 mt-4 flex flex-col max-w-2xl mx-auto h-[400px]">
+    <div className="bg-white shadow rounded-2xl p-4 mt-4 flex flex-col w-full max-w-2xl mx-auto h-[400px] sm:h-[500px]">
       <div
         ref={chatBoxRef}
         className="mb-4 h-full overflow-y-auto border border-gray-200 p-2 rounded flex-grow"
@@ -185,7 +185,7 @@ const ChatBoxComponent = ({ groupId }) => {
       <div className="flex gap-2">
         <input
           type="text"
-          className="flex-1 border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Type a message..."
