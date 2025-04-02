@@ -83,7 +83,7 @@ import MajorProject from "./components/MajorProject";
 import UserBugReporter from "./components/UserBugReporter";
 import AdminBugTrackerSummary from "./components/AdminBugTrackerSummary";
 import AdminBugTrackerDetails from "./components/AdminBugTrackerDetails";
-
+import Academicanalysis from "./components/Academicanalysis";
 export default function App() {
   return (
     <Router>
@@ -179,6 +179,7 @@ export default function App() {
           <Route path="increase-limit" element={<IncreaseLimit />} />
           <Route path="bug-tracker" element={<AdminBugTrackerSummary />} />
           <Route path="bug-tracker/:bugId" element={<AdminBugTrackerDetails />} />
+          <Route path="academicanalysis" element ={<Academicanalysis />} />
         </Route>
 
         <Route
@@ -204,6 +205,7 @@ export default function App() {
           <Route path="adhoc-project-applications/status/:projectId" element={<AdminApplications />} />
           <Route path="adhoc-project-applications/status/:projectId/:applicationId" element={<AdminApplicationDetails />} />
           <Route path="report-bug" element={<UserBugReporter />} />
+          <Route path="academicanalysis" element ={<Academicanalysis />} />
         </Route>
         <Route path="/sg" element={<Signup />} />
         <Route path="/log.a" element={<Loginadmin />} />

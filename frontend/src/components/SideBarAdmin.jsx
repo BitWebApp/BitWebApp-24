@@ -141,6 +141,11 @@ export default function Sidebar() {
       icon: <HiBeaker/>,
       to: "/admin-db/bug-tracker",
     },
+    {
+      text: "Academic Analysis",
+      icon: <HiBeaker/>,
+      to: "/admin-db/academicanalysis",
+    }
   ];
   // const [isAdmin, setIsAdmin] = useState(true);
 
