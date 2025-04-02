@@ -83,7 +83,7 @@ import MajorProject from "./components/MajorProject";
 import UserBugReporter from "./components/UserBugReporter";
 import AdminBugTrackerSummary from "./components/AdminBugTrackerSummary";
 import AdminBugTrackerDetails from "./components/AdminBugTrackerDetails";
-import Academicanalysis from "./components/academicanalysis";
+import Academicanalysis from "./components/Academicanalysis";
 export default function App() {
   return (
     <Router>
