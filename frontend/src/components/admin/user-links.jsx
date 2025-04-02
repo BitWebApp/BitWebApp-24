@@ -200,6 +200,11 @@ export default function useLinks() {
       icon: <HiPresentationChartLine />,
       to: "/db/admin-projects-dashboard",
     },
+    {
+      text: "Academic Analysis",
+      icon: <HiPresentationChartLine />,
+      to: "/db/academicanalysis",
+    }    
   ];
 
   return isAdmin ? adminLinks : additionalLinks;
