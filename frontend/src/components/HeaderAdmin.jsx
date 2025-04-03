@@ -147,6 +147,11 @@ export default function Header() {
         icon: <HiPresentationChartLine />,
         to: "/admin-db/admin-projects-dashboard",
       },
+      {
+        text: "Academic Analysis",
+        icon: <HiPresentationChartLine />,
+        to: "/admin-db/academicanalysis",
+      },
     ];
   const links = adminLinks;
 

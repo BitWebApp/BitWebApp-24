@@ -72,6 +72,11 @@ export default function Header() {
         icon: <HiPresentationChartLine />,
         to: "/faculty-db/minor-project",
       },
+      {
+              text: "Academic Analysis",
+              icon: <HiPresentationChartLine />,
+              to: "/faculty-db/academicanalysis",
+            },
     ];
   const links = facultyLinks;
 
