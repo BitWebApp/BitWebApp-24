@@ -49,13 +49,20 @@ const Research = () => {
       const { isSummerAllocated, prof, summerAppliedProfs, denied } =
         appliedProfsResponse?.data?.data || {};
 
-      const sortedProfessors = allProfsResponse.data.message.sort((a, b) => {
-        const seatsA =
-          a.limits.summer_training - a.currentCount.summer_training;
-        const seatsB =
-          b.limits.summer_training - b.currentCount.summer_training;
-        return seatsB - seatsA;
-      });
+      const sortedProfessors = allProfsResponse.data.message
+        .filter((prof) => {
+          const availableSeats =
+            prof.limits.summer_training - prof.currentCount.summer_training;
+          return availableSeats >= 3;
+        })
+        .sort((a, b) => {
+          const seatsA =
+            a.limits.summer_training - a.currentCount.summer_training;
+          const seatsB =
+            b.limits.summer_training - b.currentCount.summer_training;
+          return seatsB - seatsA;
+        });
+
 
       setAppliedProfessors(summerAppliedProfs);
       setDenied(denied || []);
