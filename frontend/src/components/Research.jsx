@@ -63,7 +63,6 @@ const Research = () => {
           return seatsB - seatsA;
         });
 
-
       setAppliedProfessors(summerAppliedProfs);
       setDenied(denied || []);
       if (isSummerAllocated && prof) setAllocatedProf(prof);
@@ -175,7 +174,7 @@ const Research = () => {
       <Toaster position="top-right" />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
-          {!allocatedProf ? (
+          {allocatedProf ? (
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white">
                 <h1 className="text-2xl md:text-3xl font-bold">
@@ -398,12 +397,20 @@ const Research = () => {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredProfessors.map((prof) => {
-                          const seatsAvailable = prof.limits.summer_training - prof.currentCount.summer_training;
-                          const appliedIndex = appliedProfessors.findIndex(id => id === prof._id);
+                        {filteredProfessors.map((prof) => {
+                          const seatsAvailable =
+                            prof.limits.summer_training -
+                            prof.currentCount.summer_training;
+                          const appliedIndex = appliedProfessors.findIndex(
+                            (id) => id === prof._id
+                          );
                           const isApplied = appliedIndex !== -1;
                           const isDenied = denied.includes(prof._id);
-                          const isDisabled = isApplied || allocatedProf?._id === prof._id || seatsAvailable === 0 || isDenied;
+                          const isDisabled =
+                            isApplied ||
+                            allocatedProf?._id === prof._id ||
+                            seatsAvailable === 0 ||
+                            isDenied;
 
                           const statusConfig = {
                             denied: {
@@ -412,7 +419,7 @@ const Research = () => {
                               icon: "❌",
                             },
                             applied: {
-                              text: `Applied (Pref ${appliedIndex + 1})`,  // Show preference number
+                              text: `Applied (Pref ${appliedIndex + 1})`, // Show preference number
                               color: "bg-green-100 text-green-800",
                               icon: "✅",
                             },
@@ -427,7 +434,7 @@ const Research = () => {
                               icon: "⚠️",
                             },
                             intern: {
-                              text: "Only Industrial Interns can apply"
+                              text: "Only Industrial Interns can apply",
                             },
                             available: {
                               text: "Available",
@@ -446,7 +453,6 @@ const Research = () => {
                           else if (seatsAvailable < 3)
                             status = statusConfig.limited;
                           else status = statusConfig.available;
-                      
 
                           return (
                             <tr
