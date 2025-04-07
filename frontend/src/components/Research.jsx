@@ -53,7 +53,7 @@ const Research = () => {
         .filter((prof) => {
           const availableSeats =
             prof.limits.summer_training - prof.currentCount.summer_training;
-          return availableSeats >= 3;
+          return availableSeats >= 0;
         })
         .sort((a, b) => {
           const seatsA =
@@ -175,7 +175,7 @@ const Research = () => {
       <Toaster position="top-right" />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
-          {allocatedProf ? (
+          {!allocatedProf ? (
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white">
                 <h1 className="text-2xl md:text-3xl font-bold">
@@ -426,6 +426,9 @@ const Research = () => {
                               color: "bg-yellow-100 text-yellow-800",
                               icon: "⚠️",
                             },
+                            intern: {
+                              text: "Only Industrial Interns can apply"
+                            },
                             available: {
                               text: "Available",
                               color: "bg-blue-100 text-blue-800",
@@ -438,9 +441,12 @@ const Research = () => {
                           else if (isApplied) status = statusConfig.applied;
                           else if (seatsAvailable === 0)
                             status = statusConfig.full;
+                          else if (seatsAvailable == 1)
+                            status = statusConfig.intern;
                           else if (seatsAvailable < 3)
                             status = statusConfig.limited;
                           else status = statusConfig.available;
+                      
 
                           return (
                             <tr
