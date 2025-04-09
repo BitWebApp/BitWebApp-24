@@ -28,7 +28,6 @@ const GroupManagement = () => {
       const { data } = await axios.get("/api/v1/users/get-user-companies");
       setCompany(data?.data || []);
     } catch (error) {
-      console.error("Error fetching companies:", error);
       toast.error("Failed to load company list!");
     }
   };
@@ -49,7 +48,6 @@ const GroupManagement = () => {
       const response = await axios.get("/api/v1/group/get-req");
       setRequests(response.data.data || []);
     } catch (error) {
-      console.error("Error fetching requests:", error);
       toast.error("Failed to load group requests!");
     }
   };
@@ -73,7 +71,6 @@ const GroupManagement = () => {
       fetchGroup();
     } catch (error) {
       let errorMessage = error.response.data.message;
-      console.log(errorMessage);
       toast.error(errorMessage || "Failed to create group");
       // handleError(error, "Failed to create group");
     }
@@ -92,7 +89,6 @@ const GroupManagement = () => {
       fetchGroup();
     } catch (error) {
       let errorMessage = error.response.data.message;
-      console.log(errorMessage);
       toast.error(errorMessage || "Failed to add member");
       // handleError(error, "Failed to add member");
     }
@@ -108,7 +104,6 @@ const GroupManagement = () => {
       fetchGroup();
     } catch (error) {
       let errorMessage = error.response.data.message;
-      console.log(errorMessage);
       toast.error(errorMessage || "Failed to remove member");
       //handleError(error, "Failed to remove member");
     }
@@ -122,7 +117,6 @@ const GroupManagement = () => {
       fetchGroup();
     } catch (error) {
       let errorMessage = error.response.data.message;
-      console.log(errorMessage);
       toast.error(errorMessage || "Failed to accept request");
       //handleError(error, "Failed to accept request");
     }

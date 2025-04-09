@@ -5,7 +5,6 @@ import { toast, Toaster } from "react-hot-toast";
 import ChatBox from "./ChatBox";
 
 const handleError = (error, defaultMessage) => {
-  console.log("Full error:", error);
 
   let message =
     error.response?.data?.message || defaultMessage || "An error occurred";
@@ -31,7 +30,6 @@ const Research = () => {
     setLoading(true);
     try {
       const response = await axios.get("/api/v1/group/get-group");
-      console.log(response.data.data.groupId);
       setGroup(response.data.data.groupId);
     } catch (error) {
       setGroup(null);
@@ -70,7 +68,6 @@ const Research = () => {
       setFilteredProfessors(sortedProfessors);
       setLoading(false);
     } catch (error) {
-      console.error(error);
       setLoading(false);
       handleError(error);
     }
@@ -127,7 +124,6 @@ const Research = () => {
     } catch (error) {
       setLoading(false);
       let errorMessage = error.response?.data?.message;
-      console.log(errorMessage);
       Swal.fire({
         icon: "error",
         title: "Application Failed",
