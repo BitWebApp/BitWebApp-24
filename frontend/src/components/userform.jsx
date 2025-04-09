@@ -69,7 +69,6 @@ export default function UserForm() {
         setProfilePreview(userData.image || "");
       })
       .catch(error => {
-        console.log(error);
         Swal.fire({
           icon: 'error',
           title: 'Error',
@@ -87,7 +86,6 @@ export default function UserForm() {
   };
 
   const handleUpdate = () => {
-    console.log("Updating user details...");
 
     const formData = new FormData();
     formData.append("fullName", fullName);
@@ -126,7 +124,6 @@ export default function UserForm() {
       },
     })
       .then(response => {
-        console.log(response);
         Swal.fire({
           icon: 'success',
           title: 'Success',
@@ -134,7 +131,6 @@ export default function UserForm() {
         });
       })
       .catch(error => {
-        console.log(error);
         Swal.fire({
           icon: 'error',
           title: 'Error',

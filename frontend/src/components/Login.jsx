@@ -44,7 +44,6 @@ export default function Login() {
       });
 
       localStorage.setItem("user", JSON.stringify(response.data.data.user));
-      console.log(response.data);
       toast.success("Login successful!");
       setTimeout(() => {
         navigate("/db");
@@ -70,7 +69,6 @@ export default function Login() {
       //   toast.error("Error occurred during signup");
       // }
       let errorMessage = error.response.data.message;
-      console.log(errorMessage);
       toast.error(errorMessage || "Error occurred during login");
     } finally {
       setIsLoading(false);
