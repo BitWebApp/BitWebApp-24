@@ -12,7 +12,6 @@ const PeCoursesTable = () => {
         const response = await axios.get('/api/v1/pe/my-pe-courses');
         console.log('API response full:', response);
 
-        // Check if the response data contains the courses array
         if (response.data.success && response.data.data && Array.isArray(response.data.data)) {
           setPeCourses(response.data.data); 
         } else {

@@ -74,11 +74,11 @@ export default function Header() {
       //   icon: <HiAcademicCap />, 
       //   to: "/db/backlogs" 
       // },
-      // { 
-      //   text: "PE-Course", 
-      //   icon: <HiAcademicCap />, 
-      //   to: "/db/PE-form" 
-      // },
+      { 
+        text: "PE-Course", 
+        icon: <HiAcademicCap />, 
+        to: "/db/PE-form" 
+      },
       // {
       //   text: "Awards & Achievements",
       //   icon: <HiBadgeCheck />,

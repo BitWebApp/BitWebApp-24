@@ -115,6 +115,9 @@ export default function App() {
           <Route path="academic-table" element={<AcademicTable />} />
           <Route path="backlogs" element={<AddBacklog />} />
           <Route path="PE-form" element={<PECourseForm />} />
+          <Route path="PE-table" element={<PeCoursesTable />} />
+
+
           <Route path="award-form" element={<Awardform />} />
           <Route path="exam-form" element={<ExamForm />} />
           <Route path="higher-education" element={<HigherEducation />} />

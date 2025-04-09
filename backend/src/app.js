@@ -32,7 +32,10 @@ import userRouter from "./routes/user.routes.js";
 app.use("/api/v1/users", userRouter);
 
 import peCourseRouter from "./routes/peCourse.routes.js";
-app.use("/api/v1/pe", peCourseRouter);
+app.use("/api/v1/pe", (req, res, next) => {
+  next();
+}, peCourseRouter);
+
 
 import adminRouter from "./routes/admin.routes.js";
 app.use("/api/v1/admin", adminRouter);
