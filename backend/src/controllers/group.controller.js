@@ -378,6 +378,9 @@ const applyToFaculty = asyncHandler(async (req, res) => {
     });
     //throw new ApiError(404, "Faculty not found");
   }
+  if(group.members.length > faculty.limits.summer_training-faculty.currentCount.summer_training) {
+    console.log("Your group size exceeds faculty's remaining limit");
+  }
 
   group.summerAppliedProfs.push(facultyId);
 
