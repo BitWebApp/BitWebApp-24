@@ -6,7 +6,6 @@ const peCourseSchema = new Schema(
     courseCode: {
       type: String,
       required: true,
-      unique: true,
     },
     courseName: {
       type: String,
@@ -14,6 +13,11 @@ const peCourseSchema = new Schema(
     },
     branch: {
       type: String,
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: ['pe4', 'pe5'],
       required: true,
     },
     students: [
@@ -25,5 +29,7 @@ const peCourseSchema = new Schema(
   },
   { timestamps: true }
 );
+
+peCourseSchema.index({ courseCode: 1, branch: 1 }, { unique: true });
 
 export const PeCourse = mongoose.model('PeCourse', peCourseSchema);

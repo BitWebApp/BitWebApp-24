@@ -3,55 +3,63 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from 'axios';
 import { ClipLoader } from 'react-spinners';
 import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import Swal from 'sweetalert2';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function PEForm() {
-  const [selectedPe, setSelectedPe] = useState("");
+  const [selectedPeIV, setSelectedPeIV] = useState("");
+  const [selectedPeV, setSelectedPeV] = useState("");
   const [loading, setLoading] = useState(false);
-  const [peCourses, setPeCourses] = useState([]);
+  const [peCoursesIV, setPeCoursesIV] = useState([]);
+  const [peCoursesV, setPeCoursesV] = useState([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [userHasPeCourse, setUserHasPeCourse] = useState(false); // Track if the user already has a PE course
+  const [userHasPeCourse, setUserHasPeCourse] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch branch from backend
     const fetchBranchFromBackend = async () => {
       try {
-        const response = await axios.get('/api/v1/users/fetchBranch');  // API to get branch
+        const response = await axios.get('/api/v1/users/fetchBranch');
         if (response.data.success && response.data.data) {
-          const userBranch = response.data.data;
-          // Set available PE courses based on user branch
+          const userBranch = response.data.data.toLowerCase();
+
           if (userBranch === "artificial intelligence and machine learning") {
-            setPeCourses([
-              { id: "AI315", name: "Advanced Algorithms" },
-              { id: "AI317", name: "Information Retrieval" },
-              { id: "AI319", name: "Introduction to Compiler Design" }
+            setPeCoursesIV([
+              { id: "AI347", name: "Introduction to Distributed System + Lab (IT347)" },
+              { id: "IT445", name: "Internet of Things + Lab (IT445)" },
+              { id: "AI425", name: "Computer Vision + Lab (AI425)" },
+              { id: "IT451", name: "Cloud Computing + Lab (IT451)" },
+            ]);
+            setPeCoursesV([
+              { id: "IT351", name: "Natural Language Processing" },
+              { id: "AI429", name: "Speech Processing" },
+              { id: "IT349", name: "Cryptography & Network Security" },
             ]);
           } else if (userBranch === "computer science and engineering") {
-            setPeCourses([
-              { id: "IT349", name: "Cryptography and Network Security" },
-              { id: "IT354", name: "Wireless Sensor Network" },
-              { id: "IT353", name: "Blockchain Technology" },
-              { id: "CS351", name: "Nature Inspired Computing" }
+            setPeCoursesIV([
+              { id: "CS431", name: "Computer Graphics + Lab (CS431)" },
+              { id: "CS435", name: "Frontend Design + Lab (CS435)" },
+              { id: "CS437", name: "Deep Learning + Lab (CS437)" },
+            ]);
+            setPeCoursesV([
+              { id: "IT445", name: "Internet of Things (IoT) + Lab (IT445)" },
+              { id: "IT331", name: "Image Processing + Lab (IT331)" },
+              { id: "IT347", name: "Cloud Computing + Lab (IT347)" },
             ]);
           } else {
             console.error('No PE course available for your branch:', userBranch);
           }
-        } else {
-          console.error('Failed to fetch branch from backend');
         }
       } catch (error) {
         console.error('Error fetching branch from backend:', error);
       }
     };
 
-    // Fetch user's selected PE courses
     const fetchUserPeCourses = async () => {
       try {
-        const response = await axios.get('/api/v1/pe/my-pe-courses');  // API to get the user's PE courses
+        const response = await axios.get('/api/v1/pe/my-pe-courses');
         if (response.data.success && response.data.data.length > 0) {
-          setUserHasPeCourse(true); // User already selected a course
+          setUserHasPeCourse(true);
         }
       } catch (error) {
         console.error('Error fetching user PE courses:', error);
@@ -65,8 +73,8 @@ export default function PEForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!selectedPe) {
-      toast.error("Please select a PE course.");
+    if (!selectedPeIV || !selectedPeV) {
+      toast.error("Please select both PE IV and PE V courses.");
       return;
     }
 
@@ -74,40 +82,45 @@ export default function PEForm() {
       title: 'Are you sure?',
       html: `
         <div style="text-align: left; padding: 20px;">
-          <p style="font-size: 20px; margin: 10px 0; color: #333;">
-            <strong>Selected PE Course:</strong> ${selectedPe}
-          </p>
+          <p style="font-size: 18px;"><strong>PE IV:</strong> ${selectedPeIV}</p>
+          <p style="font-size: 18px;"><strong>PE V:</strong> ${selectedPeV}</p>
         </div>
-        <p style="font-size: 17px; color: #666;">
-          <strong>Warning:</strong> This is your final choice. You cannot change it after submission.
-        </p>
-        <p style="font-size: 17px; color: #666;">
-          Do you want to add this PE course? You will not be able to edit your choice further on.
-        </p>
+        <p style="font-size: 16px; color: #666;">You cannot change these after submission.</p>
       `,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, add it!',
+      confirmButtonText: 'Yes, submit!',
       cancelButtonText: 'No, cancel!',
       showLoaderOnConfirm: true,
       preConfirm: async () => {
         try {
           setLoading(true);
-          const response = await axios.post('/api/v1/pe/add-pe', {
-            peCourseId: selectedPe,
-          });
+          const response = await axios.post(
+            '/api/v1/pe/add-pe',
+            {
+              peCourseIVId: selectedPeIV,
+              peCourseVId: selectedPeV,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+              },
+              withCredentials: true,
+            }
+          );
 
           if (response.data.success) {
-            toast.success("PE course added successfully!");
+            toast.success("PE courses added successfully!");
             setIsSubmitted(true);
-            setSelectedPe("");
-            Swal.fire('Added!', 'Your PE course has been added.', 'success');
+            setSelectedPeIV("");
+            setSelectedPeV("");
+            Swal.fire('Submitted!', 'Your PE courses have been recorded.', 'success');
             navigate('/db/PE-table');
           } else {
-            toast.error(response.data.message || 'Failed to add the course. Please try again.');
+            toast.error(response.data.message || 'Submission failed.');
           }
         } catch (error) {
-          toast.error(error.response?.data?.message || 'Failed to add the course. Please try again.');
+          toast.error(error.response?.data?.message || 'Submission failed.');
         } finally {
           setLoading(false);
         }
@@ -115,58 +128,77 @@ export default function PEForm() {
     });
   };
 
+  const isDisabled = userHasPeCourse || isSubmitted;
+
   return (
-    <div className="w-full min-h-screen flex justify-center items-center">
-      <div className="w-full flex flex-col p-10 justify-between">
-        <h3 className="text-xl text-black font-semibold">BIT WEB APP</h3>
-        <div className="w-full flex flex-col">
-          <div className="flex flex-col w-full mb-5">
-            <h3 className="text-3xl font-semibold mb-4">PE Form</h3>
-            <p className="text-base mb-2">Select your PE course.</p>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="bg-white shadow-lg rounded-2xl w-full max-w-2xl p-8">
+        
+        <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-6">PE Course Selection Form</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">PE IV Course</label>
+            <select
+              value={selectedPeIV}
+              onChange={(e) => setSelectedPeIV(e.target.value)}
+              disabled={isDisabled}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black disabled:bg-gray-100"
+              required
+            >
+              <option value="" disabled>Select PE IV Course</option>
+              {peCoursesIV.length > 0 ? (
+                peCoursesIV.map((course, index) => (
+                  <option key={index} value={course.id}>{course.id}: {course.name}</option>
+                ))
+              ) : (
+                <option disabled>No PE IV Courses Available</option>
+              )}
+            </select>
           </div>
-          <form onSubmit={handleSubmit}>
-            <div className="w-full flex flex-col">
-              <label>PE:III Course</label>
-              <select
-                value={selectedPe}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                onChange={(e) => setSelectedPe(e.target.value)}
-                required
-                disabled={userHasPeCourse || isSubmitted}  // Disable if user already has a PE course
-              >
-                <option value="" disabled>Select PE Course</option>
-                {peCourses.length > 0 ? (
-                  peCourses.map((course, index) => (
-                    <option key={course.id || index} value={course.id}>
-                      {course.id}: {course.name}
-                    </option>
-                  ))
-                ) : (
-                  <option disabled>No PE Courses Available</option>
-                )}
-              </select>
-            </div>
-            <div className="h-8"></div>
-            <div className="w-full flex flex-col my-4">
-              <button
-                className={`bg-black text-white w-full rounded-md p-4 text-center flex items-center justify-center my-2 hover:bg-black/90 ${loading && 'opacity-70'}`}
-                type="submit"
-                disabled={loading || userHasPeCourse || isSubmitted}  // Disable if user already has a PE course
-              >
-                {loading ? <ClipLoader size={24} color="#ffffff" /> : "Add"}
-              </button>
-            </div>
-          </form>
-          <div className="w-full items-center justify-center flex">
-            <p className="text-sm font-normal text-black">
-              <span className="font-semibold underline underline-offset cursor-pointer text-blue-600">
-                <Link to="/db/PE-table">See chosen PE Courses</Link>
-              </span>
-            </p>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">PE V Course</label>
+            <select
+              value={selectedPeV}
+              onChange={(e) => setSelectedPeV(e.target.value)}
+              disabled={isDisabled}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black disabled:bg-gray-100"
+              required
+            >
+              <option value="" disabled>Select PE V Course</option>
+              {peCoursesV.length > 0 ? (
+                peCoursesV.map((course, index) => (
+                  <option key={index} value={course.id}>{course.id}: {course.name}</option>
+                ))
+              ) : (
+                <option disabled>No PE V Courses Available</option>
+              )}
+            </select>
           </div>
-        </div>
+
+          <button
+            type="submit"
+            disabled={loading || isDisabled}
+            className={`w-full py-3 rounded-md font-medium transition duration-200 ${
+              loading || isDisabled
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-black text-white hover:bg-black/90'
+            }`}
+          >
+            {loading ? <ClipLoader size={24} color="#fff" /> : 'Submit'}
+          </button>
+
+          <p className="text-sm text-center text-gray-600 mt-4">
+            Already submitted?{' '}
+            <Link to="/db/PE-table" className="text-blue-600 hover:underline font-medium">
+              View your PE Courses
+            </Link>
+          </p>
+        </form>
+
+        <ToastContainer />
       </div>
-      <ToastContainer />
     </div>
   );
 }
