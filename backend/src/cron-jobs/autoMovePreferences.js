@@ -11,27 +11,62 @@ const preprocessGroups = async () => {
       summerAllocatedProf: { $exists: false },
     });
     console.log(`Found ${groups.length} groups to preprocess`);
-    const allProfs = await Professor.find({});
-    const overLimitProfs = new Set(
-      allProfs
-        .filter(
-          (prof) =>
-            prof.currentCount.summer_training >= prof.limits.summer_training
-        )
-        .map((prof) => prof._id.toString())
-    );
-    console.log(`Found ${overLimitProfs.size} professors over their limits`);
+
     for (const group of groups) {
       try {
-        group.summerAppliedProfs = group.summerAppliedProfs.filter(
-          (prof, index) => index === 0 || !overLimitProfs.has(prof.toString())
-        );
+        const originalFirstPref =
+          group.summerAppliedProfs.length > 0
+            ? group.summerAppliedProfs[0].toString()
+            : null;
+
+        const newAppliedProfs = [];
+        for (const profId of group.summerAppliedProfs) {
+          const prof = await Professor.findById(profId);
+          if (!prof) continue;
+
+          const availableSlots =
+            prof.limits.summer_training - prof.currentCount.summer_training;
+
+          if (group.members.length <= availableSlots) {
+            newAppliedProfs.push(prof._id);
+          }
+        }
+        group.summerAppliedProfs = newAppliedProfs;
+        const newFirstPref =
+          group.summerAppliedProfs.length > 0
+            ? group.summerAppliedProfs[0].toString()
+            : null;
+
+        if (
+          originalFirstPref &&
+          newFirstPref &&
+          originalFirstPref !== newFirstPref
+        ) {
+          await Professor.findByIdAndUpdate(originalFirstPref, {
+            $pull: { "appliedGroups.summer_training": group._id },
+          });
+
+          await Professor.findByIdAndUpdate(newFirstPref, {
+            $push: { "appliedGroups.summer_training": group._id },
+          });
+
+          group.preferenceLastMovedAt = new Date();
+        }
         await group.save();
+
+        if (
+          originalFirstPref &&
+          newFirstPref &&
+          originalFirstPref !== newFirstPref
+        ) {
+          console.log(
+            `Group ${group._id} moved to professor ${newFirstPref} from ${originalFirstPref}`
+          );
+        }
       } catch (error) {
-        console.log(`Error saving group ${group._id}:`, error);
+        console.log(`Error saving group ${group.groupId || group._id}:`, error);
       }
     }
-    console.log("Preprocessing completed!");
   } catch (error) {
     console.log("Error preprocessing groups:", error);
   }
