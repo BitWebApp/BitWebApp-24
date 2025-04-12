@@ -13,9 +13,11 @@ import Ankit from "../assets/Ankit.jpeg";
 import Hritabhash from "../assets/Hritabhash.jpg";
 import Chirag from "../assets/Chirag.jpeg";
 import Garvit from "../assets/Garvit.jpeg";
+import Suvendu from "../assets/suvendu_pic.jpg";
 
 const ReviewCarousel = () => {
   const data = [
+    { name: "Dr. Suvendu Kanungo", post: "Faculty Incharge - BIT MESRA", roll: "00041",role: "Faculty Incharge BIT MESRA", image: Suvendu},
     { name: "Kushagra Sahay", post: "Team Leader", roll: "BTECH/10058/22", role: "Leader", image:  Kushagra},
     { name: "Sumit Kumar", post: "Team Leader", roll: "BTECH/10265/22", role: "Leader", image: Sumit },
     { name: "Garvit Raj", post: "Backend Developer", roll: "BTECH/10086/22", role: "Backend", image: Garvit },
