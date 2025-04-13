@@ -128,8 +128,8 @@ export default function PEForm() {
     });
   };
 
-  const isDisabled = userHasPeCourse || isSubmitted;
-
+  // const isDisabled = userHasPeCourse || isSubmitted;
+const isDisabled = true;
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="bg-white shadow-lg rounded-2xl w-full max-w-2xl p-8">
