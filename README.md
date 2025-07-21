@@ -3,7 +3,6 @@
 
 BITAcademia is the comprehensive academic platform designed and developed for BIT Mesra. This website aims to streamline and enhance the academic management experience for students, faculty, and administration. BITAcademia offers a wide array of features tailored to meet the diverse needs of the academic community.
 
-### Website: https://bitacademia.vercel.app/
 
 ## Tools & Technologies Used
 - **React**: For building the user interface.
