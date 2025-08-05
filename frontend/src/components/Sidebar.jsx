@@ -51,76 +51,76 @@ export default function Sidebar() {
       icon: <HiHome />,
       to: "/db",
     },
-    // {
-    //   text: "Alumni Profile",
-    //   icon: <HiUser />,
-    //   to: "/db/alumni",
-    // },
+    {
+      text: "Alumni Profile",
+      icon: <HiUser />,
+      to: "/db/alumni",
+    },
     {
       text: "Academic Records",
       icon: <HiAcademicCap />,
       to: "/db/academic-table",
     },
-    // {
-    //   text: "Backlogs",
-    //   icon: <HiDocumentReport />,
-    //   to: "/db/backlogs",
-    // },
+    {
+      text: "Backlogs",
+      icon: <HiDocumentReport />,
+      to: "/db/backlogs",
+    },
     {
       text: "PE-Course",
       icon: <HiAcademicCap />,
       to: "/db/PE-form",
     },
-    // {
-    //   text: "Awards & Achievements",
-    //   icon: <HiBadgeCheck />,
-    //   to: "/db/award-form",
-    // },
-    // {
-    //   text: "Examinations",
-    //   icon: <HiDocumentReport />,
-    //   to: "/db/exam-form",
-    // },
-    // {
-    //   text: "Higher Education",
-    //   icon: <HiAcademicCap />,
-    //   to: "/db/higher-education",
-    // },
-    // {
-    //   text: "Placement Records",
-    //   icon: <HiBriefcase />,
-    //   to: "/db/placement",
-    // },
-    // {
-    //   text: "Projects",
-    //   icon: <HiPresentationChartLine />,
-    //   to: "/db/project-form",
-    // },
+    {
+      text: "Awards & Achievements",
+      icon: <HiBadgeCheck />,
+      to: "/db/award-form",
+    },
+    {
+      text: "Examinations",
+      icon: <HiDocumentReport />,
+      to: "/db/exam-form",
+    },
+    {
+      text: "Higher Education",
+      icon: <HiAcademicCap />,
+      to: "/db/higher-education",
+    },
+    {
+      text: "Placement Records",
+      icon: <HiBriefcase />,
+      to: "/db/placement",
+    },
+    {
+      text: "Projects",
+      icon: <HiPresentationChartLine />,
+      to: "/db/project-form",
+    },
     {
       text: "Interview Experience",
       icon: <HiChat />,
       to: "/db/interview",
     },
-    // {
-    //   text: "Request Classroom",
-    //   icon: <HiChat />,
-    //   to: "/db/classroom-form",
-    // },
-    // {
-    //   text: "Major Project",
-    //   icon: <HiPresentationChartLine />,
-    //   to: "/db/major-project",
-    // },
-    // {
-    //   text: "Minor Project",
-    //   icon: <HiPresentationChartLine />,
-    //   to: "/db/minor-project",
-    // },
-    // {
-    //   text: "Check Classroom Bookings",
-    //   icon: <FaCalendar />,
-    //   to: "/db/booking-calendar",
-    // },
+    {
+      text: "Request Classroom",
+      icon: <HiChat />,
+      to: "/db/classroom-form",
+    },
+    {
+      text: "Major Project",
+      icon: <HiPresentationChartLine />,
+      to: "/db/major-project",
+    },
+    {
+      text: "Minor Project",
+      icon: <HiPresentationChartLine />,
+      to: "/db/minor-project",
+    },
+    {
+      text: "Check Classroom Bookings",
+      icon: <FaCalendar />,
+      to: "/db/booking-calendar",
+    },
     {
       text: "Apply to Profs",
       icon: <HiSun />,
