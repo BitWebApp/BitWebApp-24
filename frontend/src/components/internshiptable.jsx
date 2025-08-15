@@ -89,6 +89,7 @@ export default function InternshipTable() {
     let maxTypeLength = "Internship Type".length;
     let maxLocationLength = "Location".length;
     let maxMentorLength = "Mentor".length;
+    let maxMarksLength = "Summer Training Marks".length;
 
     // Iterate through filteredData to find maximum lengths
     filteredData.forEach((record, index) => {
@@ -136,6 +137,7 @@ export default function InternshipTable() {
       { header: "Internship Type", key: "type", width: maxTypeLength + 3 },
       { header: "Location", key: "location", width: maxLocationLength + 3 },
       { header: "Mentor", key: "mentor", width: maxMentorLength + 3 },
+      { header: "Summer Training Marks", key: "marks", width: maxMarksLength + 3 },
     ];
 
     // Style the header row
@@ -164,6 +166,7 @@ export default function InternshipTable() {
         type: record?.type,
         location: record?.location,
         mentor,
+        marks: record?.student?.marks?.summerTraining || "N/A",
       });
 
       // Add alternating row colors for better readability
@@ -282,6 +285,9 @@ export default function InternshipTable() {
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
               Mentor
             </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Summer Training Marks
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -312,6 +318,9 @@ export default function InternshipTable() {
                 {record?.mentor
                   ? record?.mentor?.idNumber + ": " + record?.mentor?.fullName
                   : "N/A"}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.student?.marks?.summerTraining || "N/A"}
               </td>
             </tr>
           ))}
