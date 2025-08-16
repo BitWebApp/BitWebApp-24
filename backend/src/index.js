@@ -1,6 +1,4 @@
-import dotenv from "dotenv";
-import mongoose, { mongo } from "mongoose";
-import { DB_NAME } from "./constants.js";
+import "./env.js"
 import connectDB from "./db/index.js";
 import { app } from "./app.js";
 import { createServer } from "http";
@@ -8,9 +6,6 @@ import { Server } from "socket.io";
 import { initSocket } from "./utils/Socket.js";
 import "./cron-jobs/notifyProf.js";
 import "./cron-jobs/autoMovePreferences.js";
-dotenv.config({
-  path: "./.env",
-});
 
 connectDB()
   .then(() => {
