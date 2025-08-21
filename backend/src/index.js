@@ -6,6 +6,8 @@ import { Server } from "socket.io";
 import { initSocket } from "./utils/Socket.js";
 import "./cron-jobs/notifyProf.js";
 import "./cron-jobs/autoMovePreferences.js";
+import "./cron-jobs/notifyProfMinor.js";
+import "./cron-jobs/autoMovePreferencesMinor.js";
 
 connectDB()
   .then(() => {
