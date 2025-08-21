@@ -87,6 +87,7 @@ import Academicanalysis from "./components/Academicanalysis";
 import MinorProject from "./components/MinorProject";
 import MinorGroupManagement from "./components/MinorGroupManagement";
 import AcceptMinorProject from "./components/AcceptMinorProject";
+import MinorProjectTable from "./components/MinorProjectTable";
 export default function App() {
   return (
     <Router>
@@ -176,6 +177,7 @@ export default function App() {
           <Route path="project-form-table" element={<ProjectTable />} />
           <Route path="internship-form-table" element={<InternshipForm />} />
           <Route path="internship-table" element={<Internshiptable />} />
+          <Route path="minor-project-table" element={<MinorProjectTable />} />
           <Route path="admin-room-request" element={<AdminRoomRequests />} />
           <Route path="companies-table" element={<AdminAddCompanies />} />
           <Route path="assign-company" element={<CompanyAssignmentForm />} />

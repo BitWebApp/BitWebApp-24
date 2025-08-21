@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { Admin } from "../models/admin.model.js";
 import nodemailer from "nodemailer";
+import { Minor } from "../models/minor.model.js";
 
 const getUnverifiedUsers = asyncHandler(async (req, res) => {
     const users = await User.find({ isVerified: false }).select(
@@ -336,6 +337,64 @@ export const rejectUser = asyncHandler(async (req, res) => {
   }
 });
 
+const getAllMinorProjects = asyncHandler(async (req, res) => {
+  try {
+    // Fetch all minor project groups with populated data
+    const minorProjects = await Minor.find()
+      .populate({
+        path: "members",
+        select: "fullName rollNumber email branch section marks.minorProject",
+      })
+      .populate({
+        path: "leader", 
+        select: "fullName rollNumber email branch section marks.minorProject",
+      })
+      .populate({
+        path: "minorAllocatedProf",
+        select: "idNumber fullName email",
+      });
+
+    // Format the data to match the frontend table structure
+    const formattedData = {
+      response: []
+    };
+
+    // Process each minor project group
+    minorProjects.forEach(project => {
+      // Combine leader and members for the frontend display
+      const allMembers = project.leader 
+        ? [project.leader, ...project.members.filter(member => member._id.toString() !== project.leader._id.toString())]
+        : project.members;
+
+      // Create entries for each member
+      allMembers.forEach(member => {
+        formattedData.response.push({
+          student: {
+            rollNumber: member.rollNumber,
+            fullName: member.fullName,
+            email: member.email,
+            branch: member.branch,
+            section: member.section,
+            marks: {
+              minorProject: member.marks?.minorProject || 0
+            }
+          },
+          groupId: project.groupId,
+          mentor: project.minorAllocatedProf ? {
+            idNumber: project.minorAllocatedProf.idNumber,
+            fullName: project.minorAllocatedProf.fullName
+          } : null
+        });
+      });
+    });
+
+    return res.status(200).json(
+      new ApiResponse(200, formattedData, "All minor projects fetched successfully")
+    );
+  } catch (error) {
+    throw new ApiError(500, "Error fetching minor projects: " + error.message);
+  }
+});
 
 export {
   getUnverifiedUsers,
@@ -344,4 +403,5 @@ export {
   loginAdmin,
   logoutAdmin,
   getCurrendAdmin,
+  getAllMinorProjects
 };
