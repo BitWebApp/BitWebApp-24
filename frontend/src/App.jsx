@@ -84,6 +84,10 @@ import UserBugReporter from "./components/UserBugReporter";
 import AdminBugTrackerSummary from "./components/AdminBugTrackerSummary";
 import AdminBugTrackerDetails from "./components/AdminBugTrackerDetails";
 import Academicanalysis from "./components/Academicanalysis";
+import MinorProject from "./components/MinorProject";
+import MinorGroupManagement from "./components/MinorGroupManagement";
+import AcceptMinorProject from "./components/AcceptMinorProject";
+import MinorProjectTable from "./components/MinorProjectTable";
 export default function App() {
   return (
     <Router>
@@ -130,12 +134,14 @@ export default function App() {
           <Route path="internship-form" element={<InternshipForm />} />
           <Route path="interview" element={<InterviewForm />} />
           <Route path="classroom-form" element={<ClassroomForm />} />
-          <Route path="apply-summer" element={<Research />} />
+          {/* <Route path="apply-summer" element={<Research />} /> */}
+          <Route path="apply-minor" element={<MinorProject />} />
           <Route path="userform" element={<Userform />} />
           <Route path="add-work-experience" element={<AddWorkExperience />} />
           <Route path="show-work-experience" element={<ShowWorkExperience />} />
           <Route path="academic-form" element={<Academicform />} />
-          <Route path="manage-group" element={<GroupManagement />} />
+          {/* <Route path="manage-group" element={<GroupManagement />} /> */}
+          <Route path="manage-minor-group" element={<MinorGroupManagement />} />
           <Route path="room-status" element={<RoomStatus />} />
           <Route path="booked-rooms" element={<BookedRooms />} />
           <Route path="major-project" element={<MajorProject />} />
@@ -171,6 +177,7 @@ export default function App() {
           <Route path="project-form-table" element={<ProjectTable />} />
           <Route path="internship-form-table" element={<InternshipForm />} />
           <Route path="internship-table" element={<Internshiptable />} />
+          <Route path="minor-project-table" element={<MinorProjectTable />} />
           <Route path="admin-room-request" element={<AdminRoomRequests />} />
           <Route path="companies-table" element={<AdminAddCompanies />} />
           <Route path="assign-company" element={<CompanyAssignmentForm />} />
@@ -195,6 +202,7 @@ export default function App() {
         >
           <Route index element={<Dashboard />} />
           <Route path="accept-students" element={<AcceptStudents />} />
+          <Route path="accept-minor-project" element={<AcceptMinorProject />} />
           <Route path="major-project" element={<MajorProject />} />
           <Route path="minor-project" element={<MajorProject />} />
           <Route path="adhoc-projects-dashboard" element={<AdminDashboard />} />
