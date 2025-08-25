@@ -67,6 +67,11 @@ export default function Sidebar() {
       to: "/admin-db/admin-academic-form",
     },
     {
+      text: "Professors Records",
+      icon: <HiAcademicCap />,
+      to: "/admin-db/professors-table",
+    },
+    {
       text: "PE Courses",
       icon: <HiAcademicCap />,
       to: "/admin-db/PE-admin-table",

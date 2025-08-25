@@ -88,6 +88,7 @@ import MinorProject from "./components/MinorProject";
 import MinorGroupManagement from "./components/MinorGroupManagement";
 import AcceptMinorProject from "./components/AcceptMinorProject";
 import MinorProjectTable from "./components/MinorProjectTable";
+import ProfessorTable from "./components/AdminProfessorsTable";
 export default function App() {
   return (
     <Router>
@@ -170,6 +171,7 @@ export default function App() {
             element={<AdminAcademicRecords />}
           />
           <Route path="PE-admin-table" element={<PEAdminTable />} />
+          <Route path="professors-table" element={<ProfessorTable />} />
           <Route path="award-table" element={<AwardTable />} />
           <Route path="exam-table" element={<ExamTable />} />
           <Route path="higher-education-table" element={<HigherEduTable />} />
