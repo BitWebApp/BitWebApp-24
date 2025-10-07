@@ -840,7 +840,6 @@ const fetchBranch = asyncHandler(async (req, res) => {
 const getUserbyRoll = asyncHandler(async (req, res) => {
   const { rollNumber, isAdmin } = req.body;
 
-  // Add batch to the query for a more specific search
   let query = User.findOne({ rollNumber: rollNumber });
 
 
@@ -880,11 +879,17 @@ const getPlacementDetails = asyncHandler(async (req, res) => {
   try {
     const { batch } = req.query;
 
-    // Build a query object. If batch is provided, add it to the filter.
-    const filter = batch ? { batch } : {};
+    // Convert batch query (string) to number and validate
+    const filter = {};
+    if (batch !== undefined) {
+      const batchNumber = Number(batch);
+      if (Number.isNaN(batchNumber)) {
+        throw new ApiError(400, "Invalid batch query parameter");
+      }
+      filter.batch = batchNumber;
+    }
 
     const users = await User.find(filter).populate([
-      // Use the filter here
       { path: "placementOne", select: "company ctc", model: Placement },
       { path: "placementTwo", select: "company ctc" },
       { path: "placementThree", select: "company ctc" },
@@ -919,8 +924,15 @@ const getPlacementDetails = asyncHandler(async (req, res) => {
 const getAllUsers = asyncHandler(async (req, res) => {
   const { batch } = req.query;
 
-  // Build the filter object
-  const filter = batch ? { batch } : {};
+  // Convert batch query (string) to number and validate
+  const filter = {};
+  if (batch !== undefined) {
+    const batchNumber = Number(batch);
+    if (Number.isNaN(batchNumber)) {
+      throw new ApiError(400, "Invalid batch query parameter");
+    }
+    filter.batch = batchNumber;
+  }
 
   const users = await User.find(filter)
     .populate("placementOne")
