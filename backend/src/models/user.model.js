@@ -278,7 +278,7 @@ const userSchema = new Schema(
       },
     },
     batch: {
-      type: String,
+      type: Number,
       required: [true, "Batch is required"],
       trim: true,
     },

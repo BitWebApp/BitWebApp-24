@@ -220,23 +220,23 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-  const { email, password, batch } = req.body;
-  if (!email || !batch) {
-    console.log("Email and batch are required");
+  const { email, password } = req.body;
+  if (!email) {
+    console.log("Email is required");
     return res.status(400).json({
       success: false,
-      message: "Email and batch are required",
+      message: "Email is required",
     });
   }
   const user = await User.findOne({
     email: email.toLowerCase(),
-    batch: batch, // <-- Add this condition
   });
+
   if (!user) {
-    console.log("User does not exist in the specified batch");
+    console.log("User does not exists.");
     return res.status(404).json({
       success: false,
-      message: "User with these credentials does not exist",
+      message: "User does not exists",
     });
   }
   const isPasswordValid = await user.isPasswordCorrect(password);
@@ -383,6 +383,7 @@ export const otpForgotPass = asyncHandler(async (req, res) => {
   });
   res.status(200).send("Mail sent!");
 });
+
 const changepassword = asyncHandler(async (req, res) => {
   try {
     // console.log("hello")
@@ -825,11 +826,10 @@ const fetchBranch = asyncHandler(async (req, res) => {
 });
 
 const getUserbyRoll = asyncHandler(async (req, res) => {
-// Destructure batch from the request body
-  const { rollNumber, batch, isAdmin } = req.body;
+  const { rollNumber, isAdmin } = req.body;
 
   // Add batch to the query for a more specific search
-  let query = User.findOne({ rollNumber: rollNumber, batch: batch });
+  let query = User.findOne({ rollNumber: rollNumber });
 
 
   if (!isAdmin) {
