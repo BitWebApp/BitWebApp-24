@@ -147,10 +147,10 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // Validate required string fields
   const stringFields = [username, password, fullName, rollNumber, email];
-  const hasEmptyStringField = stringFields.some(
-    (f) => !f || (typeof f === "string" && f.trim() === "")
+  const hasInvalidStringField = stringFields.some(
+    (f) => typeof f !== "string" || f.trim() === ""
   );
-  if (hasEmptyStringField) {
+  if (hasInvalidStringField) {
     console.log("All fields are req");
     return res.status(400).json({
       success: false,
