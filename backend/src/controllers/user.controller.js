@@ -131,8 +131,8 @@ const verifyMail = asyncHandler(async (req, res) => {
 });
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { username, password, fullName, rollNumber, email, usrOTP } = req.body;
-
+  const { username, password, fullName, rollNumber, email, usrOTP, batch } =
+    req.body;
   const otpEntry = await Otp.findOne({ email });
 
   if (!otpEntry || usrOTP.toString() !== otpEntry.otp.toString()) {
@@ -147,8 +147,8 @@ const registerUser = asyncHandler(async (req, res) => {
   await Otp.deleteOne({ email });
 
   if (
-    [username, password, fullName, rollNumber, email].some(
-      (field) => field?.trim() === ""
+    [username, password, fullName, rollNumber, email, batch].some(
+      (field) => !field || field.trim() === ""
     )
   ) {
     console.log("All fields are req");
@@ -156,7 +156,6 @@ const registerUser = asyncHandler(async (req, res) => {
       success: false,
       message: "All fields are required",
     });
-    // throw new ApiError(400, "All fields are required:");
   }
 
   const existedUser = await User.findOne({
@@ -199,6 +198,7 @@ const registerUser = asyncHandler(async (req, res) => {
     rollNumber,
     email,
     idCard: idCard.url,
+    batch,
   });
 
   const createdUser = await User.findById(user._id).select(
@@ -220,23 +220,24 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  if (!email) {
-    console.log("email is req");
+  const { email, password, batch } = req.body;
+  if (!email || !batch) {
+    console.log("Email and batch are required");
     return res.status(400).json({
       success: false,
-      message: "email is req",
+      message: "Email and batch are required",
     });
-    // throw new ApiError(400, "email is req");
   }
-  const user = await User.findOne({ email: email.toLowerCase() });
+  const user = await User.findOne({
+    email: email.toLowerCase(),
+    batch: batch, // <-- Add this condition
+  });
   if (!user) {
-    console.log("User does not exists");
+    console.log("User does not exist in the specified batch");
     return res.status(404).json({
       success: false,
-      message: "User does not exists",
+      message: "User with these credentials does not exist",
     });
-    // throw new ApiError(404, "User does not exists");
   }
   const isPasswordValid = await user.isPasswordCorrect(password);
   if (!isPasswordValid) {
@@ -824,29 +825,34 @@ const fetchBranch = asyncHandler(async (req, res) => {
 });
 
 const getUserbyRoll = asyncHandler(async (req, res) => {
-  const { rollNumber, isAdmin } = req.body;
+// Destructure batch from the request body
+  const { rollNumber, batch, isAdmin } = req.body;
 
-  let query = User.findOne({ rollNumber: rollNumber });
-  
+  // Add batch to the query for a more specific search
+  let query = User.findOne({ rollNumber: rollNumber, batch: batch });
+
+
   if (!isAdmin) {
-    query = query.select('-password -username -refreshToken -fatherName -fatherMobileNumber -motherName -residentialAddress -alternateEmail -alumni -awards -backlogs -codingProfiles -companyInterview -createdAt -exams -graduationYear -group -groupReq -higherEd -idCard -isSummerAllocated -isVerified -linkedin -marks -mobileNumber -peCourses -proj -resume -summerAppliedProfs -updatedAt -workExp -__v -abcId');
+    query = query.select(
+      "-password -username -refreshToken -fatherName -fatherMobileNumber -motherName -residentialAddress -alternateEmail -alumni -awards -backlogs -codingProfiles -companyInterview -createdAt -exams -graduationYear -group -groupReq -higherEd -idCard -isSummerAllocated -isVerified -linkedin -marks -mobileNumber -peCourses -proj -resume -summerAppliedProfs -updatedAt -workExp -__v -abcId"
+    );
     query = query
-      .populate('internShips', 'company role startDate endDate')
-      .populate('placementOne', 'company role ctc date')
-      .populate('placementTwo', 'company role ctc date')
-      .populate('placementThree', 'company role ctc date');
+      .populate("internShips", "company role startDate endDate")
+      .populate("placementOne", "company role ctc date")
+      .populate("placementTwo", "company role ctc date")
+      .populate("placementThree", "company role ctc date");
   } else {
     query = query
-      .populate('placementOne')
-      .populate('placementTwo')
-      .populate('placementThree')
-      .populate('proj')
-      .populate('awards')
-      .populate('higherEd')
-      .populate('internShips')
-      .populate('exams')
-      .populate('academics')
-      .populate('backlogs');
+      .populate("placementOne")
+      .populate("placementTwo")
+      .populate("placementThree")
+      .populate("proj")
+      .populate("awards")
+      .populate("higherEd")
+      .populate("internShips")
+      .populate("exams")
+      .populate("academics")
+      .populate("backlogs");
   }
 
   const user = await query;
@@ -860,11 +866,18 @@ const getUserbyRoll = asyncHandler(async (req, res) => {
 
 const getPlacementDetails = asyncHandler(async (req, res) => {
   try {
-    const users = await User.find().populate([
+    const { batch } = req.query;
+
+    // Build a query object. If batch is provided, add it to the filter.
+    const filter = batch ? { batch } : {};
+
+    const users = await User.find(filter).populate([
+      // Use the filter here
       { path: "placementOne", select: "company ctc", model: Placement },
       { path: "placementTwo", select: "company ctc" },
       { path: "placementThree", select: "company ctc" },
     ]);
+
     const us = users.map((user) => ({
       fullName: user.fullName,
       rollNumber: user.rollNumber,
@@ -892,7 +905,12 @@ const getPlacementDetails = asyncHandler(async (req, res) => {
   }
 });
 const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find()
+  const { batch } = req.query;
+
+  // Build the filter object
+  const filter = batch ? { batch } : {};
+
+  const users = await User.find(filter)
     .populate("placementOne")
     .populate("placementTwo")
     .populate("placementThree")

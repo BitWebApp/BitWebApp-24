@@ -74,6 +74,16 @@ export default function Login() {
       setIsLoading(false);
     }
   };
+  const [batch, setBatch] = useState("");
+
+  // Dynamically generate batch options
+const currentYear = new Date().getFullYear();
+const batchOptions = [];
+
+for (let i = currentYear - 3; i < currentYear; i++) {
+  const yearSuffix = String(i).slice(-2);
+  batchOptions.push(`K${yearSuffix}`);
+}
 
   const handleKeyDown = (event) => {
     if (event.key === "Enter") {
@@ -119,6 +129,64 @@ export default function Login() {
                   onChange={(e) => setemail(e.target.value)}
                 />
               </div>
+              {/* BATCH DROPDOWN SECTION START */}
+              <div className="max-w-xs flex flex-col mb-4">
+                <label
+                  htmlFor="batch-select"
+                  className="text-gray-700 font-medium text-sm mb-2"
+                >
+                  Batch
+                </label>
+                {/* Wrapper to position the custom arrow */}
+                <div className="relative w-full">
+                  <select
+                    id="batch-select"
+                    value={batch}
+                    onChange={(e) => setBatch(e.target.value)}
+                    required
+                    // This combines base styles with a conditional style for the placeholder
+                    className={`
+        w-full appearance-none rounded-md border bg-white py-3 pl-4 pr-10
+        text-base text-gray-800
+        border-gray-300 
+        transition-all duration-200 ease-in-out
+        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+        hover:border-gray-400
+        ${!batch ? "text-gray-400" : "text-gray-900"} 
+      `}
+                  >
+                    <option value="" disabled className="text-gray-400">
+                      Select your batch
+                    </option>
+                    {batchOptions.map((batchYear) => (
+                      <option
+                        key={batchYear}
+                        value={batchYear}
+                        className="text-gray-900"
+                      >
+                        {batchYear}
+                      </option>
+                    ))}
+                  </select>
+                  {/* Custom arrow icon using SVG */}
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                    <svg
+                      className="h-5 w-5"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 3a.75.75 0 01.53.22l3.5 3.5a.75.75 0 01-1.06 1.06L10 4.81 7.03 7.78a.75.75 0 01-1.06-1.06l3.5-3.5A.75.75 0 0110 3zm-3.72 9.28a.75.75 0 011.06 0L10 15.19l2.97-2.91a.75.75 0 111.06 1.06l-3.5 3.5a.75.75 0 01-1.06 0l-3.5-3.5a.75.75 0 010-1.06z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              {/* BATCH DROPDOWN SECTION END */}
               <div className="w-full flex flex-col mb-4 relative">
                 <label className="text-gray-700 text-sm mb-1">Password</label>
                 <input
