@@ -121,21 +121,31 @@ export default function Sidebar() {
     //   icon: <FaCalendar />,
     //   to: "/db/booking-calendar",
     // },
+    // {
+    //   text: "Apply to Profs",
+    //   icon: <HiSun />,
+    //   to: "/db/apply-summer",
+    // },
+    // {
+    //   text: "Manage Group",
+    //   icon: <HiUserGroup />,
+    //   to: "/db/manage-group",
+    // },
     {
       text: "Apply to Profs",
       icon: <HiSun />,
-      to: "/db/apply-summer",
+      to: "/db/apply-minor",
     },
     {
       text: "Manage Group",
       icon: <HiUserGroup />,
-      to: "/db/manage-group",
+      to: "/db/manage-minor-group",
     },
-    {
-      text: "Professor Projects",
-      icon: <HiPresentationChartLine />,
-      to: "/db/student-projects-dashboard",
-    },
+    // {
+    //   text: "Professor Projects",
+    //   icon: <HiPresentationChartLine />,
+    //   to: "/db/student-projects-dashboard",
+    // },
     {
       text: "Report Issues",
       icon: <HiBeaker />,

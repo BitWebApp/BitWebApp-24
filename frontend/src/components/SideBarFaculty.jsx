@@ -58,7 +58,7 @@ export default function Sidebar() {
     {
       text: "Minor Project",
       icon: <HiPresentationChartLine />,
-      to: "/faculty-db/minor-project",
+      to: "/faculty-db/accept-minor-project",
     },
      {
       text: "Ad-hoc Projects",

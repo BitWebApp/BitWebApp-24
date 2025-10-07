@@ -288,6 +288,33 @@ const userSchema = new Schema(
         ref: "Group",
       },
     ],
+    groupReq:[{
+      type: Schema.Types.ObjectId,
+      ref: "Group"
+    }],
+
+    minorAppliedProfs: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Professor",
+      },
+    ],
+    MinorGroup: {
+      type: Schema.Types.ObjectId,
+      ref: "Minor"
+    },
+    minorAllocatedProf: {
+      type: Schema.Types.ObjectId,
+      ref: "Professor",
+    },
+    isMinorAllocated: {
+      type: Boolean,
+      default: false,
+    },
+    MinorGroupReq:[{
+      type: Schema.Types.ObjectId,
+      ref: "Minor"
+    }],
     refreshToken: {
       type: String,
     },
