@@ -131,8 +131,7 @@ const verifyMail = asyncHandler(async (req, res) => {
 });
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { username, password, fullName, rollNumber, email, usrOTP, batch } =
-    req.body;
+  const { username, password, fullName, rollNumber, email, usrOTP, batch } = req.body;
   const otpEntry = await Otp.findOne({ email });
 
   if (!otpEntry || usrOTP.toString() !== otpEntry.otp.toString()) {
@@ -146,17 +145,30 @@ const registerUser = asyncHandler(async (req, res) => {
 
   await Otp.deleteOne({ email });
 
-  if (
-    [username, password, fullName, rollNumber, email, batch].some(
-      (field) => !field || field.trim() === ""
-    )
-  ) {
+  // Validate required string fields
+  const stringFields = [username, password, fullName, rollNumber, email];
+  const hasEmptyStringField = stringFields.some(
+    (f) => !f || (typeof f === "string" && f.trim() === "")
+  );
+  if (hasEmptyStringField) {
     console.log("All fields are req");
     return res.status(400).json({
       success: false,
       message: "All fields are required",
     });
   }
+
+  // Validate batch separately (accept number or numeric string)
+  const batchNumber = Number(batch);
+  if (batch === undefined || batch === null || batch === "" || Number.isNaN(batchNumber)) {
+    console.log("Batch is required and must be a valid number");
+    return res.status(400).json({
+      success: false,
+      message: "Batch is required and must be a valid number",
+    });
+  }
+  // use numeric batch value going forward
+  req.body.batch = batchNumber;
 
   const existedUser = await User.findOne({
     $or: [{ username }, { email }],
