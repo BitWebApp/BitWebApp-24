@@ -245,10 +245,10 @@ const loginUser = asyncHandler(async (req, res) => {
   });
 
   if (!user) {
-    console.log("User does not exists.");
+    console.log("User does not exist.");
     return res.status(404).json({
       success: false,
-      message: "User does not exists",
+      message: "User does not exist",
     });
   }
   const isPasswordValid = await user.isPasswordCorrect(password);
