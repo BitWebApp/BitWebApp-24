@@ -282,12 +282,6 @@ const userSchema = new Schema(
       required: [true, "Batch is required"],
       trim: true,
     },
-    groupReq: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Group",
-      },
-    ],
     groupReq:[{
       type: Schema.Types.ObjectId,
       ref: "Group"
