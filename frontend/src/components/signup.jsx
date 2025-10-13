@@ -61,8 +61,7 @@ export default function Signup() {
     }
     setSpin(true);
     try {
-      const batch = parseInt(rollnumber.split("/")[2].substring(2, 4), 10) + 4;
-
+      const batch = parseInt(rollnumber.split("/")[2], 10);
       const formData = new FormData();
       formData.append("email", email);
       formData.append("username", username);
