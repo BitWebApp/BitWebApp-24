@@ -280,6 +280,7 @@ const userSchema = new Schema(
     batch: {
       type: Number,
       required: [true, "Batch is required"],
+      index: true,
     },
     groupReq:[{
       type: Schema.Types.ObjectId,
