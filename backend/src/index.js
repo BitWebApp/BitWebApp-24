@@ -22,19 +22,21 @@ connectDB()
         methods: ["GET", "POST"],
         credentials: true,
       },
-      transports: ["websocket"], 
+      transports: ["websocket"],
     });
 
     io.on("connection", (socket) => {
       console.log("New socket connected:", socket.id);
     });
-  
+
     initSocket(io);
 
     httpServer.listen(process.env.PORT || 8000, () => {
       console.log(`Server is listening on port ${process.env.PORT || 8000}`);
     });
   })
-  .catch((err) => {
-    console.log("Mongodb connection failed !!!", err);
+  .catch((error) => {
+    // The error will be logged here
+    console.log("MONGODB connection FAILED ", error);
+    process.exit(1);
   });

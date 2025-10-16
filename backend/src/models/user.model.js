@@ -40,6 +40,7 @@ const userSchema = new Schema(
       type: String,
       default: "",
     },
+
     fatherName: {
       type: String,
       default: "",
@@ -123,12 +124,12 @@ const userSchema = new Schema(
     },
     mobileNumber: {
       type: String,
-      trim: true,  
+      trim: true,
       validate: {
         validator: function (v) {
-          return /^\d{10}$/.test(v); 
+          return /^\d{10}$/.test(v);
         },
-        message: "Enter 10 digits of your mobile number!"
+        message: "Enter 10 digits of your mobile number!",
       },
       default: "0000000000",
     },
@@ -252,7 +253,7 @@ const userSchema = new Schema(
     ],
     group: {
       type: Schema.Types.ObjectId,
-      ref: "Group"
+      ref: "Group",
     },
     summerAllocatedProf: {
       type: Schema.Types.ObjectId,
@@ -263,18 +264,23 @@ const userSchema = new Schema(
       default: false,
     },
     marks: {
-      summerTraining:{
+      summerTraining: {
         type: Number,
-        default: 0
+        default: 0,
       },
-      minorProject:{
+      minorProject: {
         type: Number,
-        default: 0
+        default: 0,
       },
-      majorProject:{
+      majorProject: {
         type: Number,
-        default: 0
+        default: 0,
       },
+    },
+    batch: {
+      type: Number,
+      required: [true, "Batch is required"],
+      index: true,
     },
     groupReq:[{
       type: Schema.Types.ObjectId,

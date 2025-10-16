@@ -131,8 +131,7 @@ const verifyMail = asyncHandler(async (req, res) => {
 });
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { username, password, fullName, rollNumber, email, usrOTP } = req.body;
-
+  const { username, password, fullName, rollNumber, email, usrOTP, batch } = req.body;
   const otpEntry = await Otp.findOne({ email });
 
   if (!otpEntry || usrOTP.toString() !== otpEntry.otp.toString()) {
@@ -146,18 +145,30 @@ const registerUser = asyncHandler(async (req, res) => {
 
   await Otp.deleteOne({ email });
 
-  if (
-    [username, password, fullName, rollNumber, email].some(
-      (field) => field?.trim() === ""
-    )
-  ) {
+  // Validate required string fields
+  const stringFields = [username, password, fullName, rollNumber, email];
+  const hasInvalidStringField = stringFields.some(
+    (f) => typeof f !== "string" || f.trim() === ""
+  );
+  if (hasInvalidStringField) {
     console.log("All fields are req");
     return res.status(400).json({
       success: false,
       message: "All fields are required",
     });
-    // throw new ApiError(400, "All fields are required:");
   }
+
+  // Validate batch separately (accept number or numeric string)
+  const batchNumber = Number(batch);
+  if (batch === undefined || batch === null || batch === "" || Number.isNaN(batchNumber)) {
+    console.log("Batch is required and must be a valid number");
+    return res.status(400).json({
+      success: false,
+      message: "Batch is required and must be a valid number",
+    });
+  }
+  // use numeric batch value going forward
+  req.body.batch = batchNumber;
 
   const existedUser = await User.findOne({
     $or: [{ username }, { email }],
@@ -199,6 +210,7 @@ const registerUser = asyncHandler(async (req, res) => {
     rollNumber,
     email,
     idCard: idCard.url,
+    batch,
   });
 
   const createdUser = await User.findById(user._id).select(
@@ -222,21 +234,22 @@ const registerUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   if (!email) {
-    console.log("email is req");
+    console.log("Email is required");
     return res.status(400).json({
       success: false,
-      message: "email is req",
+      message: "Email is required",
     });
-    // throw new ApiError(400, "email is req");
   }
-  const user = await User.findOne({ email: email.toLowerCase() });
+  const user = await User.findOne({
+    email: email.toLowerCase(),
+  });
+
   if (!user) {
-    console.log("User does not exists");
+    console.log("User does not exist.");
     return res.status(404).json({
       success: false,
-      message: "User does not exists",
+      message: "User does not exist",
     });
-    // throw new ApiError(404, "User does not exists");
   }
   const isPasswordValid = await user.isPasswordCorrect(password);
   if (!isPasswordValid) {
@@ -382,6 +395,7 @@ export const otpForgotPass = asyncHandler(async (req, res) => {
   });
   res.status(200).send("Mail sent!");
 });
+
 const changepassword = asyncHandler(async (req, res) => {
   try {
     // console.log("hello")
@@ -827,26 +841,29 @@ const getUserbyRoll = asyncHandler(async (req, res) => {
   const { rollNumber, isAdmin } = req.body;
 
   let query = User.findOne({ rollNumber: rollNumber });
-  
+
+
   if (!isAdmin) {
-    query = query.select('-password -username -refreshToken -fatherName -fatherMobileNumber -motherName -residentialAddress -alternateEmail -alumni -awards -backlogs -codingProfiles -companyInterview -createdAt -exams -graduationYear -group -groupReq -higherEd -idCard -isSummerAllocated -isVerified -linkedin -marks -mobileNumber -peCourses -proj -resume -summerAppliedProfs -updatedAt -workExp -__v -abcId');
+    query = query.select(
+      "-password -username -refreshToken -fatherName -fatherMobileNumber -motherName -residentialAddress -alternateEmail -alumni -awards -backlogs -codingProfiles -companyInterview -createdAt -exams -graduationYear -group -groupReq -higherEd -idCard -isSummerAllocated -isVerified -linkedin -marks -mobileNumber -peCourses -proj -resume -summerAppliedProfs -updatedAt -workExp -__v -abcId"
+    );
     query = query
-      .populate('internShips', 'company role startDate endDate')
-      .populate('placementOne', 'company role ctc date')
-      .populate('placementTwo', 'company role ctc date')
-      .populate('placementThree', 'company role ctc date');
+      .populate("internShips", "company role startDate endDate")
+      .populate("placementOne", "company role ctc date")
+      .populate("placementTwo", "company role ctc date")
+      .populate("placementThree", "company role ctc date");
   } else {
     query = query
-      .populate('placementOne')
-      .populate('placementTwo')
-      .populate('placementThree')
-      .populate('proj')
-      .populate('awards')
-      .populate('higherEd')
-      .populate('internShips')
-      .populate('exams')
-      .populate('academics')
-      .populate('backlogs');
+      .populate("placementOne")
+      .populate("placementTwo")
+      .populate("placementThree")
+      .populate("proj")
+      .populate("awards")
+      .populate("higherEd")
+      .populate("internShips")
+      .populate("exams")
+      .populate("academics")
+      .populate("backlogs");
   }
 
   const user = await query;
@@ -860,11 +877,24 @@ const getUserbyRoll = asyncHandler(async (req, res) => {
 
 const getPlacementDetails = asyncHandler(async (req, res) => {
   try {
-    const users = await User.find().populate([
+    const { batch } = req.query;
+
+    // Convert batch query (string) to number and validate
+    const filter = {};
+    if (batch !== undefined) {
+      const batchNumber = Number(batch);
+      if (Number.isNaN(batchNumber)) {
+        throw new ApiError(400, "Invalid batch query parameter");
+      }
+      filter.batch = batchNumber;
+    }
+
+    const users = await User.find(filter).populate([
       { path: "placementOne", select: "company ctc", model: Placement },
       { path: "placementTwo", select: "company ctc" },
       { path: "placementThree", select: "company ctc" },
     ]);
+
     const us = users.map((user) => ({
       fullName: user.fullName,
       rollNumber: user.rollNumber,
@@ -892,7 +922,19 @@ const getPlacementDetails = asyncHandler(async (req, res) => {
   }
 });
 const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find()
+  const { batch } = req.query;
+
+  // Convert batch query (string) to number and validate
+  const filter = {};
+  if (batch !== undefined) {
+    const batchNumber = Number(batch);
+    if (Number.isNaN(batchNumber)) {
+      throw new ApiError(400, "Invalid batch query parameter");
+    }
+    filter.batch = batchNumber;
+  }
+
+  const users = await User.find(filter)
     .populate("placementOne")
     .populate("placementTwo")
     .populate("placementThree")
