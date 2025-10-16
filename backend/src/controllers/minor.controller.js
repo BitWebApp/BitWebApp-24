@@ -454,6 +454,11 @@ const addMarks = asyncHandler(async (req, res) => {
   console.log(userId, marks);
   const user = await User.findById(userId).select("fullName rollNumber marks");
   if (!user) throw new ApiError(404, "User not found");
+  // 
+  if(user.marks.minorProject > 0){
+    throw new ApiError(400, "Marks already added");
+  }
+  // 
   user.marks.minorProject = marks;
   await user.save();
   return res
