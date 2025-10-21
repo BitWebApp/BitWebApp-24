@@ -92,7 +92,11 @@ export const addPeCourse = async (req, res) => {
 
 export const getAdminPeCourses = asyncHandler(async (req, res) => {
   try {
-    const courses = await PeCourse.find().populate(
+    const { batch } = req.query;
+    const query = {};
+    if (batch) query.batch = Number(batch);
+
+    const courses = await PeCourse.find(query).populate(
       'students',
       'fullName rollNumber branch section batch'
     );
