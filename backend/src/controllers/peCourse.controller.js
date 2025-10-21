@@ -12,20 +12,38 @@ export const addPeCourse = async (req, res) => {
     if (!peCourseIVId || !peCourseVId) {
       return res.status(400).json({ success: false, message: 'Missing PE course information.' });
     }
-    
+
+    if (peCourseIVId.toString() === peCourseVId.toString()) {
+      return res.status(400).json({ success: false, message: 'Please select two different PE courses.' });
+    }
+
     const userId = req.user._id;
-    
-    const course1 = await PeCourse.findOne({ courseCode: peCourseIVId.toString() });
-    const course2 = await PeCourse.findOne({ courseCode: peCourseVId.toString() });
+
+    // Fetch user to get their batch and already enrolled courses
+    const user = await User.findById(userId).populate('peCourses');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found!' });
+    }
+
+    // Use provided batch, otherwise default to the user's batch
+    const batchToUse = user.batch ? Number(user.batch) : null;
+
+    // Ensure student is selecting courses for their own batch
+    if (Number(user.batch) !== Number(batchToUse)) {
+      return res.status(400).json({ success: false, message: 'You can only select PE courses for your own batch.' });
+    }
+
+    const course1 = await PeCourse.findOne({ courseCode: peCourseIVId.toString(), batch: batchToUse });
+    const course2 = await PeCourse.findOne({ courseCode: peCourseVId.toString(), batch: batchToUse });
 
     // console.log(course1, course2)
     // console.log(peCourseVId)
 
+
     if (!course1 || !course2) {
-      return res.status(404).json({ success: false, message: 'PE Course not found!' });
+      return res.status(404).json({ success: false, message: 'PE Course not found for the specified batch!' });
     }
 
-    const user = await User.findById(userId).populate('peCourses');
     console.log('User PE Courses:', user.peCourses);
 
     console.log(course1.branch)
@@ -33,7 +51,8 @@ export const addPeCourse = async (req, res) => {
       return res.status(400).json({ success: false, message: 'You cannot select a PE course from a different branch.' });
     }
 
-    const validSections = ['A', 'B', 'C'];
+    // Added Section for 
+    const validSections = ['A', 'B', 'C', 'D'];
     if (!validSections.includes(user.section)) {
       return res.status(400).json({ success: false, message: 'You are not eligible to select a PE course from your section.' });
     }
@@ -75,7 +94,7 @@ export const getAdminPeCourses = asyncHandler(async (req, res) => {
   try {
     const courses = await PeCourse.find().populate(
       'students',
-      'fullName rollNumber branch section'
+      'fullName rollNumber branch section batch'
     );
 
     if (!courses || courses.length === 0) {
