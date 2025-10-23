@@ -81,7 +81,7 @@ export default function UserForm() {
     if (branch === "artificial intelligence and machine learning") {
       setAvailableSections(["A"]);
     } else {
-      setAvailableSections(["A", "B", "C"]);
+      setAvailableSections(["A", "B", "C", "D"]);
     }
   };
 
