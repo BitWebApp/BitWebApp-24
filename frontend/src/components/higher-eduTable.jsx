@@ -6,7 +6,7 @@ const HigherEduTable = () => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [sortConfigs, setSortConfigs] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [batch, setBatch] = useState(2023)
+  const [batch, setBatch] = useState(23)
 
   useEffect(() => {
     const fetchHigherEducations = async () => {

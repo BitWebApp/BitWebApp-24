@@ -6,7 +6,7 @@ import ExcelJS from "exceljs";
 export default function PlacementTable() {
   const [placementData, setPlacementData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [batch, setBatch] = useState(2023)
+  const [batch, setBatch] = useState(23)
 
   useEffect(() => {
     fetchData();

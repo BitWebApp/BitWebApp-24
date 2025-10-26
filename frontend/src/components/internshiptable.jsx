@@ -14,7 +14,7 @@ export default function InternshipTable() {
   });
   const [sectionOptions, setSectionOptions] = useState([]);
   const [branchOptions, setBranchOptions] = useState([]);
-  const [batch, setBatch] = useState(2023)
+  const [batch, setBatch] = useState(23)
 
   useEffect(() => {
     fetchData();

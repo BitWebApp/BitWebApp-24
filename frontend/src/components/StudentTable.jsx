@@ -11,7 +11,7 @@ const StudentTable = () => {
     search: "",
   });
   const [sortConfig, setSortConfig] = useState({ key: "rollNumber", direction: "ascending" });
-  const [batch, setBatch] = useState(2023)
+  const [batch, setBatch] = useState(23)
   useEffect(() => {
     const fetchStudents = async () => {
       try {

@@ -946,6 +946,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
     .populate("academics")
     .populate("cgpa")
     .populate("backlogs");
+
   return res
     .status(200)
     .json(new ApiResponse(200, { users }, "all users fetched"));

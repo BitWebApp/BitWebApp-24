@@ -8,7 +8,7 @@ const AdminAcademicRecords = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRows, setSelectedRows] = useState([]);
   const [filters, setFilters] = useState({});
-  const [batch, setBatch] = useState(2023);
+  const [batch, setBatch] = useState(23);
 
   useEffect(() => {
     const fetchAcademicRecords = async () => {

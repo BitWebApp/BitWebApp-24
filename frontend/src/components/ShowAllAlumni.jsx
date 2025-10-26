@@ -7,7 +7,7 @@ export default function AlumniTable() {
   const [error, setError] = useState("");
   const [selectedWorkExperience, setSelectedWorkExperience] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [batch, setBatch] = useState(2023);
+  const [batch, setBatch] = useState(23);
 
   useEffect(() => {
     fetchAlumniData();
