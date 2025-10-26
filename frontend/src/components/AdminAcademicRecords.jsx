@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
 import axios from "axios";
 import ExcelJS from "exceljs";
+import { useEffect, useState } from "react";
 
 const AdminAcademicRecords = () => {
   const [academicRecords, setAcademicRecords] = useState([]);
@@ -181,6 +181,23 @@ const AdminAcademicRecords = () => {
         >
           Export to Excel
         </button>
+      </div>
+      {/* Batch Filter */}
+      <div className="mb-4">
+        <label className="mr-2">Filter by Batch:</label>
+        <select
+          name="batch"
+          value={batch}
+          onChange={(e) => setBatch(e.target.value)}
+          className="px-4 py-2 border rounded min-w-[150px]"
+        >
+          <option value="">All Batches</option>
+          {[22, 23, 24, 25, 26].map((batchOption) => (
+            <option key={batchOption} value={batchOption}>
+              Batch {batchOption}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">

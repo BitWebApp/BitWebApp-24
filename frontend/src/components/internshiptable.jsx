@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import ExcelJS from "exceljs";
+import { useEffect, useState } from "react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function InternshipTable() {
   const [internData, setInternData] = useState([]);
@@ -14,7 +14,7 @@ export default function InternshipTable() {
   });
   const [sectionOptions, setSectionOptions] = useState([]);
   const [branchOptions, setBranchOptions] = useState([]);
-  const [batch, setBatch] = useState(23)
+  const [batch, setBatch] = useState(23); // Default batch value
 
   useEffect(() => {
     fetchData();
@@ -22,10 +22,10 @@ export default function InternshipTable() {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get("/api/v1/intern/get-verified-interns",{
-        params:{
-          batch
-        }
+      const response = await axios.get("/api/v1/intern/get-verified-interns", {
+        params: {
+          batch,
+        },
       });
       console.log(response);
       setInternData(response.data.data.response);
@@ -142,7 +142,11 @@ export default function InternshipTable() {
       { header: "Internship Type", key: "type", width: maxTypeLength + 3 },
       { header: "Location", key: "location", width: maxLocationLength + 3 },
       { header: "Mentor", key: "mentor", width: maxMentorLength + 3 },
-      { header: "Summer Training Marks", key: "marks", width: maxMarksLength + 3 },
+      {
+        header: "Summer Training Marks",
+        key: "marks",
+        width: maxMarksLength + 3,
+      },
     ];
 
     // Style the header row
@@ -220,6 +224,18 @@ export default function InternshipTable() {
       </h1>
 
       <div className="mb-4">
+        <select
+          value={batch}
+          onChange={(e) => setBatch(Number(e.target.value))}
+          className="mr-2 p-2 border border-gray-300 rounded"
+        >
+          <option value="22">Batch 22</option>
+          <option value="23">Batch 23</option>
+          <option value="24">Batch 24</option>
+          <option value="25">Batch 25</option>
+          <option value="26">Batch 26</option>
+        </select>
+
         <input
           type="text"
           name="company"

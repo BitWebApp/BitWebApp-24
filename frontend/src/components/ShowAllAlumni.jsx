@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useEffect, useState } from "react";
 
 export default function AlumniTable() {
   const [alumniData, setAlumniData] = useState([]);
@@ -19,13 +19,13 @@ export default function AlumniTable() {
       const response = await axios.get("/api/v1/alumni/all", {
         withCredentials: true,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           // If you're using token in Authorization header
-          'Authorization': `Bearer ${localStorage.getItem('token')}` // adjust based on how you store the token
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // adjust based on how you store the token
         },
-        params:{
-          batch
-        }
+        params: {
+          batch,
+        },
       });
 
       if (response.data.success) {
@@ -34,8 +34,14 @@ export default function AlumniTable() {
         setError("Failed to fetch alumni data.");
       }
     } catch (err) {
-      console.error("Error fetching alumni data:", err.response?.data || err.message);
-      setError(err.response?.data?.message || "An error occurred while fetching alumni data.");
+      console.error(
+        "Error fetching alumni data:",
+        err.response?.data || err.message
+      );
+      setError(
+        err.response?.data?.message ||
+          "An error occurred while fetching alumni data."
+      );
     } finally {
       setLoading(false);
     }
@@ -60,11 +66,7 @@ export default function AlumniTable() {
   }
 
   if (error) {
-    return (
-      <div className="text-red-600 text-center p-4">
-        {error}
-      </div>
-    );
+    return <div className="text-red-600 text-center p-4">{error}</div>;
   }
 
   if (alumniData.length === 0) {
@@ -78,6 +80,22 @@ export default function AlumniTable() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-center text-3xl font-bold mb-8">Alumni Records</h1>
+
+      {/* Batch filter dropdown */}
+      <div className="mb-4 flex justify-center">
+        <select
+          value={batch}
+          onChange={(e) => setBatch(Number(e.target.value))}
+          className="p-2 border border-gray-300 rounded"
+        >
+          <option value="22">Batch 22</option>
+          <option value="23">Batch 23</option>
+          <option value="24">Batch 24</option>
+          <option value="25">Batch 25</option>
+          <option value="26">Batch 26</option>
+        </select>
+      </div>
+
       <div className="overflow-x-auto shadow-md rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-black">
@@ -145,7 +163,9 @@ export default function AlumniTable() {
         {showModal && selectedWorkExperience && (
           <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-              <h2 className="text-xl font-bold mb-4">Work Experience Details</h2>
+              <h2 className="text-xl font-bold mb-4">
+                Work Experience Details
+              </h2>
               <div className="space-y-3">
                 <p>
                   <span className="font-bold">Company:</span>{" "}
@@ -157,7 +177,9 @@ export default function AlumniTable() {
                 </p>
                 <p>
                   <span className="font-bold">Start Date:</span>{" "}
-                  {new Date(selectedWorkExperience.startDate).toLocaleDateString()}
+                  {new Date(
+                    selectedWorkExperience.startDate
+                  ).toLocaleDateString()}
                 </p>
                 <p>
                   <span className="font-bold">End Date:</span>{" "}
@@ -165,8 +187,10 @@ export default function AlumniTable() {
                   {selectedWorkExperience.isCurrentlyWorking
                     ? "Present"
                     : selectedWorkExperience.endDate
-                      ? new Date(selectedWorkExperience.endDate).toLocaleDateString()
-                      : "N/A"}
+                    ? new Date(
+                        selectedWorkExperience.endDate
+                      ).toLocaleDateString()
+                    : "N/A"}
                 </p>
               </div>
               <button
@@ -182,6 +206,5 @@ export default function AlumniTable() {
     </div>
   );
 }
-
 
 // Saquib

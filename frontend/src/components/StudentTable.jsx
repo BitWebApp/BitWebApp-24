@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
 import axios from "axios";
 import ExcelJS from "exceljs";
+import { useEffect, useState } from "react";
 
 const StudentTable = () => {
   const [students, setStudents] = useState([]);
@@ -10,18 +10,21 @@ const StudentTable = () => {
     branch: "",
     search: "",
   });
-  const [sortConfig, setSortConfig] = useState({ key: "rollNumber", direction: "ascending" });
-  const [batch, setBatch] = useState(23)
+  const [sortConfig, setSortConfig] = useState({
+    key: "rollNumber",
+    direction: "ascending",
+  });
+  const [batch, setBatch] = useState(22);
   useEffect(() => {
     const fetchStudents = async () => {
       try {
         // Optional: Modify the backend to handle filtering and sorting
-        const response = await axios.get("/api/v1/users/get-all-users",{
-          params:{
-            batch
-          }
+        const response = await axios.get("/api/v1/users/get-all-users", {
+          params: {
+            batch,
+          },
         });
-        console.log(response)
+        console.log(response);
         setStudents(response.data.data.users);
       } catch (error) {
         console.error("Error fetching students:", error);
@@ -65,7 +68,6 @@ const StudentTable = () => {
     setSortConfig({ key, direction });
   };
 
-
   const applyFilters = (data) => {
     return data.filter((record) => {
       const { section, branch, search } = filters;
@@ -77,7 +79,7 @@ const StudentTable = () => {
         record.fullName.toLowerCase().includes(query) ||
         record.rollNumber.toLowerCase().includes(query) ||
         record.email.toLowerCase().includes(query) ||
-        record.mobileNumber.toLowerCase().includes(query)
+        record.mobileNumber.toLowerCase().includes(query);
       return matchesSection && matchesBranch && matchesSearch;
     });
   };
@@ -112,35 +114,35 @@ const StudentTable = () => {
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Students");
-  
+
     // Define styles
     const headerFill = {
       type: "pattern",
       pattern: "solid",
       fgColor: { argb: "FFB0C4DE" }, // LightSteelBlue
     };
-  
+
     const titleFont = {
       name: "Arial",
       size: 16,
       bold: true,
       color: { argb: "FFFFFFFF" }, // White
     };
-  
+
     const headerFont = {
       name: "Arial",
       size: 12,
       bold: true,
       color: { argb: "FFFFFFFF" }, // White
     };
-  
+
     const cellBorder = {
       top: { style: "thin" },
       left: { style: "thin" },
       bottom: { style: "thin" },
       right: { style: "thin" },
     };
-  
+
     // Add Title
     worksheet.mergeCells("A1:M1");
     const titleCell = worksheet.getCell("A1");
@@ -153,7 +155,7 @@ const StudentTable = () => {
       fgColor: { argb: "FF4682B4" }, // SteelBlue
     };
     titleCell.border = cellBorder;
-  
+
     // Define Headers
     const headers = [
       "Full Name",
@@ -165,17 +167,17 @@ const StudentTable = () => {
       "Mobile Number",
       "Verified",
     ];
-  
+
     // Add Headers to Row 2
     worksheet.addRow(headers);
-  
+
     // Style Headers
     const headerRow = worksheet.getRow(2);
     headerRow.font = headerFont;
     headerRow.fill = headerFill;
     headerRow.alignment = { vertical: "middle", horizontal: "center" };
     headerRow.border = cellBorder;
-  
+
     // Add Data Rows starting from Row 3
     processedStudents.forEach((student) => {
       worksheet.addRow([
@@ -185,13 +187,14 @@ const StudentTable = () => {
         student.branch,
         student.section,
         student.semester,
-        student.mobileNumber
+        student.mobileNumber,
       ]);
     });
-  
+
     // Style Data Rows
     worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-      if (rowNumber > 2) { // Skip title and header
+      if (rowNumber > 2) {
+        // Skip title and header
         row.eachCell((cell) => {
           cell.border = cellBorder;
           cell.alignment = { vertical: "middle", horizontal: "left" };
@@ -206,7 +209,7 @@ const StudentTable = () => {
         });
       }
     });
-  
+
     // Adjust Column Widths based on Content
     worksheet.columns.forEach((column) => {
       let maxLength = 0;
@@ -217,13 +220,13 @@ const StudentTable = () => {
       // Set minimum width to 15 and add some padding
       column.width = maxLength < 15 ? 15 : maxLength + 5;
     });
-  
+
     // Ensure Grid Lines are Visible
     worksheet.views = [{ showGridLines: true }];
-  
+
     // Generate Buffer
     const buffer = await workbook.xlsx.writeBuffer();
-  
+
     // Create a Blob from the buffer and trigger download
     const blob = new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -235,8 +238,6 @@ const StudentTable = () => {
     a.click();
     window.URL.revokeObjectURL(url);
   };
-  
-  
 
   // Extract unique sections and branches for filter dropdowns
   const uniqueSections = [...new Set(students.map((s) => s.section))].filter(
@@ -292,6 +293,21 @@ const StudentTable = () => {
           ))}
         </select>
 
+        {/* Batch Filter */}
+        <select
+          name="batch"
+          value={batch}
+          onChange={(e) => setBatch(e.target.value)}
+          className="px-4 py-2 border rounded min-w-[150px]"
+        >
+          <option value="">All Batches</option>
+          {[22, 23, 24, 25, 26].map((batchOption) => (
+            <option key={batchOption} value={batchOption}>
+              Batch {batchOption}
+            </option>
+          ))}
+        </select>
+
         {/* Sort Options */}
         <select
           value={`${sortConfig.key}-${sortConfig.direction}`}
@@ -302,15 +318,15 @@ const StudentTable = () => {
           <option value="fullName-ascending">Full Name (A-Z)</option>
           <option value="fullName-descending">Full Name (Z-A)</option>
           <option value="rollNumber-ascending">Roll Number (Ascending)</option>
-          <option value="rollNumber-descending">Roll Number (Descending)</option>
+          <option value="rollNumber-descending">
+            Roll Number (Descending)
+          </option>
           <option value="email-ascending">Email (A-Z)</option>
           <option value="email-descending">Email (Z-A)</option>
         </select>
 
         <button
-          onClick={() =>
-            setFilters({ section: "", branch: "", search: "" })
-          }
+          onClick={() => setFilters({ section: "", branch: "", search: "" })}
           className="px-4 py-2 bg-gray-500 text-white rounded"
         >
           Reset Filters
@@ -365,14 +381,22 @@ const StudentTable = () => {
                 }`}
                 onClick={() => handleRowSelect(student._id)}
               >
-                <td className="px-6 py-4 whitespace-nowrap">{student.fullName.toUpperCase()}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {student.fullName.toUpperCase()}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {student.rollNumber}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">{student.email}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{student.branch}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{student.section}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{student.semester}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {student.branch}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {student.section}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {student.semester}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {student.mobileNumber}
                 </td>
