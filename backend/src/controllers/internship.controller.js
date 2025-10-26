@@ -1,31 +1,25 @@
 import { Internship } from "../models/internship.model.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/Cloudinary.js"; // Make sure you have a utility function to upload files to Cloudinary
-import {User} from "../models/user.model.js"
 const addInternship = asyncHandler(async (req, res) => {
-  const {
-    type,
-    location,
-    company,
-    role,
-    mentor,
-    startDate,
-    endDate,
-  } = req.body;
-  const studentid = req?.user?._id
+  const { type, location, company, role, mentor, startDate, endDate } =
+    req.body;
+  const studentid = req?.user?._id;
   if (!studentid || !type || !location || !startDate || !endDate) {
     throw new ApiError(400, "Missing required fields!");
   }
 
-
-  const prevRecord = await Internship.find({student: studentid})
-  if(prevRecord.length > 0) throw new ApiError(400, `Record already exists`)
-
+  const prevRecord = await Internship.find({ student: studentid });
+  if (prevRecord.length > 0) throw new ApiError(400, `Record already exists`);
 
   if (type === "industrial" && (!company || !role)) {
-    throw new ApiError(400, "Company and Role are required for industrial internships!");
+    throw new ApiError(
+      400,
+      "Company and Role are required for industrial internships!"
+    );
   }
 
   if (type === "research" && !mentor) {
@@ -41,7 +35,10 @@ const addInternship = asyncHandler(async (req, res) => {
     }
     docUrl = uploadedDoc.url;
   } else if (location === "outside_bit" && !req.file) {
-    throw new ApiError(400, "Document is required for outside BIT internships!");
+    throw new ApiError(
+      400,
+      "Document is required for outside BIT internships!"
+    );
   }
 
   if (new Date(startDate) > new Date(endDate)) {
@@ -53,7 +50,8 @@ const addInternship = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Student not found!");
   }
 
-  if(student.isSummerAllocated) throw new ApiError(400, "Student already has a project alloted.")
+  if (student.isSummerAllocated)
+    throw new ApiError(400, "Student already has a project alloted.");
 
   const createdInternship = await Internship.create({
     student: studentid,
@@ -80,47 +78,119 @@ const addInternship = asyncHandler(async (req, res) => {
 
   return res
     .status(201)
-    .json(new ApiResponse(201, createdInternship, "Internship record created successfully!"));
+    .json(
+      new ApiResponse(
+        201,
+        createdInternship,
+        "Internship record created successfully!"
+      )
+    );
 });
 
-const addInternDocs = asyncHandler(async(req, res) => {
-    const {_id} = req.body
-    const internRecord = await Internship.findById(_id)
-    if(!internRecord)
-    throw new ApiError(404, "Intern Record not found")
-    const InternDocsLocalPath = req.files?.doc[0]?.path
-    console.log("intern doc path", InternDocsLocalPath)
-    if(!InternDocsLocalPath)
-    throw new ApiError(400, "Document is neccesary")
-    const InternDocs = await uploadOnCloudinary(InternDocsLocalPath)
-    if(!InternDocs){
-        throw new ApiError(400, "Not uploaded on Closuinary. something went wrong")
-    }
-    const newInternRecord = await Internship.updateOne({_id}, {$set: {doc: InternDocs.url}})
-    res.status(200).json(new ApiResponse(200, newInternRecord, "Document added successfully"))
-})
+const addInternDocs = asyncHandler(async (req, res) => {
+  const { _id } = req.body;
+  const internRecord = await Internship.findById(_id);
+  if (!internRecord) throw new ApiError(404, "Intern Record not found");
+  const InternDocsLocalPath = req.files?.doc[0]?.path;
+  console.log("intern doc path", InternDocsLocalPath);
+  if (!InternDocsLocalPath) throw new ApiError(400, "Document is neccesary");
+  const InternDocs = await uploadOnCloudinary(InternDocsLocalPath);
+  if (!InternDocs) {
+    throw new ApiError(400, "Not uploaded on Closuinary. something went wrong");
+  }
+  const newInternRecord = await Internship.updateOne(
+    { _id },
+    { $set: { doc: InternDocs.url } }
+  );
+  res
+    .status(200)
+    .json(new ApiResponse(200, newInternRecord, "Document added successfully"));
+});
 
-const getAllInternshipData = asyncHandler(async(req, res) => {
-    const response = await Internship.find({verified: false}).populate('student')
-    res.status(200).json(new ApiResponse(200, {response}, "All Intern Data fetched"))
-})
+const getAllInternshipData = asyncHandler(async (req, res) => {
+  const { batch } = req.body; // Extract batch from request body
 
-const getAllVerifiedInternshipData = asyncHandler(async(req, res) => {
-  const response = await Internship.find().populate('student').populate('company').populate('mentor')
-  res.status(200).json(new ApiResponse(200, {response}, "All Intern Data fetched"))
-})
+  if (!batch) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, null, "Batch is required."));
+  }
 
-const getInternshipDataforStudent = asyncHandler(async(req, res) => {
-    const {student_id} = req.body
-    const response = await Internship.find({student: student_id}, {verfied: true}).populate('student').populate('company')
-    res.status(200).json(new ApiResponse(200, {response}, "All Intern Data fetched"))
-})
+  const response = await Internship.find({ verified: false }).populate({
+    path: "student",
+    select: "batch", // Include batch in selection
+    match: { batch }, // Filter by batch
+  });
 
-const verifyIntern = asyncHandler(async(req, res) => {
-  const {internid} = req.body
-  const intern = await Internship.findById({_id: internid})
+  const filteredResponse = response.filter((intern) => intern.student !== null);
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { response: filteredResponse },
+        "All Intern Data fetched"
+      )
+    );
+});
+
+const getAllVerifiedInternshipData = asyncHandler(async (req, res) => {
+  const { batch } = req.body; // Extract batch from request body
+
+  if (!batch) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, null, "Batch is required."));
+  }
+
+  const response = await Internship.find()
+    .populate({
+      path: "student",
+      select: "batch", // Include batch in selection
+      match: { batch }, // Filter by batch
+    })
+    .populate("company")
+    .populate("mentor");
+
+  const filteredResponse = response.filter((intern) => intern.student !== null);
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { response: filteredResponse },
+        "All Verified Intern Data fetched"
+      )
+    );
+});
+
+const getInternshipDataforStudent = asyncHandler(async (req, res) => {
+  const { student_id } = req.body;
+  const response = await Internship.find(
+    { student: student_id },
+    { verfied: true }
+  )
+    .populate("student")
+    .populate("company");
+  res
+    .status(200)
+    .json(new ApiResponse(200, { response }, "All Intern Data fetched"));
+});
+
+const verifyIntern = asyncHandler(async (req, res) => {
+  const { internid } = req.body;
+  const intern = await Internship.findById({ _id: internid });
   intern.verified = true;
-  await intern.save()
-  res.status(200).json(new ApiResponse(200, "Verified Successfully"))
-})
-export {addInternship, addInternDocs, getAllInternshipData, getInternshipDataforStudent, verifyIntern, getAllVerifiedInternshipData}
+  await intern.save();
+  res.status(200).json(new ApiResponse(200, "Verified Successfully"));
+});
+export {
+  addInternDocs,
+  addInternship,
+  getAllInternshipData,
+  getAllVerifiedInternshipData,
+  getInternshipDataforStudent,
+  verifyIntern,
+};

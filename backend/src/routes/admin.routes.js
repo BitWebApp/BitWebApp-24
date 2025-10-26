@@ -1,6 +1,5 @@
 import { Router } from "express";
-import { upload } from "../middlewares/multer.middleware.js";
-import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
+import {  verifyAdmin } from "../middlewares/auth.middleware.js";
 import {
   getUnverifiedUsers,
   loginAdmin,

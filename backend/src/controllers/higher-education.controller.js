@@ -1,8 +1,8 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js";
 import { HigherEducation } from "../models/higher-education.model.js";
 import { User } from "../models/user.model.js";
-import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/Cloudinary.js";
+import { ApiError } from "../utils/ApiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 
 const createHigherEducation = asyncHandler(async (req, res) => {
   const { institution, degree, fieldOfStudy, startDate, endDate } = req.body;
@@ -11,13 +11,15 @@ const createHigherEducation = asyncHandler(async (req, res) => {
   }
 
   const docsURL = [];
-  const isDup=await HigherEducation.findOne({
-    name:req.user._id,
-    institution: { $regex: new RegExp(`^${institution}$`, 'i') },
-    degree:{ $regex: new RegExp(`^${degree}$`, 'i') }
-  })
+  const isDup = await HigherEducation.findOne({
+    name: req.user._id,
+    institution: { $regex: new RegExp(`^${institution}$`, "i") },
+    degree: { $regex: new RegExp(`^${degree}$`, "i") },
+  });
 
-  if(isDup) {throw new Error("exam exists already!")}
+  if (isDup) {
+    throw new Error("exam exists already!");
+  }
   for (const file of req.files) {
     try {
       const cloudinaryResponse = await uploadOnCloudinary(file.path);
@@ -39,20 +41,24 @@ const createHigherEducation = asyncHandler(async (req, res) => {
     docs: docsURL,
   });
 
-  await User.findByIdAndUpdate(req.user._id, { $push: { higherEd: higherEducation._id } });
+  await User.findByIdAndUpdate(req.user._id, {
+    $push: { higherEd: higherEducation._id },
+  });
 
-  res.status(201).json({ 
-    success: true, 
-    data: higherEducation 
+  res.status(201).json({
+    success: true,
+    data: higherEducation,
   });
 });
 
 const getHigherEducations = asyncHandler(async (req, res) => {
-  const higherEducations = await HigherEducation.find({name: req.user._id}).populate('name', 'rollNumber fullName');
+  const higherEducations = await HigherEducation.find({
+    name: req.user._id,
+  }).populate("name", "rollNumber fullName");
 
-  res.status(200).json({ 
-    success: true, 
-    data: higherEducations 
+  res.status(200).json({
+    success: true,
+    data: higherEducations,
   });
 });
 
@@ -60,7 +66,7 @@ const getHigherEducations = asyncHandler(async (req, res) => {
 //   const { id } = req.params;
 
 //   try {
-//     const deletedHigherEducation = await HigherEducation.findByIdAndDelete(id);  
+//     const deletedHigherEducation = await HigherEducation.findByIdAndDelete(id);
 
 //     if(!deletedHigherEducation){
 //       throw new ApiError(404, "Higher Education not found")
@@ -92,28 +98,45 @@ const getHigherEducations = asyncHandler(async (req, res) => {
 
 // });
 
-const getHigherEducationById = asyncHandler(async (req, res)=>{
+const getHigherEducationById = asyncHandler(async (req, res) => {
   const higherEducation = await HigherEducation.findById(req.params.id);
 
-  if(!higherEducation){
+  if (!higherEducation) {
     throw new ApiError(404, "Higher Education not found");
   }
 
   res.status(200).json({
     success: true,
-    data: higherEducation
-  })
-});
-
-const getAllHigherEducations = asyncHandler(async (req, res)=>{
-  const higherEducations = await HigherEducation.find().populate('name', 'rollNumber fullName');
-
-  res.status(200).json({
-    success: true,
-    data: higherEducations
+    data: higherEducation,
   });
 });
 
+const getAllHigherEducations = asyncHandler(async (req, res) => {
+  const { batch } = req.body; // Extract batch from request body
+
+  if (!batch) {
+    return res.status(400).json({
+      success: false,
+      message: "Batch is required.",
+    });
+  }
+
+  const higherEducations = await HigherEducation.find().populate({
+    path: "name",
+    select: "rollNumber fullName batch", // Include batch in selection
+    match: { batch }, // Filter by batch
+  });
+
+  // Filter out records where name does not match the batch
+  const filteredHigherEducations = higherEducations.filter(
+    (edu) => edu.name !== null
+  );
+
+  res.status(200).json({
+    success: true,
+    data: filteredHigherEducations,
+  });
+});
 
 // const updateHigherEducation = asyncHandler(async (req, res)=>{
 //   const { id } = req.params;
@@ -172,11 +195,9 @@ const getAllHigherEducations = asyncHandler(async (req, res)=>{
 //   }
 // });
 
-export { 
-  createHigherEducation, 
-  getHigherEducations, 
+export {
+  createHigherEducation,
   getAllHigherEducations,
   getHigherEducationById,
-  // updateHigherEducation,
-  // deleteHigherEducation 
+  getHigherEducations,
 };

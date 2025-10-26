@@ -1,25 +1,25 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js";
-import { User } from "../models/user.model.js";
-import { uploadOnCloudinary } from "../utils/Cloudinary.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
-import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
-import { Admin } from "../models/admin.model.js";
 import nodemailer from "nodemailer";
+import { Admin } from "../models/admin.model.js";
 import { Minor } from "../models/minor.model.js";
+import { User } from "../models/user.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const getUnverifiedUsers = asyncHandler(async (req, res) => {
-    const users = await User.find({ isVerified: false }).select(
-      "-password -refreshToken"
-    );
-    const us = users.map((user) => ({
-      _id: user._id,
-      name: user.name,
-      rollNumer: user.rollNumber,
-      idCard: user.idCard,
-    }));
-    return res.status(200).json(new ApiResponse(200, us, "All unverified users fetched"));
+  const users = await User.find({ isVerified: false }).select(
+    "-password -refreshToken"
+  );
+  const us = users.map((user) => ({
+    _id: user._id,
+    name: user.name,
+    rollNumer: user.rollNumber,
+    idCard: user.idCard,
+  }));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, us, "All unverified users fetched"));
 });
 
 const verifyUser = asyncHandler(async (req, res) => {
@@ -227,7 +227,7 @@ const getCurrendAdmin = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, admin, "admin fetched"));
 });
 
-import { Otp } from "../models/otp.model.js"; 
+import { Otp } from "../models/otp.model.js";
 
 export const rejectUser = asyncHandler(async (req, res) => {
   const { userId, reason } = req.body;
@@ -245,7 +245,7 @@ export const rejectUser = asyncHandler(async (req, res) => {
     if (!user) {
       throw new ApiError(404, "User not found");
     }
-    
+
     const email = user.email;
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -325,13 +325,15 @@ export const rejectUser = asyncHandler(async (req, res) => {
     });
 
     await User.findByIdAndDelete(userId);
-    try{
+    try {
       await Otp.findOneAndDelete({ email });
-    }catch(error){
+    } catch (error) {
       console.log("no otp, ok!");
     }
 
-    return res.json(new ApiResponse(200, "User rejected and deleted successfully"));
+    return res.json(
+      new ApiResponse(200, "User rejected and deleted successfully")
+    );
   } catch (error) {
     throw new ApiError(500, "Something went wrong while rejecting user");
   }
@@ -339,6 +341,12 @@ export const rejectUser = asyncHandler(async (req, res) => {
 
 const getAllMinorProjects = asyncHandler(async (req, res) => {
   try {
+    const { batch } = req.body; // Extract batch from request body
+
+    if (!batch) {
+      throw new ApiError(400, "Batch is required"); // Throw error if batch is not provided
+    }
+
     // Fetch all minor project groups with populated data
     const minorProjects = await Minor.find()
       .populate({
@@ -346,28 +354,41 @@ const getAllMinorProjects = asyncHandler(async (req, res) => {
         select: "fullName rollNumber email branch section marks.minorProject",
       })
       .populate({
-        path: "leader", 
-        select: "fullName rollNumber email branch section marks.minorProject",
+        path: "leader",
+        select:
+          "fullName rollNumber email branch section marks.minorProject batch", // Include batch in leader selection
+        match: { batch }, // Filter by batch
       })
       .populate({
         path: "minorAllocatedProf",
         select: "idNumber fullName email",
       });
 
+    // Filter out projects where leader does not match the batch
+    const filteredProjects = minorProjects.filter(
+      (project) => project.leader !== null
+    );
+
     // Format the data to match the frontend table structure
     const formattedData = {
-      response: []
+      response: [],
     };
 
     // Process each minor project group
-    minorProjects.forEach(project => {
+    filteredProjects.forEach((project) => {
       // Combine leader and members for the frontend display
-      const allMembers = project.leader 
-        ? [project.leader, ...project.members.filter(member => member._id.toString() !== project.leader._id.toString())]
+      const allMembers = project.leader
+        ? [
+            project.leader,
+            ...project.members.filter(
+              (member) =>
+                member._id.toString() !== project.leader._id.toString()
+            ),
+          ]
         : project.members;
 
       // Create entries for each member
-      allMembers.forEach(member => {
+      allMembers.forEach((member) => {
         formattedData.response.push({
           student: {
             rollNumber: member.rollNumber,
@@ -376,32 +397,40 @@ const getAllMinorProjects = asyncHandler(async (req, res) => {
             branch: member.branch,
             section: member.section,
             marks: {
-              minorProject: member.marks?.minorProject || 0
-            }
+              minorProject: member.marks?.minorProject || 0,
+            },
           },
           groupId: project.groupId,
-          mentor: project.minorAllocatedProf ? {
-            idNumber: project.minorAllocatedProf.idNumber,
-            fullName: project.minorAllocatedProf.fullName
-          } : null
+          mentor: project.minorAllocatedProf
+            ? {
+                idNumber: project.minorAllocatedProf.idNumber,
+                fullName: project.minorAllocatedProf.fullName,
+              }
+            : null,
         });
       });
     });
 
-    return res.status(200).json(
-      new ApiResponse(200, formattedData, "All minor projects fetched successfully")
-    );
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          formattedData,
+          "All minor projects fetched successfully"
+        )
+      );
   } catch (error) {
     throw new ApiError(500, "Error fetching minor projects: " + error.message);
   }
 });
 
 export {
+  getAllMinorProjects,
+  getCurrendAdmin,
   getUnverifiedUsers,
-  verifyUser,
-  registerAdmin,
   loginAdmin,
   logoutAdmin,
-  getCurrendAdmin,
-  getAllMinorProjects
+  registerAdmin,
+  verifyUser,
 };
