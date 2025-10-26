@@ -89,7 +89,7 @@ const getStudentAcademicRecords = asyncHandler(async (req, res) => {
 
 const getAdminAcademicRecords = asyncHandler(async (req, res) => {
   try {
-    const { batch } = req.body; // Extract batch from request body
+    const { batch } = req.query; // Extract batch from request body
 
     if (!batch) {
       return res

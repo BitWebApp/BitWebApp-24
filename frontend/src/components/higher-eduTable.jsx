@@ -6,11 +6,16 @@ const HigherEduTable = () => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [sortConfigs, setSortConfigs] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [batch, setBatch] = useState(2023)
 
   useEffect(() => {
     const fetchHigherEducations = async () => {
       try {
-        const response = await axios.get("/api/v1/higher-education/all");
+        const response = await axios.get("/api/v1/higher-education/all",{
+          params:{
+            batch
+          }
+        });
         setHigherEducations(response.data.data);
       } catch (error) {
         console.error("Error fetching higher educations:", error);
@@ -18,7 +23,7 @@ const HigherEduTable = () => {
     };
 
     fetchHigherEducations();
-  }, [sortConfigs]); // Re-fetch data when sort configs change
+  }, [sortConfigs, batch]); // Re-fetch data when sort configs change
 
   const handleRowSelect = (id) => {
     const selectedIndex = selectedRows.indexOf(id);

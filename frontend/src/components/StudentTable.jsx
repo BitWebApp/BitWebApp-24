@@ -11,12 +11,16 @@ const StudentTable = () => {
     search: "",
   });
   const [sortConfig, setSortConfig] = useState({ key: "rollNumber", direction: "ascending" });
-
+  const [batch, setBatch] = useState(2023)
   useEffect(() => {
     const fetchStudents = async () => {
       try {
         // Optional: Modify the backend to handle filtering and sorting
-        const response = await axios.get("/api/v1/users/get-all-users");
+        const response = await axios.get("/api/v1/users/get-all-users",{
+          params:{
+            batch
+          }
+        });
         console.log(response)
         setStudents(response.data.data.users);
       } catch (error) {
@@ -25,7 +29,7 @@ const StudentTable = () => {
     };
 
     fetchStudents();
-  }, []);
+  }, [batch]);
 
   const handleRowSelect = (id) => {
     const selectedIndex = selectedRows.indexOf(id);

@@ -7,10 +7,11 @@ export default function AlumniTable() {
   const [error, setError] = useState("");
   const [selectedWorkExperience, setSelectedWorkExperience] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [batch, setBatch] = useState(2023);
 
   useEffect(() => {
     fetchAlumniData();
-  }, []);
+  }, [batch]);
 
   const fetchAlumniData = async () => {
     try {
@@ -21,6 +22,9 @@ export default function AlumniTable() {
           'Content-Type': 'application/json',
           // If you're using token in Authorization header
           'Authorization': `Bearer ${localStorage.getItem('token')}` // adjust based on how you store the token
+        },
+        params:{
+          batch
         }
       });
 
@@ -178,3 +182,6 @@ export default function AlumniTable() {
     </div>
   );
 }
+
+
+// Saquib

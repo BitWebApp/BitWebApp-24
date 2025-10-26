@@ -6,15 +6,20 @@ import ExcelJS from "exceljs";
 export default function PlacementTable() {
   const [placementData, setPlacementData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [batch, setBatch] = useState(2023)
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [batch]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("/api/v1/users/placementDetails");
+      const response = await axios.get("/api/v1/users/placementDetails",{
+        params:{
+          batch
+        }
+      });
       setPlacementData(response.data.data);
     } catch (error) {
       console.error("Error fetching placement data:", error);

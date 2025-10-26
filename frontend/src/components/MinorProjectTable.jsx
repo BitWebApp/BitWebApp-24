@@ -14,14 +14,19 @@ export default function MinorProjectTable() {
   });
   const [sectionOptions, setSectionOptions] = useState([]);
   const [branchOptions, setBranchOptions] = useState([]);
+  const [batch, setBatch] = useState(2023);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [batch]);
 
   const fetchData = async () => {
     try {
-      const response = await axios.get("/api/v1/admin/get-minor-projects");
+      const response = await axios.get("/api/v1/admin/get-minor-projects",{
+        params:{
+          batch
+        }
+      });
       console.log(response);
       setProjectData(response.data.data.response);
       setFilteredData(response.data.data.response);

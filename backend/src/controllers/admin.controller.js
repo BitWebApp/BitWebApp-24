@@ -341,7 +341,7 @@ export const rejectUser = asyncHandler(async (req, res) => {
 
 const getAllMinorProjects = asyncHandler(async (req, res) => {
   try {
-    const { batch } = req.body; // Extract batch from request body
+    const { batch } = req.query; // Extract batch from request body
 
     if (!batch) {
       throw new ApiError(400, "Batch is required"); // Throw error if batch is not provided

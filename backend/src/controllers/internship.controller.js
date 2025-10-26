@@ -108,7 +108,7 @@ const addInternDocs = asyncHandler(async (req, res) => {
 });
 
 const getAllInternshipData = asyncHandler(async (req, res) => {
-  const { batch } = req.body; // Extract batch from request body
+  const { batch } = req.query; // Extract batch from request body
 
   if (!batch) {
     return res
@@ -136,7 +136,7 @@ const getAllInternshipData = asyncHandler(async (req, res) => {
 });
 
 const getAllVerifiedInternshipData = asyncHandler(async (req, res) => {
-  const { batch } = req.body; // Extract batch from request body
+  const { batch } = req.query; // Extract batch from request body
 
   if (!batch) {
     return res

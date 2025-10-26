@@ -133,7 +133,7 @@ const getWorkExperiences = asyncHandler(async (req, res) => {
 // Get all alumni (admin only)
 const getAllAlumni = asyncHandler(async (req, res) => {
   try {
-    const { batch } = req.body; // Extract batch from request body
+    const { batch } = req.query; // Extract batch from request body
 
     if (!batch) {
       return res

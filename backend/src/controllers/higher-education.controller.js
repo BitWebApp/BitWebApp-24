@@ -112,7 +112,7 @@ const getHigherEducationById = asyncHandler(async (req, res) => {
 });
 
 const getAllHigherEducations = asyncHandler(async (req, res) => {
-  const { batch } = req.body; // Extract batch from request body
+  const { batch } = req.query; // Extract batch from request body
 
   if (!batch) {
     return res.status(400).json({
