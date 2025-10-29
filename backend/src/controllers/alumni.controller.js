@@ -1,9 +1,9 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
+import nodemailer from "nodemailer";
 import { Alumni } from "../models/alumni.model.js";
 import { User } from "../models/user.model.js";
-import nodemailer from "nodemailer";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 // Create alumni profile
 const createAlumni = asyncHandler(async (req, res) => {
@@ -29,7 +29,7 @@ const createAlumni = asyncHandler(async (req, res) => {
     batch,
     program,
     branch: user.branch,
-    hasSubmittedForm: true
+    hasSubmittedForm: true,
   });
 
   return res
@@ -42,12 +42,18 @@ const getAlumniStatus = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   // console.log("Print user", req.user);
 
-  const alumni = await Alumni.findOne({ user: userId }).select("hasSubmittedForm");
+  const alumni = await Alumni.findOne({ user: userId }).select(
+    "hasSubmittedForm"
+  );
 
   return res.status(200).json(
-    new ApiResponse(200, {
-      hasSubmittedForm: alumni?.hasSubmittedForm || false
-    }, "Alumni status retrieved successfully")
+    new ApiResponse(
+      200,
+      {
+        hasSubmittedForm: alumni?.hasSubmittedForm || false,
+      },
+      "Alumni status retrieved successfully"
+    )
   );
 });
 
@@ -77,7 +83,7 @@ const addWorkExperience = asyncHandler(async (req, res) => {
     company,
     role,
     startDate: new Date(startDate),
-    isCurrentlyWorking
+    isCurrentlyWorking,
   };
 
   if (!isCurrentlyWorking && endDate) {
@@ -96,8 +102,9 @@ const addWorkExperience = asyncHandler(async (req, res) => {
 const getWorkExperiences = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
-  const alumni = await Alumni.findOne({ user: userId })
-    .select("workExperiences hasSubmittedForm");
+  const alumni = await Alumni.findOne({ user: userId }).select(
+    "workExperiences hasSubmittedForm"
+  );
 
   if (!alumni) {
     throw new ApiError(404, "Alumni profile not found");
@@ -114,30 +121,39 @@ const getWorkExperiences = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(
-      200,
-      sortedExperiences,
-      "Work experiences retrieved successfully"
-    ));
+    .json(
+      new ApiResponse(
+        200,
+        sortedExperiences,
+        "Work experiences retrieved successfully"
+      )
+    );
 });
-
 
 // Get all alumni (admin only)
 const getAllAlumni = asyncHandler(async (req, res) => {
   try {
+    const { batch } = req.query; // Extract batch from request body
+
+    if (!batch) {
+      return res
+        .status(400)
+        .json(new ApiResponse(400, null, "Batch is required."));
+    }
+
     // Remove .lean() to preserve the full document structure
-    const alumni = await Alumni.find()
+    const alumni = await Alumni.find({ batch }) // Filter by batch
       .populate("user", "email")
       .select("-__v");
 
     if (!alumni || alumni.length === 0) {
       return res
-        .status(200)  // Changed from 404 to 200 since it's not an error case
+        .status(200) // Changed from 404 to 200 since it's not an error case
         .json(new ApiResponse(200, [], "No Alumni Records Found"));
     }
 
     // Format the response for admin view
-    const formattedAlumni = alumni.map(record => {
+    const formattedAlumni = alumni.map((record) => {
       // Convert to plain object while preserving arrays
       const plainRecord = record.toObject();
 
@@ -145,22 +161,24 @@ const getAllAlumni = asyncHandler(async (req, res) => {
         ...plainRecord,
         workExperiences: plainRecord.workExperiences
           ? plainRecord.workExperiences.sort(
-            (a, b) => new Date(b.startDate) - new Date(a.startDate)
-          )
+              (a, b) => new Date(b.startDate) - new Date(a.startDate)
+            )
           : [],
         totalExperiences: plainRecord.workExperiences
           ? plainRecord.workExperiences.length
-          : 0
+          : 0,
       };
     });
 
     return res
       .status(200)
-      .json(new ApiResponse(
-        200,
-        formattedAlumni,
-        "All alumni records retrieved successfully"
-      ));
+      .json(
+        new ApiResponse(
+          200,
+          formattedAlumni,
+          "All alumni records retrieved successfully"
+        )
+      );
   } catch (error) {
     console.error("Error in getAllAlumni:", error);
     throw new ApiError(500, error.message || "Error retrieving alumni records");
@@ -172,7 +190,7 @@ const sendDonationEmail = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
   const alumni = await Alumni.findOne({ user: userId })
-    .populate('user', 'email')
+    .populate("user", "email")
     .exec();
 
   if (!alumni) {
@@ -189,8 +207,8 @@ const sendDonationEmail = asyncHandler(async (req, res) => {
     service: "gmail",
     auth: {
       user: process.env.AUTH_EMAIL,
-      pass: process.env.AUTH_PASSWORD
-    }
+      pass: process.env.AUTH_PASSWORD,
+    },
   });
 
   const mailOptions = {
@@ -269,7 +287,9 @@ const sendDonationEmail = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, null, "Donation interest email sent successfully"));
+    .json(
+      new ApiResponse(200, null, "Donation interest email sent successfully")
+    );
 });
 
 // Get alumni profile
@@ -277,7 +297,7 @@ const getAlumniProfile = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
   const alumni = await Alumni.findOne({ user: userId })
-    .populate('user', 'email')
+    .populate("user", "email")
     .exec();
 
   if (!alumni) {
@@ -286,15 +306,17 @@ const getAlumniProfile = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, alumni, "Alumni profile retrieved successfully"));
+    .json(
+      new ApiResponse(200, alumni, "Alumni profile retrieved successfully")
+    );
 });
 
 export {
-  createAlumni,
-  getAlumniStatus,
   addWorkExperience,
-  getWorkExperiences,
+  createAlumni,
   getAllAlumni,
+  getAlumniProfile,
+  getAlumniStatus,
+  getWorkExperiences,
   sendDonationEmail,
-  getAlumniProfile
 };
