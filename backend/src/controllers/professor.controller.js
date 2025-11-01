@@ -207,7 +207,7 @@ const addProf = asyncHandler(async (req, res) => {
 // });
 
 const getProf = asyncHandler(async (req, res) => {
-  const professors = await Professor.find();
+  const professors = await Professor.find().select("-password -_id");
   res
     .status(200)
     .json(

@@ -38,6 +38,14 @@ const createGroup = asyncHandler(async (req, res) => {
 const addMember = asyncHandler(async (req, res) => {
   const loggedIn = req?.user?._id;
   const { rollNumber, groupId } = req.body;
+
+  if(req.user.batch == 23) {
+    return res.status(403).json({
+      success: false,
+      message: "Students of batch 2023 are not allowed to form minor groups.",
+    });
+  }
+
   console.log(groupId);
   const group = await Minor.findById({ _id: groupId });
   if (!group) {
@@ -175,6 +183,14 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   const loggedIn = req?.user?._id;
   const { facultyId } = req.body;
   const userId = req?.user?._id;
+
+  if(req.user.batch == 23) {
+    return res.status(403).json({
+      success: false,
+      message: "Students of batch 2023 are not allowed to apply to faculty for minor project.",
+    });
+  }
+
   console.log("Applying to faculty", facultyId);
   const user = await User.findById(userId);
   if (!user) {
@@ -454,6 +470,11 @@ const addMarks = asyncHandler(async (req, res) => {
   console.log(userId, marks);
   const user = await User.findById(userId).select("fullName rollNumber marks");
   if (!user) throw new ApiError(404, "User not found");
+  // 
+  if(user.marks.minorProject > 0){
+    throw new ApiError(400, "Marks already added");
+  }
+  // 
   user.marks.minorProject = marks;
   await user.save();
   return res

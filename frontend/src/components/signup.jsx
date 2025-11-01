@@ -61,6 +61,7 @@ export default function Signup() {
     }
     setSpin(true);
     try {
+      const batch = parseInt(rollnumber.split("/")[2], 10);
       const formData = new FormData();
       formData.append("email", email);
       formData.append("username", username);
@@ -69,6 +70,7 @@ export default function Signup() {
       formData.append("rollNumber", rollnumber);
       formData.append("idCard", idcard);
       formData.append("usrOTP", otp);
+      formData.append("batch", batch);
 
       const response = await axios.post("/api/v1/users/register", formData, {
         headers: {
@@ -77,7 +79,6 @@ export default function Signup() {
         },
       });
 
-      console.log(response.data);
       toast.success("Signup successful! Login using same credentials.");
       setTimeout(() => {
         navigate("/log");

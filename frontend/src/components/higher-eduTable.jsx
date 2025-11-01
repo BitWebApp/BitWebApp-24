@@ -1,16 +1,21 @@
-import React, { useState, useEffect } from "react";
 import axios from "axios";
 import ExcelJS from "exceljs";
+import { useEffect, useState } from "react";
 const HigherEduTable = () => {
   const [higherEducations, setHigherEducations] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
   const [sortConfigs, setSortConfigs] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [batch, setBatch] = useState(23);
 
   useEffect(() => {
     const fetchHigherEducations = async () => {
       try {
-        const response = await axios.get("/api/v1/higher-education/all");
+        const response = await axios.get("/api/v1/higher-education/all", {
+          params: {
+            batch,
+          },
+        });
         setHigherEducations(response.data.data);
       } catch (error) {
         console.error("Error fetching higher educations:", error);
@@ -18,7 +23,7 @@ const HigherEduTable = () => {
     };
 
     fetchHigherEducations();
-  }, [sortConfigs]); // Re-fetch data when sort configs change
+  }, [sortConfigs, batch]); // Re-fetch data when sort configs change
 
   const handleRowSelect = (id) => {
     const selectedIndex = selectedRows.indexOf(id);
@@ -110,7 +115,7 @@ const HigherEduTable = () => {
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Higher Education Records");
-  
+
     worksheet.columns = [
       { header: "Institution", key: "institution", width: 25 },
       { header: "Degree", key: "degree", width: 20 },
@@ -119,13 +124,13 @@ const HigherEduTable = () => {
       { header: "End Date", key: "endDate", width: 15 },
       { header: "Supporting Docs", key: "docs", width: 30 },
     ];
-  
+
     worksheet.getRow(1).eachCell((cell) => {
       cell.font = { bold: true, color: { argb: "FFFFFF" } };
       cell.fill = {
         type: "pattern",
         pattern: "solid",
-        fgColor: { argb: "4472C4" }, 
+        fgColor: { argb: "4472C4" },
       };
       cell.alignment = { horizontal: "center", vertical: "middle" };
       cell.border = {
@@ -135,7 +140,7 @@ const HigherEduTable = () => {
         right: { style: "thin" },
       };
     });
-  
+
     filteredHigherEducations.forEach((record, index) => {
       const row = worksheet.addRow({
         institution: record.institution,
@@ -145,7 +150,7 @@ const HigherEduTable = () => {
         endDate: record.endDate.substring(0, 10),
         docs: record.docs.join(", "),
       });
-  
+
       if (index % 2 === 0) {
         row.eachCell((cell) => {
           cell.fill = {
@@ -155,7 +160,7 @@ const HigherEduTable = () => {
           };
         });
       }
-  
+
       row.eachCell((cell) => {
         cell.border = {
           top: { style: "thin" },
@@ -165,7 +170,7 @@ const HigherEduTable = () => {
         };
       });
     });
-  
+
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -190,6 +195,20 @@ const HigherEduTable = () => {
         onChange={(e) => setSearchQuery(e.target.value)}
         className="mb-4 px-4 py-2 border rounded"
       />
+      {/* Batch Filter */}
+      <select
+        name="batch"
+        value={batch}
+        onChange={(e) => setBatch(e.target.value)}
+        className="px-4 py-2 border rounded min-w-[150px]"
+      >
+        <option value="">All Batches</option>
+        {[22, 23, 24, 25, 26].map((batchOption) => (
+          <option key={batchOption} value={batchOption}>
+            Batch {batchOption}
+          </option>
+        ))}
+      </select>
       <button
         onClick={exportToExcel}
         className="mb-4 mx-4 p-2 bg-blue-500 text-white rounded"

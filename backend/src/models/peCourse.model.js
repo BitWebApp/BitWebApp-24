@@ -15,6 +15,11 @@ const peCourseSchema = new Schema(
       type: String,
       required: true,
     },
+    batch: {
+      type: Number,
+      required: [true, "Batch is required"],
+      index: true,
+    },
     type: {
       type: String,
       enum: ['pe4', 'pe5'],
@@ -30,6 +35,6 @@ const peCourseSchema = new Schema(
   { timestamps: true }
 );
 
-peCourseSchema.index({ courseCode: 1, branch: 1 }, { unique: true });
+peCourseSchema.index({ courseCode: 1, branch: 1, batch: 1 }, { unique: true });
 
 export const PeCourse = mongoose.model('PeCourse', peCourseSchema);

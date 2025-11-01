@@ -5,11 +5,13 @@ import { saveAs } from 'file-saver';
 
 const PEAdminTable = () => {
   const [studentsMap, setStudentsMap] = useState([]);
+  const [batch, setBatch] = useState('');
 
   useEffect(() => {
-    const fetchPeCourses = async () => {
+    const fetchPeCourses = async (batchParam = '') => {
       try {
-        const response = await axios.get('/api/v1/pe/get-all');
+        const url = batchParam ? `/api/v1/pe/get-all?batch=${batchParam}` : '/api/v1/pe/get-all';
+        const response = await axios.get(url);
         if (response.data && response.data.data) {
           processStudentData(response.data.data);
         }
@@ -18,8 +20,24 @@ const PEAdminTable = () => {
       }
     };
 
-    fetchPeCourses();
+    fetchPeCourses(batch);
   }, []);
+
+  useEffect(() => {
+    // refetch when batch changes
+    const fetchOnBatchChange = async () => {
+      try {
+        const url = batch ? `/api/v1/pe/get-all?batch=${batch}` : '/api/v1/pe/get-all';
+        const response = await axios.get(url);
+        if (response.data && response.data.data) {
+          processStudentData(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching PE courses on batch change:', error);
+      }
+    };
+    fetchOnBatchChange();
+  }, [batch]);
 
   const processStudentData = (courses) => {
     const map = {};
@@ -84,6 +102,18 @@ const PEAdminTable = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Admin PE Course Records</h1>
+        <div className="flex items-center gap-3">
+          <label className="text-sm">Batch:</label>
+          <select
+            value={batch}
+            onChange={(e) => setBatch(e.target.value)}
+            className="border px-2 py-1 rounded"
+          >
+            <option value="">All</option>
+            <option value="2022">2022</option>
+            <option value="2023">2023</option>
+          </select>
+        </div>
         <button
           onClick={handleExport}
           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow"

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
 import axios from "axios";
+import ExcelJS from "exceljs";
+import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import ExcelJS from "exceljs";
 
 export default function MinorProjectTable() {
   const [projectData, setProjectData] = useState([]);
@@ -14,14 +14,19 @@ export default function MinorProjectTable() {
   });
   const [sectionOptions, setSectionOptions] = useState([]);
   const [branchOptions, setBranchOptions] = useState([]);
+  const [batch, setBatch] = useState(23);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [batch]);
 
   const fetchData = async () => {
     try {
-      const response = await axios.get("/api/v1/admin/get-minor-projects");
+      const response = await axios.get("/api/v1/admin/get-minor-projects", {
+        params: {
+          batch,
+        },
+      });
       console.log(response);
       setProjectData(response.data.data.response);
       setFilteredData(response.data.data.response);
@@ -55,9 +60,7 @@ export default function MinorProjectTable() {
     let data = projectData;
     if (filters.groupId) {
       data = data.filter((record) =>
-        record.groupId
-          .toLowerCase()
-          .includes(filters.groupId.toLowerCase())
+        record.groupId.toLowerCase().includes(filters.groupId.toLowerCase())
       );
     }
     if (filters.section) {
@@ -129,7 +132,11 @@ export default function MinorProjectTable() {
       { header: "Email", key: "email", width: maxEmailLength + 3 },
       { header: "Group ID", key: "groupId", width: maxGroupIdLength + 3 },
       { header: "Mentor", key: "mentor", width: maxMentorLength + 3 },
-      { header: "Minor Project Marks", key: "marks", width: maxMarksLength + 3 },
+      {
+        header: "Minor Project Marks",
+        key: "marks",
+        width: maxMarksLength + 3,
+      },
     ];
 
     // Style the header row
@@ -205,6 +212,18 @@ export default function MinorProjectTable() {
       </h1>
 
       <div className="mb-4">
+        <select
+          value={batch}
+          onChange={(e) => setBatch(Number(e.target.value))}
+          className="mr-2 p-2 border border-gray-300 rounded"
+        >
+          <option value="22">Batch 22</option>
+          <option value="23">Batch 23</option>
+          <option value="24">Batch 24</option>
+          <option value="25">Batch 25</option>
+          <option value="26">Batch 26</option>
+        </select>
+
         <input
           type="text"
           name="groupId"
