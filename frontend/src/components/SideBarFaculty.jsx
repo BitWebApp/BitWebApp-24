@@ -53,7 +53,7 @@ export default function Sidebar() {
     {
       text: "Major Project",
       icon: <HiPresentationChartLine />,
-      to: "/faculty-db/major-project",
+      to: "/faculty-db/accept-major-project",
     },
     {
       text: "Minor Project",

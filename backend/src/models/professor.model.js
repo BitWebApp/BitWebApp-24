@@ -73,7 +73,7 @@ const professorSchema = new Schema(
       major_project: [
         {
           type: Schema.Types.ObjectId,
-          ref: "Group",
+          ref: "Major",
         },
       ],
     },
@@ -93,7 +93,7 @@ const professorSchema = new Schema(
       major_project: [
         {
           type: Schema.Types.ObjectId,
-          ref: "Group",
+          ref: "Major",
         },
       ],
     },
