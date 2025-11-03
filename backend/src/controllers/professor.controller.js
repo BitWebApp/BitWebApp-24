@@ -13,6 +13,7 @@ import { Group } from "../models/group.model.js";
 import { Otp } from "../models/otp.model.js";
 import { Review } from "../models/review.model.js";
 import { Minor } from "../models/minor.model.js";
+import { Major } from "../models/major.model.js";
 const url = "https://bitacademia.vercel.app/faculty-login";
 
 const addProf = asyncHandler(async (req, res) => {
@@ -207,7 +208,7 @@ const addProf = asyncHandler(async (req, res) => {
 // });
 
 const getProf = asyncHandler(async (req, res) => {
-  const professors = await Professor.find().select("-password -_id");
+  const professors = await Professor.find().select("-password");
   res
     .status(200)
     .json(
@@ -1305,6 +1306,348 @@ const getMinorLimits = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, limitleft, "limit returned"));
 });
 
+const getMajorAppliedGroups = asyncHandler(async (req, res) => {
+  try {
+    const profId = req.professor._id;
+
+    // Fetch professor and populate appliedGroups.major_project
+    const professor = await Professor.findById(profId).populate({
+      path: "appliedGroups.major_project",
+      populate: {
+        path: "members",
+        select:
+          "fullName rollNumber email linkedin codingProfiles cgpa section branch image companyName",
+      },
+    });
+
+    if (!professor) {
+      throw new ApiError(404, "Professor not found!");
+    }
+    const groups = professor.appliedGroups.major_project || [];
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(200, groups, "Applied groups retrieved successfully!")
+      );
+  } catch (error) {
+    console.error(error);
+    throw new ApiError(
+      500,
+      "Something went wrong while getting applied groups!",
+      error.message
+    );
+  }
+});
+
+const selectMajorStudents = asyncHandler(async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const profId = req.professor._id;
+    const { selectedStudents } = req.body;
+    const professor = await Professor.findById(profId).session(session);
+    if (!professor) {
+      throw new ApiError(404, "Professor not found!");
+    }
+    const remainingCap =
+      professor.limits.major_project - professor.currentCount.major_project;
+    if (selectedStudents.length > remainingCap) {
+      throw new ApiError(
+        400,
+        `Cannot select more than ${remainingCap} students!`
+      );
+    }
+    const students = await User.find({
+      _id: { $in: selectedStudents },
+      majorAppliedProfs: profId,
+      isMajorAllocated: false,
+    }).session(session);
+    if (students.length !== selectedStudents.length) {
+      throw new ApiError(400, "Invalid student ID's provided!");
+    }
+    for (const student of students) {
+      student.isMajorAllocated = true;
+      student.majorAllocatedProf = profId;
+      student.majorAppliedProfs = student.majorAppliedProfs.filter(
+        (id) => id.toString() !== profId.toString()
+      );
+      await student.save({ session });
+    }
+    professor.students.major_project.push(...selectedStudents);
+    professor.currentCount.major_project += selectedStudents.length;
+    await professor.save({ session });
+    await session.commitTransaction();
+    res
+      .status(200)
+      .json(new ApiResponse(200, "Students selected successfully!", students));
+  } catch (error) {
+    await session.abortTransaction();
+    console.log(error);
+    throw new ApiError(
+      500,
+      "Something went wrong while selecting students!",
+      error.message
+    );
+  } finally {
+    session.endSession();
+  }
+});
+
+const getMajorAcceptedStudents = asyncHandler(async (req, res) => {
+  const profId = req.professor._id;
+  const professor = await Professor.findById(profId);
+  if (!professor) {
+    throw new ApiError(404, "Professor not found!");
+  }
+  const studentIds = professor.students.major_project;
+  const students = await User.find({
+    _id: { $in: studentIds },
+  });
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        "Accepted students retrieved successfully!",
+        students
+      )
+    );
+});
+
+const denyMajorGroup = asyncHandler(async (req, res) => {
+  const { _id } = req.body;
+  const profId = req?.professor?._id;
+  const group = await Major.findById({ _id });
+  if (!group) throw new ApiError(409, "Group not exists");
+  group.majorAppliedProfs.pull(profId);
+  const prof = await Professor.findById(profId);
+  prof.appliedGroups.major_project.pull(_id);
+  group.deniedProf.push(profId);
+  group.preferenceLastMovedAt = Date.now();
+  await group.save();
+  await prof.save();
+  if (group.majorAppliedProfs.length > 0) {
+    const profToApply = group.majorAppliedProfs[0];
+    const prof = await Professor.findById({ _id: profToApply });
+    prof.appliedGroups.major_project.push(_id);
+    await prof.save();
+  }
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, "Group denied and passed to next faculty in choice")
+    );
+});
+
+const acceptMajorGroup = asyncHandler(async (req, res) => {
+  const { _id } = req.body;
+  const profId = req?.professor?._id;
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const prof = await Professor.findById(profId).session(session);
+    const group = await Major.findById(_id).session(session);
+    if (!prof) {
+      throw new ApiError(404, "Professor not found");
+    }
+    if (!group) {
+      throw new ApiError(404, "Group not found");
+    }
+    const numOfMem = group.members.length;
+    if (
+      prof.currentCount.major_project + numOfMem >
+      prof.limits.major_project
+    ) {
+      throw new ApiError(
+        409,
+        "Limit will exceed, you cannot accept above the limit."
+      );
+    }
+    group.majorAllocatedProf = profId;
+    group.majorAppliedProfs = [];
+    await group.save({ session });
+    prof.currentCount.major_project += numOfMem;
+    prof.appliedGroups.major_project.pull(group._id);
+    prof.students.major_project.push(group._id);
+    await prof.save({ session });
+    await session.commitTransaction();
+    session.endSession();
+    return res.status(200).json(new ApiResponse(200, "Group accepted"));
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.log(error);
+    throw new ApiError(
+      500,
+      "Something went wrong while accepting group",
+      error.message
+    );
+  }
+});
+
+const acceptedMajorGroups = asyncHandler(async (req, res) => {
+  const profId = req?.professor?._id;
+  const professor = await Professor.findById(profId);
+
+  if (!professor) {
+    throw new ApiError(404, "Professor not found!");
+  }
+
+  const groupIds = professor.students.major_project;
+  const groups = await Major.find({ _id: { $in: groupIds } })
+    .populate("leader")
+    .populate("members")
+    .populate("majorAppliedProfs")
+    .populate("majorAllocatedProf")
+    .populate("deniedProf")
+    .populate({
+      path: "discussion.absent",
+    })
+    .populate({
+      path: "discussion.description",
+    });
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, "Accepted groups retrieved successfully!", groups)
+    );
+});
+
+const addMajorRemark = asyncHandler(async (req, res) => {
+  const { remark, _id, discussionId } = req.body;
+  const group = await Major.findById(_id);
+  if (!group) {
+    throw new ApiError(404, "Group not found");
+  }
+  const discussion = group.discussion.id(discussionId);
+  if (!discussion) {
+    throw new ApiError(404, "Discussion entry not found");
+  }
+  discussion.remark = remark;
+  await group.save();
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Remark added successfully!", group));
+});
+
+const groupMajorAttendance = asyncHandler(async (req, res) => {
+  const { absentees, _id, discussionId } = req.body;
+
+  const group = await Major.findById(_id);
+  if (!group) {
+    throw new ApiError(404, "Group not found");
+  }
+
+  const discussion = group.discussion.id(discussionId);
+  if (!discussion) {
+    throw new ApiError(404, "Discussion entry not found");
+  }
+
+  absentees.forEach((absenteeId) => {
+    if (!discussion.absent.includes(absenteeId)) {
+      discussion.absent.push(absenteeId);
+    }
+  });
+
+  await group.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Attendance updated successfully!", group));
+});
+
+const mergeMajorGroups = asyncHandler(async (req, res) => {
+  const { groupIds, rollNumber } = req.body;
+  const profId = req?.professor?._id;
+
+  if (!profId) {
+    throw new ApiError(401, "Professor not authenticated");
+  }
+
+  const prof = await Professor.findById({ _id: profId });
+  const groups = await Major.find({ _id: { $in: groupIds } });
+
+  if (!groups || groups.length === 0) {
+    throw new ApiError(404, "Groups not found");
+  }
+
+  const isValidProf = groups.every(
+    (group) => group.majorAllocatedProf?.toString() === profId.toString()
+  );
+
+  if (!isValidProf) {
+    throw new ApiError(
+      403,
+      "Not all groups are allocated to the current professor"
+    );
+  }
+
+  let allMembers = [];
+  groups.forEach((group) => {
+    allMembers = [...allMembers, ...group.members];
+  });
+
+  const uniqueMembers = Array.from(
+    new Set(allMembers.map((m) => m.toString()))
+  ).map((id) => allMembers.find((m) => m._id.toString() === id));
+
+  const leader = uniqueMembers.find(
+    (member) => member.rollNumber === rollNumber
+  );
+
+  if (!leader) {
+    throw new ApiError(
+      404,
+      "Leader with given roll number not found in merged groups"
+    );
+  }
+
+  await Major.deleteMany({ _id: { $in: groupIds } });
+
+  const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
+  const newGroup = new Major({
+    groupId: nanoid(),
+    leader: leader._id,
+    members: uniqueMembers,
+    majorAppliedProfs: [],
+    majorAllocatedProf: profId,
+  });
+
+  prof.students.major_project = prof.students.major_project.filter(
+    (group) => !groupIds.includes(group.toString())
+  );
+
+  prof.students.major_project.push(newGroup._id);
+
+  await prof.save();
+  await newGroup.save();
+
+  // For each student in the merged groups, update their group field to the new group object id
+  await User.updateMany(
+    { _id: { $in: uniqueMembers.map((member) => member._id) } },
+    { $set: { MajorGroup: newGroup._id } }
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Groups merged successfully!", newGroup));
+});
+
+const getMajorLimits = asyncHandler(async (req, res) => {
+  const profid = req?.professor?._id;
+  console.log(profid);
+  const prof = await Professor.findById({ _id: profid });
+  if (!prof) throw new ApiError(404, "Professor not found");
+  const currentCount = prof.currentCount.major_project;
+  const totalCount = prof.limits.major_project;
+  const limitleft = totalCount - currentCount;
+  return res
+    .status(200)
+    .json(new ApiResponse(200, limitleft, "limit returned"));
+});
+
 export {
   selectMinorStudents,
   getMinorLimits,
@@ -1316,6 +1659,18 @@ export {
   acceptMinorGroup,
   mergeMinorGroups,
   acceptedMinorGroups,
+  // Major project functions
+  selectMajorStudents,
+  getMajorLimits,
+  denyMajorGroup,
+  getMajorAppliedGroups,
+  addMajorRemark,
+  groupMajorAttendance,
+  getMajorAcceptedStudents,
+  acceptMajorGroup,
+  mergeMajorGroups,
+  acceptedMajorGroups,
+  // Other existing functions
   addProf,
   getProf,
   loginProf,

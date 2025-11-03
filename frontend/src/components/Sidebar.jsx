@@ -132,14 +132,24 @@ export default function Sidebar() {
     //   to: "/db/manage-group",
     // },
     {
-      text: "Apply to Profs",
+      text: "Apply to Minor",
       icon: <HiSun />,
       to: "/db/apply-minor",
     },
     {
-      text: "Manage Group",
+      text: "Apply to Major",
+      icon: <HiSun />,
+      to: "/db/apply-major",
+    },
+    // {
+    //   text: "Manage Minor Group",
+    //   icon: <HiUserGroup />,
+    //   to: "/db/manage-minor-group",
+    // },
+    {
+      text: "Manage Major Group",
       icon: <HiUserGroup />,
-      to: "/db/manage-minor-group",
+      to: "/db/manage-major-group",
     },
     // {
     //   text: "Professor Projects",

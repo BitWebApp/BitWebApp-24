@@ -69,6 +69,9 @@ app.use("/api/v1/group", groupRouter);
 import minorRouter from "./routes/minor.routes.js";
 app.use("/api/v1/minor", minorRouter);
 
+import majorRouter from "./routes/major.routes.js";
+app.use("/api/v1/major", majorRouter);
+
 import bugRouter from "./routes/bugtracker.routes.js";
 app.use("/api/v1/tracker", bugRouter);
 

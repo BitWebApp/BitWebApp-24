@@ -34,6 +34,16 @@ import {
   acceptMinorGroup,
   mergeMinorGroups,
   acceptedMinorGroups,
+  getMajorAppliedGroups,
+  getMajorAcceptedStudents,
+  denyMajorGroup,
+  acceptMajorGroup,
+  addMajorRemark,
+  groupMajorAttendance,
+  acceptedMajorGroups,
+  mergeMajorGroups,
+  getMajorLimits,
+  selectMajorStudents,
 } from "../controllers/professor.controller.js";
 
 const router = Router();
@@ -82,4 +92,21 @@ router.route("/minor/meet-attend").post(verifyProfessor, groupMinorAttendance);
 router.route("/minor/accepted-groups").get(verifyProfessor, acceptedMinorGroups);
 router.route("/minor/merge-groups").post(verifyProfessor, mergeMinorGroups);
 router.route("/minor/get-limit").get(verifyProfessor, getMinorLimits);
+
+router.route("/major/getAppliedGroups").get(verifyProfessor, getMajorAppliedGroups);
+router
+  .route("/major/selectMinorStudents")
+  .post(verifyProfessor, selectMajorStudents);
+
+router.route("/major/getcurrentProf").get(verifyProfessor, getcurrentProf);
+
+router.route("/major/getAcceptedStudents").get(verifyProfessor, getMajorAcceptedStudents);
+
+router.route("/major/deny-group").post(verifyProfessor, denyMajorGroup);
+router.route("/major/accept-group").post(verifyProfessor, acceptMajorGroup);
+router.route("/major/add-remark").post(verifyProfessor, addMajorRemark);
+router.route("/major/meet-attend").post(verifyProfessor, groupMajorAttendance);
+router.route("/major/accepted-groups").get(verifyProfessor, acceptedMajorGroups);
+router.route("/major/merge-groups").post(verifyProfessor, mergeMajorGroups);
+router.route("/major/get-limit").get(verifyProfessor, getMajorLimits);
 export default router;

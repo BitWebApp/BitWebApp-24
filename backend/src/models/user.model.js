@@ -309,6 +309,34 @@ const userSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Minor"
     }],
+    minorAppliedProfs: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Professor",
+      },
+    ],
+    MajorGroup: {
+      type: Schema.Types.ObjectId,
+      ref: "Major"
+    },
+    majorAllocatedProf: {
+      type: Schema.Types.ObjectId,
+      ref: "Professor",
+    },
+    isMajorAllocated: {
+      type: Boolean,
+      default: false,
+    },
+    MajorGroupReq:[{
+      type: Schema.Types.ObjectId,
+      ref: "Major"
+    }],
+    majorAppliedProfs: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Professor",
+      },
+    ],
     refreshToken: {
       type: String,
     },
