@@ -9,7 +9,7 @@ import nodemailer from "nodemailer";
  */
 export const sendOTP = async (email, otp, purpose = "verification") => {
   try {
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: process.env.AUTH_EMAIL,
