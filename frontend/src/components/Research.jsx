@@ -429,9 +429,9 @@ const Research = () => {
                               color: "bg-yellow-100 text-yellow-800",
                               icon: "⚠️",
                             },
-                            intern: {
-                              text: "Only Industrial Interns can apply",
-                            },
+                            //intern: {
+                            //  text: "Only Industrial Interns can apply",
+                            //},
                             available: {
                               text: "Available",
                               color: "bg-blue-100 text-blue-800",
@@ -444,8 +444,8 @@ const Research = () => {
                           else if (isApplied) status = statusConfig.applied;
                           else if (seatsAvailable === 0)
                             status = statusConfig.full;
-                          else if (seatsAvailable == 1)
-                            status = statusConfig.intern;
+                          //else if (seatsAvailable == 1)
+                           // status = statusConfig.intern;
                           else if (seatsAvailable < 3)
                             status = statusConfig.limited;
                           else status = statusConfig.available;

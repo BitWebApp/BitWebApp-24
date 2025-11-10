@@ -75,13 +75,13 @@ const preprocessMinorGroups = async () => {
 const moveMinorApplications = async () => {
   try {
     console.log("Checking and moving pending minor applications...");
-    const fiveDaysAgo = moment().subtract(7, "days").toDate();
-    console.log(fiveDaysAgo);
-    console.log(`Looking for minor groups with no movement since: ${fiveDaysAgo}`);
+    const twoDaysAgo = moment().subtract(2, "days").toDate();
+    console.log(twoDaysAgo);
+    console.log(`Looking for minor groups with no movement since: ${twoDaysAgo}`);
     const groups = await Minor.find({
       minorAppliedProfs: { $exists: true, $ne: [] },
       minorAllocatedProf: { $exists: false },
-      preferenceLastMovedAt: { $lte: fiveDaysAgo },
+      preferenceLastMovedAt: { $lte: twoDaysAgo },
     });
     console.log(
       `Found ${groups.length} minor groups eligible for preference movement`

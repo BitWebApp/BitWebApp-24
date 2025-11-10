@@ -193,12 +193,12 @@ const registerUser = asyncHandler(async (req, res) => {
     // throw new ApiError(400, "idCard file is required:");
   }
 
-  const idCard = await uploadOnCloudinary(idLocalPath);
+  const idCard = await uploadOnCloudinary(idLocalPath,rollNumber);
   if (!idCard) {
     console.log("id card file is cannot be uploaded");
     return res.status(500).json({
       success: false,
-      message: "id card file is cannot be uploaded",
+      message: "id card file cannot be uploaded",
     });
     // throw new ApiError(500, "id card file is cannot be uploaded");
   }
@@ -277,7 +277,7 @@ const loginUser = asyncHandler(async (req, res) => {
   }
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: false,
   };
   return res
     .status(200)
