@@ -13,12 +13,7 @@ import { Group } from "../models/group.model.js";
 import { Otp } from "../models/otp.model.js";
 import { Review } from "../models/review.model.js";
 import { Minor } from "../models/minor.model.js";
-<<<<<<< HEAD
-import { Major } from "../models/major.model.js";
-const url = "https://bitacademia.vercel.app/faculty-login";
-=======
 const url = "http://172.16.220.105:3000/faculty-login";
->>>>>>> 10b5451 (Sync)
 
 const addProf = asyncHandler(async (req, res) => {
   const { idNumber, fullName, contact, email } = req.body;
