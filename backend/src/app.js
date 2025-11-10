@@ -78,4 +78,13 @@ app.use("/api/v1/tracker", bugRouter);
 import chatRouter from "./routes/chat.routes.js";
 app.use("/api/v1/chat", chatRouter);
 
+// Import error handlers
+import { errorHandler, notFoundHandler } from "./middlewares/errorHandler.middleware.js";
+
+// Handle 404 routes - must be after all other routes
+app.use(notFoundHandler);
+
+// Global error handler - must be the last middleware
+app.use(errorHandler);
+
 export { app };

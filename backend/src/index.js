@@ -9,12 +9,28 @@ import "./cron-jobs/autoMovePreferences.js";
 import "./cron-jobs/notifyProfMinor.js";
 import "./cron-jobs/autoMovePreferencesMinor.js";
 
+// Global error handlers
+process.on("uncaughtException", (error) => {
+  console.error("💥 UNCAUGHT EXCEPTION! Shutting down gracefully...");
+  console.error("Error:", error.name, "-", error.message);
+  console.error("Stack:", error.stack);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("💥 UNHANDLED REJECTION! Shutting down gracefully...");
+  console.error("Promise:", promise);
+  console.error("Reason:", reason);
+  process.exit(1);
+});
+
 connectDB()
   .then(() => {
     app.on("error", (err) => {
-      console.log("error in app running ", err);
-      throw err;
+      console.error("❌ Error in Express app:", err);
+      // Don't throw, just log - let global handlers deal with it
     });
+    
     const httpServer = createServer(app);
     const io = new Server(httpServer, {
       cors: {
@@ -27,16 +43,48 @@ connectDB()
 
     io.on("connection", (socket) => {
       console.log("New socket connected:", socket.id);
+      
+      // Handle socket errors
+      socket.on("error", (error) => {
+        console.error("Socket error:", error);
+      });
     });
 
     initSocket(io);
 
-    httpServer.listen(process.env.PORT || 8000, () => {
-      console.log(`Server is listening on port ${process.env.PORT || 8000}`);
+    const server = httpServer.listen(process.env.PORT || 8000, () => {
+      console.log(`✅ Server is listening on port ${process.env.PORT || 8000}`);
     });
+
+    // Handle server errors
+    server.on("error", (error) => {
+      console.error("❌ Server error:", error);
+      if (error.code === "EADDRINUSE") {
+        console.error(`Port ${process.env.PORT || 8000} is already in use`);
+        process.exit(1);
+      }
+    });
+
+    // Graceful shutdown
+    const gracefulShutdown = (signal) => {
+      console.log(`\n${signal} received. Starting graceful shutdown...`);
+      server.close(() => {
+        console.log("✅ HTTP server closed");
+        process.exit(0);
+      });
+
+      // Force close after 10 seconds
+      setTimeout(() => {
+        console.error("⚠️ Forcing shutdown after timeout");
+        process.exit(1);
+      }, 10000);
+    };
+
+    process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+    process.on("SIGINT", () => gracefulShutdown("SIGINT"));
   })
   .catch((error) => {
-    // The error will be logged here
-    console.log("MONGODB connection FAILED ", error);
+    console.error("❌ MONGODB connection FAILED:", error.message);
+    console.error("Stack:", error.stack);
     process.exit(1);
   });

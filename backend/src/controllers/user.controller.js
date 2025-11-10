@@ -11,6 +11,7 @@ import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import cron from "node-cron";
 import { Professor } from "../models/professor.model.js";
+import { sendOTP } from "../utils/sendOTP.js";
 
 const generateAcessAndRefreshToken = async (userId) => {
   try {
@@ -39,94 +40,13 @@ const verifyMail = asyncHandler(async (req, res) => {
     }
     await Otp.create({ email, otp });
 
-    const tOtp = await Otp.findOne({ email });
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.AUTH_EMAIL,
-        pass: process.env.AUTH_PASSWORD,
-      },
-    });
-
-    const mailOptions = {
-      from: process.env.AUTH_EMAIL,
-      to: email,
-      subject: "OTP for Verification",
-      html: `
-        <html>
-        <head>
-          <style>
-            .email-container {
-              font-family: Arial, sans-serif;
-              line-height: 1.6;
-              max-width: 600px;
-              margin: 0 auto;
-              border: 1px solid #dddddd;
-              border-radius: 5px;
-              overflow: hidden;
-            }
-            .header {
-              background-color: #007bff;
-              color: white;
-              padding: 20px;
-              text-align: center;
-              font-size: 24px;
-            }
-            .content {
-              padding: 30px;
-              background-color: #ffffff;
-            }
-            .content p {
-              font-size: 18px;
-              margin: 0 0 15px;
-            }
-            .otp {
-              font-weight: bold;
-              color: #007bff;
-              font-size: 22px;
-            }
-            .footer {
-              background-color: #f2f2f2;
-              padding: 15px;
-              text-align: center;
-              font-size: 14px;
-              color: #888888;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="email-container">
-            <div class="header">
-              OTP for Verification
-            </div>
-            <div class="content">
-              <p>Hello,</p>
-              <p>Thank you for choosing BITAcademia. To complete your verification process, please use the following One-Time Password (OTP):</p>
-              <p class="otp">${tOtp.otp}</p>
-              <p>If you did not request this OTP, please ignore this email or contact our support team.</p>
-              <p>Best regards,</p>
-              <p>TEAM BITACADEMIA</p>
-            </div>
-            <div class="footer">
-              &copy; BITAcademia 2024. All rights reserved.
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
-    };
-
-    transporter.sendMail(mailOptions, async (error) => {
-      if (error) {
-        console.log("Error sending email to:", email, error);
-      } else {
-        console.log("Email sent to:", email);
-      }
-    });
+    // Send OTP email using utility function
+    await sendOTP(email, otp, "verification");
 
     res.status(200).send("Mail sent!");
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    console.error("Error in verifyMail:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
@@ -296,104 +216,27 @@ const loginUser = asyncHandler(async (req, res) => {
     );
 });
 export const otpForgotPass = asyncHandler(async (req, res) => {
-  // console.log(req.body);
-  const { email } = req.body;
-  console.log(email);
-  if (!email) {
-    throw new ApiError(400, "email is req");
-  }
-  const user = await User.findOne({ email: email.toLowerCase() });
-  if (!user) {
-    throw new ApiError(404, "User does not exists");
-  }
-  const otp = `${Math.floor(Math.random() * 9000 + 1000)}`;
-  await Otp.create({ email, otp });
-
-  const tOtp = await Otp.findOne({ email });
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.AUTH_EMAIL,
-      pass: process.env.AUTH_PASSWORD,
-    },
-  });
-
-  const mailOptions = {
-    from: process.env.AUTH_EMAIL,
-    to: email,
-    subject: "Forgot Password",
-    html: `
-        <html>
-        <head>
-          <style>
-            .email-container {
-              font-family: Arial, sans-serif;
-              line-height: 1.6;
-              max-width: 600px;
-              margin: 0 auto;
-              border: 1px solid #dddddd;
-              border-radius: 5px;
-              overflow: hidden;
-            }
-            .header {
-              background-color: #007bff;
-              color: white;
-              padding: 20px;
-              text-align: center;
-              font-size: 24px;
-            }
-            .content {
-              padding: 30px;
-              background-color: #ffffff;
-            }
-            .content p {
-              font-size: 18px;
-              margin: 0 0 15px;
-            }
-            .otp {
-              font-weight: bold;
-              color: #007bff;
-              font-size: 22px;
-            }
-            .footer {
-              background-color: #f2f2f2;
-              padding: 15px;
-              text-align: center;
-              font-size: 14px;
-              color: #888888;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="email-container">
-            <div class="header">
-              OTP for Verification
-            </div>
-            <div class="content">
-              <p>Hello,</p>
-              <p>Thank you for choosing BITAcademia. To reset your password, please use the following One-Time Password (OTP):</p>
-              <p class="otp">${tOtp.otp}</p>
-              <p>If you did not request this OTP, please ignore this email or contact our support team.</p>
-              <p>Best regards,</p>
-              <p>TEAM BITACADEMIA</p>
-            </div>
-            <div class="footer">
-              &copy; BITAcademia 2024. All rights reserved.
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
-  };
-
-  transporter.sendMail(mailOptions, async (error) => {
-    if (error) {
-      console.log("Error sending email to:", email, error);
-    } else {
-      console.log("Email sent to:", email);
+  try {
+    const { email } = req.body;
+    console.log(email);
+    if (!email) {
+      throw new ApiError(400, "email is req");
     }
-  });
-  res.status(200).send("Mail sent!");
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      throw new ApiError(404, "User does not exists");
+    }
+    const otp = `${Math.floor(Math.random() * 9000 + 1000)}`;
+    await Otp.create({ email, otp });
+
+    // Send OTP email using utility function
+    await sendOTP(email, otp, "forgot-password");
+    
+    res.status(200).send("Mail sent!");
+  } catch (error) {
+    console.error("Error in otpForgotPass:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
 });
 
 const changepassword = asyncHandler(async (req, res) => {
