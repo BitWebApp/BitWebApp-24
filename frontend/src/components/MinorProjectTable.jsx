@@ -14,7 +14,7 @@ export default function MinorProjectTable() {
   });
   const [sectionOptions, setSectionOptions] = useState([]);
   const [branchOptions, setBranchOptions] = useState([]);
-  const [batch, setBatch] = useState(23);
+  const [batch, setBatch] = useState(22);
 
   useEffect(() => {
     fetchData();
@@ -96,9 +96,9 @@ export default function MinorProjectTable() {
     // Iterate through filteredData to find maximum lengths
     filteredData.forEach((record, index) => {
       const mentor =
-        record.mentor?.idNumber && record.mentor?.fullName
-          ? `${record.mentor.idNumber}: ${record.mentor.fullName}`
-          : "N/A";
+        (record.mentor?.idNumber && record.mentor?.fullName) ?
+          //? `${record.mentor.idNumber}: ${record.mentor.fullName}`
+	`${record.mentor.fullName}` : "N/A";
 
       maxIndexLength = Math.max(maxIndexLength, (index + 1).toString().length);
       maxRollNumberLength = Math.max(

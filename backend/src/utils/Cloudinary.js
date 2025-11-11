@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import util from "util";
 
 // Local file storage replacement for Cloudinary.
 // Files will be moved to ./public/uploads and served by express.static("public").
@@ -22,13 +23,34 @@ const uploadOnCloudinary = async (localFilePath) => {
   try {
     if (!localFilePath) return null;
 
-    const originalName = path.basename(localFilePath);
+    // Resolve to absolute path
+    const absolutePath = path.isAbsolute(localFilePath)
+      ? localFilePath
+      : path.resolve(process.cwd(), localFilePath);
+
+    // Check if source file exists
+    if (!fs.existsSync(absolutePath)) {
+      throw new Error(`Source file not found: ${absolutePath}`);
+    }
+
+    const originalName = path.basename(absolutePath);
     const timestamp = Date.now();
     const filename = `${timestamp}_${originalName}`;
     const destPath = path.join(uploadsDir, filename);
 
-    // Move the file from its current location to uploads directory
-    await fs.promises.rename(localFilePath, destPath);
+    // Move the file - handle cross-device EXDEV by copying+unlinking
+    try {
+      await fs.promises.rename(absolutePath, destPath);
+    } catch (moveErr) {
+      // If EXDEV (cross-device link), fallback to copy + unlink
+      if (moveErr && moveErr.code === "EXDEV") {
+        console.warn("fs.rename EXDEV encountered; falling back to copy + unlink");
+        await fs.promises.copyFile(absolutePath, destPath);
+        await fs.promises.unlink(absolutePath);
+      } else {
+        throw moveErr;
+      }
+    }
 
     console.log("File moved to uploads:", makePublicUrl(filename));
 
@@ -42,13 +64,33 @@ const uploadOnCloudinary = async (localFilePath) => {
     console.log("File saved locally:", response.secure_url);
     return response;
   } catch (error) {
-    console.error("uploadOnCloudinary() failed (local storage):", error);
+    // Detailed logging so you can copy exact error
+    try {
+      const abs = localFilePath
+        ? (path.isAbsolute(localFilePath) ? localFilePath : path.resolve(process.cwd(), localFilePath))
+        : undefined;
+
+      console.error("uploadOnCloudinary() failed (local storage):", {
+        message: error?.message,
+        code: error?.code,
+        stack: error?.stack,
+        sourcePath: abs,
+        inspect: util.inspect(error, { depth: 3 }),
+      });
+    } catch (logErr) {
+      console.error("Failed to log upload error:", logErr);
+    }
+
     // try to clean up the temporary file if it still exists
     try {
-      if (localFilePath && fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
+      const abs = localFilePath
+        ? (path.isAbsolute(localFilePath) ? localFilePath : path.resolve(process.cwd(), localFilePath))
+        : undefined;
+      if (abs && fs.existsSync(abs)) fs.unlinkSync(abs);
     } catch (e) {
       // ignore
     }
+
     return null;
   }
 };
