@@ -39,6 +39,7 @@ const UnverifiedUsers = () => {
           console.log("Error verifying user", selectedUserIds[i], err);
         }
       }
+      setSelectedUserIds([])
       const updatedUsersResponse = await axios.get(
         "/api/v1/admin/unverifiedUsers"
       );
@@ -68,6 +69,7 @@ const UnverifiedUsers = () => {
           console.log("Error rejecting user", selectedUserIds[i], err);
         }
       }
+      setSelectedUserIds([])
       const updatedUsersResponse = await axios.get(
         "/api/v1/admin/unverifiedUsers"
       );
