@@ -23,7 +23,17 @@ export default function PEForm() {
         if (response.data.success && response.data.data) {
           const userBranch = response.data.data.toLowerCase();
 
-          if (userBranch === "artificial intelligence and machine learning") {
+          if(!userBranch){
+            return (
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+          <div className="bg-white shadow-lg rounded-2xl w-full max-w-2xl p-8">
+            <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-6">Complete your profile</h2>
+            <h2 className="block text-sm font-medium text-gray-700">Add your branch name</h2>
+            <h2 className="block text-sm font-medium text-gray-700">Click on top right icon then edit</h2>
+          </div>
+          </div>)           
+          }
+          else if (userBranch === "artificial intelligence and machine learning") {
             setPeCoursesIV([
               { id: "AI347", name: "Introduction to Distributed System + Lab (IT347)" },
               { id: "IT445", name: "Internet of Things + Lab (IT445)" },

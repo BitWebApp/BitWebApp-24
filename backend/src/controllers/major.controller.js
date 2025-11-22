@@ -80,12 +80,12 @@ const addMember = asyncHandler(async (req, res) => {
   const loggedIn = req?.user?._id;
   const { rollNumber, groupId } = req.body;
 
-  if(req.user.batch == 23) {
-    return res.status(403).json({
-      success: false,
-      message: "Students of batch 2023 are not allowed to form major groups.",
-    });
-  }
+  // if(req.user.batch == 23) {
+  //   return res.status(403).json({
+  //     success: false,
+  //     message: "Students of batch 2023 are not allowed to form major groups.",
+  //   });
+  // }
 
   console.log(groupId);
   const group = await Major.findById({ _id: groupId });
@@ -225,12 +225,12 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   const { facultyId } = req.body;
   const userId = req?.user?._id;
 
-  if(req.user.batch == 23) {
-    return res.status(403).json({
-      success: false,
-      message: "Students of batch 2023 are not allowed to apply to faculty for major project.",
-    });
-  }
+  // if(req.user.batch == 23) {
+  //   return res.status(403).json({
+  //     success: false,
+  //     message: "Students of batch 2023 are not allowed to apply to faculty for major project.",
+  //   });
+  // }
 
   console.log("Applying to faculty", facultyId);
   const user = await User.findById(userId);
