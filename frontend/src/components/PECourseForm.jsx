@@ -20,20 +20,14 @@ export default function PEForm() {
     const fetchBranchFromBackend = async () => {
       try {
         const response = await axios.get('/api/v1/users/fetchBranch');
-        if (response.data.success && response.data.data) {
+        if (response.data.success) {
+          if (!response.data.data) {
+            setPeCoursesIV(null)
+            return
+          }
           const userBranch = response.data.data.toLowerCase();
 
-          if(!userBranch){
-            return (
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-          <div className="bg-white shadow-lg rounded-2xl w-full max-w-2xl p-8">
-            <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-6">Complete your profile</h2>
-            <h2 className="block text-sm font-medium text-gray-700">Add your branch name</h2>
-            <h2 className="block text-sm font-medium text-gray-700">Click on top right icon then edit</h2>
-          </div>
-          </div>)           
-          }
-          else if (userBranch === "artificial intelligence and machine learning") {
+          if (userBranch === "artificial intelligence and machine learning") {
             setPeCoursesIV([
               { id: "AI347", name: "Introduction to Distributed System + Lab (IT347)" },
               { id: "IT445", name: "Internet of Things + Lab (IT445)" },
@@ -140,75 +134,85 @@ export default function PEForm() {
 
   const isDisabled = userHasPeCourse || isSubmitted;
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="bg-white shadow-lg rounded-2xl w-full max-w-2xl p-8">
-        
-        <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-6">PE Course Selection Form</h2>
+  if (peCoursesIV === null) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="bg-white shadow-lg rounded-2xl w-full max-w-2xl p-8">
+          <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-6">Complete your profile</h2>
+          <h2 className="block text-sm font-medium text-gray-700">Add your branch name</h2>
+          <h2 className="block text-sm font-medium text-gray-700">Click on top right icon then edit</h2>
+        </div>
+      </div>
+    )
+  } else
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="bg-white shadow-lg rounded-2xl w-full max-w-2xl p-8">
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">PE IV Course</label>
-            <select
-              value={selectedPeIV}
-              onChange={(e) => setSelectedPeIV(e.target.value)}
-              disabled={isDisabled}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black disabled:bg-gray-100"
-              required
-            >
-              <option value="" disabled>Select PE IV Course</option>
-              {peCoursesIV.length > 0 ? (
-                peCoursesIV.map((course, index) => (
-                  <option key={index} value={course.id}>{course.id}: {course.name}</option>
-                ))
-              ) : (
-                <option disabled>No PE IV Courses Available</option>
-              )}
-            </select>
-          </div>
+          <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-6">PE Course Selection Form</h2>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">PE V Course</label>
-            <select
-              value={selectedPeV}
-              onChange={(e) => setSelectedPeV(e.target.value)}
-              disabled={isDisabled}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black disabled:bg-gray-100"
-              required
-            >
-              <option value="" disabled>Select PE V Course</option>
-              {peCoursesV.length > 0 ? (
-                peCoursesV.map((course, index) => (
-                  <option key={index} value={course.id}>{course.id}: {course.name}</option>
-                ))
-              ) : (
-                <option disabled>No PE V Courses Available</option>
-              )}
-            </select>
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">PE IV Course</label>
+              <select
+                value={selectedPeIV}
+                onChange={(e) => setSelectedPeIV(e.target.value)}
+                disabled={isDisabled}
+                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black disabled:bg-gray-100"
+                required
+              >
+                <option value="" disabled>Select PE IV Course</option>
+                {peCoursesIV.length > 0 ? (
+                  peCoursesIV.map((course, index) => (
+                    <option key={index} value={course.id}>{course.id}: {course.name}</option>
+                  ))
+                ) : (
+                  <option disabled>No PE IV Courses Available</option>
+                )}
+              </select>
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading || isDisabled}
-            className={`w-full py-3 rounded-md font-medium transition duration-200 ${
-              loading || isDisabled
+            <div>
+              <label className="block text-sm font-medium text-gray-700">PE V Course</label>
+              <select
+                value={selectedPeV}
+                onChange={(e) => setSelectedPeV(e.target.value)}
+                disabled={isDisabled}
+                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black disabled:bg-gray-100"
+                required
+              >
+                <option value="" disabled>Select PE V Course</option>
+                {peCoursesV.length > 0 ? (
+                  peCoursesV.map((course, index) => (
+                    <option key={index} value={course.id}>{course.id}: {course.name}</option>
+                  ))
+                ) : (
+                  <option disabled>No PE V Courses Available</option>
+                )}
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || isDisabled}
+              className={`w-full py-3 rounded-md font-medium transition duration-200 ${loading || isDisabled
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-black text-white hover:bg-black/90'
-            }`}
-          >
-            {loading ? <ClipLoader size={24} color="#fff" /> : 'Submit'}
-          </button>
+                }`}
+            >
+              {loading ? <ClipLoader size={24} color="#fff" /> : 'Submit'}
+            </button>
 
-          <p className="text-sm text-center text-gray-600 mt-4">
-            Already submitted?{' '}
-            <Link to="/db/PE-table" className="text-blue-600 hover:underline font-medium">
-              View your PE Courses
-            </Link>
-          </p>
-        </form>
+            <p className="text-sm text-center text-gray-600 mt-4">
+              Already submitted?{' '}
+              <Link to="/db/PE-table" className="text-blue-600 hover:underline font-medium">
+                View your PE Courses
+              </Link>
+            </p>
+          </form>
 
-        <ToastContainer />
+          <ToastContainer />
+        </div>
       </div>
-    </div>
-  );
+    );
 }
