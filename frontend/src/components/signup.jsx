@@ -144,7 +144,7 @@ export default function Signup() {
             Student Signup
           </h3>
           <p className="text-lg text-gray-700">
-            Please fill in your details to create an account.
+            Please fill in your details to create your account
           </p>
         </div>
         <div className="w-full flex flex-col">
@@ -238,7 +238,7 @@ export default function Signup() {
                 </label>
                 <input
                   type="file"
-                  accept=".png,.jpg,.jpeg"
+                  accept=".jpg,.jpeg"
                   className="w-full text-gray-900 py-3 px-4 mb-4 bg-white border border-gray-300 rounded-lg focus:ring-black focus:border-black"
                   onChange={(e) => setIdcard(e.target.files[0])}
                 />
@@ -266,7 +266,8 @@ export default function Signup() {
               className="w-full py-3 text-white bg-black hover:bg-gray-900 rounded-lg transition-all duration-200"
               onClick={handleEmailVerification}
               disabled={spin}
-            >
+            	// disabled={true}
+	          >
               {spin ? (
                 <GridLoader
                   color="white"

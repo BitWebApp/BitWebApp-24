@@ -121,7 +121,11 @@ const UnverifiedUsers = () => {
                 <td className="py-4 px-6">
                   <img
                     className="w-60 h-40 rounded-md"
-                    src={user.idCard}
+                    src={
+                      user.idCard.startsWith("http")
+                        ? user.idCard
+                        : `http://172.16.220.105:8000${user.idCard}`
+                    }
                     alt={user.idCard}
                   />
                 </td>
@@ -194,3 +198,4 @@ const UnverifiedUsers = () => {
 };
 
 export default UnverifiedUsers;
+

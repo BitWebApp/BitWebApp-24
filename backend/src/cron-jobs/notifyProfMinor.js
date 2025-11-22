@@ -30,10 +30,10 @@ async function sendMinorNotificationEmail(professor) {
           </ul>
         </div>
 
-        <p style="margin-top: 15px; color: #555;">Please <a href="https://bitacademia.vercel.app/faculty-login" style="color: #007bff; text-decoration: none; font-weight: bold;">log in</a> to the system to review these applications.</p>
+        <p style="margin-top: 15px; color: #555;">Please <a href="http://172.16.220.105:3000/faculty-login" style="color: #007bff; text-decoration: none; font-weight: bold;">log in</a> to the system to review these applications.</p>
 
         <div style="text-align: center; margin-top: 20px;">
-          <a href="https://bitacademia.vercel.app/faculty-login" style="background-color: #007bff; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-size: 16px;">Review Applications</a>
+          <a href="http://172.16.220.105:3000/faculty-login" style="background-color: #007bff; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-size: 16px;">Review Applications</a>
         </div>
 
         <p style="margin-top: 20px; color: #777; font-size: 12px; text-align: center;">Best regards,<br><strong>BITACADEMIA</strong></p>

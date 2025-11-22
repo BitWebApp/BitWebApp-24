@@ -444,8 +444,8 @@ const MinorProject = () => {
                           else if (isApplied) status = statusConfig.applied;
                           else if (seatsAvailable === 0)
                             status = statusConfig.full;
-                          else if (seatsAvailable == 1)
-                            status = statusConfig.intern;
+//                          else if (seatsAvailable == 1)
+//                            status = statusConfig.intern;
                           else if (seatsAvailable < 3)
                             status = statusConfig.limited;
                           else status = statusConfig.available;
