@@ -78,4 +78,10 @@ app.use("/api/v1/tracker", bugRouter);
 import chatRouter from "./routes/chat.routes.js";
 app.use("/api/v1/chat", chatRouter);
 
+import documentRoutes from "./routes/documents.js";
+import chatRoutes from "./routes/chat.js";
+
+app.use("/api/v1/documents", documentRoutes);
+app.use("/api/v1/chat", chatRoutes);
+
 export { app };

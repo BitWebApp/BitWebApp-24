@@ -92,6 +92,8 @@ import ProfessorTable from "./components/AdminProfessorsTable";
 import MajorProjectTable from "./components/MajorProjectTable";
 import MajorGroupManagement from "./components/MajorGroupManagement";
 import AcceptMajorProject from "./components/AcceptMajorProject";
+import Chatbot from "./components/Chatbot";
+
 export default function App() {
   return (
     <Router>
@@ -106,6 +108,7 @@ export default function App() {
           element={<InterviewExperiences />}
         />
         <Route path="/forgot-password" element={<ForgotPassword/>}/>
+        <Route path="/chatbot" element={<Chatbot />} />
         <Route
           path="/db"
           element={
