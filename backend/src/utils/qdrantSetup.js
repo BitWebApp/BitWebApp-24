@@ -10,7 +10,7 @@ export async function createCollectionIfNotExists(collection) {
     console.log(`🔹 Creating Qdrant collection: ${collection}`);
     await qdrantClient.createCollection(collection, {
       vectors: {
-        size: VECTOR_SIZE,
+        size: 768,
         distance: "Cosine",
       },
     });

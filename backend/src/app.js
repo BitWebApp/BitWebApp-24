@@ -82,6 +82,6 @@ import documentRoutes from "./routes/documents.js";
 import chatRoutes from "./routes/chat.js";
 
 app.use("/api/v1/documents", documentRoutes);
-app.use("/api/v1/chat", chatRoutes);
+app.use("/api/v1/aichat", chatRoutes);
 
 export { app };

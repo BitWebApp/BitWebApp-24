@@ -1,29 +1,32 @@
 import fs from "fs/promises";
 import path from "path";
-import { PDFParse } from 'pdf-parse';
 import mammoth from "mammoth";
-import qdrantClient from "../lib/qdrantClient.js";
-import { voyage } from "../lib/voyageClient.js";
+import {PDFParse} from "pdf-parse";
 import { v4 as uuid } from "uuid";
+import qdrantClient from "../lib/qdrantClient.js";
 import { createCollectionIfNotExists } from "../utils/qdrantSetup.js";
+import { embedTexts } from "../lib/ollamaEmbeddings.js"; // returns arrays of vectors
 
 const COLLECTION = process.env.QDRANT_COLLECTION;
 
 async function extractText(filePath) {
   const ext = path.extname(filePath).toLowerCase();
-  const fileBuffer = await fs.readFile(filePath);
+  const buffer = await fs.readFile(filePath);
 
   if (ext === ".pdf") {
-    const uint8Array = new Uint8Array(fileBuffer);
-    const parser = new PDFParse(uint8Array);
-    const data = await parser.getText();
+    const uint8Array = new Uint8Array(buffer); 
+    const parser = new PDFParse(uint8Array); 
+    const data = await parser.getText(); 
+    console.log("[PDF Extraction] Raw text:", data.text?.slice(0, 500)); // show first 500 chars return data.text;
     return data.text;
-  } else if (ext === ".docx") {
-    const result = await mammoth.extractRawText({ buffer: fileBuffer });
+}
+
+  if (ext === ".docx") {
+    const result = await mammoth.extractRawText({ buffer });
     return result.value;
-  } else {
-    throw new Error("Unsupported file type: " + ext);
   }
+
+  throw new Error("Unsupported file type: " + ext);
 }
 
 function chunkText(text, chunkSize = 800) {
@@ -43,47 +46,45 @@ function chunkText(text, chunkSize = 800) {
   return chunks;
 }
 
-export async function processAndIndexDocument({ documentId, filePath, title, type }) {
-await createCollectionIfNotExists(COLLECTION);  
-const text = await extractText(filePath);
-  let chunks = chunkText(text);
+export async function processAndIndexDocument({ filePath, title, type }) {
+  const docId = uuid();
+  await createCollectionIfNotExists(COLLECTION);
 
-// Clean and filter
-chunks = chunks
-  .map(c => c.replace(/\s+/g, " ").trim()) // normalize whitespace
-  .filter(c => c.length >= 30 && /\w/.test(c)); // valid text only
+  const text = await extractText(filePath);
+  let chunks = text
+    .split(/\n+/)
+    .map(t => t.trim())
+    .filter(t => t.length > 30); // remove small bad chunks
 
-    const embedResp = await voyage.embed({
-    input: chunks,                // array of chunk strings
-    model: "voyage-code-2",       // embedding model
+  console.log(`[Ingestion] total chunks: ${chunks.length}`);
+
+  for (let i = 0; i < chunks.length; i++) {
+    const embedding = await embedTexts([chunks[i]]); // returns array of vectors
+
+    if (!embedding || !Array.isArray(embedding[0])) {
+      console.warn("⚠ Skipping: no embedding produced for chunk", i);
+      continue;
+    }
+
+    await qdrantClient.upsert(COLLECTION, {
+      wait: true,
+      points: [
+        {
+          id: docId,
+          vector: embedding[0],
+          payload: {
+            docId,
+            title,
+            type,
+            chunkIndex: i,
+            text: chunks[i],
+          },
+        },
+      ],
     });
-    const rawVectors = embedResp.data;
-const vectors = rawVectors.map(v => Array.from(v)).filter(v => v.length === 1024);
-if (!vectors.length) {
-  throw new Error("No meaningful text found to index. The document may be scanned or empty.");
-}
 
-    console.log("Embedding result shape:", vectors.length, vectors[0]?.length);
+    console.log(`Indexed chunk ${i + 1}/${chunks.length}`);
+  }
 
-
-  let points = [];
-
-for (let i = 0; i < vectors.length; i++) {
-  points.push({
-    id: uuid(),
-    vector: vectors[i],
-    payload: {
-      documentId,
-      title,
-      type,
-      chunkIndex: i,
-      text: chunks[i],
-    },
-  });
-}
-
-
-
-  await qdrantClient.upsert(COLLECTION, { wait: true, points });
-  console.log("Indexed:", documentId, "chunks:", chunks.length);
+  console.log(`🎯 Document indexed successfully: ${docId}`);
 }
