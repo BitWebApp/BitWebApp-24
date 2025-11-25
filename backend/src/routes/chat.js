@@ -164,14 +164,30 @@ router.post("/", async (req, res) => {
     };
     if (filter) searchParams.filter = filter;
 
-    const results = await qdrantClient.search(COLLECTION, searchParams);
+    let results = await qdrantClient.search(COLLECTION, searchParams);
 
     console.log(
-      "[Chat] qdrant results count:",
+      "[Chat] qdrant results count (initial):",
       results.length,
       "ids:",
       results.map(r => r.id)
     );
+
+    // If we applied a category filter (e.g. syllabus/notice/timetable) and got no results,
+    // retry without the filter as a fallback. This helps when documents weren't auto-labeled
+    // as the expected category during ingestion but still contain the requested content.
+    if (!results.length && filter) {
+      try {
+        console.log("[Chat] filtered search returned 0 results, retrying without category filter...");
+        const fallbackParams = { ...searchParams };
+        delete fallbackParams.filter;
+        const fallback = await qdrantClient.search(COLLECTION, fallbackParams);
+        results = fallback || [];
+        console.log("[Chat] fallback (unfiltered) results count:", results.length);
+      } catch (e) {
+        console.error("[Chat] fallback unfiltered search failed:", e);
+      }
+    }
 
     if (!results.length) {
       return res.json({

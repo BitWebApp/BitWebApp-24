@@ -11,38 +11,6 @@ import { embedTexts } from "../lib/ollamaEmbeddings.js";
 
 const COLLECTION = process.env.QDRANT_COLLECTION || "college_docs";
 
-export async function convertFileToRawTextWithOllama(filePath) {
-  const buffer = await fs.readFile(filePath);
-  const base64 = buffer.toString("base64");
-
-  const prompt = `
-Convert this document into clean raw text that can be fed into a vector database.
-RULES:
-- Do NOT summarize
-- Do NOT remove information
-- Do NOT add information
-- Preserve order
-- Preserve tables (row by row)
-- No JSON, no markdown, no bullets
-
-<document_base64>
-${base64}
-</document_base64>
-
-Decode the Base64 and return 100% raw text only.
-`;
-
-  const response = await ollama.chat({
-    model: "llama3",
-    messages: [
-      { role: "system", content: "You convert files to raw text." },
-      { role: "user", content: prompt }
-    ]
-  });
-
-  return response.message.content;
-}
-
 async function extractText(filePath) {
   const ext = path.extname(filePath).toLowerCase();
   const buffer = await fs.readFile(filePath);
@@ -65,17 +33,28 @@ async function extractText(filePath) {
 
 function detectCategory(title = "", text = "") {
   const t = (title || "").toLowerCase();
-  const s = (text.slice(0, 2000) || "").toLowerCase();
+  // examine a larger prefix of text for better heuristics
+  const s = (text.slice(0, 5000) || "").toLowerCase();
 
+  // timetable detection (unchanged) - explicit words/phrases
   if (t.includes("timetable") || t.includes("time table") || /exam schedule|exam timetable/.test(s)) {
     return "timetable";
   }
-  if (/notice|circular|hereby informed|office order/.test(t) || /notice|hereby informed|principal/.test(s)) {
+
+  // notices / circulars
+  if (/notice|circular|hereby informed|office order|this is to inform/.test(t) || /notice|hereby informed|principal|office order/.test(s)) {
     return "notice";
   }
-  if (/syllabus|course outcome|unit 1|unit i/.test(t) || /syllabus|unit\-?1|unit i/.test(s)) {
+
+  // improved syllabus detection: look for common syllabus headings and unit markers
+  const syllabusHeading = /syllabus|course outcome|course outcomes|course objectives|course contents|course title|course code|syllabus of|syllabus:/i;
+  const unitPattern = /unit\s+(?:[ivx]+|\d+)\b|unit[:.\-]\s*\b|^unit\s+[ivx\d]+\b/im;
+  const cosPattern = /\bco[s']?\b|course outcomes|course objectives/i;
+
+  if (syllabusHeading.test(t) || syllabusHeading.test(s) || unitPattern.test(s) || cosPattern.test(s)) {
     return "syllabus";
   }
+
   return "generic";
 }
 
@@ -129,6 +108,20 @@ function chunkGenericText(text, chunkSize = 800) {
 
 function chunkTextByCategory(category, text) {
   if (category === "timetable") return chunkTimetableText(text);
+
+  if (category === "syllabus") {
+    // Try to split by Unit headings (Unit I, Unit 1, UNIT 2 etc.) to preserve unit-level chunks
+    const parts = text.split(/(?=^Unit\s+(?:[IVX]+|\d+)\b[:.\-]?\s*)/gim).map(p => p.trim()).filter(Boolean);
+    if (parts.length > 1) return parts;
+
+    // fallback: sometimes syllabus uses 'UNIT I - Topic' or 'Unit I:' inline — also try those
+    const parts2 = text.split(/(?=^UNIT\s+[IVX]+\b[:.\-]?\s*)/gim).map(p => p.trim()).filter(Boolean);
+    if (parts2.length > 1) return parts2;
+
+    // last fallback: chunk generically but slightly smaller to increase chance of matching specific units
+    return chunkGenericText(text, 600);
+  }
+
   return chunkGenericText(text, category === "notice" ? 600 : 800);
 }
 
@@ -136,7 +129,7 @@ export async function processAndIndexDocument({ filePath, title, type }) {
   const docId = uuid();
   await createCollectionIfNotExists(COLLECTION);
 
-  const rawText = await convertFileToRawTextWithOllama(filePath);
+  const rawText = await extractText(filePath);
   if (!rawText || rawText.trim().length < 30) {
     throw new Error("Extracted text too short.");
   }
