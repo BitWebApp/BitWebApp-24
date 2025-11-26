@@ -272,7 +272,7 @@ const MajorGroupManagement = () => {
                             Professor
                           </h3>
                           <p className="text-xl font-bold text-purple-600 mt-1">
-                            {group?.summerAllocatedProf?.fullName ||
+                            {group?.majorAllocatedProf?.fullName ||
                               "Not Allocated"}
                           </p>
                         </div>
