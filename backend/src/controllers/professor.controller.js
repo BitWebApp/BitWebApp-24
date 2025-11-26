@@ -13,6 +13,7 @@ import { Group } from "../models/group.model.js";
 import { Otp } from "../models/otp.model.js";
 import { Review } from "../models/review.model.js";
 import { Minor } from "../models/minor.model.js";
+import { Major } from "../models/major.model.js";
 const url = "http://172.16.220.105:3000/faculty-login";
 
 const addProf = asyncHandler(async (req, res) => {
@@ -673,7 +674,7 @@ const acceptedGroups = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(200, "Accepted groups retrieved successfully!", groups)
+      new ApiResponse(200, groups, "Accepted groups retrieved successfully!")
     );
 });
 
@@ -1168,7 +1169,7 @@ const acceptedMinorGroups = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(200, "Accepted groups retrieved successfully!", groups)
+      new ApiResponse(200, groups, "Accepted groups retrieved successfully!")
     );
 });
 
@@ -1510,7 +1511,7 @@ const acceptedMajorGroups = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(200, "Accepted groups retrieved successfully!", groups)
+      new ApiResponse(200, groups, "Accepted groups retrieved successfully!")
     );
 });
 

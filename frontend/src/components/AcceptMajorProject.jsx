@@ -32,7 +32,7 @@ const AcceptMajorProject = () => {
         
         setAppliedGroups(appliedResponse.data.data);
         setLimits(getLimits.data.data);
-        setAcceptedGroups(acceptedResponse.data.message);
+        setAcceptedGroups(acceptedResponse.data.data);
       } catch (err) {
         toast.error(err.response?.data?.message || "Failed to fetch groups.");
       }
