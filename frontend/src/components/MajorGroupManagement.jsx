@@ -81,7 +81,7 @@ const MajorGroupManagement = () => {
   const addMember = async () => {
     if (!rollNumber) return toast.error("Please enter a roll number");
     try {
-      await axios.post("/api/v1/group/add-member", {
+      await axios.post("/api/v1/major/add-member", {
         rollNumber,
         groupId: group?._id,
       });

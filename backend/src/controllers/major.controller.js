@@ -79,7 +79,7 @@ const createGroup = asyncHandler(async (req, res) => {
 const addMember = asyncHandler(async (req, res) => {
   const loggedIn = req?.user?._id;
   const { rollNumber, groupId } = req.body;
-
+  console.log(rollNumber)
   if(req.user.batch == 23) {
     return res.status(403).json({
       success: false,
@@ -87,8 +87,9 @@ const addMember = asyncHandler(async (req, res) => {
     });
   }
 
-  console.log(groupId);
-  const group = await Major.findById({ _id: groupId });
+  console.log("hello", groupId);
+  const group = await Major.findById(groupId);
+  console.log(groupId)
   if (!group) {
     console.log("group not found");
     return res.status(404).json({
@@ -128,8 +129,8 @@ const acceptReq = asyncHandler(async (req, res) => {
   const userId = req?.user?._id;
   const { groupId } = req.body;
   console.log(groupId);
-  const user = await User.findById({ _id: userId });
-  const group = await Major.findById({ _id: groupId });
+  const user = await User.findById(userId);
+  const group = await Major.findById(groupId);
   if (!group) {
     console.log("group not found");
     return res.status(404).json({
@@ -175,7 +176,7 @@ const getReq = asyncHandler(async (req, res) => {
 const removeMember = asyncHandler(async (req, res) => {
   const loggedIn = req?.user?._id;
   const { rollNumber, groupId } = req.body;
-  const group = await major.findById({ _id: groupId });
+  const group = await Major.findById(groupId);
   if (!group) {
     console.log("group not found");
     return res.status(404).json({
@@ -376,10 +377,10 @@ const applyToFaculty = asyncHandler(async (req, res) => {
 
 const getGroup = asyncHandler(async (req, res) => {
   const userid = req?.user?._id;
-  const user = await User.findById({ _id: userid });
+  const user = await User.findById(userid);
   const groupId = user.MajorGroup;
   if (!groupId) throw new ApiError(409, "Not in any major group");
-  const group = await Major.findById({ _id: groupId })
+  const group = await Major.findById(groupId)
     .populate("members")
     .populate("leader")
     .populate("majorAppliedProfs")
@@ -393,11 +394,11 @@ const getAppliedProfs = asyncHandler(async (req, res) => {
   const userid = req?.user?._id;
   const user = await User.findById(userid);
   if (!user.MajorGroup) throw new ApiError(409, "Not in any major group");
-  const group = await Major.findById({ _id: user.MajorGroup });
+  const group = await Major.findById(user.MajorGroup);
   if (!group) throw new ApiError(409, "Group not found");
   let prof = null;
   if (group.majorAllocatedProf) {
-    prof = await Professor.findById({ _id: group?.majorAllocatedProf });
+    prof = await Professor.findById(group?.majorAllocatedProf);
   }
   return res.status(200).json(
     new ApiResponse(
@@ -422,7 +423,7 @@ const majorSorted = asyncHandler(async (req, res) => {
   let prof;
   if (group.majorAllocatedProf) {
     sorted = true;
-    prof = await Professor.findById({ _id: group.majorAllocatedProf });
+    prof = await Professor.findById(group.majorAllocatedProf);
   }
   return res
     .status(200)
@@ -431,9 +432,7 @@ const majorSorted = asyncHandler(async (req, res) => {
 
 const addDiscussion = asyncHandler(async (req, res) => {
   const { groupId, description } = req.body;
-  const group = await Major.findById({
-    _id: groupId,
-  });
+  const group = await Major.findById(groupId);
   if (!group) throw new ApiError(404, "Group not found");
   const loggedIn = req?.user?._id;
   if (!group.leader.equals(loggedIn)) {
@@ -479,7 +478,7 @@ const addRemarkAbsent = asyncHandler(async (req, res) => {
 
 const getDiscussion = asyncHandler(async (req, res) => {
   const { groupId } = req.body;
-  const group = await Major.findById({ _id: groupId }).populate(
+  const group = await Major.findById(groupId).populate(
     "discussion.absent"
   );
   if (!group) throw new ApiError(404, "Group not found");
@@ -495,7 +494,7 @@ const getDiscussionByStudent = asyncHandler(async (req, res) => {
   const user = await User.findById(userId);
   if (!user.MajorGroup) throw new ApiError(404, "Group not found");
   const groupId = user.MajorGroup;
-  const group = await Major.findById({ _id: groupId }).populate(
+  const group = await Major.findById(groupId).populate(
     "discussion.absent"
   );
   if (!group) throw new ApiError(404, "Group not found");
