@@ -61,11 +61,10 @@ const MajorProject = () => {
           return seatsB - seatsA;
         });
 
-      setAppliedProfessors(majorAppliedProfs);
+      setAppliedProfessors(majorAppliedProfs || []);
       setDenied(denied || []);
       if (ismajorAllocated && prof) setAllocatedProf(prof);
       setProfessors(sortedProfessors);
-      setFilteredProfessors(sortedProfessors);
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -109,11 +108,18 @@ const MajorProject = () => {
 
     try {
       setLoading(true);
-      await axios.post("/api/v1/major/apply-faculty", {
+      const applyResponse = await axios.post("/api/v1/major/apply-faculty", {
         facultyId: selectedProf,
       });
+      
+      // Update applied professors immediately from the response
+      const updatedGroup = applyResponse.data.data;
+      if (updatedGroup && updatedGroup.majorAppliedProfs) {
+        setAppliedProfessors(updatedGroup.majorAppliedProfs);
+        // console.log("Updated applied professors from apply response:", updatedGroup.majorAppliedProfs);
+      }
+      
       setLoading(false);
-      await fetchData();
       Swal.fire({
         icon: "success",
         title: "Success",
@@ -147,14 +153,21 @@ const MajorProject = () => {
     }
 
     // Apply availability filter
-    if (filterOption !== "all") {
+    if (filterOption === "available") {
       filtered = filtered.filter((prof) => {
         const availableSeats =
           prof.limits.major_project - prof.currentCount.major_project;
-        return filterOption === "available"
-          ? availableSeats > 0
-          : availableSeats === 0;
+        return availableSeats > 0;
       });
+    } else if (filterOption === "applied") {
+      // console.log("Applied Professors IDs:", appliedProfessors);
+      // console.log("All Professors:", professors.map(p => ({ id: p._id, name: p.fullName })));
+      filtered = filtered.filter((prof) => {
+        const isApplied = appliedProfessors.some((appliedProfId) => appliedProfId === prof._id);
+        // console.log(`Checking ${prof.fullName} (${prof._id}): ${isApplied}`);
+        return isApplied;
+      });
+      console.log("Filtered Applied Professors:", filtered.map(p => p.fullName));
     }
 
     setFilteredProfessors(filtered);
@@ -163,7 +176,7 @@ const MajorProject = () => {
   // Call this function whenever the search query or filter option changes
   useEffect(() => {
     handleSearchAndFilter();
-  }, [searchQuery, filterOption, professors]);
+  }, [searchQuery, filterOption, professors, appliedProfessors]);
 
   return (
     <>
