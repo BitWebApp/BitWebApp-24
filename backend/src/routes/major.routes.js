@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { 
-    createGroup, addMember, removeMember, applyToFaculty, getGroup,
+    createGroup, addMember, removeMember, applyToFaculty, withdrawFromFaculty, getGroup,
     getAppliedProfs,
     majorSorted, acceptReq, getReq, addDiscussion, addRemarkAbsent, getDiscussion,
     getDiscussionByStudent,
@@ -14,6 +14,7 @@ router.route("/create-group").post(verifyJWT, createGroup);
 router.route("/add-member").post(verifyJWT, addMember);
 router.route("/remove-member").post(verifyJWT, removeMember);
 router.route("/apply-faculty").post(verifyJWT, applyToFaculty);
+router.route("/withdraw-faculty").post(verifyJWT, withdrawFromFaculty);
 router.route("/get-group").get(verifyJWT, getGroup);
 router.route("/get-app-profs").get(verifyJWT, getAppliedProfs);
 router.route("/major").get(verifyJWT, majorSorted);

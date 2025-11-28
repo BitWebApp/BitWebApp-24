@@ -116,7 +116,6 @@ const MajorProject = () => {
       const updatedGroup = applyResponse.data.data;
       if (updatedGroup && updatedGroup.majorAppliedProfs) {
         setAppliedProfessors(updatedGroup.majorAppliedProfs);
-        // console.log("Updated applied professors from apply response:", updatedGroup.majorAppliedProfs);
       }
       
       setLoading(false);
@@ -134,6 +133,51 @@ const MajorProject = () => {
         icon: "error",
         title: "Application Failed",
         text: errorMessage || "Failed to apply. Try again.",
+        confirmButtonColor: "#ef4444",
+      });
+    }
+  };
+
+  const handleWithdraw = async (facultyId, profName) => {
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Confirm Withdrawal",
+      text: `Are you sure you want to withdraw your application to ${profName}?`,
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, withdraw",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      setLoading(true);
+      const withdrawResponse = await axios.post("/api/v1/major/withdraw-faculty", {
+        facultyId,
+      });
+
+      // Update applied professors immediately from the response
+      const updatedGroup = withdrawResponse.data.data;
+      if (updatedGroup && updatedGroup.majorAppliedProfs) {
+        setAppliedProfessors(updatedGroup.majorAppliedProfs);
+      }
+
+      setLoading(false);
+      Swal.fire({
+        icon: "success",
+        title: "Withdrawn",
+        text: "Application withdrawn successfully",
+        confirmButtonColor: "#10b981",
+      });
+    } catch (error) {
+      setLoading(false);
+      let errorMessage = error.response?.data?.message;
+      Swal.fire({
+        icon: "error",
+        title: "Withdrawal Failed",
+        text: errorMessage || "Failed to withdraw application. Try again.",
         confirmButtonColor: "#ef4444",
       });
     }
@@ -160,14 +204,10 @@ const MajorProject = () => {
         return availableSeats > 0;
       });
     } else if (filterOption === "applied") {
-      // console.log("Applied Professors IDs:", appliedProfessors);
-      // console.log("All Professors:", professors.map(p => ({ id: p._id, name: p.fullName })));
       filtered = filtered.filter((prof) => {
         const isApplied = appliedProfessors.some((appliedProfId) => appliedProfId === prof._id);
-        // console.log(`Checking ${prof.fullName} (${prof._id}): ${isApplied}`);
         return isApplied;
       });
-      console.log("Filtered Applied Professors:", filtered.map(p => p.fullName));
     }
 
     setFilteredProfessors(filtered);
@@ -401,7 +441,7 @@ const MajorProject = () => {
                             scope="col"
                             className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
-                            Select
+                            {filterOption === "applied" && !allocatedProf ? "Action" : "Select"}
                           </th>
                         </tr>
                       </thead>
@@ -414,14 +454,12 @@ const MajorProject = () => {
                             (id) => id === prof._id
                           );
                           const isApplied = appliedIndex !== -1;
-                          console.log(prof._id)
                           const isDenied = denied.includes(prof._id);
                           const isDisabled =
                             isApplied ||
                             allocatedProf?._id === prof._id ||
                             seatsAvailable === 0 ||
                             isDenied;
-                          console.log(isDisabled)
                           const statusConfig = {
                             denied: {
                               text: "Denied",
@@ -527,18 +565,27 @@ const MajorProject = () => {
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <input
-                                  type="radio"
-                                  name="professor"
-                                  disabled={isDisabled}
-                                  checked={selectedProf === prof._id}
-                                  onChange={() => setSelectedProf(prof._id)}
-                                  className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 ${
-                                    isDisabled
-                                      ? "opacity-50 cursor-not-allowed"
-                                      : "cursor-pointer"
-                                  }`}
-                                />
+                                {filterOption === "applied" && !allocatedProf ? (
+                                  <button
+                                    onClick={() => handleWithdraw(prof._id, prof.fullName)}
+                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                                  >
+                                    Withdraw
+                                  </button>
+                                ) : (
+                                  <input
+                                    type="radio"
+                                    name="professor"
+                                    disabled={isDisabled}
+                                    checked={selectedProf === prof._id}
+                                    onChange={() => setSelectedProf(prof._id)}
+                                    className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 ${
+                                      isDisabled
+                                        ? "opacity-50 cursor-not-allowed"
+                                        : "cursor-pointer"
+                                    }`}
+                                  />
+                                )}
                               </td>
                             </tr>
                           );
