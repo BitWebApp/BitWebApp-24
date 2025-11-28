@@ -38,10 +38,10 @@ export default function ProjectForm() {
   const fetchProject = async () => {
     // try {
     //   const response = await axios.get('/api/v1/project/show', { withCredentials: true });
-    //   console.log('API Response:', response.data.data);
+    //   // console.log('API Response:', response.data.data);
     //   setProj(response.data.data);
     // } catch (error) {
-    //   console.log(error.message, error);
+    //   // console.log(error.message, error);
     //   toast.error('Failed to fetch projects');
     // }
   };
@@ -103,14 +103,14 @@ export default function ProjectForm() {
             formData.append('projectId', idCard);
           }
 
-          console.log('Form Data:', {
-            projectName,
-            domain: domain.map(d => d.value).join(', '),
-            projectLink,
-            techStack: techStack.map(ts => ts.value).join(', '),
-            guide,
-            projectId: idCard,
-          });
+          // console.log('Form Data:', {
+          //   projectName,
+          //   domain: domain.map(d => d.value).join(', '),
+          //   projectLink,
+          //   techStack: techStack.map(ts => ts.value).join(', '),
+          //   guide,
+          //   projectId: idCard,
+          // });
 
           const token = localStorage.getItem('accessToken');
           const config = {
@@ -136,7 +136,7 @@ export default function ProjectForm() {
           }
 
         } catch (err) {
-          console.log('Error:', err.response ? err.response.data : err);
+          // console.log('Error:', err.response ? err.response.data : err);
           toast.error("Error uploading data!");
         } finally {
           setSpin(false);

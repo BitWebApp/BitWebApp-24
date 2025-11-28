@@ -18,7 +18,7 @@ export default function BookedRooms() {
   const fetchBookings = async () => {
     try {
       const response = await axios.get("/api/v1/classroom/allBookings");
-      console.log("Response ", response.data);
+      // console.log("Response ", response.data);
 
       const sortedBookings = response.data.sort(
         (a, b) => new Date(b.bookingDate) - new Date(a.bookingDate)
@@ -30,7 +30,7 @@ export default function BookedRooms() {
     }
   };
 
-  console.log("Printing bookings", bookings);
+  // console.log("Printing bookings", bookings);
   const Request = () => {
     navigate('/db/classroom-form');
   };

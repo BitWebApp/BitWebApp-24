@@ -16,12 +16,44 @@ const MajorGroupManagement = () => {
   const [company, setCompany] = useState([]);
   const [org, setOrg] = useState("");
   const [activeTab, setActiveTab] = useState("group");
+  const [typeChangeStatus, setTypeChangeStatus] = useState(null);
+  const [requestedType, setRequestedType] = useState("");
+  const [requestedOrg, setRequestedOrg] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Helper function to check if current user has a pending request
+  const currentUserHasPendingRequest = () => {
+    if (!typeChangeStatus?.typeChangeRequests || !currentUser?._id) {
+      return false;
+    }
+    
+    const currentUserId = currentUser._id.toString();
+    const hasPending = typeChangeStatus.typeChangeRequests.some(req => {
+      const reqUserId = req.user?._id?.toString();
+      const isPending = req.status === "pending";
+      const isMatch = reqUserId === currentUserId;
+      return isMatch && isPending;
+    });
+    
+    return hasPending;
+  };
 
   useEffect(() => {
     fetchCompanies();
     fetchGroup();
     fetchRequests();
+    fetchTypeChangeStatus();
+    fetchCurrentUser();
   }, []);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await axios.get("/api/v1/users/get-user");
+      setCurrentUser(response.data.data);
+    } catch (error) {
+      console.error("Failed to fetch current user:", error);
+    }
+  };
 
   const fetchCompanies = async () => {
     try {
@@ -36,7 +68,7 @@ const MajorGroupManagement = () => {
     setLoading(true);
     try {
       const response = await axios.get("/api/v1/major/get-group");
-      console.log("hello", response.data.data);
+      // console.log("hello", response.data.data);
       setGroup(response.data.data);
     } catch (error) {
       setGroup(null);
@@ -50,6 +82,15 @@ const MajorGroupManagement = () => {
       setRequests(response.data.data || []);
     } catch (error) {
       
+    }
+  };
+
+  const fetchTypeChangeStatus = async () => {
+    try {
+      const response = await axios.get("/api/v1/major/get-type-change-status");
+      setTypeChangeStatus(response.data.data);
+    } catch (error) {
+      setTypeChangeStatus(null);
     }
   };
 
@@ -123,6 +164,48 @@ const MajorGroupManagement = () => {
     }
   };
 
+  const requestTypeChange = async () => {
+    if (!requestedType) {
+      return toast.error("Please select a type");
+    }
+
+    if (requestedType === "industrial" && !requestedOrg) {
+      return toast.error("Please select an organization for industrial type");
+    }
+
+    // Warning popup
+    const confirmed = window.confirm(
+      "WARNING: Type change requests cannot be cancelled once submitted. " +
+      (group?.majorAllocatedProf 
+        ? "This request will require professor approval. " 
+        : "This change will be applied immediately. ") +
+      "Are you sure you want to proceed?"
+    );
+
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      await axios.post("/api/v1/major/request-type-change", {
+        requestedType,
+        org: requestedType === "industrial" ? requestedOrg : undefined,
+      });
+      toast.success(
+        group?.majorAllocatedProf 
+          ? "Type change request submitted for professor approval" 
+          : "Type changed successfully"
+      );
+      setRequestedType("");
+      setRequestedOrg("");
+      fetchGroup();
+      fetchTypeChangeStatus();
+    } catch (error) {
+      let errorMessage = error.response?.data?.message;
+      toast.error(errorMessage || "Failed to submit type change request");
+    }
+    setLoading(false);
+  };
+
   return (
     <>
       <Toaster position="top-right" />
@@ -153,21 +236,40 @@ const MajorGroupManagement = () => {
               >
                 {group ? "My Group" : "Create Group"}
               </button>
-              <button
-                onClick={() => setActiveTab("requests")}
-                className={`px-6 py-3 font-medium text-sm md:text-base relative ${
-                  activeTab === "requests"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Join Requests
-                {requests.length > 0 && (
-                  <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {requests.length}
-                  </span>
-                )}
-              </button>
+              {(!group || group.type !== "industrial") && (
+                <button
+                  onClick={() => setActiveTab("requests")}
+                  className={`px-6 py-3 font-medium text-sm md:text-base relative ${
+                    activeTab === "requests"
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Join Requests
+                  {requests.length > 0 && (
+                    <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {requests.length}
+                    </span>
+                  )}
+                </button>
+              )}
+              {group && (
+                <button
+                  onClick={() => setActiveTab("typeChange")}
+                  className={`px-6 py-3 font-medium text-sm md:text-base relative ${
+                    activeTab === "typeChange"
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Type Change
+                  {currentUserHasPendingRequest() && (
+                    <span className="absolute top-1 right-1 bg-yellow-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      !
+                    </span>
+                  )}
+                </button>
+              )}
             </div>
 
             {/* Tab Content */}
@@ -246,6 +348,186 @@ const MajorGroupManagement = () => {
                 </div>
               )}
 
+              {activeTab === "typeChange" && (
+                <div className="space-y-6">
+                  <h2 className="text-xl font-bold text-gray-800 mb-4">
+                    Group Type Change
+                  </h2>
+
+                  {/* Current Group Info */}
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-5 border border-blue-200">
+                    <h3 className="font-semibold text-gray-800 mb-3">Current Group Information</h3>
+                    <div className="grid md:grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="text-gray-600">Type: </span>
+                        <span className="font-semibold text-blue-600 capitalize">
+                          {typeChangeStatus?.group?.type || "N/A"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Members: </span>
+                        <span className="font-semibold">
+                          {typeChangeStatus?.group?.members?.length || 0}
+                        </span>
+                      </div>
+                      {typeChangeStatus?.group?.org && (
+                        <div>
+                          <span className="text-gray-600">Organization: </span>
+                          <span className="font-semibold">
+                            {typeChangeStatus?.group?.org?.companyName}
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <span className="text-gray-600">Professor: </span>
+                        <span className="font-semibold">
+                          {typeChangeStatus?.group?.majorAllocatedProf?.fullName || "Not Allocated"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pending Requests Status */}
+                  {typeChangeStatus?.typeChangeRequests?.length > 0 && (
+                    <div className="bg-yellow-50 rounded-lg p-5 border border-yellow-200">
+                      <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
+                        <svg className="w-5 h-5 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        Pending Type Change Requests
+                      </h3>
+                      <div className="space-y-3">
+                        {typeChangeStatus.typeChangeRequests.map((req, idx) => (
+                          <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
+                            <div className="grid md:grid-cols-2 gap-2 text-sm">
+                              <div>
+                                <span className="text-gray-600">Requested by: </span>
+                                <span className="font-semibold">{req.user?.fullName}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Requested Type: </span>
+                                <span className="font-semibold capitalize text-blue-600">
+                                  {req.requestedType}
+                                </span>
+                              </div>
+                              {req.org && (
+                                <div>
+                                  <span className="text-gray-600">Organization: </span>
+                                  <span className="font-semibold">{req.org?.companyName}</span>
+                                </div>
+                              )}
+                              <div>
+                                <span className="text-gray-600">Status: </span>
+                                <span className={`font-semibold capitalize ${
+                                  req.status === "pending" ? "text-yellow-600" :
+                                  req.status === "approved" ? "text-green-600" :
+                                  "text-red-600"
+                                }`}>
+                                  {req.status}
+                                </span>
+                              </div>
+                              <div className="md:col-span-2">
+                                <span className="text-gray-600">Initiated: </span>
+                                <span className="font-medium text-xs">
+                                  {new Date(req.initiatedAt).toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {typeChangeStatus?.group?.majorAllocatedProf && (
+                        <p className="text-sm text-gray-600 mt-3">
+                          ⏳ Waiting for professor approval. You cannot submit a new request while a request is pending.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Request Type Change Form */}
+                  {!currentUserHasPendingRequest() && (
+                    <div className="bg-white rounded-lg p-5 border border-gray-200">
+                      <h3 className="font-semibold text-gray-800 mb-4">Request Type Change</h3>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            New Type
+                          </label>
+                          <select
+                            value={requestedType}
+                            onChange={(e) => setRequestedType(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="">Select Type</option>
+                            <option value="research">Research</option>
+                            <option value="industrial">Industrial</option>
+                          </select>
+                        </div>
+
+                        {requestedType === "industrial" && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Organization
+                            </label>
+                            <select
+                              value={requestedOrg}
+                              onChange={(e) => setRequestedOrg(e.target.value)}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              <option value="">Select Organization</option>
+                              {company.map((comp) => (
+                                <option key={comp._id} value={comp._id}>
+                                  {comp.companyName}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        {typeChangeStatus?.group?.members?.length === 2 && requestedType === "industrial" && (
+                          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                            <p className="text-sm text-orange-800">
+                              <strong>⚠️ Note:</strong> Changing to industrial type will split your 2-member group. 
+                              {typeChangeStatus?.group?.majorAllocatedProf 
+                                ? " The professor will decide the outcome." 
+                                : " You will be moved to a new industrial group, and the other member will remain in the current research group."}
+                            </p>
+                          </div>
+                        )}
+
+                        <button
+                          onClick={requestTypeChange}
+                          disabled={loading || !requestedType || (requestedType === "industrial" && !requestedOrg)}
+                          className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                        >
+                          {loading ? "Processing..." : "Submit Type Change Request"}
+                        </button>
+
+                        <p className="text-xs text-gray-500 text-center">
+                          ⚠️ This action cannot be cancelled once submitted
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Info Section */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-blue-900 mb-2">Type Change Rules:</h4>
+                    <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                      <li>Research groups can have up to 2 members</li>
+                      <li>Industrial groups can only have 1 member</li>
+                      <li>Changes before professor allocation are applied immediately</li>
+                      <li>Changes after professor allocation require approval</li>
+                      <li>Type change requests cannot be cancelled</li>
+                      {typeChangeStatus?.group?.members?.length === 2 && (
+                        <li className="font-semibold">If both members request a type change, the professor will approve/reject both together</li>
+                      )}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
               {activeTab === "group" && (
                 <>
                   {group ? (
@@ -286,30 +568,40 @@ const MajorGroupManagement = () => {
                         </div>
                       </div>
 
-                      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                        <div className="p-4 border-b border-gray-200 bg-gray-50">
-                          <h3 className="font-medium text-gray-800">
-                            Add New Member
-                          </h3>
-                        </div>
-                        <div className="p-4">
-                          <div className="flex flex-col sm:flex-row gap-2">
-                            <input
-                              type="text"
-                              value={rollNumber}
-                              onChange={(e) => setRollNumber(e.target.value)}
-                              placeholder="Enter Roll Number"
-                              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                            <button
-                              onClick={addMember}
-                              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm"
-                            >
-                              Send Request
-                            </button>
+                      {group.type !== "industrial" && (
+                        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                          <div className="p-4 border-b border-gray-200 bg-gray-50">
+                            <h3 className="font-medium text-gray-800">
+                              Add New Member
+                            </h3>
+                          </div>
+                          <div className="p-4">
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <input
+                                type="text"
+                                value={rollNumber}
+                                onChange={(e) => setRollNumber(e.target.value)}
+                                placeholder="Enter Roll Number"
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                              <button
+                                onClick={addMember}
+                                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm"
+                              >
+                                Send Request
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
+
+                      {group.type === "industrial" && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <p className="text-sm text-yellow-800">
+                            ℹ️ Industrial groups can only have 1 member. Adding new members is not allowed.
+                          </p>
+                        </div>
+                      )}
 
                       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                         <div className="p-4 border-b border-gray-200 bg-gray-50">

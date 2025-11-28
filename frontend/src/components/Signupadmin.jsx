@@ -20,7 +20,7 @@ export default function SignUpPage() {
         username,
         password,
       });
-      console.log(response.data);
+      // console.log(response.data);
       
       toast.success('Registration Successful! Redirecting to login...'); 
       setTimeout(() => {

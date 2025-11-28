@@ -33,6 +33,15 @@ const majorSchema = new Schema({
           return members.length <= 2;
         },
         message: "major project groups cannot have more than 2 members"
+      },
+      {
+        validator: function(members) {
+          if (this.type === "industrial") {
+            return members.length <= 1;
+          }
+          return true;
+        },
+        message: "industrial groups can only have 1 member"
       }
     ]
   },
@@ -81,7 +90,37 @@ const majorSchema = new Schema({
   chats: {
     type: String,
     ref: "Chat",
-  }
+  },
+  typeChangeRequests: [
+    {
+      user: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+      requestedType: {
+        type: String,
+        enum: ["industrial", "research"],
+        required: true,
+      },
+      org: {
+        type: Schema.Types.ObjectId,
+        ref: "Company",
+        required: function () {
+          return this.requestedType === "industrial";
+        },
+      },
+      status: {
+        type: String,
+        enum: ["pending", "approved", "rejected"],
+        default: "pending",
+      },
+      initiatedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
 });
 
 // Pre-save middleware to validate group size before any save operation

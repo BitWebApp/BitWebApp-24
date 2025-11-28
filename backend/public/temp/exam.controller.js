@@ -134,7 +134,7 @@ const updateExam = asyncHandler(async (req, res) => {
       for (const file of req.files) {
         try {
           const cloudinaryResponse = await uploadOnCloudinary(file.path);
-          console.log("Uploaded file to Cloudinary:", cloudinaryResponse);
+          // console.log("Uploaded file to Cloudinary:", cloudinaryResponse);
           newExamDocs.push(cloudinaryResponse.secure_url);
         } catch (error) {
           console.error("Error uploading file to Cloudinary:", error);

@@ -19,7 +19,7 @@ export default function SignInPage() {
         password,
       });
       localStorage.setItem("user", JSON.stringify(response.data.data.admin));
-      console.log(response);
+      // console.log(response);
 
       // Show success toast
       toast.success("Login Successful! Redirecting to dashboard...");
@@ -37,14 +37,14 @@ export default function SignInPage() {
         if (errorElement) {
           const errorMessage = errorElement.textContent.trim();
           const errormsg = errorMessage.split("at")[0].trim();
-          console.log(errormsg);
+          // console.log(errormsg);
           toast.error(errormsg);
         } else {
-          console.log("Error: An unknown error occurred");
+          // console.log("Error: An unknown error occurred");
           toast.error("An unknown error occurred");
         }
       } else {
-        console.log("Error:", error.message);
+        // console.log("Error:", error.message);
         toast.error("Error occurred during signup");
       }
     } finally {

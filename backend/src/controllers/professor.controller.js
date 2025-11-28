@@ -1313,11 +1313,16 @@ const getMajorAppliedGroups = asyncHandler(async (req, res) => {
     // Fetch professor and populate appliedGroups.major_project
     const professor = await Professor.findById(profId).populate({
       path: "appliedGroups.major_project",
-      populate: {
-        path: "members",
-        select:
-          "fullName rollNumber email linkedin codingProfiles cgpa section branch image companyName",
-      },
+      populate: [
+        {
+          path: "members",
+          select:
+            "fullName rollNumber email linkedin codingProfiles cgpa section branch image companyName",
+        },
+        {
+          path: "org",
+        }
+      ],
     });
 
     if (!professor) {
@@ -1502,6 +1507,7 @@ const acceptedMajorGroups = asyncHandler(async (req, res) => {
     .populate("majorAppliedProfs")
     .populate("majorAllocatedProf")
     .populate("deniedProf")
+    .populate("org")
     .populate({
       path: "discussion.absent",
     })
@@ -1648,6 +1654,35 @@ const getMajorLimits = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, limitleft, "limit returned"));
 });
 
+const getPendingTypeChangeRequests = asyncHandler(async (req, res) => {
+  const professorId = req?.professor?._id;
+
+  if (!professorId) {
+    return res.status(401).json({
+      success: false,
+      message: "Professor not authenticated",
+    });
+  }
+
+  // Find all major groups allocated to this professor with pending type change requests
+  const groupsWithRequests = await Major.find({
+    majorAllocatedProf: professorId,
+    "typeChangeRequests.status": "pending",
+  })
+    .populate("members leader typeChangeRequests.user typeChangeRequests.org majorAllocatedProf")
+    .lean();
+
+  // Filter to only include pending requests
+  const groupsWithPendingRequests = groupsWithRequests.map((group) => ({
+    ...group,
+    typeChangeRequests: group.typeChangeRequests.filter((req) => req.status === "pending"),
+  })).filter((group) => group.typeChangeRequests.length > 0);
+
+  return res.status(200).json(
+    new ApiResponse(200, groupsWithPendingRequests, "Pending type change requests fetched successfully")
+  );
+});
+
 export {
   selectMinorStudents,
   getMinorLimits,
@@ -1670,6 +1705,7 @@ export {
   acceptMajorGroup,
   mergeMajorGroups,
   acceptedMajorGroups,
+  getPendingTypeChangeRequests,
   // Other existing functions
   addProf,
   getProf,

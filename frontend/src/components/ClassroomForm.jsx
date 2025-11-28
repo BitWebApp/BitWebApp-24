@@ -35,7 +35,7 @@ export default function ClassroomForm() {
       });
   
       const approvedBookings = response.data;
-      console.log("Approved Bookings", approvedBookings);
+      // console.log("Approved Bookings", approvedBookings);
   
       // Check if the requested slot overlaps with any approved booking
       const isOverlapping = approvedBookings.some((booking) => {
@@ -50,7 +50,7 @@ export default function ClassroomForm() {
           )
         );
       });
-      console.log("Is Overlapping", isOverlapping);
+      // console.log("Is Overlapping", isOverlapping);
       
       if (isOverlapping) {
         toast.error("Room is already booked during that period");

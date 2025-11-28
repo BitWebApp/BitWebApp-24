@@ -9,7 +9,7 @@ const createAcademicRecord = asyncHandler(async (req, res) => {
   const { semester, gpa } = req.body;
   const userId = req.user._id; // Obtained from the authenticated user
 
-  console.log("User ID is", userId);
+  // console.log("User ID is", userId);
   if (!userId || !semester || !gpa) {
     throw new ApiError(400, "UserId, Semester, and GPA are required fields.");
   }
@@ -30,7 +30,7 @@ const createAcademicRecord = asyncHandler(async (req, res) => {
       );
 
       if (existingRecord) {
-        console.log("Duplicate semester found:", existingRecord);
+        // console.log("Duplicate semester found:", existingRecord);
         return res.status(400).json({
           statusCode: 400,
           success: false,
@@ -64,7 +64,7 @@ const createAcademicRecord = asyncHandler(async (req, res) => {
 
 // Get academic records for the logged-in student
 const getStudentAcademicRecords = asyncHandler(async (req, res) => {
-  console.log("Fetching academic records for user:", req.user._id); // Add this log
+  // console.log("Fetching academic records for user:", req.user._id); // Add this log
   const userId = req.user._id;
 
   const userExists = await Academics.exists({ name: userId });
@@ -104,7 +104,7 @@ const getAdminAcademicRecords = asyncHandler(async (req, res) => {
       match: { batch }, // Filter by batch
     });
 
-    console.log("Fetched Records:", records); // Debugging
+    // console.log("Fetched Records:", records); // Debugging
 
     if (!records || records.length === 0) {
       return res
@@ -130,7 +130,7 @@ const getAdminAcademicRecords = asyncHandler(async (req, res) => {
       })
       .flat();
 
-    console.log("Formatted Records:", formattedRecords); // Debugging
+    // console.log("Formatted Records:", formattedRecords); // Debugging
 
     return res
       .status(200)
@@ -195,7 +195,7 @@ export {
 //     const { semester } = req.body;
 //     const userId = req.params.id;
 
-//     console.log('Delete request received for userId:', userId, 'semester:', semester);
+//     // console.log('Delete request received for userId:', userId, 'semester:', semester);
 
 //     const userExists = await Academics.exists({ name: userId });
 //     if (!userExists) {
@@ -218,7 +218,7 @@ export {
 //       { $pull: { academicRecords: { semester } } }
 //     );
 
-//     console.log('Academic record deleted for userId:', userId, 'semester:', semester);
+//     // console.log('Academic record deleted for userId:', userId, 'semester:', semester);
 //     return res.status(200).json(
 //       new ApiResponse(200, null, "Academic record deleted successfully.")
 //     );

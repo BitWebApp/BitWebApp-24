@@ -11,7 +11,7 @@ const BacklogTable = () => {
       try {
         const response = await axios.get('/api/v1/backlogs/get-backlog-user');
         setBacklogs(response.data.data);
-        console.log(response);
+        // console.log(response);
         setLoading(false);
       } catch (err) {
         setError(err.message);

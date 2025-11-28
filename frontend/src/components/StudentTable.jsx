@@ -24,7 +24,7 @@ const StudentTable = () => {
             batch,
           },
         });
-        console.log(response);
+        // console.log(response);
         setStudents(response.data.data.users);
       } catch (error) {
         console.error("Error fetching students:", error);

@@ -31,16 +31,16 @@ export default function ProjectTable() {
   const fetchProject = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      console.log(token);
+      // console.log(token);
       const response = await axios.get('/api/v1/project/projectshowing', {
         withCredentials: true
       });
-      console.log(response);
-      console.log(response.data.data.name);
+      // console.log(response);
+      // console.log(response.data.data.name);
       setProj(response.data.data);
       setFilteredProj(response.data.data);
     } catch (error) {
-      console.log(error.message, error);
+      // console.log(error.message, error);
     }
   };
 
@@ -134,7 +134,7 @@ export default function ProjectTable() {
       });
       fetchProject(); // Refresh the project list after deletion
     } catch (error) {
-      console.log(error.message);
+      // console.log(error.message);
     }
   };
 

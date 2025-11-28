@@ -27,7 +27,7 @@ export default function InternshipTable() {
           batch,
         },
       });
-      console.log(response);
+      // console.log(response);
       setInternData(response.data.data.response);
       setFilteredData(response.data.data.response);
 

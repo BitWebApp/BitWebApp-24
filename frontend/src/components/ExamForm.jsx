@@ -25,7 +25,7 @@ const ExamForm = () => {
             const response = await axios.get("/api/v1/exam");
             setExams(response.data.data);
         } catch (error) {
-            console.log(error.message);
+            // console.log(error.message);
         }
     };
 
