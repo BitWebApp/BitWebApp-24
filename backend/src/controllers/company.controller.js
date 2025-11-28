@@ -50,30 +50,37 @@ const getAllCompanies = asyncHandler(async (req, res) => {
 
 const assignCompany = asyncHandler(async (req, res) => {
   const { companyId, rollNumbers } = req.body;
+
   try {
     const company = await Company.findById(companyId);
     if (!company) {
       throw new ApiError(404, "Company not found");
     }
+
     const users = await User.find({ rollNumber: { $in: rollNumbers } });
-    if (!users) {
+
+    if (users.length === 0) {
       throw new ApiError(404, "Users not found");
     }
-    users.forEach(async (user) => {
-      if (!user.companyInterview.includes(companyId)) {
-        user.companyInterview.push(companyId);
-        await user.save();
-      }
-    });
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(200, users, "Company assigned to users successfully")
-      );
+
+    await Promise.all(
+      users.map(async (user) => {
+        if (!user.companyInterview.includes(companyId)) {
+          user.companyInterview.push(companyId);
+          await user.save();
+        }
+      })
+    );
+
+    return res.status(200).json(
+      new ApiResponse(200, users, "Company assigned to users successfully")
+    );
+
   } catch (err) {
-    throw new ApiError(500, "Something went wrong");
+    throw new ApiError(500, err.message || "Something went wrong");
   }
 });
+
 
 const getUserCompanies = asyncHandler(async (req, res) => {
   const requestedUser = req.user;

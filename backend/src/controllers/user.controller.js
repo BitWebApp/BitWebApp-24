@@ -241,49 +241,55 @@ export const otpForgotPass = asyncHandler(async (req, res) => {
 
 const changepassword = asyncHandler(async (req, res) => {
   try {
-    // console.log("hello")
     const { email, otp, newpassword } = req.body;
-    if (!email || !otp || !newpassword)
-      throw new ApiError(400, "enter all fields");
+
+    if (!email || !otp || !newpassword) {
+      throw new ApiError(400, "Enter all fields");
+    }
+
     const user = await User.findOne({ email });
-    // console.log(user)
-    const otpverify = await Otp.find({
-      email,
-    });
-    // console.log(otpverify)
-    if (otpverify.length <= 0) {
-      throw new ApiError(
-        401,
-        "Account record doesn't exist or has been verified already. please login"
-      );
+    if (!user) throw new ApiError(404, "User not found");
+
+    const otpverify = await Otp.find({ email });
+    if (otpverify.length === 0) {
+      throw new ApiError(400, "OTP expired or invalid. Please request a new one.");
     }
-    const hashedOTP = otpverify[0].otp;
-    // console.log(hashedOTP)
-    const validOTP = otp === hashedOTP;
-    // console.log(validOTP)
+
+    const hashedOTP = otpverify.pop().otp;
+    console.log(otp);
+    console.log(hashedOTP);
+    const validOTP = otp === hashedOTP;  
+    console.log(validOTP);
+
     if (!validOTP) {
-      throw new ApiError("Invalid code. Check your Inbox");
-    } else {
-      const savepass = await bcrypt.hash(newpassword, 12);
-      const response = await User.updateOne(
-        { _id: user?._id },
-        { $set: { password: savepass } }
-      );
-      await Otp.deleteMany({ email });
-      return res.json({
-        status: "Verified",
-        message: "user email verified successfully",
-        response,
-      });
+      throw new ApiError(400, "Invalid OTP. Check your inbox.");
     }
+
+    const savepass = await bcrypt.hash(newpassword, 12);
+
+    const response = await User.updateOne(
+      { _id: user._id },
+      { $set: { password: savepass } }
+    );
+
+    // delete OTPs for the email
+    await Otp.deleteMany({ email });
+
+    return res.status(200).json({
+      status: "Verified",
+      message: "Password changed successfully",
+      response,
+    });
+
   } catch (error) {
     console.log(error);
-    res.json({
+    return res.status(error.statusCode || 500).json({
       status: "Failed",
       message: error.message,
     });
   }
 });
+
 const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,

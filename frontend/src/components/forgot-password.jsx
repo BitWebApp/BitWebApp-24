@@ -47,9 +47,9 @@ export default function ForgotPassword() {
     try {
       const response = await axios.post("/api/v1/users/changepass", { email, otp, newpassword: newPassword });
       toast.success("Password changed successfully! Redirecting to login...");
-      // setTimeout(() => {
-      //   navigate("/log");
-      // }, 2000);
+      setTimeout(() => {
+        navigate("/log");
+      }, 2000);
     } catch (error) {
       toast.error("Failed to reset password. Please try again.");
     } finally {
