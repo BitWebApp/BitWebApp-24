@@ -208,6 +208,13 @@ const MajorProject = () => {
         const isApplied = appliedProfessors.some((appliedProfId) => appliedProfId === prof._id);
         return isApplied;
       });
+      
+      // Sort by preference order (lowest preference number first)
+      filtered.sort((a, b) => {
+        const prefA = appliedProfessors.findIndex((id) => id === a._id);
+        const prefB = appliedProfessors.findIndex((id) => id === b._id);
+        return prefA - prefB;
+      });
     }
 
     setFilteredProfessors(filtered);
