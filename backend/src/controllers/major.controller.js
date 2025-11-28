@@ -163,7 +163,7 @@ const acceptReq = asyncHandler(async (req, res) => {
 const getReq = asyncHandler(async (req, res) => {
   const userId = req?.user?._id;
   const user = await User.findById(userId).populate({
-    path: "majorGroupReq",
+    path: "MajorGroupReq",
     populate: {
       path: "leader",
     },
