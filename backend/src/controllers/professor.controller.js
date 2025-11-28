@@ -1313,11 +1313,16 @@ const getMajorAppliedGroups = asyncHandler(async (req, res) => {
     // Fetch professor and populate appliedGroups.major_project
     const professor = await Professor.findById(profId).populate({
       path: "appliedGroups.major_project",
-      populate: {
-        path: "members",
-        select:
-          "fullName rollNumber email linkedin codingProfiles cgpa section branch image companyName",
-      },
+      populate: [
+        {
+          path: "members",
+          select:
+            "fullName rollNumber email linkedin codingProfiles cgpa section branch image companyName",
+        },
+        {
+          path: "org",
+        }
+      ],
     });
 
     if (!professor) {
@@ -1502,6 +1507,7 @@ const acceptedMajorGroups = asyncHandler(async (req, res) => {
     .populate("majorAppliedProfs")
     .populate("majorAllocatedProf")
     .populate("deniedProf")
+    .populate("org")
     .populate({
       path: "discussion.absent",
     })

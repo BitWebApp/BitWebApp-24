@@ -543,7 +543,14 @@ const AcceptMajorProject = () => {
                       <div>
                         <h3 className="font-bold text-lg text-gray-800">Group ID: {group.groupId}</h3>
                         <p className="text-gray-600">{group.members.length} members</p>
-                        <p className="text-gray-600">{group?.org?.companyName?.toUpperCase()}</p>
+                        <p className="text-sm font-semibold text-gray-700">
+                          Type: <span className={`capitalize ${group.type === 'research' ? 'text-purple-600' : 'text-blue-600'}`}>
+                            {group.type}
+                          </span>
+                        </p>
+                        {group?.org?.companyName && (
+                          <p className="text-gray-600">Company: {group.org.companyName.toUpperCase()}</p>
+                        )}
                       </div>
                     </div>
                     <div className="flex space-x-2">

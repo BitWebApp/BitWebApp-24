@@ -33,6 +33,15 @@ const majorSchema = new Schema({
           return members.length <= 2;
         },
         message: "major project groups cannot have more than 2 members"
+      },
+      {
+        validator: function(members) {
+          if (this.type === "industrial") {
+            return members.length <= 1;
+          }
+          return true;
+        },
+        message: "industrial groups can only have 1 member"
       }
     ]
   },

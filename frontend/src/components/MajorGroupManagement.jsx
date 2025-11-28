@@ -24,10 +24,6 @@ const MajorGroupManagement = () => {
   // Helper function to check if current user has a pending request
   const currentUserHasPendingRequest = () => {
     if (!typeChangeStatus?.typeChangeRequests || !currentUser?._id) {
-      console.log("Early return - missing data:", {
-        hasRequests: !!typeChangeStatus?.typeChangeRequests,
-        hasCurrentUser: !!currentUser?._id
-      });
       return false;
     }
     
@@ -36,17 +32,9 @@ const MajorGroupManagement = () => {
       const reqUserId = req.user?._id?.toString();
       const isPending = req.status === "pending";
       const isMatch = reqUserId === currentUserId;
-      console.log("Checking request:", {
-        reqUserId,
-        currentUserId,
-        isPending,
-        isMatch,
-        bothMatch: isMatch && isPending
-      });
       return isMatch && isPending;
     });
     
-    console.log("Final result - Has Pending Request:", hasPending);
     return hasPending;
   };
 
@@ -57,14 +45,6 @@ const MajorGroupManagement = () => {
     fetchTypeChangeStatus();
     fetchCurrentUser();
   }, []);
-
-  useEffect(() => {
-    console.log("State updated:", {
-      typeChangeRequests: typeChangeStatus?.typeChangeRequests,
-      currentUser: currentUser,
-      hasPending: currentUserHasPendingRequest()
-    });
-  }, [typeChangeStatus, currentUser]);
 
   const fetchCurrentUser = async () => {
     try {
@@ -256,21 +236,23 @@ const MajorGroupManagement = () => {
               >
                 {group ? "My Group" : "Create Group"}
               </button>
-              <button
-                onClick={() => setActiveTab("requests")}
-                className={`px-6 py-3 font-medium text-sm md:text-base relative ${
-                  activeTab === "requests"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Join Requests
-                {requests.length > 0 && (
-                  <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {requests.length}
-                  </span>
-                )}
-              </button>
+              {(!group || group.type !== "industrial") && (
+                <button
+                  onClick={() => setActiveTab("requests")}
+                  className={`px-6 py-3 font-medium text-sm md:text-base relative ${
+                    activeTab === "requests"
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Join Requests
+                  {requests.length > 0 && (
+                    <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {requests.length}
+                    </span>
+                  )}
+                </button>
+              )}
               {group && (
                 <button
                   onClick={() => setActiveTab("typeChange")}
@@ -586,30 +568,40 @@ const MajorGroupManagement = () => {
                         </div>
                       </div>
 
-                      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                        <div className="p-4 border-b border-gray-200 bg-gray-50">
-                          <h3 className="font-medium text-gray-800">
-                            Add New Member
-                          </h3>
-                        </div>
-                        <div className="p-4">
-                          <div className="flex flex-col sm:flex-row gap-2">
-                            <input
-                              type="text"
-                              value={rollNumber}
-                              onChange={(e) => setRollNumber(e.target.value)}
-                              placeholder="Enter Roll Number"
-                              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                            <button
-                              onClick={addMember}
-                              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm"
-                            >
-                              Send Request
-                            </button>
+                      {group.type !== "industrial" && (
+                        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                          <div className="p-4 border-b border-gray-200 bg-gray-50">
+                            <h3 className="font-medium text-gray-800">
+                              Add New Member
+                            </h3>
+                          </div>
+                          <div className="p-4">
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <input
+                                type="text"
+                                value={rollNumber}
+                                onChange={(e) => setRollNumber(e.target.value)}
+                                placeholder="Enter Roll Number"
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                              <button
+                                onClick={addMember}
+                                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm"
+                              >
+                                Send Request
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
+
+                      {group.type === "industrial" && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <p className="text-sm text-yellow-800">
+                            ℹ️ Industrial groups can only have 1 member. Adding new members is not allowed.
+                          </p>
+                        </div>
+                      )}
 
                       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                         <div className="p-4 border-b border-gray-200 bg-gray-50">

@@ -385,6 +385,7 @@ const getGroup = asyncHandler(async (req, res) => {
     .populate("leader")
     .populate("majorAppliedProfs")
     .populate("majorAllocatedProf")
+    .populate("org")
   return res
     .status(200)
     .json(new ApiResponse(200, group, "major group details returned"));
