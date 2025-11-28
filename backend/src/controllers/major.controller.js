@@ -578,23 +578,34 @@ const withdrawFromFaculty = asyncHandler(async (req, res) => {
     });
   }
 
+  // Store the old first preference professor ID
+  const oldFirstProfId = group.majorAppliedProfs[0]?.toString();
+
   // Remove from applied professors
   group.majorAppliedProfs.splice(facultyIndex, 1);
 
-  // If this was the first preference, update professor's appliedGroups
-  if (facultyIndex === 0) {
-    const professor = await Professor.findById(facultyId);
-    if (professor) {
-      professor.appliedGroups.major_project.pull(group._id);
-      await professor.save();
+  // If this was the first preference, remove group from that professor's appliedGroups
+  if (facultyIndex === 0 && oldFirstProfId) {
+    const oldFirstProf = await Professor.findById(oldFirstProfId);
+    if (oldFirstProf) {
+      oldFirstProf.appliedGroups.major_project.pull(group._id);
+      await oldFirstProf.save();
     }
+  }
 
-    // If there's a new first preference, add to that professor's appliedGroups
-    if (group.majorAppliedProfs.length > 0) {
-      const newFirstProf = await Professor.findById(group.majorAppliedProfs[0]);
+  // If there's a new first preference after withdrawal, add to that professor's appliedGroups
+  if (group.majorAppliedProfs.length > 0) {
+    const newFirstProfId = group.majorAppliedProfs[0]?.toString();
+    
+    // Only add if the new first preference is different from the old one
+    if (newFirstProfId && newFirstProfId !== oldFirstProfId) {
+      const newFirstProf = await Professor.findById(newFirstProfId);
       if (newFirstProf) {
-        newFirstProf.appliedGroups.major_project.push(group._id);
-        await newFirstProf.save();
+        // Check if group is not already in appliedGroups to avoid duplicates
+        if (!newFirstProf.appliedGroups.major_project.includes(group._id)) {
+          newFirstProf.appliedGroups.major_project.push(group._id);
+          await newFirstProf.save();
+        }
       }
     }
   }
