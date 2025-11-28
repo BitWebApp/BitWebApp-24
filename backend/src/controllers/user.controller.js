@@ -255,8 +255,11 @@ const changepassword = asyncHandler(async (req, res) => {
       throw new ApiError(400, "OTP expired or invalid. Please request a new one.");
     }
 
-    const hashedOTP = otpverify[0].otp;
-    const validOTP = await bcrypt.compare(otp, hashedOTP);  // IMPORTANT FIX
+    const hashedOTP = otpverify.pop().otp;
+    console.log(otp);
+    console.log(hashedOTP);
+    const validOTP = otp === hashedOTP;  
+    console.log(validOTP);
 
     if (!validOTP) {
       throw new ApiError(400, "Invalid OTP. Check your inbox.");
