@@ -19,7 +19,7 @@ export default function RoomStatus() {
   const fetchRoomStatus = async () => {
     try {
       const response = await axios.get("/api/v1/classroom/student");
-      console.log("API Response:", response.data); // Debugging
+      // console.log("API Response:", response.data); // Debugging
 
       const sortedBookings = response.data.data.sort(
         (a, b) => new Date(b.bookingDate) - new Date(a.bookingDate)

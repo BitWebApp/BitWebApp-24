@@ -191,9 +191,9 @@ const AcceptMinorProject = () => {
   const handleGetDiscussionLogs = async (groupId) => {
     try {
       const response = await axios.post("/api/v1/minor/get-disc", { groupId });
-      console.log("hello", response)
+      // console.log("hello", response)
       setDiscussionLogs(response.data.data);
-      console.log(response.data.data)
+      // console.log(response.data.data)
     } catch (err) {
       toast.error(err.response?.data?.data || "Failed to fetch discussion logs.");
     }

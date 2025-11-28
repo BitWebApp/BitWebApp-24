@@ -168,11 +168,11 @@ export default function Sidebar() {
   const handleLogout = async () => {
     try {
       const response = await axios.post("/api/v1/users/logout");
-      console.log(response);
+      // console.log(response);
       localStorage.removeItem("user");
       navigate("/");
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     } finally {
       navigate("/");
     }

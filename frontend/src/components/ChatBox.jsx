@@ -85,12 +85,12 @@ const ChatBoxComponent = ({ groupId }) => {
   useEffect(() => {
     socketRef.current = createSocket();
 
-    console.log("Joining room:", groupId);
+    // console.log("Joining room:", groupId);
 
     joinRoom(groupId);
 
     const handleNewMessage = (msg) => {
-      console.log("Received newMessage:", msg);
+      // console.log("Received newMessage:", msg);
       setMessages((prev) => [...prev, msg]);
     };
 
@@ -137,7 +137,7 @@ const ChatBoxComponent = ({ groupId }) => {
           sender: name,
         },
       };
-      console.log("Sending message:", msgObj);
+      // console.log("Sending message:", msgObj);
       sendMessage(groupId, msgObj.message);
       setMessages((prev) => [
         ...prev,

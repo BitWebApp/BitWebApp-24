@@ -68,7 +68,7 @@ const MajorGroupManagement = () => {
     setLoading(true);
     try {
       const response = await axios.get("/api/v1/major/get-group");
-      console.log("hello", response.data.data);
+      // console.log("hello", response.data.data);
       setGroup(response.data.data);
     } catch (error) {
       setGroup(null);

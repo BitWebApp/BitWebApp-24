@@ -93,18 +93,18 @@ export default function Signup() {
       //   if (errorElement) {
       //     const errorMessage = errorElement.textContent.trim();
       //     const errormsg = errorMessage.split("at")[0].trim();
-      //     console.log(errormsg);
+      //     // console.log(errormsg);
       //     toast.error(errormsg);
       //   } else {
-      //     console.log("Error: An unknown error occurred");
+      //     // console.log("Error: An unknown error occurred");
       //     toast.error("An unknown error occurred");
       //   }
       // } else {
-      //   console.log("Error:", error.message);
+      //   // console.log("Error:", error.message);
       //   toast.error("Error occurred during signup");
       // }
       let errorMessage = error.response.data.message;
-      console.log(errorMessage);
+      // console.log(errorMessage);
       toast.error(errorMessage || "Error occurred during signup");
     } finally {
       setSpin(false);

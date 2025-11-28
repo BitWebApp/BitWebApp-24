@@ -27,7 +27,7 @@ export default function MinorProjectTable() {
           batch,
         },
       });
-      console.log(response);
+      // console.log(response);
       setProjectData(response.data.data.response);
       setFilteredData(response.data.data.response);
 

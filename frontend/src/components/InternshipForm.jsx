@@ -79,7 +79,7 @@ export default function InternshipForm() {
     const fetchProfessors = async () => {
       try {
         const { data } = await axios.get("/api/v1/prof/getProf");
-        console.log(data)
+        // console.log(data)
         setProfessors(data?.message || []);
       } catch (error) {
         console.error("Error fetching professors:", error);
@@ -138,7 +138,7 @@ export default function InternshipForm() {
             window.location.reload();
           }, 2000);
         } catch (error) {
-          console.log(error)
+          // console.log(error)
           toast.error(error.message);
         } finally {
           setSpin(false);

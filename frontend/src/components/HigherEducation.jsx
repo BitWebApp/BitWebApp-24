@@ -23,7 +23,7 @@ const HigherEducation = () => {
       const response = await axios.get('/api/v1/higher-education');
       setHigherEducations(response.data.data);
     } catch (error) {
-      console.log(error.message);
+      // console.log(error.message);
     }
   };
 

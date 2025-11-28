@@ -249,7 +249,7 @@ export default function App() {
 //           setIsAuthenticated(true);
 //         }
 //       } catch (err) {
-//         console.log("Error fetching user!", err);
+//         // console.log("Error fetching user!", err);
 //       } finally {
 //         setLoading(false);
 //       }
@@ -261,7 +261,7 @@ export default function App() {
 //             setIsAuthenticated(true);
 //           }
 //         } catch (err) {
-//           console.log("Error fetching admin!", err);
+//           // console.log("Error fetching admin!", err);
 //         } finally {
 //           setLoading(false);
 //         }
@@ -274,7 +274,7 @@ export default function App() {
 //             setIsAuthenticated(true);
 //           }
 //         } catch (err) {
-//           console.log("Error fetching admin!", err);
+//           // console.log("Error fetching admin!", err);
 //         } finally {
 //           setLoading(false);
 //         }
@@ -317,7 +317,7 @@ function ProtectAdmin({ children }) {
           setIsAuthenticated(true);
         }
       } catch (error) {
-        console.log("Error fetching admin!", error);
+        // console.log("Error fetching admin!", error);
       } finally {
         setLoading(false);
       }
@@ -359,7 +359,7 @@ function ProtectFaculty({ children }) {
           setIsAuthenticated(true);
         }
       } catch (error) {
-        console.log("Error fetching faculty!", error);
+        // console.log("Error fetching faculty!", error);
       } finally {
         setLoading(false);
       }
@@ -400,7 +400,7 @@ function ProtectUser({ children }) {
           setIsAuthenticated(true);
         }
       } catch (error) {
-        console.log("Error fetching user!", error);
+        // console.log("Error fetching user!", error);
       } finally {
         setLoading(false);
       }

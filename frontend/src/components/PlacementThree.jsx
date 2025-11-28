@@ -49,7 +49,7 @@ const PlacementThree = () => {
           setIsDataPresent(true);
         }
       } catch (err) {
-        console.log(err);
+        // console.log(err);
       }
     };
 
