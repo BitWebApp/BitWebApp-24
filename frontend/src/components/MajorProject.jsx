@@ -61,11 +61,10 @@ const MajorProject = () => {
           return seatsB - seatsA;
         });
 
-      setAppliedProfessors(majorAppliedProfs);
+      setAppliedProfessors(majorAppliedProfs || []);
       setDenied(denied || []);
       if (ismajorAllocated && prof) setAllocatedProf(prof);
       setProfessors(sortedProfessors);
-      setFilteredProfessors(sortedProfessors);
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -109,11 +108,17 @@ const MajorProject = () => {
 
     try {
       setLoading(true);
-      await axios.post("/api/v1/major/apply-faculty", {
+      const applyResponse = await axios.post("/api/v1/major/apply-faculty", {
         facultyId: selectedProf,
       });
+      
+      // Update applied professors immediately from the response
+      const updatedGroup = applyResponse.data.data;
+      if (updatedGroup && updatedGroup.majorAppliedProfs) {
+        setAppliedProfessors(updatedGroup.majorAppliedProfs);
+      }
+      
       setLoading(false);
-      await fetchData();
       Swal.fire({
         icon: "success",
         title: "Success",
@@ -133,6 +138,51 @@ const MajorProject = () => {
     }
   };
 
+  const handleWithdraw = async (facultyId, profName) => {
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Confirm Withdrawal",
+      text: `Are you sure you want to withdraw your application to ${profName}?`,
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, withdraw",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      setLoading(true);
+      const withdrawResponse = await axios.post("/api/v1/major/withdraw-faculty", {
+        facultyId,
+      });
+
+      // Update applied professors immediately from the response
+      const updatedGroup = withdrawResponse.data.data;
+      if (updatedGroup && updatedGroup.majorAppliedProfs) {
+        setAppliedProfessors(updatedGroup.majorAppliedProfs);
+      }
+
+      setLoading(false);
+      Swal.fire({
+        icon: "success",
+        title: "Withdrawn",
+        text: "Application withdrawn successfully",
+        confirmButtonColor: "#10b981",
+      });
+    } catch (error) {
+      setLoading(false);
+      let errorMessage = error.response?.data?.message;
+      Swal.fire({
+        icon: "error",
+        title: "Withdrawal Failed",
+        text: errorMessage || "Failed to withdraw application. Try again.",
+        confirmButtonColor: "#ef4444",
+      });
+    }
+  };
+
   const handleSearchAndFilter = () => {
     let filtered = professors;
 
@@ -147,13 +197,23 @@ const MajorProject = () => {
     }
 
     // Apply availability filter
-    if (filterOption !== "all") {
+    if (filterOption === "available") {
       filtered = filtered.filter((prof) => {
         const availableSeats =
           prof.limits.major_project - prof.currentCount.major_project;
-        return filterOption === "available"
-          ? availableSeats > 0
-          : availableSeats === 0;
+        return availableSeats > 0;
+      });
+    } else if (filterOption === "applied") {
+      filtered = filtered.filter((prof) => {
+        const isApplied = appliedProfessors.some((appliedProfId) => appliedProfId === prof._id);
+        return isApplied;
+      });
+      
+      // Sort by preference order (lowest preference number first)
+      filtered.sort((a, b) => {
+        const prefA = appliedProfessors.findIndex((id) => id === a._id);
+        const prefB = appliedProfessors.findIndex((id) => id === b._id);
+        return prefA - prefB;
       });
     }
 
@@ -163,7 +223,7 @@ const MajorProject = () => {
   // Call this function whenever the search query or filter option changes
   useEffect(() => {
     handleSearchAndFilter();
-  }, [searchQuery, filterOption, professors]);
+  }, [searchQuery, filterOption, professors, appliedProfessors]);
 
   return (
     <>
@@ -388,7 +448,7 @@ const MajorProject = () => {
                             scope="col"
                             className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
-                            Select
+                            {filterOption === "applied" && !allocatedProf ? "Action" : "Select"}
                           </th>
                         </tr>
                       </thead>
@@ -401,14 +461,12 @@ const MajorProject = () => {
                             (id) => id === prof._id
                           );
                           const isApplied = appliedIndex !== -1;
-                          console.log(prof._id)
                           const isDenied = denied.includes(prof._id);
                           const isDisabled =
                             isApplied ||
                             allocatedProf?._id === prof._id ||
                             seatsAvailable === 0 ||
                             isDenied;
-                          console.log(isDisabled)
                           const statusConfig = {
                             denied: {
                               text: "Denied",
@@ -514,18 +572,27 @@ const MajorProject = () => {
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <input
-                                  type="radio"
-                                  name="professor"
-                                  disabled={isDisabled}
-                                  checked={selectedProf === prof._id}
-                                  onChange={() => setSelectedProf(prof._id)}
-                                  className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 ${
-                                    isDisabled
-                                      ? "opacity-50 cursor-not-allowed"
-                                      : "cursor-pointer"
-                                  }`}
-                                />
+                                {filterOption === "applied" && !allocatedProf ? (
+                                  <button
+                                    onClick={() => handleWithdraw(prof._id, prof.fullName)}
+                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                                  >
+                                    Withdraw
+                                  </button>
+                                ) : (
+                                  <input
+                                    type="radio"
+                                    name="professor"
+                                    disabled={isDisabled}
+                                    checked={selectedProf === prof._id}
+                                    onChange={() => setSelectedProf(prof._id)}
+                                    className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 ${
+                                      isDisabled
+                                        ? "opacity-50 cursor-not-allowed"
+                                        : "cursor-pointer"
+                                    }`}
+                                  />
+                                )}
                               </td>
                             </tr>
                           );

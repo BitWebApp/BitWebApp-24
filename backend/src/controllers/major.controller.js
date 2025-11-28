@@ -163,7 +163,7 @@ const acceptReq = asyncHandler(async (req, res) => {
 const getReq = asyncHandler(async (req, res) => {
   const userId = req?.user?._id;
   const user = await User.findById(userId).populate({
-    path: "majorGroupReq",
+    path: "MajorGroupReq",
     populate: {
       path: "leader",
     },
@@ -522,6 +522,91 @@ const addMarks = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Marks added successfully"));
 });
 
+const withdrawFromFaculty = asyncHandler(async (req, res) => {
+  const loggedIn = req?.user?._id;
+  const { facultyId } = req.body;
+  const userId = req?.user?._id;
+
+  if (!facultyId) {
+    return res.status(400).json({
+      success: false,
+      message: "Faculty ID is required",
+    });
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
+
+  const groupId = user.MajorGroup;
+  const group = await Major.findById(groupId);
+  if (!group) {
+    return res.status(404).json({
+      success: false,
+      message: "Group not found",
+    });
+  }
+
+  // Check if professor has already been allocated
+  if (group.majorAllocatedProf) {
+    return res.status(403).json({
+      success: false,
+      message: "Cannot withdraw - a professor has already been allocated to your group",
+    });
+  }
+
+  if (!group.leader.equals(loggedIn)) {
+    return res.status(403).json({
+      success: false,
+      message: "Only group leader can withdraw applications",
+    });
+  }
+
+  // Check if the faculty is in the applied list
+  const facultyIndex = group.majorAppliedProfs.findIndex(
+    (profId) => profId.toString() === facultyId
+  );
+
+  if (facultyIndex === -1) {
+    return res.status(404).json({
+      success: false,
+      message: "This professor is not in your applied list",
+    });
+  }
+
+  // Remove from applied professors
+  group.majorAppliedProfs.splice(facultyIndex, 1);
+
+  // If this was the first preference, update professor's appliedGroups
+  if (facultyIndex === 0) {
+    const professor = await Professor.findById(facultyId);
+    if (professor) {
+      professor.appliedGroups.major_project.pull(group._id);
+      await professor.save();
+    }
+
+    // If there's a new first preference, add to that professor's appliedGroups
+    if (group.majorAppliedProfs.length > 0) {
+      const newFirstProf = await Professor.findById(group.majorAppliedProfs[0]);
+      if (newFirstProf) {
+        newFirstProf.appliedGroups.major_project.push(group._id);
+        await newFirstProf.save();
+      }
+    }
+  }
+
+  group.preferenceLastMovedAt = new Date();
+  await group.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, group, "Application withdrawn successfully"));
+});
+
 export {
   addMarks,
   createGroup,
@@ -529,6 +614,7 @@ export {
   addMember,
   removeMember,
   applyToFaculty,
+  withdrawFromFaculty,
   getGroup,
   getDiscussion,
   getAppliedProfs,
