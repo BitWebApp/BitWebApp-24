@@ -44,6 +44,7 @@ import {
   mergeMajorGroups,
   getMajorLimits,
   selectMajorStudents,
+  getPendingTypeChangeRequests,
 } from "../controllers/professor.controller.js";
 
 const router = Router();
@@ -54,6 +55,9 @@ router.route("/login").post(loginProf);
 router.route("/logout").post(verifyProfessor, logoutProf);
 
 router.route("/getAppliedGroups").get(verifyProfessor, getAppliedGroups);
+
+// Major project type change requests
+router.route("/major/pending-type-changes").get(verifyProfessor, getPendingTypeChangeRequests);
 router
   .route("/selectSummerStudents")
   .post(verifyProfessor, selectSummerStudents);

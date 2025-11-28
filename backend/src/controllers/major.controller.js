@@ -618,6 +618,421 @@ const withdrawFromFaculty = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, group, "Application withdrawn successfully"));
 });
 
+const requestTypeChange = asyncHandler(async (req, res) => {
+  const userId = req?.user?._id;
+  const { requestedType, org } = req.body;
+
+  if (!requestedType || !["industrial", "research"].includes(requestedType)) {
+    return res.status(400).json({
+      success: false,
+      message: "Valid requested type is required (industrial or research)",
+    });
+  }
+
+  if (requestedType === "industrial" && !org) {
+    return res.status(400).json({
+      success: false,
+      message: "Organization is required for industrial type",
+    });
+  }
+
+  const user = await User.findById(userId);
+  if (!user || !user.MajorGroup) {
+    return res.status(404).json({
+      success: false,
+      message: "User or group not found",
+    });
+  }
+
+  const group = await Major.findById(user.MajorGroup).populate("members leader");
+  if (!group) {
+    return res.status(404).json({
+      success: false,
+      message: "Group not found",
+    });
+  }
+
+  // Check if same type
+  if (group.type === requestedType) {
+    return res.status(400).json({
+      success: false,
+      message: "Group is already of this type",
+    });
+  }
+
+  // Check for existing pending request from THIS USER (not entire group)
+  // Compare ObjectIds as strings since typeChangeRequests.user is not populated here
+  const existingRequestFromUser = group.typeChangeRequests.find(
+    (req) => req.user.toString() === userId.toString() && req.status === "pending"
+  );
+
+  if (existingRequestFromUser) {
+    return res.status(409).json({
+      success: false,
+      message: "You already have a pending type change request",
+    });
+  }
+
+  // Validate member count for requested type
+  if (requestedType === "industrial" && group.members.length > 1) {
+    // This will trigger a split if approved
+    // For now, just add the request
+  }
+
+  // If no professor allocated yet, apply change immediately and handle split if needed
+  if (!group.majorAllocatedProf) {
+    // Industrial groups can only have 1 member
+    if (requestedType === "industrial" && group.members.length === 2) {
+      // Split logic: Create new industrial group for initiator, keep other in research
+      const otherMember = group.members.find((m) => !m._id.equals(userId));
+      
+      // Create new industrial group for initiator
+      const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
+      const newGroupId = nanoid();
+      
+      const newGroup = await Major.create({
+        groupId: newGroupId,
+        type: "industrial",
+        org,
+        leader: userId,
+        members: [userId],
+      });
+
+      // Update user's group reference
+      user.MajorGroup = newGroup._id;
+      await user.save();
+
+      // Remove user from original group
+      group.members = group.members.filter((m) => !m._id.equals(userId));
+      
+      // If user was the leader, make the other member the leader
+      if (group.leader.equals(userId)) {
+        group.leader = otherMember._id;
+      }
+      
+      await group.save();
+
+      return res.status(200).json(
+        new ApiResponse(200, { originalGroup: group, newGroup }, "Type changed and group split successfully")
+      );
+    } else {
+      // Simple type change - no split needed
+      group.type = requestedType;
+      if (requestedType === "industrial") {
+        group.org = org;
+      } else {
+        group.org = undefined;
+      }
+      await group.save();
+
+      return res.status(200).json(
+        new ApiResponse(200, group, "Type changed successfully")
+      );
+    }
+  }
+
+  // Professor allocated - need approval
+  group.typeChangeRequests.push({
+    user: userId,
+    requestedType,
+    org: requestedType === "industrial" ? org : undefined,
+    status: "pending",
+  });
+
+  await group.save();
+
+  return res.status(200).json(
+    new ApiResponse(200, group, "Type change request submitted for professor approval")
+  );
+});
+
+const getTypeChangeStatus = asyncHandler(async (req, res) => {
+  const userId = req?.user?._id;
+
+  const user = await User.findById(userId);
+  if (!user || !user.MajorGroup) {
+    return res.status(404).json({
+      success: false,
+      message: "User or group not found",
+    });
+  }
+
+  const group = await Major.findById(user.MajorGroup)
+    .populate("members leader typeChangeRequests.user typeChangeRequests.org");
+
+  if (!group) {
+    return res.status(404).json({
+      success: false,
+      message: "Group not found",
+    });
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, {
+      group,
+      typeChangeRequests: group.typeChangeRequests,
+    }, "Type change status fetched successfully")
+  );
+});
+
+const profApproveTypeChange = asyncHandler(async (req, res) => {
+  const { groupId, action } = req.body; // action: "approve" or "reject"
+
+  if (!groupId || !action || !["approve", "reject"].includes(action)) {
+    return res.status(400).json({
+      success: false,
+      message: "Valid groupId and action (approve/reject) are required",
+    });
+  }
+
+  const group = await Major.findById(groupId)
+    .populate("members leader typeChangeRequests.user typeChangeRequests.org majorAllocatedProf");
+
+  if (!group) {
+    return res.status(404).json({
+      success: false,
+      message: "Group not found",
+    });
+  }
+
+  const pendingRequests = group.typeChangeRequests.filter((req) => req.status === "pending");
+
+  if (pendingRequests.length === 0) {
+    return res.status(404).json({
+      success: false,
+      message: "No pending type change requests for this group",
+    });
+  }
+
+  if (action === "reject") {
+    // Reject all pending requests
+    group.typeChangeRequests.forEach((req) => {
+      if (req.status === "pending") {
+        req.status = "rejected";
+      }
+    });
+    await group.save();
+
+    return res.status(200).json(
+      new ApiResponse(200, group, "Type change requests rejected")
+    );
+  }
+
+  // Approve action
+  // Check how many members have pending requests
+  const usersWithPendingRequests = pendingRequests.map((req) => req.user._id.toString());
+  
+  // Case 1: Only one member requested change
+  if (pendingRequests.length === 1) {
+    const request = pendingRequests[0];
+    const requestingUser = await User.findById(request.user._id);
+
+    // If changing to industrial and group has 2 members, split
+    if (request.requestedType === "industrial" && group.members.length === 2) {
+      const otherMember = group.members.find((m) => !m._id.equals(request.user._id));
+      
+      // Create new industrial group for requesting user
+      const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
+      const newGroupId = nanoid();
+      
+      const newGroup = await Major.create({
+        groupId: newGroupId,
+        type: "industrial",
+        org: request.org,
+        leader: request.user._id,
+        members: [request.user._id],
+        majorAllocatedProf: group.majorAllocatedProf,
+      });
+
+      // Update requesting user's group reference
+      requestingUser.MajorGroup = newGroup._id;
+      await requestingUser.save();
+
+      // Remove user from original group
+      group.members = group.members.filter((m) => !m._id.equals(request.user._id));
+      
+      // If requesting user was the leader, make the other member the leader
+      if (group.leader.equals(request.user._id)) {
+        group.leader = otherMember._id;
+      }
+
+      // Mark request as approved before clearing
+      request.status = "approved";
+      await group.save();
+      
+      // Clear all typeChangeRequests from original group for UI update
+      group.typeChangeRequests = [];
+      await group.save();
+
+      // Update professor's students list
+      if (group.majorAllocatedProf) {
+        const professor = await Professor.findById(group.majorAllocatedProf);
+        if (professor) {
+          // Add new group to professor's list if not already there
+          if (!professor.students.major_project.includes(newGroup._id)) {
+            professor.students.major_project.push(newGroup._id);
+          }
+          await professor.save();
+        }
+      }
+
+      return res.status(200).json(
+        new ApiResponse(200, { originalGroup: group, newGroup }, "Type change approved and group split successfully")
+      );
+    } else {
+      // Simple type change - no split
+      group.type = request.requestedType;
+      if (request.requestedType === "industrial") {
+        group.org = request.org;
+      } else {
+        group.org = undefined;
+      }
+      // Mark request as approved first
+      request.status = "approved";
+      await group.save();
+      
+      // Clear all typeChangeRequests for UI update
+      group.typeChangeRequests = [];
+      await group.save();
+
+      return res.status(200).json(
+        new ApiResponse(200, group, "Type change approved successfully")
+      );
+    }
+  }
+
+  // Case 2: Both members requested change
+  if (pendingRequests.length === 2 && group.members.length === 2) {
+    const request1 = pendingRequests[0];
+    const request2 = pendingRequests[1];
+
+    // Both requested industrial - create two separate industrial groups
+    if (request1.requestedType === "industrial" && request2.requestedType === "industrial") {
+      const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
+      
+      // Create first industrial group
+      const newGroup1 = await Major.create({
+        groupId: nanoid(),
+        type: "industrial",
+        org: request1.org,
+        leader: request1.user._id,
+        members: [request1.user._id],
+        majorAllocatedProf: group.majorAllocatedProf,
+      });
+
+      // Create second industrial group
+      const newGroup2 = await Major.create({
+        groupId: nanoid(),
+        type: "industrial",
+        org: request2.org,
+        leader: request2.user._id,
+        members: [request2.user._id],
+        majorAllocatedProf: group.majorAllocatedProf,
+      });
+
+      // Update both users' group references
+      const user1 = await User.findById(request1.user._id);
+      const user2 = await User.findById(request2.user._id);
+      user1.MajorGroup = newGroup1._id;
+      user2.MajorGroup = newGroup2._id;
+      await user1.save();
+      await user2.save();
+
+      // Update professor's students list
+      if (group.majorAllocatedProf) {
+        const professor = await Professor.findById(group.majorAllocatedProf);
+        if (professor) {
+          // Remove original group and add both new groups
+          professor.students.major_project.pull(group._id);
+          professor.students.major_project.push(newGroup1._id);
+          professor.students.major_project.push(newGroup2._id);
+          await professor.save();
+        }
+      }
+
+      // Delete original group
+      await Major.findByIdAndDelete(group._id);
+
+      return res.status(200).json(
+        new ApiResponse(200, { newGroup1, newGroup2 }, "Both type changes approved and groups split successfully")
+      );
+    }
+
+    // Both requested research - just change the original group type
+    if (request1.requestedType === "research" && request2.requestedType === "research") {
+      group.type = "research";
+      group.org = undefined;
+      // Mark both requests as approved first
+      request1.status = "approved";
+      request2.status = "approved";
+      await group.save();
+      
+      // Clear all typeChangeRequests for UI update
+      group.typeChangeRequests = [];
+      await group.save();
+
+      return res.status(200).json(
+        new ApiResponse(200, group, "Both type changes approved - group converted to research")
+      );
+    }
+
+    // Mixed requests (one industrial, one research) - handle as two separate splits
+    const industrialRequest = request1.requestedType === "industrial" ? request1 : request2;
+    const researchRequest = request1.requestedType === "research" ? request1 : request2;
+
+    const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
+    
+    // Create industrial group for the industrial requester
+    const newIndustrialGroup = await Major.create({
+      groupId: nanoid(),
+      type: "industrial",
+      org: industrialRequest.org,
+      leader: industrialRequest.user._id,
+      members: [industrialRequest.user._id],
+      majorAllocatedProf: group.majorAllocatedProf,
+    });
+
+    // Keep original group as research for the research requester
+    group.type = "research";
+    group.org = undefined;
+    group.members = [researchRequest.user._id];
+    group.leader = researchRequest.user._id;
+    // Mark both requests as approved first
+    industrialRequest.status = "approved";
+    researchRequest.status = "approved";
+    await group.save();
+    
+    // Clear all typeChangeRequests for UI update
+    group.typeChangeRequests = [];
+    await group.save();
+
+    // Update industrial requester's group reference
+    const industrialUser = await User.findById(industrialRequest.user._id);
+    industrialUser.MajorGroup = newIndustrialGroup._id;
+    await industrialUser.save();
+
+    // Update professor's students list
+    if (group.majorAllocatedProf) {
+      const professor = await Professor.findById(group.majorAllocatedProf);
+      if (professor) {
+        if (!professor.students.major_project.includes(newIndustrialGroup._id)) {
+          professor.students.major_project.push(newIndustrialGroup._id);
+        }
+        await professor.save();
+      }
+    }
+
+    return res.status(200).json(
+      new ApiResponse(200, { researchGroup: group, industrialGroup: newIndustrialGroup }, "Type changes approved with split")
+    );
+  }
+
+  return res.status(400).json({
+    success: false,
+    message: "Invalid request state",
+  });
+});
+
 export {
   addMarks,
   createGroup,
@@ -626,6 +1041,9 @@ export {
   removeMember,
   applyToFaculty,
   withdrawFromFaculty,
+  requestTypeChange,
+  getTypeChangeStatus,
+  profApproveTypeChange,
   getGroup,
   getDiscussion,
   getAppliedProfs,
