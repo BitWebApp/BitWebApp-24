@@ -54,75 +54,47 @@ export default function Header() {
   }, []);
 
   const additionalLinks = [
-      { 
-        text: "Dashboard", 
-        icon: <HiHome />, 
-        to: "/db" 
-      },
-      // {
-      //   text: "Alumni Profile", 
-      //   icon: <HiUser />,
-      //   to: "/db/alumni",
-      // },
-      {
-        text: "Academic Records", 
-        icon: <HiAcademicCap />,
-        to: "/db/academic-table",
-      },
-      // { 
-      //   text: "Backlogs", 
-      //   icon: <HiAcademicCap />, 
-      //   to: "/db/backlogs" 
-      // },
-      { 
-        text: "PE-Course", 
-        icon: <HiAcademicCap />, 
-        to: "/db/PE-form" 
-      },
-      // {
-      //   text: "Awards & Achievements",
-      //   icon: <HiBadgeCheck />,
-      //   to: "/db/award-form",
-      // },
-      // { 
-      //   text: "Examinations", 
-      //   icon: <HiDocumentReport />, 
-      //   to: "/db/exam-form" 
-      // },
-      // {
-      //   text: "Higher Education",
-      //   icon: <HiAcademicCap />,
-      //   to: "/db/higher-education",
-      // },
-      // {
-      //   text: "Placement Records",
-      //   icon: <HiOutlineBriefcase />,
-      //   to: "/db/placement",
-      // },
-      // {
-      //   text: "Projects",
-      //   icon: <HiPresentationChartLine />,
-      //   to: "/db/project-form",
-      // },
-      // { text: "Internships", icon: <HiBriefcase />, to: "/db/internship-form" },
-      { text: "Interview Experience", icon: <HiBriefcase />, to: "/db/interview" },
-     
-      // { 
-      //   text: "Request Classroom", 
-      //   icon: <HiBriefcase />, 
-      //   to: "/db/classroom-form" 
-      // },
-      {
-        text: "Manage Group",
-        icon: <HiUserGroup />,
-        to: "/db/manage-group",
-      },
-      {
-        text: "Apply to Profs",
-        icon: <HiPresentationChartLine />,
-        to: "/db/apply-summer",
-      },
-    ];
+    {
+      text: "Dashboard",
+      icon: <HiHome />,
+      to: "/db",
+    },
+    {
+      text: "Academic Records",
+      icon: <HiAcademicCap />,
+      to: "/db/academic-table",
+    },
+    {
+      text: "PE-Course",
+      icon: <HiAcademicCap />,
+      to: "/db/PE-form",
+    },
+    {
+      text: "Interview Experience",
+      icon: <HiBriefcase />,
+      to: "/db/interview",
+    },
+    {
+      text: "Apply to Minor",
+      icon: <HiPresentationChartLine />,
+      to: "/db/apply-minor",
+    },
+    {
+      text: "Apply to Major",
+      icon: <HiPresentationChartLine />,
+      to: "/db/apply-major",
+    },
+    {
+      text: "Manage Major Group",
+      icon: <HiUserGroup />,
+      to: "/db/manage-major-group",
+    },
+    {
+      text: "Report Issues",
+      icon: <HiArchive />,
+      to: "/db/report-bug",
+    },
+  ];
   
     
     const links = additionalLinks;
@@ -177,12 +149,12 @@ export default function Header() {
                <Popover.Panel
   className='absolute left-0 z-10 mt-2.5 w-full bg-black max-h-[70vh] overflow-y-auto'
 >
-  <div className='whitespace-pre flex-1 py-[1rem] text-[0.9rem] text-red-500 flex flex-col gap-0.5'>
+  <div className='whitespace-pre flex-1 py-[1rem] text-[0.9rem] text-white flex flex-col gap-0.5'>
     {links.map((link, index) => (
       <Link
         to={link.to}
         key={index}
-        className={classNames('cursor-pointer border-t border-neutral-700', linkClasses)}
+        className={classNames('cursor-pointer border-t text-white hover:bg-orange-600 border-neutral-700', linkClasses)}
         onClick={closeNavbar}
       >
         <span className='text-xl'>{link.icon}</span>
