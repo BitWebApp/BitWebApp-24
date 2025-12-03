@@ -427,7 +427,7 @@ const updateUser1 = asyncHandler(async (req, res) => {
 
 const getCurrentUser = asyncHandler(async (req, res) => {
   const _id = req?.user?._id;
-  const user = await User.findById({ _id });
+  const user = await User.findById({ _id }).select("-marks");
   if (!user) throw new ApiError(404, "user not found");
   // console.log(user)
   res.status(200).json(new ApiResponse(200, user, "user fetched"));
