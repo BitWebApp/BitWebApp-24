@@ -411,6 +411,19 @@ const getAllMinorProjects = asyncHandler(async (req, res) => {
       });
     });
 
+    // Sort the response by roll number
+    formattedData.response.sort((a, b) => {
+      const rollA = a.student.rollNumber.toUpperCase(); // ignore upper and lowercase
+      const rollB = b.student.rollNumber.toUpperCase(); // ignore upper and lowercase
+      if (rollA < rollB) {
+        return -1;
+      }
+      if (rollA > rollB) {
+        return 1;
+      }
+      return 0;
+    });
+
     return res
       .status(200)
       .json(
