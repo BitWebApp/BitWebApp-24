@@ -117,6 +117,11 @@ export default function Sidebar() {
       to: "/admin-db/minor-project-table",
     },
     {
+      text: "Major Project Records",
+      icon: <HiBriefcase />,
+      to: "/admin-db/major-project-table",
+    },
+    {
       text: "Room Allocations",
       icon: <HiBriefcase />,
       to: "/admin-db/admin-room-request",

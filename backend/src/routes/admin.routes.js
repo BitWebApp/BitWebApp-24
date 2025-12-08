@@ -8,7 +8,8 @@ import {
   logoutAdmin,
   getCurrendAdmin,
   rejectUser,
-  getAllMinorProjects
+  getAllMinorProjects,
+  getAllMajorProjects
 } from "../controllers/admin.controller.js";
 import { addbacklogSubject } from "../controllers/backlog.controller.js";
 
@@ -31,5 +32,6 @@ router.route("/add-company").post(verifyAdmin, addCompany);
 router.route("/get-companies").get(getAllCompanies);
 router.route("/assign-company").post(verifyAdmin, assignCompany);
 router.route("/get-minor-projects").get(verifyAdmin, getAllMinorProjects);
+router.route("/get-major-projects").get(verifyAdmin, getAllMajorProjects);
 
 export default router;

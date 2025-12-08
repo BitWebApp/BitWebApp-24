@@ -90,10 +90,10 @@ export default function ProfessorTable() {
               Email
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-              Minor Project Limit
+              Minor Project
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-              Minor Project Current Count
+              Major Project
             </th>
           </tr>
         </thead>
@@ -116,10 +116,10 @@ export default function ProfessorTable() {
                 {prof.email}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {prof.limits?.minor_project}
+                {prof.currentCount?.minor_project}/{prof.limits?.minor_project}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {prof.currentCount?.minor_project}
+                {prof.currentCount?.major_project}/{prof.limits?.major_project}
               </td>
             </tr>
           ))}

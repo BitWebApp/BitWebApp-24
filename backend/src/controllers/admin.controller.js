@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import nodemailer from "nodemailer";
 import { Admin } from "../models/admin.model.js";
 import { Minor } from "../models/minor.model.js";
+import { Major } from "../models/major.model.js";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -425,8 +426,95 @@ const getAllMinorProjects = asyncHandler(async (req, res) => {
   }
 });
 
+const getAllMajorProjects = asyncHandler(async (req, res) => {
+  try {
+    const { batch } = req.query; // Extract batch from request query
+
+    if (!batch) {
+      throw new ApiError(400, "Batch is required"); // Throw error if batch is not provided
+    }
+
+    // Fetch all major project groups with populated data
+    const majorProjects = await Major.find()
+      .populate({
+        path: "members",
+        select: "fullName rollNumber email branch section marks.majorProject",
+      })
+      .populate({
+        path: "leader",
+        select:
+          "fullName rollNumber email branch section marks.majorProject batch", // Include batch in leader selection
+        match: { batch }, // Filter by batch
+      })
+      .populate({
+        path: "majorAllocatedProf",
+        select: "idNumber fullName email",
+      });
+
+    // Filter out projects where leader does not match the batch
+    const filteredProjects = majorProjects.filter(
+      (project) => project.leader !== null
+    );
+
+    // Format the data to match the frontend table structure
+    const formattedData = {
+      response: [],
+    };
+
+    // Process each major project group
+    filteredProjects.forEach((project) => {
+      // Combine leader and members for the frontend display
+      const allMembers = project.leader
+        ? [
+            project.leader,
+            ...project.members.filter(
+              (member) =>
+                member._id.toString() !== project.leader._id.toString()
+            ),
+          ]
+        : project.members;
+
+      // Create entries for each member
+      allMembers.forEach((member) => {
+        formattedData.response.push({
+          student: {
+            rollNumber: member.rollNumber,
+            fullName: member.fullName,
+            email: member.email,
+            branch: member.branch,
+            section: member.section,
+            marks: {
+              majorProject: member.marks?.majorProject || 0,
+            },
+          },
+          groupId: project.groupId,
+          mentor: project.majorAllocatedProf
+            ? {
+                idNumber: project.majorAllocatedProf.idNumber,
+                fullName: project.majorAllocatedProf.fullName,
+              }
+            : null,
+        });
+      });
+    });
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          formattedData,
+          "All major projects fetched successfully"
+        )
+      );
+  } catch (error) {
+    throw new ApiError(500, "Error fetching major projects: " + error.message);
+  }
+});
+
 export {
   getAllMinorProjects,
+  getAllMajorProjects,
   getCurrendAdmin,
   getUnverifiedUsers,
   loginAdmin,
