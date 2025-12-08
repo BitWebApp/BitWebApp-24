@@ -3,6 +3,10 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ClipLoader } from 'react-spinners';
 
+const api = axios.create({
+  baseURL: '/api/v1/prof',
+});
+
 export default function FacultyAutoLogin() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -20,12 +24,17 @@ export default function FacultyAutoLogin() {
           return;
         }
 
+        console.log('Token found, attempting auto-login...');
+
         // Send token to backend for auto-login
-        const response = await axios.post(
-          '/api/v1/prof/auto-login',
+        const response = await api.post(
+          '/auto-login',
           { token },
-          { withCredentials: true }
+          { withCredentials: true,
+            timeout: 10000 }
         );
+
+        console.log('Auto-login response:', response);
 
         if (response.status === 200 && response.data.data.accessToken) {
           // Store tokens and user data
@@ -33,8 +42,12 @@ export default function FacultyAutoLogin() {
           localStorage.setItem('accessToken', response.data.data.accessToken);
           localStorage.setItem('refreshToken', response.data.data.refreshToken);
 
+          console.log('Tokens stored, redirecting to /faculty-db');
+          
           // Redirect to faculty dashboard
-          navigate('/faculty-db', { replace: true });
+          setTimeout(() => {
+            navigate('/faculty-db', { replace: true });
+          }, 500);
         } else {
           setError('Auto-login failed. Please try logging in manually.');
           setLoading(false);
@@ -49,7 +62,17 @@ export default function FacultyAutoLogin() {
       }
     };
 
+    // Set a timeout to show error if auto-login takes too long
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        setError('Auto-login is taking too long. Please try logging in manually.');
+        setLoading(false);
+      }
+    }, 15000);
+
     autoLogin();
+
+    return () => clearTimeout(timeoutId);
   }, [searchParams, navigate]);
 
   if (loading) {
