@@ -448,7 +448,7 @@ const MajorProject = () => {
                             scope="col"
                             className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
-                            {filterOption === "applied" && !allocatedProf ? "Action" : "Select"}
+                            Action
                           </th>
                         </tr>
                       </thead>
@@ -572,7 +572,7 @@ const MajorProject = () => {
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                {filterOption === "applied" && !allocatedProf ? (
+                                {isApplied && !allocatedProf ? (
                                   <button
                                     onClick={() => handleWithdraw(prof._id, prof.fullName)}
                                     className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"

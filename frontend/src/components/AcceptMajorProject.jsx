@@ -611,7 +611,7 @@ const AcceptMajorProject = () => {
                                       min="0"
                                       max="50"
                                       step="1"
-                                      value={marks[member._id] ?? member.marks.minorProject ?? ""}
+                                      value={marks[member._id] ?? member.marks.majorProject ?? ""}
                                       onChange={(e) => {
                                         const value = e.target.value;
                                         // Allow empty string or valid number between 0-50
@@ -652,7 +652,7 @@ const AcceptMajorProject = () => {
                                     onClick={() => setShowMarksInputFor(member._id)}
                                     className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors flex items-center"
                                   >
-                                    <span>{member.marks.minorProject || 0}/50</span>
+                                    <span>{member.marks.majorProject || 0}/50</span>
                                     <FaEdit className="ml-2 text-sm" />
                                   </button>
                                 )}
