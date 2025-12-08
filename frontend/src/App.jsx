@@ -19,6 +19,7 @@ import HeaderFaculty from "./components/HeaderFaculty";
 import Login from "./components/Login";
 import Loginadmin from "./components/Loginadmin";
 import LoginFaculty from "./components/LoginFaculty";
+import FacultyAutoLogin from "./components/FacultyAutoLogin";
 import Signup from "./components/signup";
 import Signupadmin from "./components/Signupadmin";
 import LandingPage from "./components/LandingPage";
@@ -230,6 +231,7 @@ export default function App() {
         <Route path="/log.a" element={<Loginadmin />} />
         <Route path="/sg.a" element={<Signupadmin />} />
         <Route path="/faculty-login" element={<LoginFaculty />} />
+        <Route path="/faculty-auto-login" element={<FacultyAutoLogin />} />
         <Route path="/faculty-forget-password" element={<FacultyForgotPassword />} />
       </Routes>
     </Router>

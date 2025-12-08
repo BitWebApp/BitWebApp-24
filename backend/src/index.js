@@ -8,6 +8,8 @@ import "./cron-jobs/notifyProf.js";
 import "./cron-jobs/autoMovePreferences.js";
 import "./cron-jobs/notifyProfMinor.js";
 import "./cron-jobs/autoMovePreferencesMinor.js";
+import "./cron-jobs/notifyMajorProf.js";
+import "./cron-jobs/autoMovePreferencesMajor.js";
 
 // Global error handlers
 process.on("uncaughtException", (error) => {

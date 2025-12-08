@@ -10,6 +10,8 @@ import {
   getProf,
   loginProf,
   logoutProf,
+  generateAutoLoginUrl,
+  autoLoginProf,
   getAppliedGroups,
   selectSummerStudents,
   getcurrentProf,
@@ -53,6 +55,8 @@ router.route("/getProf").get(getProf);
 
 router.route("/login").post(loginProf);
 router.route("/logout").post(verifyProfessor, logoutProf);
+router.route("/generate-auto-login").post(verifyAdmin, generateAutoLoginUrl);
+router.route("/auto-login").post(autoLoginProf);
 
 router.route("/getAppliedGroups").get(verifyProfessor, getAppliedGroups);
 

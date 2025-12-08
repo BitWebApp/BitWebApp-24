@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-async function sendNotificationEmail(professor) {
+async function sendMajorNotificationEmail(professor) {
   // Generate auto-login token (valid for 30 minutes)
   const autoLoginToken = jwt.sign(
     { _id: professor._id },
@@ -25,18 +25,18 @@ async function sendNotificationEmail(professor) {
   const mailOptions = {
     from: process.env.AUTH_EMAIL,
     to: professor.email,
-    subject: "Student Applications Pending Review",
+    subject: "Major Project Applications Pending Review",
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
         <h2 style="color: #333; text-align: center;">Hello Professor ${professor.fullName},</h2>
-        <p style="color: #555;">You have pending student applications for summer training that require your attention.</p>
+        <p style="color: #555;">You have pending student applications for major projects that require your attention.</p>
         
         <div style="background-color: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
           <h3 style="color: #444;">Current Details:</h3>
           <ul style="color: #555; line-height: 1.6;">
-            <li><strong>Current Summer Training Students:</strong> ${professor.currentCount.summer_training}</li>
-            <li><strong>Maximum Limit:</strong> ${professor.limits.summer_training}</li>
-            <li><strong>Pending Applications:</strong> ${professor.appliedGroups.summer_training.length}</li>
+            <li><strong>Current Major Project Students:</strong> ${professor.currentCount.major_project}</li>
+            <li><strong>Maximum Limit:</strong> ${professor.limits.major_project}</li>
+            <li><strong>Pending Applications:</strong> ${professor.appliedGroups.major_project.length}</li>
           </ul>
         </div>
 
@@ -55,40 +55,41 @@ async function sendNotificationEmail(professor) {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log(`Email sent successfully to ${professor.email}`);
+    console.log(`Major project email sent successfully to ${professor.email}`);
   } catch (error) {
-    console.error(`Error sending email to ${professor.email}:`, error);
+    console.error(`Error sending major project email to ${professor.email}:`, error);
   }
 }
 
-const checkAndNotifyProf = async () => {
+const checkAndNotifyMajorProf = async () => {
   try {
     const allProfs = await Professor.find().populate(
-      "appliedGroups.summer_training"
+      "appliedGroups.major_project"
     );
     const eligibleProfs = allProfs.filter((prof) => {
       const { currentCount, limits, appliedGroups } = prof;
-      const hasSpace = currentCount.summer_training < limits.summer_training;
-      const hasPendingApplications = appliedGroups.summer_training.length > 0;
+      const hasSpace = currentCount.major_project < limits.major_project;
+      const hasPendingApplications = appliedGroups.major_project.length > 0;
       return hasSpace && hasPendingApplications;
     });
-    console.log("eligibleProfs:", eligibleProfs);
-    console.log(`📢 Notifying ${eligibleProfs.length} professors...`);
-    await Promise.all(eligibleProfs.map((prof) => sendNotificationEmail(prof)));
-    console.log("✅ All eligible professors have been notified.");
+    console.log("eligible major project profs:", eligibleProfs);
+    console.log(`📢 Notifying ${eligibleProfs.length} professors for major projects...`);
+    await Promise.all(eligibleProfs.map((prof) => sendMajorNotificationEmail(prof)));
+    console.log("✅ All eligible professors have been notified for major projects.");
   } catch (error) {
-    console.log("Error in checkAndNotifyProfessors:", error);
+    console.log("Error in checkAndNotifyMajorProfessors:", error);
   }
 };
+
 cron.schedule(
   "30 0 * * *",
   () => {
-    console.log("Running a task every day at 6:00 AM IST");
-    checkAndNotifyProf();
+    console.log("Running major project notification task every day at 6:15 AM IST");
+    checkAndNotifyMajorProf();
   },
   {
     timezone: "UTC",
   }
 );
 
-export { checkAndNotifyProf };
+export { checkAndNotifyMajorProf };
