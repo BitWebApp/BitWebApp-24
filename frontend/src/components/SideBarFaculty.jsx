@@ -3,16 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import classNames from "classnames";
 import {
-  HiUser,
-  HiAcademicCap,
   HiOutlineLogout,
-  HiBadgeCheck,
-  HiHome,
-  HiDocumentReport,
-  HiOutlineBriefcase,
-  HiPresentationChartLine,
-  HiBriefcase,
-  HiBeaker
 } from "react-icons/hi";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
@@ -20,6 +11,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import useLinks from "./admin/user-links";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import facultyLinks from "../faculty_links.jsx";
 const linkclasses =
   "flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base";
 
@@ -39,43 +31,6 @@ export default function Sidebar() {
     },
   };
   const [isOpen, setIsOpen] = useState(true);
-  const facultyLinks = [
-    {
-      text: "Dashboard",
-      icon: <HiHome />,
-      to: "/faculty-db",
-    },
-    {
-      text: "Summer Training",
-      icon: <HiHome />,
-      to: "/faculty-db/accept-students",
-    },
-    {
-      text: "Major Project",
-      icon: <HiPresentationChartLine />,
-      to: "/faculty-db/accept-major-project",
-    },
-    {
-      text: "Minor Project",
-      icon: <HiPresentationChartLine />,
-      to: "/faculty-db/accept-minor-project",
-    },
-     {
-      text: "Ad-hoc Projects",
-      icon: <HiPresentationChartLine />,
-      to: "/faculty-db/adhoc-projects-dashboard",
-    },
-    {
-      text: "Report Issues",
-      icon: <HiBeaker />,
-      to: "/faculty-db/report-bug",
-    },
-    {
-      text: "Academic Analysis",
-      icon: <HiBeaker/>,
-      to: "/faculty-db/academicanalysis",
-    }
-  ];
   // const [isAdmin, setIsAdmin] = useState(true);
 
   // useEffect(() => {

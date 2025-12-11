@@ -16,6 +16,7 @@ import {
   HiOutlineLogout,
   HiArchive,
 } from "react-icons/hi";
+import facultyLinks from '../faculty_links';
 import useLinks from './admin/user-links';
 const linkClasses = 'flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base';
 
@@ -51,33 +52,6 @@ export default function Header() {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
-  const facultyLinks = [
-      { 
-        text: "Dashboard", 
-        icon: <HiHome />, 
-        to: "/faculty-db" 
-      },
-      {
-        text: "Summer Training",
-        icon: <HiHome/>,
-        to: "/faculty-db/accept-students"
-      },
-      {
-        text: "Major Project",
-        icon: <HiPresentationChartLine />,
-        to: "/faculty-db/major-project",
-      },
-      {
-        text: "Minor Project",
-        icon: <HiPresentationChartLine />,
-        to: "/faculty-db/minor-project",
-      },
-      {
-              text: "Academic Analysis",
-              icon: <HiPresentationChartLine />,
-              to: "/faculty-db/academicanalysis",
-            },
-    ];
   const links = facultyLinks;
 
   const closeNavbar = () => {
