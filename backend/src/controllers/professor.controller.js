@@ -295,6 +295,96 @@ const logoutProf = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Prof logged out successfully!"));
 });
 
+const generateAutoLoginUrl = asyncHandler(async (req, res) => {
+  const { profId } = req.body;
+  
+  if (!profId) {
+    throw new ApiError(400, "Professor ID is required!");
+  }
+
+  const professor = await Professor.findById(profId);
+  if (!professor) {
+    throw new ApiError(404, "Professor not found!");
+  }
+
+  // Generate access token for auto-login (valid for 30 minutes)
+  const autoLoginToken = jwt.sign(
+    { _id: professor._id },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: "30m" }
+  );
+
+  // Create the auto-login URL
+  const autoLoginUrl = `http://139.167.188.221:3000/faculty-auto-login?token=${autoLoginToken}`;
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { autoLoginUrl, autoLoginToken },
+        "Auto-login URL generated successfully!"
+      )
+    );
+});
+
+// Auto-login with token from email link
+const autoLoginProf = asyncHandler(async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    throw new ApiError(400, "Auto-login token is required!");
+  }
+
+  try {
+    // Verify the token
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    const professor = await Professor.findById(decoded._id).select(
+      "-password -refreshToken"
+    );
+
+    if (!professor) {
+      throw new ApiError(404, "Professor not found!");
+    }
+
+    // Generate new access and refresh tokens for the session
+    const { accessToken, refreshToken } = await generateAcessAndRefreshToken(
+      professor._id
+    );
+
+    const reviewLog = await Review.findOne({ user: professor._id });
+    let review = false;
+    if (reviewLog) {
+      review = true;
+    }
+
+    const options = {
+      httpOnly: true,
+      secure: false,
+    };
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          {
+            professor: professor,
+            review: review,
+            accessToken,
+            refreshToken,
+          },
+          "Professor auto-logged in successfully!"
+        )
+      );
+  } catch (error) {
+    throw new ApiError(401, "Invalid or expired auto-login token!");
+  }
+});
+
+
 //***************************************************/
 const applyToSummer = asyncHandler(async (req, res) => {
   const { profIds } = req.body; // Expecting an array of professor IDs
@@ -1712,6 +1802,8 @@ export {
   getProf,
   loginProf,
   logoutProf,
+  generateAutoLoginUrl,
+  autoLoginProf,
   getLimits,
   applyToSummer,
   getAppliedGroups,
