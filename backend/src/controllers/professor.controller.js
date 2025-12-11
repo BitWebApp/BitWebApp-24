@@ -311,7 +311,7 @@ const generateAutoLoginUrl = asyncHandler(async (req, res) => {
   const autoLoginToken = jwt.sign(
     { _id: professor._id },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "30m" }
+    { expiresIn: "12h" }
   );
 
   // Create the auto-login URL
