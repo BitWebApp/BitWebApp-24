@@ -28,8 +28,7 @@ export default function ForgotPassword() {
   };
 
   const isValidPassword = (password) => {
-   
-    return /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(password);
+    return password.length >= 8 && /[A-Za-z]/.test(password) && /[0-9]/.test(password);
   };
 
   const handleChangePassword = async () => {
