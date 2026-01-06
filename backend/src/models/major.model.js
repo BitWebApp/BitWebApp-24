@@ -1,5 +1,9 @@
 import mongoose, { Schema } from "mongoose";
 const majorSchema = new Schema({
+    projectTitle: {
+      type: String,
+      default: "",
+    },
   groupId: {
     type: String,
     unique: true,

@@ -551,6 +551,17 @@ const AcceptMajorProject = () => {
                         {group?.org?.companyName && (
                           <p className="text-gray-600">Company: {group.org.companyName.toUpperCase()}</p>
                         )}
+                        {group?.projectTitle && group.projectTitle.trim() !== "" && (
+                          <div className="text-sm font-semibold text-green-700 flex items-center" style={{ maxWidth: '100%' }}>
+                            Project Title:
+                            <span
+                              className="font-normal text-gray-800 ml-1 break-words"
+                              style={{ maxWidth: '600px', wordBreak: 'break-word', whiteSpace: 'normal', display: 'inline-block' }}
+                            >
+                              {group.projectTitle}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="flex space-x-2">
