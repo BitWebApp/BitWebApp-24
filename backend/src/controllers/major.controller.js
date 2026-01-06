@@ -1,3 +1,43 @@
+// Set project title (leader only, only if not already set)
+const setProjectTitle = asyncHandler(async (req, res) => {
+  const userId = req?.user?._id;
+  const { projectTitle } = req.body;
+  if (!projectTitle || typeof projectTitle !== "string" || !projectTitle.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: "Project title is required."
+    });
+  }
+  const user = await User.findById(userId);
+  if (!user || !user.MajorGroup) {
+    return res.status(404).json({
+      success: false,
+      message: "User or group not found."
+    });
+  }
+  const group = await Major.findById(user.MajorGroup);
+  if (!group) {
+    return res.status(404).json({
+      success: false,
+      message: "Group not found."
+    });
+  }
+  if (!group.leader.equals(userId)) {
+    return res.status(403).json({
+      success: false,
+      message: "Only the group leader can set the project title."
+    });
+  }
+  if (group.projectTitle && group.projectTitle.trim().length > 0) {
+    return res.status(409).json({
+      success: false,
+      message: "Project title has already been set and cannot be changed unless group type is changed."
+    });
+  }
+  group.projectTitle = projectTitle.trim();
+  await group.save();
+  return res.status(200).json(new ApiResponse(200, group, "Project title set successfully."));
+});
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -509,13 +549,22 @@ const getDiscussionByStudent = asyncHandler(async (req, res) => {
 const addMarks = asyncHandler(async (req, res) => {
   const { userId, marks } = req.body;
   // console.log(userId, marks);
-  const user = await User.findById(userId).select("fullName rollNumber marks");
+  const user = await User.findById(userId).select("fullName rollNumber marks MajorGroup");
   if (!user) throw new ApiError(404, "User not found");
-  // 
+  // Check if user's group has projectTitle set
+  if (!user.MajorGroup) {
+    throw new ApiError(400, "User is not in a major project group");
+  }
+  const group = await Major.findById(user.MajorGroup).select("projectTitle");
+  if (!group || !group.projectTitle || group.projectTitle.trim() === "") {
+    return res.status(400).json({
+      success: false,
+      message: "Project title is not set for this group. Please ask the group to submit the project title before entering marks."
+    });
+  }
   if(user.marks.majorProject > 0){
     throw new ApiError(400, "Marks already added");
   }
-  // 
   user.marks.majorProject = marks;
   await user.save();
   return res
@@ -724,6 +773,8 @@ const requestTypeChange = asyncHandler(async (req, res) => {
       } else {
         group.org = undefined;
       }
+      // Erase project title on type change
+      group.projectTitle = "";
       await group.save();
 
       return res.status(200).json(
@@ -888,6 +939,8 @@ const profApproveTypeChange = asyncHandler(async (req, res) => {
       } else {
         group.org = undefined;
       }
+      // Erase project title on type change
+      group.projectTitle = "";
       // Mark request as approved first
       request.status = "approved";
       await group.save();
@@ -963,6 +1016,8 @@ const profApproveTypeChange = asyncHandler(async (req, res) => {
     if (request1.requestedType === "research" && request2.requestedType === "research") {
       group.type = "research";
       group.org = undefined;
+      // Erase project title on type change
+      group.projectTitle = "";
       // Mark both requests as approved first
       request1.status = "approved";
       request2.status = "approved";
@@ -1053,4 +1108,5 @@ export {
   getReq,
   addDiscussion,
   addRemarkAbsent,
+  setProjectTitle,
 };

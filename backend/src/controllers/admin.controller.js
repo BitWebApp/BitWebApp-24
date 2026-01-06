@@ -451,17 +451,21 @@ const getAllMajorProjects = asyncHandler(async (req, res) => {
     const majorProjects = await Major.find()
       .populate({
         path: "members",
-        select: "fullName rollNumber email branch section marks.majorProject",
+        select: "fullName rollNumber email branch section marks.majorProject mobileNumber projectTitle",
       })
       .populate({
         path: "leader",
         select:
-          "fullName rollNumber email branch section marks.majorProject batch", // Include batch in leader selection
-        match: { batch }, // Filter by batch
+          "fullName rollNumber email branch section marks.majorProject batch mobileNumber projectTitle",
+        match: { batch },
       })
       .populate({
         path: "majorAllocatedProf",
         select: "idNumber fullName email",
+      })
+      .populate({
+        path: "org",
+        select: "companyName",
       });
 
     // Filter out projects where leader does not match the batch
@@ -489,6 +493,12 @@ const getAllMajorProjects = asyncHandler(async (req, res) => {
 
       // Create entries for each member
       allMembers.forEach((member) => {
+        let orgName = "";
+        if (project.type === "industrial") {
+          orgName = project.org && project.org.companyName ? project.org.companyName : "";
+        } else if (project.type === "research") {
+          orgName = "BIT";
+        }
         formattedData.response.push({
           student: {
             rollNumber: member.rollNumber,
@@ -496,6 +506,8 @@ const getAllMajorProjects = asyncHandler(async (req, res) => {
             email: member.email,
             branch: member.branch,
             section: member.section,
+            mobileNumber: member.mobileNumber,
+            projectTitle: member.projectTitle,
             marks: {
               majorProject: member.marks?.majorProject || 0,
             },
@@ -507,6 +519,10 @@ const getAllMajorProjects = asyncHandler(async (req, res) => {
                 fullName: project.majorAllocatedProf.fullName,
               }
             : null,
+          type: project.type,
+          org: orgName,
+          location: project.type === "industrial" ? "outside_bit" : "inside_bit",
+          projectTitle: project.projectTitle || member.projectTitle || "",
         });
       });
     });

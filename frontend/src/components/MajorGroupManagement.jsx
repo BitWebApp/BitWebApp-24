@@ -1,11 +1,9 @@
+import Swal from "sweetalert2";
+
+
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
-
-const handleError = (error, defaultMessage) => {
-  let message = error.response.data.message;
-  toast.error(message);
-};
 
 const MajorGroupManagement = () => {
   const [group, setGroup] = useState(null);
@@ -21,12 +19,53 @@ const MajorGroupManagement = () => {
   const [requestedOrg, setRequestedOrg] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
 
+
+  // Project Title State
+  const [projectTitleInput, setProjectTitleInput] = useState("");
+  const [titleSubmitting, setTitleSubmitting] = useState(false);
+
+  // Effect: set input to current title if erased
+  useEffect(() => {
+    if (group && (!group.projectTitle || group.projectTitle === "")) {
+      setProjectTitleInput("");
+    }
+  }, [group]);
+
+  // Submit project title
+  const submitProjectTitle = async () => {
+    if (!projectTitleInput.trim()) {
+      toast.error("Project title cannot be empty");
+      return;
+    }
+    const result = await Swal.fire({
+      title: "Submit Project Title?",
+      text: `Are you sure you want to submit this project title? This action cannot be undone unless group type is changed.`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#10B981",
+      cancelButtonColor: "#EF4444",
+      confirmButtonText: "Yes, submit",
+      cancelButtonText: "Cancel",
+      background: "#F9FAFB"
+    });
+    if (!result.isConfirmed) return;
+    setTitleSubmitting(true);
+    try {
+      await axios.post("/api/v1/major/set-project-title", { projectTitle: projectTitleInput });
+      toast.success("Project title submitted successfully");
+      fetchGroup();
+    } catch (error) {
+      let errorMessage = error.response?.data?.message;
+      toast.error(errorMessage || "Failed to submit project title");
+    }
+    setTitleSubmitting(false);
+  };
+
   // Helper function to check if current user has a pending request
   const currentUserHasPendingRequest = () => {
     if (!typeChangeStatus?.typeChangeRequests || !currentUser?._id) {
       return false;
     }
-    
     const currentUserId = currentUser._id.toString();
     const hasPending = typeChangeStatus.typeChangeRequests.some(req => {
       const reqUserId = req.user?._id?.toString();
@@ -34,9 +73,11 @@ const MajorGroupManagement = () => {
       const isMatch = reqUserId === currentUserId;
       return isMatch && isPending;
     });
-    
     return hasPending;
   };
+
+  // Helper: is current user leader?
+  const isLeader = group && currentUser && group.leader && group.leader._id === currentUser._id;
 
   useEffect(() => {
     fetchCompanies();
@@ -533,6 +574,40 @@ const MajorGroupManagement = () => {
                   {group ? (
                     <div className="space-y-6">
                       <div className="grid md:grid-cols-3 gap-4">
+                                                {/* Project Title Section */}
+                                                <div className="bg-green-50 rounded-lg p-4 border border-green-100 md:col-span-3">
+                                                  <h3 className="text-sm font-medium text-green-800">Project Title</h3>
+                                                  {group?.projectTitle && group.projectTitle.trim() !== "" ? (
+                                                    <div className="text-lg font-bold text-green-700 mt-1 flex items-center" style={{ maxWidth: '100%' }}>
+                                                      <span
+                                                        className="break-words"
+                                                        style={{ maxWidth: '600px', wordBreak: 'break-word', whiteSpace: 'normal', display: 'inline-block' }}
+                                                      >
+                                                        {group.projectTitle}
+                                                      </span>
+                                                    </div>
+                                                  ) : isLeader ? (
+                                                    <div className="flex flex-col md:flex-row gap-2 mt-2">
+                                                      <input
+                                                        type="text"
+                                                        value={projectTitleInput}
+                                                        onChange={e => setProjectTitleInput(e.target.value)}
+                                                        placeholder="Enter Project Title"
+                                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                                        disabled={titleSubmitting || (group.projectTitle && group.projectTitle.trim() !== "")}
+                                                      />
+                                                      <button
+                                                        onClick={submitProjectTitle}
+                                                        disabled={titleSubmitting || !projectTitleInput.trim() || (group.projectTitle && group.projectTitle.trim() !== "")}
+                                                        className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                                      >
+                                                        {titleSubmitting ? "Submitting..." : "Submit Title"}
+                                                      </button>
+                                                    </div>
+                                                  ) : (
+                                                    <p className="text-gray-500 mt-1">Project title not set</p>
+                                                  )}
+                                                </div>
                         <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
                           <h3 className="text-sm font-medium text-blue-800">
                             Group ID

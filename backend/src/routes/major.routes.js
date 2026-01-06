@@ -1,15 +1,19 @@
 import { Router } from "express";
+
 import { 
     createGroup, addMember, removeMember, applyToFaculty, withdrawFromFaculty, 
     requestTypeChange, getTypeChangeStatus, profApproveTypeChange, getGroup,
     getAppliedProfs,
     majorSorted, acceptReq, getReq, addDiscussion, addRemarkAbsent, getDiscussion,
     getDiscussionByStudent,
-    addMarks
+    addMarks, setProjectTitle
 } from "../controllers/major.controller.js";
 import { verifyAdmin, verifyJWT, verifyProfessor } from "../middlewares/auth.middleware.js";
 
 const router = Router();
+
+// Set project title (leader only)
+router.route("/set-project-title").post(verifyJWT, setProjectTitle);
 
 router.route("/create-group").post(verifyJWT, createGroup);
 router.route("/add-member").post(verifyJWT, addMember);
