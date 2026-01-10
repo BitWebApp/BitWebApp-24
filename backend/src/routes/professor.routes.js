@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { upload } from "../middlewares/multer.middleware.js";
 import {
+  createRateLimiter,
+  requestIpMiddleware,
+} from "../middlewares/ratelimiter.middleware.js";
+import {
   verifyJWT,
   verifyAdmin,
   verifyProfessor,
@@ -77,7 +81,8 @@ router.route("/accept-group").post(verifyProfessor, acceptGroup);
 router.route("/add-remark").post(verifyProfessor, addRemark);
 router.route("/meet-attend").post(verifyProfessor, groupAttendance);
 router.route("/forgot-pass").post(otpForgotPassword);
-router.route("/change-pass").post(changePassword);
+const changePassLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 5 });
+router.route("/change-pass").post(requestIpMiddleware, changePassLimiter, changePassword);
 router.route("/accepted-groups").get(verifyProfessor, acceptedGroups);
 router.route("/merge-groups").post(verifyProfessor, mergeGroups);
 router.route("/get-limit").get(verifyProfessor, getLimits);
