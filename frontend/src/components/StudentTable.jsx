@@ -1,6 +1,8 @@
 import axios from "axios";
 import ExcelJS from "exceljs";
 import { useEffect, useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const StudentTable = () => {
   const [students, setStudents] = useState([]);
@@ -28,6 +30,15 @@ const StudentTable = () => {
         setStudents(response.data.data.users);
       } catch (error) {
         console.error("Error fetching students:", error);
+        if (error.response?.status === 403) {
+          toast.error(
+            error.response.data?.message ||
+              `You don't have access to view students from this batch`
+          );
+          setStudents([]);
+        } else {
+          toast.error("Failed to fetch students. Please try again.");
+        }
       }
     };
 
@@ -249,6 +260,7 @@ const StudentTable = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <ToastContainer position="top-right" autoClose={4000} />
       <h1 className="text-3xl font-bold mb-4">STUDENT DETAILS</h1>
 
       {/* Filter and Sort Controls */}
