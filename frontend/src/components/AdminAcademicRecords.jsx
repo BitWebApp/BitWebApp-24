@@ -1,6 +1,8 @@
 import axios from "axios";
 import ExcelJS from "exceljs";
 import { useEffect, useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const AdminAcademicRecords = () => {
   const [academicRecords, setAcademicRecords] = useState([]);
@@ -25,6 +27,15 @@ const AdminAcademicRecords = () => {
         }
       } catch (error) {
         console.error("Error fetching academic records:", error);
+        if (error.response?.status === 403) {
+          toast.error(
+            error.response.data?.message ||
+              `You don't have access to view records from this batch`
+          );
+          setAcademicRecords([]);
+        } else {
+          toast.error("Failed to fetch academic records. Please try again.");
+        }
       }
     };
 
@@ -166,6 +177,7 @@ const AdminAcademicRecords = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <ToastContainer position="top-right" autoClose={4000} />
       <h1 className="text-3xl font-bold mb-4">Admin Academic Records</h1>
       <div className="flex justify-between items-center mb-4">
         <input

@@ -1,6 +1,9 @@
 import axios from "axios";
 import ExcelJS from "exceljs";
 import { useEffect, useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 const HigherEduTable = () => {
   const [higherEducations, setHigherEducations] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
@@ -19,6 +22,15 @@ const HigherEduTable = () => {
         setHigherEducations(response.data.data);
       } catch (error) {
         console.error("Error fetching higher educations:", error);
+        if (error.response?.status === 403) {
+          toast.error(
+            error.response.data?.message ||
+              `You don't have access to view data from this batch`
+          );
+          setHigherEducations([]);
+        } else {
+          toast.error("Failed to load higher education data");
+        }
       }
     };
 
@@ -187,6 +199,7 @@ const HigherEduTable = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <ToastContainer position="top-right" autoClose={4000} />
       <h1 className="text-3xl font-bold mb-4">HIGHER EDUCATION DETAILS</h1>
       <input
         type="text"

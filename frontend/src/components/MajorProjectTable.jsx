@@ -46,7 +46,16 @@ export default function MajorProjectTable() {
       setBranchOptions(branches);
     } catch (error) {
       console.error("Error fetching major project data:", error);
-      toast.error("Failed to load major project data");
+      if (error.response?.status === 403) {
+        toast.error(
+          error.response.data?.message ||
+            `You don't have access to view data from this batch`
+        );
+        setProjectData([]);
+        setFilteredData([]);
+      } else {
+        toast.error("Failed to load major project data");
+      }
     }
   };
 
