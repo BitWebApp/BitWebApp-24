@@ -282,10 +282,12 @@ const userSchema = new Schema(
       required: [true, "Batch is required"],
       index: true,
     },
-    groupReq:[{
-      type: Schema.Types.ObjectId,
-      ref: "Group"
-    }],
+    groupReq: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Group",
+      },
+    ],
 
     minorAppliedProfs: [
       {
@@ -295,7 +297,7 @@ const userSchema = new Schema(
     ],
     MinorGroup: {
       type: Schema.Types.ObjectId,
-      ref: "Minor"
+      ref: "Minor",
     },
     minorAllocatedProf: {
       type: Schema.Types.ObjectId,
@@ -305,10 +307,12 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    MinorGroupReq:[{
-      type: Schema.Types.ObjectId,
-      ref: "Minor"
-    }],
+    MinorGroupReq: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Minor",
+      },
+    ],
     minorAppliedProfs: [
       {
         type: Schema.Types.ObjectId,
@@ -317,7 +321,7 @@ const userSchema = new Schema(
     ],
     MajorGroup: {
       type: Schema.Types.ObjectId,
-      ref: "Major"
+      ref: "Major",
     },
     majorAllocatedProf: {
       type: Schema.Types.ObjectId,
@@ -327,10 +331,12 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    MajorGroupReq:[{
-      type: Schema.Types.ObjectId,
-      ref: "Major"
-    }],
+    MajorGroupReq: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Major",
+      },
+    ],
     majorAppliedProfs: [
       {
         type: Schema.Types.ObjectId,

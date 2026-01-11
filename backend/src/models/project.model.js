@@ -3,8 +3,8 @@ import mongoose, { Schema } from "mongoose";
 const projectSchema = new Schema(
   {
     name: {
-      type: Schema.Types.ObjectId, 
-      ref: 'User',
+      type: Schema.Types.ObjectId,
+      ref: "User",
     },
     projectName: {
       type: String,

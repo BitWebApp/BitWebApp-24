@@ -51,7 +51,8 @@ const verifyMail = asyncHandler(async (req, res) => {
 });
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { username, password, fullName, rollNumber, email, usrOTP, batch } = req.body;
+  const { username, password, fullName, rollNumber, email, usrOTP, batch } =
+    req.body;
   const otpEntry = await Otp.findOne({ email });
 
   if (!otpEntry || usrOTP.toString() !== otpEntry.otp.toString()) {
@@ -80,7 +81,12 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // Validate batch separately (accept number or numeric string)
   const batchNumber = Number(batch);
-  if (batch === undefined || batch === null || batch === "" || Number.isNaN(batchNumber)) {
+  if (
+    batch === undefined ||
+    batch === null ||
+    batch === "" ||
+    Number.isNaN(batchNumber)
+  ) {
     console.log("Batch is required and must be a valid number");
     return res.status(400).json({
       success: false,
@@ -113,7 +119,7 @@ const registerUser = asyncHandler(async (req, res) => {
     // throw new ApiError(400, "idCard file is required:");
   }
 
-  const idCard = await uploadOnCloudinary(idLocalPath,rollNumber);
+  const idCard = await uploadOnCloudinary(idLocalPath, rollNumber);
   if (!idCard) {
     console.log("id card file is cannot be uploaded");
     return res.status(500).json({
@@ -231,7 +237,7 @@ export const otpForgotPass = asyncHandler(async (req, res) => {
 
     // Send OTP email using utility function
     await sendOTP(email, otp, "forgot-password");
-    
+
     res.status(200).send("Mail sent!");
   } catch (error) {
     console.error("Error in otpForgotPass:", error);
@@ -252,13 +258,16 @@ const changepassword = asyncHandler(async (req, res) => {
 
     const otpverify = await Otp.find({ email });
     if (otpverify.length === 0) {
-      throw new ApiError(400, "OTP expired or invalid. Please request a new one.");
+      throw new ApiError(
+        400,
+        "OTP expired or invalid. Please request a new one."
+      );
     }
 
     const hashedOTP = otpverify.pop().otp;
     console.log(otp);
     console.log(hashedOTP);
-    const validOTP = otp === hashedOTP;  
+    const validOTP = otp === hashedOTP;
     console.log(validOTP);
 
     if (!validOTP) {
@@ -280,7 +289,6 @@ const changepassword = asyncHandler(async (req, res) => {
       message: "Password changed successfully",
       response,
     });
-
   } catch (error) {
     console.log(error);
     return res.status(error.statusCode || 500).json({
@@ -690,7 +698,6 @@ const getUserbyRoll = asyncHandler(async (req, res) => {
   const { rollNumber, isAdmin } = req.body;
 
   let query = User.findOne({ rollNumber: rollNumber });
-
 
   if (!isAdmin) {
     query = query.select(

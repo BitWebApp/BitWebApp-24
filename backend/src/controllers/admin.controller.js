@@ -451,7 +451,8 @@ const getAllMajorProjects = asyncHandler(async (req, res) => {
     const majorProjects = await Major.find()
       .populate({
         path: "members",
-        select: "fullName rollNumber email branch section marks.majorProject mobileNumber projectTitle",
+        select:
+          "fullName rollNumber email branch section marks.majorProject mobileNumber projectTitle",
       })
       .populate({
         path: "leader",
@@ -495,7 +496,10 @@ const getAllMajorProjects = asyncHandler(async (req, res) => {
       allMembers.forEach((member) => {
         let orgName = "";
         if (project.type === "industrial") {
-          orgName = project.org && project.org.companyName ? project.org.companyName : "";
+          orgName =
+            project.org && project.org.companyName
+              ? project.org.companyName
+              : "";
         } else if (project.type === "research") {
           orgName = "BIT";
         }
@@ -521,7 +525,8 @@ const getAllMajorProjects = asyncHandler(async (req, res) => {
             : null,
           type: project.type,
           org: orgName,
-          location: project.type === "industrial" ? "outside_bit" : "inside_bit",
+          location:
+            project.type === "industrial" ? "outside_bit" : "inside_bit",
           projectTitle: project.projectTitle || member.projectTitle || "",
         });
       });

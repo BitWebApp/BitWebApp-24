@@ -8,4 +8,3 @@ router.get("/user/:groupId", verifyJWT, getChat);
 router.get("/prof/:groupId", verifyProfessor, getChat);
 
 export default router;
-
