@@ -1,21 +1,39 @@
-import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import mongoose, { Schema } from "mongoose";
 const adminSchema = new Schema(
   {
     username: {
       type: String,
       required: [true, "Username cannot be empty!"],
+      unique: true,
     },
     password: {
       type: String,
       required: [true, "Password cannot be empty!"],
       minLength: [6, "Password needs to be have atleast 6 chars!"],
     },
+    email: {
+      type: String,
+      required: [true, "Email is required!"],
+      unique: true,
+      lowercase: true,
+    },
     isAdmin: {
       type: Boolean,
-      default: false,
+      default: true,
     },
+    role: {
+      type: String,
+      enum: ["master", "batch_admin"],
+      default: "batch_admin",
+      required: true,
+    },
+    assignedBatches: [
+      {
+        type: Number, // e.g., 22 for K22, 23 for K23
+      },
+    ],
     refreshToken: {
       type: String,
     },
@@ -35,7 +53,10 @@ adminSchema.methods.generateAccessToken = function () {
     {
       _id: this._id,
       username: this.username,
+      email: this.email,
       isAdmin: true,
+      role: this.role,
+      assignedBatches: this.assignedBatches,
     },
     process.env.ACCESS_TOKEN_SECRET,
     {

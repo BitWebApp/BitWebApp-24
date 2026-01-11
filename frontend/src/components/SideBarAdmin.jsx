@@ -1,26 +1,22 @@
-import React from "react";
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import classNames from "classnames";
-import {
-  HiUser,
-  HiAcademicCap,
-  HiOutlineLogout,
-  HiBadgeCheck,
-  HiHome,
-  HiDocumentReport,
-  HiOutlineBriefcase,
-  HiPresentationChartLine,
-  HiBriefcase,
-  HiArchive,
-  HiBeaker
-} from "react-icons/hi";
-import { motion } from "framer-motion";
-import { useEffect } from "react";
-import { IoIosArrowBack } from "react-icons/io";
-import useLinks from "./admin/user-links";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import classNames from "classnames";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import {
+    HiAcademicCap,
+    HiArchive,
+    HiBadgeCheck,
+    HiBeaker,
+    HiBriefcase,
+    HiDocumentReport,
+    HiHome,
+    HiOutlineBriefcase,
+    HiOutlineLogout,
+    HiPresentationChartLine,
+    HiUser
+} from "react-icons/hi";
+import { IoIosArrowBack } from "react-icons/io";
+import { Link, useNavigate } from "react-router-dom";
 const linkclasses =
   "flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base";
 
@@ -162,6 +158,33 @@ export default function Sidebar() {
       to: "/admin-db/academicanalysis",
     }
   ];
+
+  // State for master admin role
+  const [isMasterAdmin, setIsMasterAdmin] = useState(false);
+  
+  useEffect(() => {
+    const checkMasterAdmin = async () => {
+      try {
+        const response = await axios.get("/api/v1/admin/get-admin");
+        if (response.data?.data?.role === "master") {
+          setIsMasterAdmin(true);
+        }
+      } catch (err) {
+        console.log("Not master admin or error checking role");
+      }
+    };
+    checkMasterAdmin();
+  }, []);
+
+  // Add Manage Admins link for master admins
+  const finalLinks = isMasterAdmin 
+    ? [...adminLinks, {
+        text: "Manage Admins",
+        icon: <HiUser />,
+        to: "/admin-db/manage-admins",
+        isMasterOnly: true,
+      }]
+    : adminLinks;
   // const [isAdmin, setIsAdmin] = useState(true);
 
   // useEffect(() => {
@@ -170,7 +193,7 @@ export default function Sidebar() {
   // }, []);
 
   // const links = isAdmin ? adminLinks : additionalLinks;
-  const links = adminLinks;
+  const links = finalLinks;
   const navigate = useNavigate();
   const handleLogout = async () => {
     // try {
