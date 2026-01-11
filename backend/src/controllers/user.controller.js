@@ -1,16 +1,13 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js";
-import { User } from "../models/user.model.js";
-import { uploadOnCloudinary } from "../utils/Cloudinary.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
-import jwt from "jsonwebtoken";
-import mongoose from "mongoose";
-import { Otp } from "../models/otp.model.js";
-import { Placement } from "../models/placement.model.js";
-import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import cron from "node-cron";
+import { Otp } from "../models/otp.model.js";
+import { Placement } from "../models/placement.model.js";
 import { Professor } from "../models/professor.model.js";
+import { User } from "../models/user.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 import { sendOTP } from "../utils/sendOTP.js";
 
 const generateAcessAndRefreshToken = async (userId) => {
@@ -51,7 +48,8 @@ const verifyMail = asyncHandler(async (req, res) => {
 });
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { username, password, fullName, rollNumber, email, usrOTP, batch } = req.body;
+  const { username, password, fullName, rollNumber, email, usrOTP, batch } =
+    req.body;
   const otpEntry = await Otp.findOne({ email });
 
   if (!otpEntry || usrOTP.toString() !== otpEntry.otp.toString()) {
@@ -80,7 +78,12 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // Validate batch separately (accept number or numeric string)
   const batchNumber = Number(batch);
-  if (batch === undefined || batch === null || batch === "" || Number.isNaN(batchNumber)) {
+  if (
+    batch === undefined ||
+    batch === null ||
+    batch === "" ||
+    Number.isNaN(batchNumber)
+  ) {
     console.log("Batch is required and must be a valid number");
     return res.status(400).json({
       success: false,
@@ -113,7 +116,7 @@ const registerUser = asyncHandler(async (req, res) => {
     // throw new ApiError(400, "idCard file is required:");
   }
 
-  const idCard = await uploadOnCloudinary(idLocalPath,rollNumber);
+  const idCard = await uploadOnCloudinary(idLocalPath, rollNumber);
   if (!idCard) {
     console.log("id card file is cannot be uploaded");
     return res.status(500).json({
@@ -231,7 +234,7 @@ export const otpForgotPass = asyncHandler(async (req, res) => {
 
     // Send OTP email using utility function
     await sendOTP(email, otp, "forgot-password");
-    
+
     res.status(200).send("Mail sent!");
   } catch (error) {
     console.error("Error in otpForgotPass:", error);
@@ -252,13 +255,16 @@ const changepassword = asyncHandler(async (req, res) => {
 
     const otpverify = await Otp.find({ email });
     if (otpverify.length === 0) {
-      throw new ApiError(400, "OTP expired or invalid. Please request a new one.");
+      throw new ApiError(
+        400,
+        "OTP expired or invalid. Please request a new one."
+      );
     }
 
     const hashedOTP = otpverify.pop().otp;
     console.log(otp);
     console.log(hashedOTP);
-    const validOTP = otp === hashedOTP;  
+    const validOTP = otp === hashedOTP;
     console.log(validOTP);
 
     if (!validOTP) {
@@ -280,7 +286,6 @@ const changepassword = asyncHandler(async (req, res) => {
       message: "Password changed successfully",
       response,
     });
-
   } catch (error) {
     console.log(error);
     return res.status(error.statusCode || 500).json({
@@ -691,7 +696,6 @@ const getUserbyRoll = asyncHandler(async (req, res) => {
 
   let query = User.findOne({ rollNumber: rollNumber });
 
-
   if (!isAdmin) {
     query = query.select(
       "-password -username -refreshToken -fatherName -fatherMobileNumber -motherName -residentialAddress -alternateEmail -alumni -awards -backlogs -codingProfiles -companyInterview -createdAt -exams -graduationYear -group -groupReq -higherEd -idCard -isSummerAllocated -isVerified -linkedin -marks -mobileNumber -peCourses -proj -resume -summerAppliedProfs -updatedAt -workExp -__v -abcId"
@@ -727,10 +731,32 @@ const getUserbyRoll = asyncHandler(async (req, res) => {
 const getPlacementDetails = asyncHandler(async (req, res) => {
   try {
     const { batch } = req.query;
+    const admin = req.admin;
 
-    // Convert batch query (string) to number and validate
+    // Build filter based on admin's role and assigned batches
     const filter = {};
-    if (batch !== undefined) {
+
+    // For batch admins, enforce access only to assigned batches
+    if (admin && admin.role !== "master" && admin.assignedBatches?.length > 0) {
+      // If batch is specified, verify admin has access to it
+      if (batch !== undefined) {
+        const batchNumber = Number(batch);
+        if (Number.isNaN(batchNumber)) {
+          throw new ApiError(400, "Invalid batch query parameter");
+        }
+        if (!admin.assignedBatches.includes(batchNumber)) {
+          throw new ApiError(
+            403,
+            `Access forbidden: You don't have access to batch K${batchNumber}`
+          );
+        }
+        filter.batch = batchNumber;
+      } else {
+        // No batch specified, filter by all assigned batches
+        filter.batch = { $in: admin.assignedBatches };
+      }
+    } else if (batch !== undefined) {
+      // Master admin or no restriction, use requested batch
       const batchNumber = Number(batch);
       if (Number.isNaN(batchNumber)) {
         throw new ApiError(400, "Invalid batch query parameter");
@@ -772,10 +798,32 @@ const getPlacementDetails = asyncHandler(async (req, res) => {
 });
 const getAllUsers = asyncHandler(async (req, res) => {
   const { batch } = req.query;
+  const admin = req.admin;
 
-  // Convert batch query (string) to number and validate
+  // Build filter based on admin's role and assigned batches
   const filter = {};
-  if (batch !== undefined) {
+
+  // For batch admins, enforce access only to assigned batches
+  if (admin && admin.role !== "master" && admin.assignedBatches?.length > 0) {
+    // If batch is specified, verify admin has access to it
+    if (batch !== undefined) {
+      const batchNumber = Number(batch);
+      if (Number.isNaN(batchNumber)) {
+        throw new ApiError(400, "Invalid batch query parameter");
+      }
+      if (!admin.assignedBatches.includes(batchNumber)) {
+        throw new ApiError(
+          403,
+          `Access forbidden: You don't have access to batch K${batchNumber}`
+        );
+      }
+      filter.batch = batchNumber;
+    } else {
+      // No batch specified, filter by all assigned batches
+      filter.batch = { $in: admin.assignedBatches };
+    }
+  } else if (batch !== undefined) {
+    // Master admin or no restriction, use requested batch
     const batchNumber = Number(batch);
     if (Number.isNaN(batchNumber)) {
       throw new ApiError(400, "Invalid batch query parameter");
@@ -838,23 +886,23 @@ const summerSorted = asyncHandler(async (req, res) => {
     );
 });
 export {
-  registerUser,
+  changepassword,
+  fetchBranch,
+  getAllUsers,
+  getAppliedProfs,
+  getCurrentUser,
+  getPlacementDetails,
+  getPlacementOne,
+  getPlacementThree,
+  getPlacementTwo,
+  getUserbyRoll,
   loginUser,
   logoutUser,
-  updateUser1,
-  updatePlacementOne,
-  updatePlacementTwo,
-  updatePlacementThree,
-  getPlacementDetails,
-  getCurrentUser,
-  getUserbyRoll,
-  getPlacementOne,
-  getPlacementTwo,
-  getPlacementThree,
-  getAllUsers,
-  verifyMail,
-  fetchBranch,
-  changepassword,
-  getAppliedProfs,
+  registerUser,
   summerSorted,
+  updatePlacementOne,
+  updatePlacementThree,
+  updatePlacementTwo,
+  updateUser1,
+  verifyMail,
 };
