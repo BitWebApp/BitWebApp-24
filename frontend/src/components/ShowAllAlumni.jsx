@@ -43,7 +43,8 @@ export default function AlumniTable() {
       if (err.response?.status === 403) {
         toast.error(
           err.response.data?.message ||
-            `You don't have access to view data from this batch`
+            `You don't have access to view data from this batch`,
+          { toastId: 'alumni-batch-access-error' }
         );
         setAlumniData([]);
       } else {

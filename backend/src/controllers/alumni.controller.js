@@ -134,7 +134,6 @@ const getWorkExperiences = asyncHandler(async (req, res) => {
 const getAllAlumni = asyncHandler(async (req, res) => {
   try {
     const { batch } = req.query;
-    const admin = req.admin;
 
     if (!batch) {
       return res
@@ -147,15 +146,7 @@ const getAllAlumni = asyncHandler(async (req, res) => {
       throw new ApiError(400, "Invalid batch query parameter");
     }
 
-    // For batch admins, enforce access only to assigned batches
-    if (admin && admin.role !== "master" && admin.assignedBatches?.length > 0) {
-      if (!admin.assignedBatches.includes(batchNumber)) {
-        throw new ApiError(
-          403,
-          `Access forbidden: You don't have access to batch K${batchNumber}`
-        );
-      }
-    }
+    // Alumni section is open to all admins - no batch restriction
 
     // Remove .lean() to preserve the full document structure
     const alumni = await Alumni.find({ batch: batchNumber })

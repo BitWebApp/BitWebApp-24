@@ -30,11 +30,12 @@ const AdminAcademicRecords = () => {
         if (error.response?.status === 403) {
           toast.error(
             error.response.data?.message ||
-              `You don't have access to view records from this batch`
+              `You don't have access to view records from this batch`,
+            { toastId: 'academic-batch-access-error' }
           );
           setAcademicRecords([]);
         } else {
-          toast.error("Failed to fetch academic records. Please try again.");
+          toast.error("Failed to fetch academic records. Please try again.", { toastId: 'academic-fetch-error' });
         }
       }
     };

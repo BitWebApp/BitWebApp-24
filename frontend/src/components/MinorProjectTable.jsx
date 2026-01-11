@@ -49,12 +49,13 @@ export default function MinorProjectTable() {
       if (error.response?.status === 403) {
         toast.error(
           error.response.data?.message ||
-            `You don't have access to view data from this batch`
+            `You don't have access to view data from this batch`,
+          { toastId: 'minor-batch-access-error' }
         );
         setProjectData([]);
         setFilteredData([]);
       } else {
-        toast.error("Failed to load minor project data");
+        toast.error("Failed to load minor project data", { toastId: 'minor-fetch-error' });
       }
     }
   };

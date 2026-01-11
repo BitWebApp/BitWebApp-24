@@ -49,12 +49,13 @@ export default function InternshipTable() {
       if (error.response?.status === 403) {
         toast.error(
           error.response.data?.message ||
-            `You don't have access to view data from this batch`
+            `You don't have access to view data from this batch`,
+          { toastId: 'intern-batch-access-error' }
         );
         setInternData([]);
         setFilteredData([]);
       } else {
-        toast.error("Failed to load internship data");
+        toast.error("Failed to load internship data", { toastId: 'intern-fetch-error' });
       }
     }
   };

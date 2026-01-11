@@ -28,11 +28,12 @@ export default function PlacementTable() {
       if (error.response?.status === 403) {
         toast.error(
           error.response.data?.message ||
-            `You don't have access to view data from this batch`
+            `You don't have access to view data from this batch`,
+          { toastId: 'placement-batch-access-error' }
         );
         setPlacementData([]);
       } else {
-        toast.error("Failed to load placement data");
+        toast.error("Failed to load placement data", { toastId: 'placement-fetch-error' });
       }
     } finally {
       setLoading(false);

@@ -33,11 +33,12 @@ const StudentTable = () => {
         if (error.response?.status === 403) {
           toast.error(
             error.response.data?.message ||
-              `You don't have access to view students from this batch`
+              `You don't have access to view students from this batch`,
+            { toastId: 'student-batch-access-error' }
           );
           setStudents([]);
         } else {
-          toast.error("Failed to fetch students. Please try again.");
+          toast.error("Failed to fetch students. Please try again.", { toastId: 'student-fetch-error' });
         }
       }
     };

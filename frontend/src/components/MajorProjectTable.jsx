@@ -49,12 +49,13 @@ export default function MajorProjectTable() {
       if (error.response?.status === 403) {
         toast.error(
           error.response.data?.message ||
-            `You don't have access to view data from this batch`
+            `You don't have access to view data from this batch`,
+          { toastId: 'major-batch-access-error' }
         );
         setProjectData([]);
         setFilteredData([]);
       } else {
-        toast.error("Failed to load major project data");
+        toast.error("Failed to load major project data", { toastId: 'major-fetch-error' });
       }
     }
   };
