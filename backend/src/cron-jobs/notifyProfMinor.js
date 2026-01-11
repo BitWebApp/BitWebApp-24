@@ -19,9 +19,9 @@ async function sendMinorNotificationEmail(professor) {
     process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: "30m" }
   );
-  
+
   const autoLoginUrl = `http://139.167.188.221:3000/faculty-auto-login?token=${autoLoginToken}`;
-  
+
   const mailOptions = {
     from: process.env.AUTH_EMAIL,
     to: professor.email,
@@ -57,7 +57,10 @@ async function sendMinorNotificationEmail(professor) {
     await transporter.sendMail(mailOptions);
     console.log(`Minor project email sent successfully to ${professor.email}`);
   } catch (error) {
-    console.error(`Error sending minor project email to ${professor.email}:`, error);
+    console.error(
+      `Error sending minor project email to ${professor.email}:`,
+      error
+    );
   }
 }
 
@@ -73,9 +76,15 @@ const checkAndNotifyMinorProf = async () => {
       return hasSpace && hasPendingApplications;
     });
     console.log("eligible minor project profs:", eligibleProfs);
-    console.log(`📢 Notifying ${eligibleProfs.length} professors for minor projects...`);
-    await Promise.all(eligibleProfs.map((prof) => sendMinorNotificationEmail(prof)));
-    console.log("✅ All eligible professors have been notified for minor projects.");
+    console.log(
+      `📢 Notifying ${eligibleProfs.length} professors for minor projects...`
+    );
+    await Promise.all(
+      eligibleProfs.map((prof) => sendMinorNotificationEmail(prof))
+    );
+    console.log(
+      "✅ All eligible professors have been notified for minor projects."
+    );
   } catch (error) {
     console.log("Error in checkAndNotifyMinorProfessors:", error);
   }
@@ -84,7 +93,9 @@ const checkAndNotifyMinorProf = async () => {
 cron.schedule(
   "30 0 * * *",
   () => {
-    console.log("Running minor project notification task every day at 6:15 AM IST");
+    console.log(
+      "Running minor project notification task every day at 6:15 AM IST"
+    );
     checkAndNotifyMinorProf();
   },
   {

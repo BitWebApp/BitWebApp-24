@@ -2,41 +2,48 @@
 const setProjectTitle = asyncHandler(async (req, res) => {
   const userId = req?.user?._id;
   const { projectTitle } = req.body;
-  if (!projectTitle || typeof projectTitle !== "string" || !projectTitle.trim()) {
+  if (
+    !projectTitle ||
+    typeof projectTitle !== "string" ||
+    !projectTitle.trim()
+  ) {
     return res.status(400).json({
       success: false,
-      message: "Project title is required."
+      message: "Project title is required.",
     });
   }
   const user = await User.findById(userId);
   if (!user || !user.MajorGroup) {
     return res.status(404).json({
       success: false,
-      message: "User or group not found."
+      message: "User or group not found.",
     });
   }
   const group = await Major.findById(user.MajorGroup);
   if (!group) {
     return res.status(404).json({
       success: false,
-      message: "Group not found."
+      message: "Group not found.",
     });
   }
   if (!group.leader.equals(userId)) {
     return res.status(403).json({
       success: false,
-      message: "Only the group leader can set the project title."
+      message: "Only the group leader can set the project title.",
     });
   }
   if (group.projectTitle && group.projectTitle.trim().length > 0) {
     return res.status(409).json({
       success: false,
-      message: "Project title has already been set and cannot be changed unless group type is changed."
+      message:
+        "Project title has already been set and cannot be changed unless group type is changed.",
     });
   }
   group.projectTitle = projectTitle.trim();
   await group.save();
-  return res.status(200).json(new ApiResponse(200, group, "Project title set successfully."));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, group, "Project title set successfully."));
 });
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -108,7 +115,7 @@ const createGroup = asyncHandler(async (req, res) => {
       members,
       type,
     });
-    user.MajorGroup= newGroup._id;
+    user.MajorGroup = newGroup._id;
     user.save();
   }
 
@@ -120,7 +127,7 @@ const addMember = asyncHandler(async (req, res) => {
   const loggedIn = req?.user?._id;
   const { rollNumber, groupId } = req.body;
   // console.log(rollNumber)
-  if(req.user.batch == 23) {
+  if (req.user.batch == 23) {
     return res.status(403).json({
       success: false,
       message: "Students of batch 2023 are not allowed to form major groups.",
@@ -266,10 +273,11 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   const { facultyId } = req.body;
   const userId = req?.user?._id;
 
-  if(req.user.batch == 23) {
+  if (req.user.batch == 23) {
     return res.status(403).json({
       success: false,
-      message: "Students of batch 2023 are not allowed to apply to faculty for major project.",
+      message:
+        "Students of batch 2023 are not allowed to apply to faculty for major project.",
     });
   }
 
@@ -396,7 +404,10 @@ const applyToFaculty = asyncHandler(async (req, res) => {
       message: "Faculty not found",
     });
   }
-  if(group.members.length > faculty.limits.major_project-faculty.currentCount.major_project) {
+  if (
+    group.members.length >
+    faculty.limits.major_project - faculty.currentCount.major_project
+  ) {
     // console.log("Your group size exceeds faculty's remaining limit");
   }
 
@@ -425,7 +436,7 @@ const getGroup = asyncHandler(async (req, res) => {
     .populate("leader")
     .populate("majorAppliedProfs")
     .populate("majorAllocatedProf")
-    .populate("org")
+    .populate("org");
   return res
     .status(200)
     .json(new ApiResponse(200, group, "major group details returned"));
@@ -519,9 +530,7 @@ const addRemarkAbsent = asyncHandler(async (req, res) => {
 
 const getDiscussion = asyncHandler(async (req, res) => {
   const { groupId } = req.body;
-  const group = await Major.findById(groupId).populate(
-    "discussion.absent"
-  );
+  const group = await Major.findById(groupId).populate("discussion.absent");
   if (!group) throw new ApiError(404, "Group not found");
   return res
     .status(200)
@@ -535,9 +544,7 @@ const getDiscussionByStudent = asyncHandler(async (req, res) => {
   const user = await User.findById(userId);
   if (!user.MajorGroup) throw new ApiError(404, "Group not found");
   const groupId = user.MajorGroup;
-  const group = await Major.findById(groupId).populate(
-    "discussion.absent"
-  );
+  const group = await Major.findById(groupId).populate("discussion.absent");
   if (!group) throw new ApiError(404, "Group not found");
   return res
     .status(200)
@@ -549,7 +556,9 @@ const getDiscussionByStudent = asyncHandler(async (req, res) => {
 const addMarks = asyncHandler(async (req, res) => {
   const { userId, marks } = req.body;
   // console.log(userId, marks);
-  const user = await User.findById(userId).select("fullName rollNumber marks MajorGroup");
+  const user = await User.findById(userId).select(
+    "fullName rollNumber marks MajorGroup"
+  );
   if (!user) throw new ApiError(404, "User not found");
   // Check if user's group has projectTitle set
   if (!user.MajorGroup) {
@@ -559,10 +568,11 @@ const addMarks = asyncHandler(async (req, res) => {
   if (!group || !group.projectTitle || group.projectTitle.trim() === "") {
     return res.status(400).json({
       success: false,
-      message: "Project title is not set for this group. Please ask the group to submit the project title before entering marks."
+      message:
+        "Project title is not set for this group. Please ask the group to submit the project title before entering marks.",
     });
   }
-  if(user.marks.majorProject > 0){
+  if (user.marks.majorProject > 0) {
     throw new ApiError(400, "Marks already added");
   }
   user.marks.majorProject = marks;
@@ -605,7 +615,8 @@ const withdrawFromFaculty = asyncHandler(async (req, res) => {
   if (group.majorAllocatedProf) {
     return res.status(403).json({
       success: false,
-      message: "Cannot withdraw - a professor has already been allocated to your group",
+      message:
+        "Cannot withdraw - a professor has already been allocated to your group",
     });
   }
 
@@ -646,7 +657,7 @@ const withdrawFromFaculty = asyncHandler(async (req, res) => {
   // If there's a new first preference after withdrawal, add to that professor's appliedGroups
   if (group.majorAppliedProfs.length > 0) {
     const newFirstProfId = group.majorAppliedProfs[0]?.toString();
-    
+
     // Only add if the new first preference is different from the old one
     if (newFirstProfId && newFirstProfId !== oldFirstProfId) {
       const newFirstProf = await Professor.findById(newFirstProfId);
@@ -694,7 +705,9 @@ const requestTypeChange = asyncHandler(async (req, res) => {
     });
   }
 
-  const group = await Major.findById(user.MajorGroup).populate("members leader");
+  const group = await Major.findById(user.MajorGroup).populate(
+    "members leader"
+  );
   if (!group) {
     return res.status(404).json({
       success: false,
@@ -713,7 +726,8 @@ const requestTypeChange = asyncHandler(async (req, res) => {
   // Check for existing pending request from THIS USER (not entire group)
   // Compare ObjectIds as strings since typeChangeRequests.user is not populated here
   const existingRequestFromUser = group.typeChangeRequests.find(
-    (req) => req.user.toString() === userId.toString() && req.status === "pending"
+    (req) =>
+      req.user.toString() === userId.toString() && req.status === "pending"
   );
 
   if (existingRequestFromUser) {
@@ -735,11 +749,11 @@ const requestTypeChange = asyncHandler(async (req, res) => {
     if (requestedType === "industrial" && group.members.length === 2) {
       // Split logic: Create new industrial group for initiator, keep other in research
       const otherMember = group.members.find((m) => !m._id.equals(userId));
-      
+
       // Create new industrial group for initiator
       const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
       const newGroupId = nanoid();
-      
+
       const newGroup = await Major.create({
         groupId: newGroupId,
         type: "industrial",
@@ -754,17 +768,23 @@ const requestTypeChange = asyncHandler(async (req, res) => {
 
       // Remove user from original group
       group.members = group.members.filter((m) => !m._id.equals(userId));
-      
+
       // If user was the leader, make the other member the leader
       if (group.leader.equals(userId)) {
         group.leader = otherMember._id;
       }
-      
+
       await group.save();
 
-      return res.status(200).json(
-        new ApiResponse(200, { originalGroup: group, newGroup }, "Type changed and group split successfully")
-      );
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            { originalGroup: group, newGroup },
+            "Type changed and group split successfully"
+          )
+        );
     } else {
       // Simple type change - no split needed
       group.type = requestedType;
@@ -777,9 +797,9 @@ const requestTypeChange = asyncHandler(async (req, res) => {
       group.projectTitle = "";
       await group.save();
 
-      return res.status(200).json(
-        new ApiResponse(200, group, "Type changed successfully")
-      );
+      return res
+        .status(200)
+        .json(new ApiResponse(200, group, "Type changed successfully"));
     }
   }
 
@@ -793,9 +813,15 @@ const requestTypeChange = asyncHandler(async (req, res) => {
 
   await group.save();
 
-  return res.status(200).json(
-    new ApiResponse(200, group, "Type change request submitted for professor approval")
-  );
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        group,
+        "Type change request submitted for professor approval"
+      )
+    );
 });
 
 const getTypeChangeStatus = asyncHandler(async (req, res) => {
@@ -809,8 +835,9 @@ const getTypeChangeStatus = asyncHandler(async (req, res) => {
     });
   }
 
-  const group = await Major.findById(user.MajorGroup)
-    .populate("members leader typeChangeRequests.user typeChangeRequests.org");
+  const group = await Major.findById(user.MajorGroup).populate(
+    "members leader typeChangeRequests.user typeChangeRequests.org"
+  );
 
   if (!group) {
     return res.status(404).json({
@@ -820,10 +847,14 @@ const getTypeChangeStatus = asyncHandler(async (req, res) => {
   }
 
   return res.status(200).json(
-    new ApiResponse(200, {
-      group,
-      typeChangeRequests: group.typeChangeRequests,
-    }, "Type change status fetched successfully")
+    new ApiResponse(
+      200,
+      {
+        group,
+        typeChangeRequests: group.typeChangeRequests,
+      },
+      "Type change status fetched successfully"
+    )
   );
 });
 
@@ -837,8 +868,9 @@ const profApproveTypeChange = asyncHandler(async (req, res) => {
     });
   }
 
-  const group = await Major.findById(groupId)
-    .populate("members leader typeChangeRequests.user typeChangeRequests.org majorAllocatedProf");
+  const group = await Major.findById(groupId).populate(
+    "members leader typeChangeRequests.user typeChangeRequests.org majorAllocatedProf"
+  );
 
   if (!group) {
     return res.status(404).json({
@@ -847,7 +879,9 @@ const profApproveTypeChange = asyncHandler(async (req, res) => {
     });
   }
 
-  const pendingRequests = group.typeChangeRequests.filter((req) => req.status === "pending");
+  const pendingRequests = group.typeChangeRequests.filter(
+    (req) => req.status === "pending"
+  );
 
   if (pendingRequests.length === 0) {
     return res.status(404).json({
@@ -865,15 +899,14 @@ const profApproveTypeChange = asyncHandler(async (req, res) => {
     });
     await group.save();
 
-    return res.status(200).json(
-      new ApiResponse(200, group, "Type change requests rejected")
-    );
+    return res
+      .status(200)
+      .json(new ApiResponse(200, group, "Type change requests rejected"));
   }
 
   // Approve action
   // Check how many members have pending requests
-  const usersWithPendingRequests = pendingRequests.map((req) => req.user._id.toString());
-  
+
   // Case 1: Only one member requested change
   if (pendingRequests.length === 1) {
     const request = pendingRequests[0];
@@ -881,12 +914,14 @@ const profApproveTypeChange = asyncHandler(async (req, res) => {
 
     // If changing to industrial and group has 2 members, split
     if (request.requestedType === "industrial" && group.members.length === 2) {
-      const otherMember = group.members.find((m) => !m._id.equals(request.user._id));
-      
+      const otherMember = group.members.find(
+        (m) => !m._id.equals(request.user._id)
+      );
+
       // Create new industrial group for requesting user
       const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
       const newGroupId = nanoid();
-      
+
       const newGroup = await Major.create({
         groupId: newGroupId,
         type: "industrial",
@@ -901,8 +936,10 @@ const profApproveTypeChange = asyncHandler(async (req, res) => {
       await requestingUser.save();
 
       // Remove user from original group
-      group.members = group.members.filter((m) => !m._id.equals(request.user._id));
-      
+      group.members = group.members.filter(
+        (m) => !m._id.equals(request.user._id)
+      );
+
       // If requesting user was the leader, make the other member the leader
       if (group.leader.equals(request.user._id)) {
         group.leader = otherMember._id;
@@ -911,7 +948,7 @@ const profApproveTypeChange = asyncHandler(async (req, res) => {
       // Mark request as approved before clearing
       request.status = "approved";
       await group.save();
-      
+
       // Clear all typeChangeRequests from original group for UI update
       group.typeChangeRequests = [];
       await group.save();
@@ -928,9 +965,15 @@ const profApproveTypeChange = asyncHandler(async (req, res) => {
         }
       }
 
-      return res.status(200).json(
-        new ApiResponse(200, { originalGroup: group, newGroup }, "Type change approved and group split successfully")
-      );
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            { originalGroup: group, newGroup },
+            "Type change approved and group split successfully"
+          )
+        );
     } else {
       // Simple type change - no split
       group.type = request.requestedType;
@@ -944,14 +987,14 @@ const profApproveTypeChange = asyncHandler(async (req, res) => {
       // Mark request as approved first
       request.status = "approved";
       await group.save();
-      
+
       // Clear all typeChangeRequests for UI update
       group.typeChangeRequests = [];
       await group.save();
 
-      return res.status(200).json(
-        new ApiResponse(200, group, "Type change approved successfully")
-      );
+      return res
+        .status(200)
+        .json(new ApiResponse(200, group, "Type change approved successfully"));
     }
   }
 
@@ -961,9 +1004,12 @@ const profApproveTypeChange = asyncHandler(async (req, res) => {
     const request2 = pendingRequests[1];
 
     // Both requested industrial - create two separate industrial groups
-    if (request1.requestedType === "industrial" && request2.requestedType === "industrial") {
+    if (
+      request1.requestedType === "industrial" &&
+      request2.requestedType === "industrial"
+    ) {
       const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
-      
+
       // Create first industrial group
       const newGroup1 = await Major.create({
         groupId: nanoid(),
@@ -1007,13 +1053,22 @@ const profApproveTypeChange = asyncHandler(async (req, res) => {
       // Delete original group
       await Major.findByIdAndDelete(group._id);
 
-      return res.status(200).json(
-        new ApiResponse(200, { newGroup1, newGroup2 }, "Both type changes approved and groups split successfully")
-      );
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            { newGroup1, newGroup2 },
+            "Both type changes approved and groups split successfully"
+          )
+        );
     }
 
     // Both requested research - just change the original group type
-    if (request1.requestedType === "research" && request2.requestedType === "research") {
+    if (
+      request1.requestedType === "research" &&
+      request2.requestedType === "research"
+    ) {
       group.type = "research";
       group.org = undefined;
       // Erase project title on type change
@@ -1022,22 +1077,30 @@ const profApproveTypeChange = asyncHandler(async (req, res) => {
       request1.status = "approved";
       request2.status = "approved";
       await group.save();
-      
+
       // Clear all typeChangeRequests for UI update
       group.typeChangeRequests = [];
       await group.save();
 
-      return res.status(200).json(
-        new ApiResponse(200, group, "Both type changes approved - group converted to research")
-      );
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            group,
+            "Both type changes approved - group converted to research"
+          )
+        );
     }
 
     // Mixed requests (one industrial, one research) - handle as two separate splits
-    const industrialRequest = request1.requestedType === "industrial" ? request1 : request2;
-    const researchRequest = request1.requestedType === "research" ? request1 : request2;
+    const industrialRequest =
+      request1.requestedType === "industrial" ? request1 : request2;
+    const researchRequest =
+      request1.requestedType === "research" ? request1 : request2;
 
     const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
-    
+
     // Create industrial group for the industrial requester
     const newIndustrialGroup = await Major.create({
       groupId: nanoid(),
@@ -1057,7 +1120,7 @@ const profApproveTypeChange = asyncHandler(async (req, res) => {
     industrialRequest.status = "approved";
     researchRequest.status = "approved";
     await group.save();
-    
+
     // Clear all typeChangeRequests for UI update
     group.typeChangeRequests = [];
     await group.save();
@@ -1071,16 +1134,24 @@ const profApproveTypeChange = asyncHandler(async (req, res) => {
     if (group.majorAllocatedProf) {
       const professor = await Professor.findById(group.majorAllocatedProf);
       if (professor) {
-        if (!professor.students.major_project.includes(newIndustrialGroup._id)) {
+        if (
+          !professor.students.major_project.includes(newIndustrialGroup._id)
+        ) {
           professor.students.major_project.push(newIndustrialGroup._id);
         }
         await professor.save();
       }
     }
 
-    return res.status(200).json(
-      new ApiResponse(200, { researchGroup: group, industrialGroup: newIndustrialGroup }, "Type changes approved with split")
-    );
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          { researchGroup: group, industrialGroup: newIndustrialGroup },
+          "Type changes approved with split"
+        )
+      );
   }
 
   return res.status(400).json({

@@ -1,26 +1,26 @@
 import express from "express";
 import {
-  addNewProject, 
-  getAllProjectsSummary, 
+  addNewProject,
+  getAllProjectsSummary,
   getProjectDetails,
-  editProject, 
-  applyToProject, 
+  editProject,
+  applyToProject,
   getAllApplications,
-  updateApplicationStatus, 
+  updateApplicationStatus,
   getStudentApplications,
   closeProject,
   getApplicationDetails,
   // New functions for project-specific applications
   getApplicationsForProject,
   getApplicationDetailsForProject,
-  updateApplicationStatusForProject
+  updateApplicationStatusForProject,
 } from "../controllers/profProject.controller.js";
 import { verifyJWT, verifyProfessor } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
-router.post("/apply", verifyJWT, upload.array('files'), applyToProject);
+router.post("/apply", verifyJWT, upload.array("files"), applyToProject);
 router.get("/student/applications", verifyJWT, getStudentApplications);
 
 //both for prof and students
@@ -95,16 +95,41 @@ router.get(
 );
 
 // prof routes
-router.post("/projects", verifyProfessor, upload.array('files'), addNewProject);
-router.get("/applications/status/:status", verifyProfessor,getAllApplications);
-router.get("/applications/:applicationId", verifyProfessor, getApplicationDetails);
+router.post("/projects", verifyProfessor, upload.array("files"), addNewProject);
+router.get("/applications/status/:status", verifyProfessor, getAllApplications);
+router.get(
+  "/applications/:applicationId",
+  verifyProfessor,
+  getApplicationDetails
+);
 router.put("/projects/close/:id", verifyProfessor, closeProject);
-router.put("/projects/:id", verifyProfessor, upload.array('files'), editProject);
-router.put("/applications/:applicationId", verifyProfessor, updateApplicationStatus);
+router.put(
+  "/projects/:id",
+  verifyProfessor,
+  upload.array("files"),
+  editProject
+);
+router.put(
+  "/applications/:applicationId",
+  verifyProfessor,
+  updateApplicationStatus
+);
 
 // New routes for project-specific application management
-router.get("/projects/:projectId/applications/status/:status", verifyProfessor, getApplicationsForProject);
-router.get("/projects/:projectId/applications/:applicationId", verifyProfessor, getApplicationDetailsForProject);
-router.put("/projects/:projectId/applications/:applicationId", verifyProfessor, updateApplicationStatusForProject);
+router.get(
+  "/projects/:projectId/applications/status/:status",
+  verifyProfessor,
+  getApplicationsForProject
+);
+router.get(
+  "/projects/:projectId/applications/:applicationId",
+  verifyProfessor,
+  getApplicationDetailsForProject
+);
+router.put(
+  "/projects/:projectId/applications/:applicationId",
+  verifyProfessor,
+  updateApplicationStatusForProject
+);
 
 export default router;

@@ -19,9 +19,9 @@ async function sendMajorNotificationEmail(professor) {
     process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: "30m" }
   );
-  
+
   const autoLoginUrl = `http://139.167.188.221:3000/faculty-auto-login?token=${autoLoginToken}`;
-  
+
   const mailOptions = {
     from: process.env.AUTH_EMAIL,
     to: professor.email,
@@ -57,7 +57,10 @@ async function sendMajorNotificationEmail(professor) {
     await transporter.sendMail(mailOptions);
     console.log(`Major project email sent successfully to ${professor.email}`);
   } catch (error) {
-    console.error(`Error sending major project email to ${professor.email}:`, error);
+    console.error(
+      `Error sending major project email to ${professor.email}:`,
+      error
+    );
   }
 }
 
@@ -73,9 +76,15 @@ const checkAndNotifyMajorProf = async () => {
       return hasSpace && hasPendingApplications;
     });
     console.log("eligible major project profs:", eligibleProfs);
-    console.log(`📢 Notifying ${eligibleProfs.length} professors for major projects...`);
-    await Promise.all(eligibleProfs.map((prof) => sendMajorNotificationEmail(prof)));
-    console.log("✅ All eligible professors have been notified for major projects.");
+    console.log(
+      `📢 Notifying ${eligibleProfs.length} professors for major projects...`
+    );
+    await Promise.all(
+      eligibleProfs.map((prof) => sendMajorNotificationEmail(prof))
+    );
+    console.log(
+      "✅ All eligible professors have been notified for major projects."
+    );
   } catch (error) {
     console.log("Error in checkAndNotifyMajorProfessors:", error);
   }
@@ -84,7 +93,9 @@ const checkAndNotifyMajorProf = async () => {
 cron.schedule(
   "30 0 * * *",
   () => {
-    console.log("Running major project notification task every day at 6:15 AM IST");
+    console.log(
+      "Running major project notification task every day at 6:15 AM IST"
+    );
     checkAndNotifyMajorProf();
   },
   {

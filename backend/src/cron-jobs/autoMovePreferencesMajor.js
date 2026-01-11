@@ -5,7 +5,9 @@ import { Professor } from "../models/professor.model.js";
 
 const preprocessMajorGroups = async () => {
   try {
-    console.log("Preprocessing major groups to clean up limit exceeded professors");
+    console.log(
+      "Preprocessing major groups to clean up limit exceeded professors"
+    );
     const groups = await Major.find({
       majorAppliedProfs: { $exists: true, $ne: [] },
       majorAllocatedProf: { $exists: false },
@@ -64,7 +66,10 @@ const preprocessMajorGroups = async () => {
           );
         }
       } catch (error) {
-        console.log(`Error saving major group ${group.groupId || group._id}:`, error);
+        console.log(
+          `Error saving major group ${group.groupId || group._id}:`,
+          error
+        );
       }
     }
   } catch (error) {
@@ -77,7 +82,9 @@ const moveMajorApplications = async () => {
     console.log("Checking and moving pending major applications...");
     const twoDaysAgo = moment().subtract(2, "days").toDate();
     console.log(twoDaysAgo);
-    console.log(`Looking for major groups with no movement since: ${twoDaysAgo}`);
+    console.log(
+      `Looking for major groups with no movement since: ${twoDaysAgo}`
+    );
     const groups = await Major.find({
       majorAppliedProfs: { $exists: true, $ne: [] },
       majorAllocatedProf: { $exists: false },

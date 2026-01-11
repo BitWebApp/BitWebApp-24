@@ -11,11 +11,10 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.post("/", verifyJWT, upload.array('files'), createExam);
+router.post("/", verifyJWT, upload.array("files"), createExam);
 router.get("/", verifyJWT, getExams);
 router.get("/:id", verifyJWT, getExamById);
 router.put("/:id", verifyJWT, updateExam);
 router.delete("/:id", verifyJWT, deleteExam);
 
 export default router;
-

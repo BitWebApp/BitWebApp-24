@@ -59,10 +59,12 @@ const groupSchema = new Schema({
         type: Date,
         default: new Date(),
       },
-      absent: [{
-        type: Schema.Types.ObjectId,
-        ref: "User",
-      }],
+      absent: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+        },
+      ],
       description: {
         type: String,
       },
@@ -78,6 +80,6 @@ const groupSchema = new Schema({
   chats: {
     type: String,
     ref: "Chat",
-  }
+  },
 });
 export const Group = mongoose.model("Group", groupSchema);

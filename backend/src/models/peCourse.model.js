@@ -1,5 +1,5 @@
-import mongoose, { Schema } from 'mongoose';
-import { User } from './user.model.js';
+import mongoose, { Schema } from "mongoose";
+import { User } from "./user.model.js";
 
 const peCourseSchema = new Schema(
   {
@@ -22,13 +22,13 @@ const peCourseSchema = new Schema(
     },
     type: {
       type: String,
-      enum: ['pe4', 'pe5'],
+      enum: ["pe4", "pe5"],
       required: true,
     },
     students: [
       {
         type: Schema.Types.ObjectId,
-        ref: 'User',
+        ref: "User",
       },
     ],
   },
@@ -37,4 +37,4 @@ const peCourseSchema = new Schema(
 
 peCourseSchema.index({ courseCode: 1, branch: 1, batch: 1 }, { unique: true });
 
-export const PeCourse = mongoose.model('PeCourse', peCourseSchema);
+export const PeCourse = mongoose.model("PeCourse", peCourseSchema);
