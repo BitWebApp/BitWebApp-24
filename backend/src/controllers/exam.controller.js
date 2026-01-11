@@ -1,8 +1,8 @@
 // exam.controller.js
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js";
-import { User } from "../models/user.model.js";
 import { Exam } from "../models/exam.model.js";
+import { User } from "../models/user.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 //
 const createExam = asyncHandler(async (req, res) => {
@@ -195,4 +195,4 @@ const getAllExams = asyncHandler(async (req, res) => {
   });
 });
 
-export { createExam, getExams, getExamById, getAllExams }; // deleteExam , updateExam, }
+export { createExam, getAllExams, getExamById, getExams }; // deleteExam , updateExam, }

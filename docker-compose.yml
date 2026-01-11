@@ -1,0 +1,83 @@
+# WARNING: Copy .env.example to .env and update with your actual values before running.
+# DO NOT use default/example values in production!
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7
+    container_name: bitwebapp-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=bitwebapp
+    networks:
+      - bitwebapp-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bitwebapp-backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.docker
+    environment:
+      # These can be overridden in .env file
+      - PORT=${PORT:-3000}
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongodb:27017}
+      - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
+      - ACCESS_TOKEN_EXPIRY=${ACCESS_TOKEN_EXPIRY:-1d}
+      - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
+      - REFRESH_TOKEN_EXPIRY=${REFRESH_TOKEN_EXPIRY:-10d}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5173}
+      - AUTH_EMAIL=${AUTH_EMAIL}
+      - AUTH_PASSWORD=${AUTH_PASSWORD}
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - bitwebapp-network
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bitwebapp-frontend
+    ports:
+      - "5173:5173"
+    env_file:
+      - .env.docker
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:3000}
+    depends_on:
+      - backend
+    networks:
+      - bitwebapp-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  mongodb_data:
+
+networks:
+  bitwebapp-network:
+    driver: bridge

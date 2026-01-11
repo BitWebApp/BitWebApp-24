@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Environment files with secrets
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Docker volumes (local data)
+mongodb_data/

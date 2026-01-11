@@ -133,7 +133,7 @@ const getWorkExperiences = asyncHandler(async (req, res) => {
 // Get all alumni (admin only)
 const getAllAlumni = asyncHandler(async (req, res) => {
   try {
-    const { batch } = req.query; // Extract batch from request body
+    const { batch } = req.query;
 
     if (!batch) {
       return res
@@ -141,8 +141,15 @@ const getAllAlumni = asyncHandler(async (req, res) => {
         .json(new ApiResponse(400, null, "Batch is required."));
     }
 
+    const batchNumber = Number(batch);
+    if (Number.isNaN(batchNumber)) {
+      throw new ApiError(400, "Invalid batch query parameter");
+    }
+
+    // Alumni section is open to all admins - no batch restriction
+
     // Remove .lean() to preserve the full document structure
-    const alumni = await Alumni.find({ batch }) // Filter by batch
+    const alumni = await Alumni.find({ batch: batchNumber })
       .populate("user", "email")
       .select("-__v");
 

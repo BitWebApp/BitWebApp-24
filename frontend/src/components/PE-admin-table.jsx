@@ -1,31 +1,16 @@
-import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { useEffect, useState } from 'react';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import * as XLSX from 'xlsx';
 
 const PEAdminTable = () => {
   const [studentsMap, setStudentsMap] = useState([]);
   const [batch, setBatch] = useState('');
 
   useEffect(() => {
-    const fetchPeCourses = async (batchParam = '') => {
-      try {
-        const url = batchParam ? `/api/v1/pe/get-all?batch=${batchParam}` : '/api/v1/pe/get-all';
-        const response = await axios.get(url);
-        if (response.data && response.data.data) {
-          processStudentData(response.data.data);
-        }
-      } catch (error) {
-        console.error('Error fetching PE courses:', error);
-      }
-    };
-
-    fetchPeCourses(batch);
-  }, []);
-
-  useEffect(() => {
-    // refetch when batch changes
-    const fetchOnBatchChange = async () => {
+    const fetchPeCourses = async () => {
       try {
         const url = batch ? `/api/v1/pe/get-all?batch=${batch}` : '/api/v1/pe/get-all';
         const response = await axios.get(url);
@@ -33,10 +18,21 @@ const PEAdminTable = () => {
           processStudentData(response.data.data);
         }
       } catch (error) {
-        console.error('Error fetching PE courses on batch change:', error);
+        console.error('Error fetching PE courses:', error);
+        if (error.response?.status === 403) {
+          toast.error(
+            error.response.data?.message ||
+              `You don't have access to view data from this batch`,
+            { toastId: 'pe-batch-access-error' }
+          );
+          setStudentsMap([]);
+        } else {
+          toast.error('Failed to load PE course data', { toastId: 'pe-load-error' });
+        }
       }
     };
-    fetchOnBatchChange();
+
+    fetchPeCourses();
   }, [batch]);
 
   const processStudentData = (courses) => {
@@ -100,6 +96,7 @@ const PEAdminTable = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <ToastContainer position="top-right" autoClose={4000} />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Admin PE Course Records</h1>
         <div className="flex items-center gap-3">

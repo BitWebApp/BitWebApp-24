@@ -1,5 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function AlumniTable() {
   const [alumniData, setAlumniData] = useState([]);
@@ -38,10 +40,19 @@ export default function AlumniTable() {
         "Error fetching alumni data:",
         err.response?.data || err.message
       );
-      setError(
-        err.response?.data?.message ||
-          "An error occurred while fetching alumni data."
-      );
+      if (err.response?.status === 403) {
+        toast.error(
+          err.response.data?.message ||
+            `You don't have access to view data from this batch`,
+          { toastId: 'alumni-batch-access-error' }
+        );
+        setAlumniData([]);
+      } else {
+        setError(
+          err.response?.data?.message ||
+            "An error occurred while fetching alumni data."
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -79,6 +90,7 @@ export default function AlumniTable() {
 
   return (
     <div className="container mx-auto p-4">
+      <ToastContainer position="top-right" autoClose={4000} />
       <h1 className="text-center text-3xl font-bold mb-8">Alumni Records</h1>
 
       {/* Batch filter dropdown */}

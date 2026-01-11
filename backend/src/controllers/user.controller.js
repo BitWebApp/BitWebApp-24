@@ -1,16 +1,13 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js";
-import { User } from "../models/user.model.js";
-import { uploadOnCloudinary } from "../utils/Cloudinary.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
-import jwt from "jsonwebtoken";
-import mongoose from "mongoose";
-import { Otp } from "../models/otp.model.js";
-import { Placement } from "../models/placement.model.js";
-import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import cron from "node-cron";
+import { Otp } from "../models/otp.model.js";
+import { Placement } from "../models/placement.model.js";
 import { Professor } from "../models/professor.model.js";
+import { User } from "../models/user.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 import { sendOTP } from "../utils/sendOTP.js";
 
 const generateAcessAndRefreshToken = async (userId) => {
@@ -734,10 +731,32 @@ const getUserbyRoll = asyncHandler(async (req, res) => {
 const getPlacementDetails = asyncHandler(async (req, res) => {
   try {
     const { batch } = req.query;
+    const admin = req.admin;
 
-    // Convert batch query (string) to number and validate
+    // Build filter based on admin's role and assigned batches
     const filter = {};
-    if (batch !== undefined) {
+
+    // For batch admins, enforce access only to assigned batches
+    if (admin && admin.role !== "master" && admin.assignedBatches?.length > 0) {
+      // If batch is specified, verify admin has access to it
+      if (batch !== undefined) {
+        const batchNumber = Number(batch);
+        if (Number.isNaN(batchNumber)) {
+          throw new ApiError(400, "Invalid batch query parameter");
+        }
+        if (!admin.assignedBatches.includes(batchNumber)) {
+          throw new ApiError(
+            403,
+            `Access forbidden: You don't have access to batch K${batchNumber}`
+          );
+        }
+        filter.batch = batchNumber;
+      } else {
+        // No batch specified, filter by all assigned batches
+        filter.batch = { $in: admin.assignedBatches };
+      }
+    } else if (batch !== undefined) {
+      // Master admin or no restriction, use requested batch
       const batchNumber = Number(batch);
       if (Number.isNaN(batchNumber)) {
         throw new ApiError(400, "Invalid batch query parameter");
@@ -779,10 +798,32 @@ const getPlacementDetails = asyncHandler(async (req, res) => {
 });
 const getAllUsers = asyncHandler(async (req, res) => {
   const { batch } = req.query;
+  const admin = req.admin;
 
-  // Convert batch query (string) to number and validate
+  // Build filter based on admin's role and assigned batches
   const filter = {};
-  if (batch !== undefined) {
+
+  // For batch admins, enforce access only to assigned batches
+  if (admin && admin.role !== "master" && admin.assignedBatches?.length > 0) {
+    // If batch is specified, verify admin has access to it
+    if (batch !== undefined) {
+      const batchNumber = Number(batch);
+      if (Number.isNaN(batchNumber)) {
+        throw new ApiError(400, "Invalid batch query parameter");
+      }
+      if (!admin.assignedBatches.includes(batchNumber)) {
+        throw new ApiError(
+          403,
+          `Access forbidden: You don't have access to batch K${batchNumber}`
+        );
+      }
+      filter.batch = batchNumber;
+    } else {
+      // No batch specified, filter by all assigned batches
+      filter.batch = { $in: admin.assignedBatches };
+    }
+  } else if (batch !== undefined) {
+    // Master admin or no restriction, use requested batch
     const batchNumber = Number(batch);
     if (Number.isNaN(batchNumber)) {
       throw new ApiError(400, "Invalid batch query parameter");
@@ -845,23 +886,23 @@ const summerSorted = asyncHandler(async (req, res) => {
     );
 });
 export {
-  registerUser,
+  changepassword,
+  fetchBranch,
+  getAllUsers,
+  getAppliedProfs,
+  getCurrentUser,
+  getPlacementDetails,
+  getPlacementOne,
+  getPlacementThree,
+  getPlacementTwo,
+  getUserbyRoll,
   loginUser,
   logoutUser,
-  updateUser1,
-  updatePlacementOne,
-  updatePlacementTwo,
-  updatePlacementThree,
-  getPlacementDetails,
-  getCurrentUser,
-  getUserbyRoll,
-  getPlacementOne,
-  getPlacementTwo,
-  getPlacementThree,
-  getAllUsers,
-  verifyMail,
-  fetchBranch,
-  changepassword,
-  getAppliedProfs,
+  registerUser,
   summerSorted,
+  updatePlacementOne,
+  updatePlacementThree,
+  updatePlacementTwo,
+  updateUser1,
+  verifyMail,
 };

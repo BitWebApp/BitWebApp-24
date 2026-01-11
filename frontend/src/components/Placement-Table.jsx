@@ -2,6 +2,8 @@ import axios from "axios";
 import ExcelJS from "exceljs";
 import { useEffect, useState } from "react";
 import { ClipLoader } from "react-spinners";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function PlacementTable() {
   const [placementData, setPlacementData] = useState([]);
@@ -23,6 +25,16 @@ export default function PlacementTable() {
       setPlacementData(response.data.data);
     } catch (error) {
       console.error("Error fetching placement data:", error);
+      if (error.response?.status === 403) {
+        toast.error(
+          error.response.data?.message ||
+            `You don't have access to view data from this batch`,
+          { toastId: 'placement-batch-access-error' }
+        );
+        setPlacementData([]);
+      } else {
+        toast.error("Failed to load placement data", { toastId: 'placement-fetch-error' });
+      }
     } finally {
       setLoading(false);
     }
@@ -142,6 +154,7 @@ export default function PlacementTable() {
 
   return (
     <div className="overflow-x-auto p-4">
+      <ToastContainer position="top-right" autoClose={4000} />
       <h1 className="text-center text-3xl font-bold mb-8">PLACEMENT RECORDS</h1>
 
       <div className="flex justify-center mb-4">

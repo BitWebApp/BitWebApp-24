@@ -1,12 +1,12 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js";
 import { Project } from "../models/project.model.js";
-import {
-  uploadOnCloudinary,
-  deleteFromCloudinary,
-} from "../utils/Cloudinary.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import {
+  deleteFromCloudinary,
+  uploadOnCloudinary,
+} from "../utils/Cloudinary.js";
 
 const createProject = asyncHandler(async (req, res) => {
   const { projectName, domain, projectLink, techStack, guide } = req.body;
@@ -88,6 +88,7 @@ const ShowProject = asyncHandler(async (req, res) => {
 const deleteProject = asyncHandler(async (req, res) => {
   // const { id } = req.params;
   // const id=req.user;
+  const userId = req.admin._id;
   const { id } = req.params;
   try {
     const project = await Project.findById(id);
@@ -191,8 +192,8 @@ const showProjectById = asyncHandler(async (req, res) => {
 
 export {
   createProject,
-  ShowProject,
   deleteProject,
   editProject,
+  ShowProject,
   showProjectById,
 };

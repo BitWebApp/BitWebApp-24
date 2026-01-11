@@ -112,7 +112,8 @@ const getHigherEducationById = asyncHandler(async (req, res) => {
 });
 
 const getAllHigherEducations = asyncHandler(async (req, res) => {
-  const { batch } = req.query; // Extract batch from request body
+  const { batch } = req.query;
+  const admin = req.admin;
 
   if (!batch) {
     return res.status(400).json({
@@ -121,10 +122,25 @@ const getAllHigherEducations = asyncHandler(async (req, res) => {
     });
   }
 
+  const batchNumber = Number(batch);
+  if (Number.isNaN(batchNumber)) {
+    throw new ApiError(400, "Invalid batch query parameter");
+  }
+
+  // For batch admins, enforce access only to assigned batches
+  if (admin && admin.role !== "master" && admin.assignedBatches?.length > 0) {
+    if (!admin.assignedBatches.includes(batchNumber)) {
+      throw new ApiError(
+        403,
+        `Access forbidden: You don't have access to batch K${batchNumber}`
+      );
+    }
+  }
+
   const higherEducations = await HigherEducation.find().populate({
     path: "name",
-    select: "rollNumber fullName batch", // Include batch in selection
-    match: { batch }, // Filter by batch
+    select: "rollNumber fullName batch",
+    match: { batch: batchNumber },
   });
 
   // Filter out records where name does not match the batch

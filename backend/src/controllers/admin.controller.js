@@ -1,22 +1,29 @@
 import mongoose from "mongoose";
 import nodemailer from "nodemailer";
 import { Admin } from "../models/admin.model.js";
-import { Minor } from "../models/minor.model.js";
 import { Major } from "../models/major.model.js";
+import { Minor } from "../models/minor.model.js";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const getUnverifiedUsers = asyncHandler(async (req, res) => {
-  const users = await User.find({ isVerified: false }).select(
-    "-password -refreshToken"
-  );
+  const admin = req.admin;
+  let filter = { isVerified: false };
+
+  // If not a master admin, filter by assigned batches
+  if (admin.role !== "master" && admin.assignedBatches?.length > 0) {
+    filter.batch = { $in: admin.assignedBatches };
+  }
+
+  const users = await User.find(filter).select("-password -refreshToken");
   const us = users.map((user) => ({
     _id: user._id,
-    name: user.name,
-    rollNumer: user.rollNumber,
+    name: user.fullName,
+    rollNumber: user.rollNumber,
     idCard: user.idCard,
+    batch: user.batch,
   }));
   return res
     .status(200)
@@ -137,19 +144,27 @@ const generateAcessAndRefreshToken = async (adminId) => {
 };
 
 const registerAdmin = asyncHandler(async (req, res) => {
-  const { username, password } = req.body;
-  console.log(username, password);
-  if (!username || !password) {
-    throw new ApiError(400, "username and password are required");
+  const { username, password, email, role, assignedBatches } = req.body;
+
+  if (!username || !password || !email) {
+    throw new ApiError(400, "username, password, and email are required");
   }
-  const existing = await Admin.findOne({ username });
+
+  const existing = await Admin.findOne({
+    $or: [{ username: username.toLowerCase() }, { email: email.toLowerCase() }],
+  });
   if (existing) {
-    throw new ApiError(402, "Account with username already exists!");
+    throw new ApiError(409, "Account with username or email already exists!");
   }
+
   const adminUser = await Admin.create({
     username: username.toLowerCase(),
     password,
+    email: email.toLowerCase(),
+    role: role || "batch_admin",
+    assignedBatches: assignedBatches || [],
   });
+
   const createdAdmin = await Admin.findById(adminUser._id).select(
     "-password -refreshToken"
   );
@@ -342,10 +357,26 @@ export const rejectUser = asyncHandler(async (req, res) => {
 
 const getAllMinorProjects = asyncHandler(async (req, res) => {
   try {
-    const { batch } = req.query; // Extract batch from request body
+    const { batch } = req.query;
+    const admin = req.admin;
 
     if (!batch) {
-      throw new ApiError(400, "Batch is required"); // Throw error if batch is not provided
+      throw new ApiError(400, "Batch is required");
+    }
+
+    const batchNumber = Number(batch);
+    if (Number.isNaN(batchNumber)) {
+      throw new ApiError(400, "Invalid batch query parameter");
+    }
+
+    // For batch admins, enforce access only to assigned batches
+    if (admin && admin.role !== "master" && admin.assignedBatches?.length > 0) {
+      if (!admin.assignedBatches.includes(batchNumber)) {
+        throw new ApiError(
+          403,
+          `Access forbidden: You don't have access to batch K${batchNumber}`
+        );
+      }
     }
 
     // Fetch all minor project groups with populated data
@@ -357,8 +388,8 @@ const getAllMinorProjects = asyncHandler(async (req, res) => {
       .populate({
         path: "leader",
         select:
-          "fullName rollNumber email branch section marks.minorProject batch", // Include batch in leader selection
-        match: { batch }, // Filter by batch
+          "fullName rollNumber email branch section marks.minorProject batch",
+        match: { batch: batchNumber },
       })
       .populate({
         path: "minorAllocatedProf",
@@ -441,10 +472,26 @@ const getAllMinorProjects = asyncHandler(async (req, res) => {
 
 const getAllMajorProjects = asyncHandler(async (req, res) => {
   try {
-    const { batch } = req.query; // Extract batch from request query
+    const { batch } = req.query;
+    const admin = req.admin;
 
     if (!batch) {
-      throw new ApiError(400, "Batch is required"); // Throw error if batch is not provided
+      throw new ApiError(400, "Batch is required");
+    }
+
+    const batchNumber = Number(batch);
+    if (Number.isNaN(batchNumber)) {
+      throw new ApiError(400, "Invalid batch query parameter");
+    }
+
+    // For batch admins, enforce access only to assigned batches
+    if (admin && admin.role !== "master" && admin.assignedBatches?.length > 0) {
+      if (!admin.assignedBatches.includes(batchNumber)) {
+        throw new ApiError(
+          403,
+          `Access forbidden: You don't have access to batch K${batchNumber}`
+        );
+      }
     }
 
     // Fetch all major project groups with populated data
@@ -458,7 +505,7 @@ const getAllMajorProjects = asyncHandler(async (req, res) => {
         path: "leader",
         select:
           "fullName rollNumber email branch section marks.majorProject batch mobileNumber projectTitle",
-        match: { batch },
+        match: { batch: batchNumber },
       })
       .populate({
         path: "majorAllocatedProf",
@@ -546,13 +593,185 @@ const getAllMajorProjects = asyncHandler(async (req, res) => {
   }
 });
 
+/**
+ * Get all admins (Master Admin only)
+ */
+const getAllAdmins = asyncHandler(async (req, res) => {
+  const admins = await Admin.find().select("-password -refreshToken");
+  return res
+    .status(200)
+    .json(new ApiResponse(200, admins, "All admins fetched successfully"));
+});
+
+/**
+ * Create a batch admin (Master Admin only)
+ */
+const createBatchAdmin = asyncHandler(async (req, res) => {
+  const { username, password, email, assignedBatches } = req.body;
+
+  if (!username || !password || !email) {
+    throw new ApiError(400, "username, password, and email are required");
+  }
+
+  if (!assignedBatches || assignedBatches.length === 0) {
+    throw new ApiError(400, "At least one batch must be assigned");
+  }
+
+  const existing = await Admin.findOne({
+    $or: [{ username: username.toLowerCase() }, { email: email.toLowerCase() }],
+  });
+  if (existing) {
+    throw new ApiError(409, "Account with username or email already exists!");
+  }
+
+  const adminUser = await Admin.create({
+    username: username.toLowerCase(),
+    password,
+    email: email.toLowerCase(),
+    role: "batch_admin",
+    assignedBatches,
+  });
+
+  const createdAdmin = await Admin.findById(adminUser._id).select(
+    "-password -refreshToken"
+  );
+  if (!createdAdmin) {
+    throw new ApiError(500, "Internal server error!");
+  }
+  return res
+    .status(201)
+    .json(
+      new ApiResponse(200, createdAdmin, "Batch admin created successfully!")
+    );
+});
+
+/**
+ * Update an admin (Master Admin only)
+ */
+const updateAdmin = asyncHandler(async (req, res) => {
+  const { adminId } = req.params;
+  const { role, assignedBatches, email } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(adminId)) {
+    throw new ApiError(400, "Invalid admin ID");
+  }
+
+  const admin = await Admin.findById(adminId);
+  if (!admin) {
+    throw new ApiError(404, "Admin not found");
+  }
+
+  // Prevent updating own role to prevent lockout
+  if (adminId === req.admin._id.toString() && role && role !== admin.role) {
+    throw new ApiError(400, "Cannot change your own role");
+  }
+
+  // Validate role if provided
+  const allowedRoles = ["master", "batch_admin"];
+  if (role && !allowedRoles.includes(role)) {
+    throw new ApiError(
+      400,
+      `Invalid role. Allowed values: ${allowedRoles.join(", ")}`
+    );
+  }
+
+  // Check email uniqueness if email is being updated
+  if (email) {
+    const normalizedEmail = email.toLowerCase();
+    const existingAdmin = await Admin.findOne({
+      email: normalizedEmail,
+      _id: { $ne: adminId },
+    });
+    if (existingAdmin) {
+      throw new ApiError(409, "Email is already in use by another admin");
+    }
+  }
+
+  const updateFields = {};
+  if (role) updateFields.role = role;
+  if (assignedBatches) updateFields.assignedBatches = assignedBatches;
+  if (email) updateFields.email = email.toLowerCase();
+
+  const updatedAdmin = await Admin.findByIdAndUpdate(
+    adminId,
+    { $set: updateFields },
+    { new: true }
+  ).select("-password -refreshToken");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedAdmin, "Admin updated successfully"));
+});
+
+/**
+ * Delete an admin (Master Admin only)
+ */
+const deleteAdmin = asyncHandler(async (req, res) => {
+  const { adminId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(adminId)) {
+    throw new ApiError(400, "Invalid admin ID");
+  }
+
+  // Prevent self-deletion
+  if (adminId === req.admin._id.toString()) {
+    throw new ApiError(400, "Cannot delete yourself");
+  }
+
+  const admin = await Admin.findById(adminId);
+  if (!admin) {
+    throw new ApiError(404, "Admin not found");
+  }
+
+  await Admin.findByIdAndDelete(adminId);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Admin deleted successfully"));
+});
+
+/**
+ * Get batch statistics (for dashboard)
+ */
+const getBatchStats = asyncHandler(async (req, res) => {
+  const admin = req.admin;
+  let batchFilter = {};
+
+  if (admin.role !== "master" && admin.assignedBatches?.length > 0) {
+    batchFilter.batch = { $in: admin.assignedBatches };
+  }
+
+  // Get counts per batch
+  const stats = await User.aggregate([
+    { $match: batchFilter },
+    {
+      $group: {
+        _id: "$batch",
+        total: { $sum: 1 },
+        verified: { $sum: { $cond: ["$isVerified", 1, 0] } },
+        unverified: { $sum: { $cond: ["$isVerified", 0, 1] } },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, stats, "Batch statistics fetched"));
+});
+
 export {
-  getAllMinorProjects,
+  createBatchAdmin,
+  deleteAdmin,
+  getAllAdmins,
   getAllMajorProjects,
+  getAllMinorProjects,
+  getBatchStats,
   getCurrendAdmin,
   getUnverifiedUsers,
   loginAdmin,
   logoutAdmin,
   registerAdmin,
+  updateAdmin,
   verifyUser,
 };

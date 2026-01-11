@@ -46,7 +46,17 @@ export default function MinorProjectTable() {
       setBranchOptions(branches);
     } catch (error) {
       console.error("Error fetching minor project data:", error);
-      toast.error("Failed to load minor project data");
+      if (error.response?.status === 403) {
+        toast.error(
+          error.response.data?.message ||
+            `You don't have access to view data from this batch`,
+          { toastId: 'minor-batch-access-error' }
+        );
+        setProjectData([]);
+        setFilteredData([]);
+      } else {
+        toast.error("Failed to load minor project data", { toastId: 'minor-fetch-error' });
+      }
     }
   };
 

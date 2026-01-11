@@ -1,7 +1,7 @@
 import axios from "axios";
 import ExcelJS from "exceljs";
 import { useEffect, useState } from "react";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function InternshipTable() {
@@ -46,6 +46,17 @@ export default function InternshipTable() {
       setBranchOptions(branches);
     } catch (error) {
       console.error("Error fetching internship data:", error);
+      if (error.response?.status === 403) {
+        toast.error(
+          error.response.data?.message ||
+            `You don't have access to view data from this batch`,
+          { toastId: 'intern-batch-access-error' }
+        );
+        setInternData([]);
+        setFilteredData([]);
+      } else {
+        toast.error("Failed to load internship data", { toastId: 'intern-fetch-error' });
+      }
     }
   };
 
