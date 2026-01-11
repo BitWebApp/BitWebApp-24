@@ -906,9 +906,6 @@ const profApproveTypeChange = asyncHandler(async (req, res) => {
 
   // Approve action
   // Check how many members have pending requests
-  const usersWithPendingRequests = pendingRequests.map((req) =>
-    req.user._id.toString()
-  );
 
   // Case 1: Only one member requested change
   if (pendingRequests.length === 1) {
