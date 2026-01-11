@@ -22,11 +22,12 @@ const PEAdminTable = () => {
         if (error.response?.status === 403) {
           toast.error(
             error.response.data?.message ||
-              `You don't have access to view data from this batch`
+              `You don't have access to view data from this batch`,
+            { toastId: 'pe-batch-access-error' }
           );
           setStudentsMap([]);
         } else {
-          toast.error('Failed to load PE course data');
+          toast.error('Failed to load PE course data', { toastId: 'pe-load-error' });
         }
       }
     };
