@@ -1,6 +1,6 @@
 /**
  * Migration script to update existing admins with new role-based fields.
- * 
+ *
  * Run this script once after deploying the new admin schema:
  * node -r dotenv/config scripts/migrate-admins.js
  */
@@ -20,7 +20,9 @@ async function migrateAdmins() {
     console.log("Connected to database.");
 
     // Find all admins without the role field, sorted by creation date for deterministic selection
-    const adminsWithoutRole = await Admin.find({ role: { $exists: false } }).sort({ createdAt: 1 });
+    const adminsWithoutRole = await Admin.find({
+      role: { $exists: false },
+    }).sort({ createdAt: 1 });
     console.log(`Found ${adminsWithoutRole.length} admins to migrate.`);
 
     if (adminsWithoutRole.length === 0) {

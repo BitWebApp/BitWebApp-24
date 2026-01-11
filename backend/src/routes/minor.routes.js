@@ -1,12 +1,25 @@
 import { Router } from "express";
-import { 
-    createGroup, addMember, removeMember, applyToFaculty, getGroup,
-    getAppliedProfs,
-    minorSorted, acceptReq, getReq, addDiscussion, addRemarkAbsent, getDiscussion,
-    getDiscussionByStudent,
-    addMarks
+import {
+  createGroup,
+  addMember,
+  removeMember,
+  applyToFaculty,
+  getGroup,
+  getAppliedProfs,
+  minorSorted,
+  acceptReq,
+  getReq,
+  addDiscussion,
+  addRemarkAbsent,
+  getDiscussion,
+  getDiscussionByStudent,
+  addMarks,
 } from "../controllers/minor.controller.js";
-import { verifyAdmin, verifyJWT, verifyProfessor } from "../middlewares/auth.middleware.js";
+import {
+  verifyAdmin,
+  verifyJWT,
+  verifyProfessor,
+} from "../middlewares/auth.middleware.js";
 
 const router = Router();
 

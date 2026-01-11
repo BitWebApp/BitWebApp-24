@@ -20,15 +20,15 @@ const createGroup = asyncHandler(async (req, res) => {
   }
 
   const newGroup = await Minor.create({
-      groupId: nanoid(),
-      leader,
-      members
-    });
-    
-    await newGroup.populate('members leader');
+    groupId: nanoid(),
+    leader,
+    members,
+  });
 
-    user.MinorGroup = newGroup._id;
-    await user.save();
+  await newGroup.populate("members leader");
+
+  user.MinorGroup = newGroup._id;
+  await user.save();
 
   return res
     .status(200)
@@ -39,7 +39,7 @@ const addMember = asyncHandler(async (req, res) => {
   const loggedIn = req?.user?._id;
   const { rollNumber, groupId } = req.body;
 
-  if(req.user.batch == 23) {
+  if (req.user.batch == 23) {
     return res.status(403).json({
       success: false,
       message: "Students of batch 2023 are not allowed to form minor groups.",
@@ -184,10 +184,11 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   const { facultyId } = req.body;
   const userId = req?.user?._id;
 
-  if(req.user.batch == 23) {
+  if (req.user.batch == 23) {
     return res.status(403).json({
       success: false,
-      message: "Students of batch 2023 are not allowed to apply to faculty for minor project.",
+      message:
+        "Students of batch 2023 are not allowed to apply to faculty for minor project.",
     });
   }
 
@@ -314,7 +315,10 @@ const applyToFaculty = asyncHandler(async (req, res) => {
       message: "Faculty not found",
     });
   }
-  if(group.members.length > faculty.limits.minor_project-faculty.currentCount.minor_project) {
+  if (
+    group.members.length >
+    faculty.limits.minor_project - faculty.currentCount.minor_project
+  ) {
     console.log("Your group size exceeds faculty's remaining limit");
   }
 
@@ -342,7 +346,7 @@ const getGroup = asyncHandler(async (req, res) => {
     .populate("members")
     .populate("leader")
     .populate("minorAppliedProfs")
-    .populate("minorAllocatedProf")
+    .populate("minorAllocatedProf");
   return res
     .status(200)
     .json(new ApiResponse(200, group, "Minor group details returned"));
@@ -470,11 +474,11 @@ const addMarks = asyncHandler(async (req, res) => {
   console.log(userId, marks);
   const user = await User.findById(userId).select("fullName rollNumber marks");
   if (!user) throw new ApiError(404, "User not found");
-  // 
-  if(user.marks.minorProject > 0){
+  //
+  if (user.marks.minorProject > 0) {
     throw new ApiError(400, "Marks already added");
   }
-  // 
+  //
   user.marks.minorProject = marks;
   await user.save();
   return res

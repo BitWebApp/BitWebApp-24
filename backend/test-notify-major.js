@@ -40,7 +40,9 @@ async function sendTestNotification() {
     const professor = professors[0];
     console.log(`\nTesting notification for professor: ${professor.fullName}`);
     console.log(`Email: ${professor.email}`);
-    console.log(`Applied Major Projects: ${professor.appliedGroups.major_project.length}`);
+    console.log(
+      `Applied Major Projects: ${professor.appliedGroups.major_project.length}`
+    );
 
     if (professor.appliedGroups.major_project.length === 0) {
       console.log("This professor has no major project applications");

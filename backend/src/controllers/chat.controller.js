@@ -7,7 +7,9 @@ const checkMembership = (group, senderId) => {
     (group.members &&
       group.members.some((m) => m.toString() === senderId.toString())) ||
     (group.summerAppliedProfs &&
-      group.summerAppliedProfs.some((p) => p.toString() === senderId.toString())) ||
+      group.summerAppliedProfs.some(
+        (p) => p.toString() === senderId.toString()
+      )) ||
     (group.summerAllocatedProf &&
       group.summerAllocatedProf.toString() === senderId.toString())
   );
@@ -26,7 +28,7 @@ export const getChat = async (req, res) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const group = await Group.findOne({ groupId:groupId });
+    const group = await Group.findOne({ groupId: groupId });
     if (!group) return res.status(404).json({ error: "Group not found" });
 
     if (!checkMembership(group, senderId)) {
@@ -35,7 +37,7 @@ export const getChat = async (req, res) => {
         .json({ error: "Not authorized to access this group's chat" });
     }
 
-    const chat = await Chat.findOne({ groupId:groupId }).populate(
+    const chat = await Chat.findOne({ groupId: groupId }).populate(
       "messages.sender"
     );
     if (!chat) return res.status(404).json({ error: "Chat not found" });
@@ -45,4 +47,3 @@ export const getChat = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
-

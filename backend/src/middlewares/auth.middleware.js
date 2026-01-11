@@ -145,11 +145,19 @@ const verifyBatchAccess = (getBatchFromReq) =>
 
     // Check if admin has access to this batch
     if (!admin.assignedBatches || !admin.assignedBatches.includes(batchId)) {
-      throw new ApiError(403, `Access forbidden: You don't have access to batch K${batchId}`);
+      throw new ApiError(
+        403,
+        `Access forbidden: You don't have access to batch K${batchId}`
+      );
     }
 
     next();
   });
 
-export { verifyAdmin, verifyBatchAccess, verifyJWT, verifyMasterAdmin, verifyProfessor };
-
+export {
+  verifyAdmin,
+  verifyBatchAccess,
+  verifyJWT,
+  verifyMasterAdmin,
+  verifyProfessor,
+};

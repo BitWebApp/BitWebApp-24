@@ -1,9 +1,9 @@
 import mongoose, { Schema } from "mongoose";
 const majorSchema = new Schema({
-    projectTitle: {
-      type: String,
-      default: "",
-    },
+  projectTitle: {
+    type: String,
+    default: "",
+  },
   groupId: {
     type: String,
     unique: true,
@@ -27,27 +27,29 @@ const majorSchema = new Schema({
     ref: "User",
   },
   members: {
-    type: [{
-      type: Schema.Types.ObjectId,
-      ref: "User",
-    }],
+    type: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     validate: [
       {
-        validator: function(members) {
+        validator: function (members) {
           return members.length <= 2;
         },
-        message: "major project groups cannot have more than 2 members"
+        message: "major project groups cannot have more than 2 members",
       },
       {
-        validator: function(members) {
+        validator: function (members) {
           if (this.type === "industrial") {
             return members.length <= 1;
           }
           return true;
         },
-        message: "industrial groups can only have 1 member"
-      }
-    ]
+        message: "industrial groups can only have 1 member",
+      },
+    ],
   },
   majorAppliedProfs: [
     {
@@ -75,10 +77,12 @@ const majorSchema = new Schema({
         type: Date,
         default: new Date(),
       },
-      absent: [{
-        type: Schema.Types.ObjectId,
-        ref: "User",
-      }],
+      absent: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+        },
+      ],
       description: {
         type: String,
       },
@@ -128,13 +132,13 @@ const majorSchema = new Schema({
 });
 
 // Pre-save middleware to validate group size before any save operation
-majorSchema.pre('save', function(next) {
+majorSchema.pre("save", function (next) {
   if (this.members && this.members.length > 2) {
     const error = new mongoose.Error.ValidationError(this);
     error.errors.members = new mongoose.Error.ValidatorError({
-      message: 'major project groups cannot have more than 2 members',
-      path: 'members',
-      value: this.members
+      message: "major project groups cannot have more than 2 members",
+      path: "members",
+      value: this.members,
     });
     return next(error);
   }
@@ -142,57 +146,61 @@ majorSchema.pre('save', function(next) {
 });
 
 // Pre-update middleware to validate group size before any update operation
-majorSchema.pre('findOneAndUpdate', function(next) {
+majorSchema.pre("findOneAndUpdate", function (next) {
   const update = this.getUpdate();
   if (update.$push && update.$push.members) {
-    this.model.findOne(this.getQuery())
-      .then(doc => {
+    this.model
+      .findOne(this.getQuery())
+      .then((doc) => {
         if (doc.members.length >= 2) {
           const error = new mongoose.Error.ValidationError(this);
           error.errors.members = new mongoose.Error.ValidatorError({
-            message: 'major project groups cannot have more than 2 members',
-            path: 'members',
-            value: doc.members
+            message: "major project groups cannot have more than 2 members",
+            path: "members",
+            value: doc.members,
           });
           return next(error);
         }
         next();
       })
-      .catch(err => next(err));
+      .catch((err) => next(err));
   } else {
     next();
   }
 });
 
 // Static method to validate group size when adding members
-majorSchema.statics.addMemberWithValidation = async function(groupId, memberId) {
+majorSchema.statics.addMemberWithValidation = async function (
+  groupId,
+  memberId
+) {
   const group = await this.findById(groupId);
   if (!group) {
     throw new Error("Group not found");
   }
-  
+
   if (group.members.length >= 2) {
     throw new Error("major project groups cannot have more than 2 members");
   }
-  
+
   group.members.push(memberId);
   return group.save();
 };
 
 // Custom validation method for update operations
-majorSchema.statics.updateWithSizeValidation = async function(query, update) {
+majorSchema.statics.updateWithSizeValidation = async function (query, update) {
   // If we're adding to members array
   if (update.$push && update.$push.members) {
     const group = await this.findOne(query);
     if (!group) {
       throw new Error("Group not found");
     }
-    
+
     if (group.members.length >= 2) {
       throw new Error("Major project groups cannot have more than 2 members");
     }
   }
-  
+
   return this.updateOne(query, update);
 };
 

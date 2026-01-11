@@ -7,7 +7,7 @@ import {
   getWorkExperiences,
   getAllAlumni,
   sendDonationEmail,
-  getAlumniProfile
+  getAlumniProfile,
 } from "../controllers/alumni.controller.js";
 
 const router = Router();

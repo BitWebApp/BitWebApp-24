@@ -13,7 +13,10 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 const makePublicUrl = (filename) => {
-  const base = (process.env.BASE_URL || process.env.SERVER_URL || "").replace(/\/+$/g, "");
+  const base = (process.env.BASE_URL || process.env.SERVER_URL || "").replace(
+    /\/+$/g,
+    ""
+  );
   const urlPath = `/uploads/${filename}`;
   console.log("Generated public URL:", base ? `${base}${urlPath}` : urlPath);
   return base ? `${base}${urlPath}` : urlPath;
@@ -44,7 +47,9 @@ const uploadOnCloudinary = async (localFilePath) => {
     } catch (moveErr) {
       // If EXDEV (cross-device link), fallback to copy + unlink
       if (moveErr && moveErr.code === "EXDEV") {
-        console.warn("fs.rename EXDEV encountered; falling back to copy + unlink");
+        console.warn(
+          "fs.rename EXDEV encountered; falling back to copy + unlink"
+        );
         await fs.promises.copyFile(absolutePath, destPath);
         await fs.promises.unlink(absolutePath);
       } else {
@@ -67,7 +72,9 @@ const uploadOnCloudinary = async (localFilePath) => {
     // Detailed logging so you can copy exact error
     try {
       const abs = localFilePath
-        ? (path.isAbsolute(localFilePath) ? localFilePath : path.resolve(process.cwd(), localFilePath))
+        ? path.isAbsolute(localFilePath)
+          ? localFilePath
+          : path.resolve(process.cwd(), localFilePath)
         : undefined;
 
       console.error("uploadOnCloudinary() failed (local storage):", {
@@ -84,7 +91,9 @@ const uploadOnCloudinary = async (localFilePath) => {
     // try to clean up the temporary file if it still exists
     try {
       const abs = localFilePath
-        ? (path.isAbsolute(localFilePath) ? localFilePath : path.resolve(process.cwd(), localFilePath))
+        ? path.isAbsolute(localFilePath)
+          ? localFilePath
+          : path.resolve(process.cwd(), localFilePath)
         : undefined;
       if (abs && fs.existsSync(abs)) fs.unlinkSync(abs);
     } catch (e) {

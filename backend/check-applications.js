@@ -15,13 +15,14 @@ async function checkProfessorsWithApplications() {
     // Get professors with major projects
     const professorsWithMajor = await Professor.find({
       "appliedGroups.major_project": { $exists: true, $ne: [] },
-    })
-      .populate({
-        path: "appliedGroups.major_project",
-        populate: { path: "members" },
-      });
+    }).populate({
+      path: "appliedGroups.major_project",
+      populate: { path: "members" },
+    });
 
-    console.log(`Found ${professorsWithMajor.length} professors with major project applications:`);
+    console.log(
+      `Found ${professorsWithMajor.length} professors with major project applications:`
+    );
     professorsWithMajor.forEach((prof, idx) => {
       console.log(
         `${idx + 1}. ${prof.fullName} (${prof.email}) - ${prof.appliedGroups.major_project.length} applications`
@@ -29,7 +30,9 @@ async function checkProfessorsWithApplications() {
     });
 
     if (professorsWithMajor.length > 0) {
-      console.log(`\nUsing first professor for test: ${professorsWithMajor[0].fullName}`);
+      console.log(
+        `\nUsing first professor for test: ${professorsWithMajor[0].fullName}`
+      );
     }
 
     process.exit(0);

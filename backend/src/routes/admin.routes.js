@@ -16,7 +16,10 @@ import {
   verifyUser,
 } from "../controllers/admin.controller.js";
 import { addbacklogSubject } from "../controllers/backlog.controller.js";
-import { verifyAdmin, verifyMasterAdmin } from "../middlewares/auth.middleware.js";
+import {
+  verifyAdmin,
+  verifyMasterAdmin,
+} from "../middlewares/auth.middleware.js";
 import { Admin } from "../models/admin.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -35,7 +38,10 @@ const router = Router();
 const bootstrapGuard = asyncHandler(async (req, res, next) => {
   const adminCount = await Admin.countDocuments();
   if (adminCount > 0) {
-    throw new ApiError(403, "Admin registration is disabled. Please contact an existing admin.");
+    throw new ApiError(
+      403,
+      "Admin registration is disabled. Please contact an existing admin."
+    );
   }
   next();
 });

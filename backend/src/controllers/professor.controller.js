@@ -297,7 +297,7 @@ const logoutProf = asyncHandler(async (req, res) => {
 
 const generateAutoLoginUrl = asyncHandler(async (req, res) => {
   const { profId } = req.body;
-  
+
   if (!profId) {
     throw new ApiError(400, "Professor ID is required!");
   }
@@ -383,7 +383,6 @@ const autoLoginProf = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Invalid or expired auto-login token!");
   }
 });
-
 
 //***************************************************/
 const applyToSummer = asyncHandler(async (req, res) => {
@@ -1412,7 +1411,7 @@ const getMajorAppliedGroups = asyncHandler(async (req, res) => {
         },
         {
           path: "org",
-        }
+        },
       ],
     });
 
@@ -1760,18 +1759,30 @@ const getPendingTypeChangeRequests = asyncHandler(async (req, res) => {
     majorAllocatedProf: professorId,
     "typeChangeRequests.status": "pending",
   })
-    .populate("members leader typeChangeRequests.user typeChangeRequests.org majorAllocatedProf")
+    .populate(
+      "members leader typeChangeRequests.user typeChangeRequests.org majorAllocatedProf"
+    )
     .lean();
 
   // Filter to only include pending requests
-  const groupsWithPendingRequests = groupsWithRequests.map((group) => ({
-    ...group,
-    typeChangeRequests: group.typeChangeRequests.filter((req) => req.status === "pending"),
-  })).filter((group) => group.typeChangeRequests.length > 0);
+  const groupsWithPendingRequests = groupsWithRequests
+    .map((group) => ({
+      ...group,
+      typeChangeRequests: group.typeChangeRequests.filter(
+        (req) => req.status === "pending"
+      ),
+    }))
+    .filter((group) => group.typeChangeRequests.length > 0);
 
-  return res.status(200).json(
-    new ApiResponse(200, groupsWithPendingRequests, "Pending type change requests fetched successfully")
-  );
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        groupsWithPendingRequests,
+        "Pending type change requests fetched successfully"
+      )
+    );
 });
 
 export {
