@@ -108,7 +108,8 @@ const addInternDocs = asyncHandler(async (req, res) => {
 });
 
 const getAllInternshipData = asyncHandler(async (req, res) => {
-  const { batch } = req.query; // Extract batch from request body
+  const { batch } = req.query;
+  const admin = req.admin;
 
   if (!batch) {
     return res
@@ -116,10 +117,25 @@ const getAllInternshipData = asyncHandler(async (req, res) => {
       .json(new ApiResponse(400, null, "Batch is required."));
   }
 
+  const batchNumber = Number(batch);
+  if (Number.isNaN(batchNumber)) {
+    throw new ApiError(400, "Invalid batch query parameter");
+  }
+
+  // For batch admins, enforce access only to assigned batches
+  if (admin && admin.role !== "master" && admin.assignedBatches?.length > 0) {
+    if (!admin.assignedBatches.includes(batchNumber)) {
+      throw new ApiError(
+        403,
+        `Access forbidden: You don't have access to batch K${batchNumber}`
+      );
+    }
+  }
+
   const response = await Internship.find({ verified: false }).populate({
     path: "student",
-    select: "batch", // Include batch in selection
-    match: { batch }, // Filter by batch
+    select: "batch fullName rollNumber email section branch mobileNumber",
+    match: { batch: batchNumber },
   });
 
   const filteredResponse = response.filter((intern) => intern.student !== null);
@@ -136,19 +152,37 @@ const getAllInternshipData = asyncHandler(async (req, res) => {
 });
 
 const getAllVerifiedInternshipData = asyncHandler(async (req, res) => {
-  const { batch } = req.query; // Extract batch from request body
+  const { batch } = req.query;
+  const admin = req.admin;
 
+  // Validate batch parameter
   if (!batch) {
     return res
       .status(400)
       .json(new ApiResponse(400, null, "Batch is required."));
   }
 
+  const batchNumber = Number(batch);
+  if (Number.isNaN(batchNumber)) {
+    throw new ApiError(400, "Invalid batch query parameter");
+  }
+
+  // For batch admins, enforce access only to assigned batches
+  if (admin && admin.role !== "master" && admin.assignedBatches?.length > 0) {
+    if (!admin.assignedBatches.includes(batchNumber)) {
+      throw new ApiError(
+        403,
+        `Access forbidden: You don't have access to batch K${batchNumber}`
+      );
+    }
+  }
+
   const response = await Internship.find()
     .populate({
       path: "student",
-      select: "batch", // Include batch in selection
-      match: { batch }, // Filter by batch
+      select:
+        "batch fullName rollNumber email section branch mobileNumber marks",
+      match: { batch: batchNumber },
     })
     .populate("company")
     .populate("mentor");

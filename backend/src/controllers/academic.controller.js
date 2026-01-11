@@ -89,7 +89,8 @@ const getStudentAcademicRecords = asyncHandler(async (req, res) => {
 
 const getAdminAcademicRecords = asyncHandler(async (req, res) => {
   try {
-    const { batch } = req.query; // Extract batch from request body
+    const { batch } = req.query;
+    const admin = req.admin;
 
     if (!batch) {
       return res
@@ -97,11 +98,26 @@ const getAdminAcademicRecords = asyncHandler(async (req, res) => {
         .json(new ApiResponse(400, null, "Batch is required."));
     }
 
+    const batchNumber = Number(batch);
+    if (Number.isNaN(batchNumber)) {
+      throw new ApiError(400, "Invalid batch query parameter");
+    }
+
+    // For batch admins, enforce access only to assigned batches
+    if (admin && admin.role !== "master" && admin.assignedBatches?.length > 0) {
+      if (!admin.assignedBatches.includes(batchNumber)) {
+        throw new ApiError(
+          403,
+          `Access forbidden: You don't have access to batch K${batchNumber}`
+        );
+      }
+    }
+
     // Fetch all academic records and populate the necessary fields from the User model
     const records = await Academics.find().populate({
       path: "name",
-      select: "fullName rollNumber branch section batch", // Include batch in selection
-      match: { batch }, // Filter by batch
+      select: "fullName rollNumber branch section batch",
+      match: { batch: batchNumber },
     });
 
     // console.log("Fetched Records:", records); // Debugging
