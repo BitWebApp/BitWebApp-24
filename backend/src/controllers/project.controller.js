@@ -88,7 +88,6 @@ const ShowProject = asyncHandler(async (req, res) => {
 const deleteProject = asyncHandler(async (req, res) => {
   // const { id } = req.params;
   // const id=req.user;
-  const userId = req.admin._id;
   const { id } = req.params;
   try {
     const project = await Project.findById(id);
