@@ -72,15 +72,15 @@ const assignCompany = asyncHandler(async (req, res) => {
       })
     );
 
-    return res.status(200).json(
-      new ApiResponse(200, users, "Company assigned to users successfully")
-    );
-
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, users, "Company assigned to users successfully")
+      );
   } catch (err) {
     throw new ApiError(500, err.message || "Something went wrong");
   }
 });
-
 
 const getUserCompanies = asyncHandler(async (req, res) => {
   const requestedUser = req.user;

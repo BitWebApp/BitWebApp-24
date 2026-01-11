@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {  verifyAdmin } from "../middlewares/auth.middleware.js";
+import { verifyAdmin } from "../middlewares/auth.middleware.js";
 import {
   getUnverifiedUsers,
   loginAdmin,
@@ -9,7 +9,7 @@ import {
   getCurrendAdmin,
   rejectUser,
   getAllMinorProjects,
-  getAllMajorProjects
+  getAllMajorProjects,
 } from "../controllers/admin.controller.js";
 import { addbacklogSubject } from "../controllers/backlog.controller.js";
 

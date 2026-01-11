@@ -19,9 +19,9 @@ async function sendNotificationEmail(professor) {
     process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: "30m" }
   );
-  
+
   const autoLoginUrl = `http://139.167.188.221:3000/faculty-auto-login?token=${autoLoginToken}`;
-  
+
   const mailOptions = {
     from: process.env.AUTH_EMAIL,
     to: professor.email,

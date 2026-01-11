@@ -20,7 +20,7 @@ import {
   otpForgotPass,
   changepassword,
   getAppliedProfs,
-  summerSorted
+  summerSorted,
 } from "../controllers/user.controller.js";
 
 import { applyToSummer, getProf } from "../controllers/professor.controller.js";
@@ -87,8 +87,13 @@ router.route("/placementThree").get(verifyJWT, getPlacementThree);
 router.route("/get-all-users").get(verifyAdmin, getAllUsers);
 router.route("/get-backlogs").get(verifyJWT, getAllBacklogSubjects);
 router.route("/get-pass-otp").post(otpForgotPass);
-const changePassLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 5 });
-router.route("/changepass").post(requestIpMiddleware, changePassLimiter, changepassword);
+const changePassLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+});
+router
+  .route("/changepass")
+  .post(requestIpMiddleware, changePassLimiter, changepassword);
 
 //interview exp routes
 router.route("/get-user-companies").get(verifyJWT, getUserCompanies);

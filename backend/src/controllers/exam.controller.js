@@ -3,10 +3,21 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { Exam } from "../models/exam.model.js";
-import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/Cloudinary.js";
+import {
+  uploadOnCloudinary,
+  deleteFromCloudinary,
+} from "../utils/Cloudinary.js";
 //
 const createExam = asyncHandler(async (req, res) => {
-  const { rollNumber, examName, otherExamName, examRoll, academicYear, isSel, score } = req.body;
+  const {
+    rollNumber,
+    examName,
+    otherExamName,
+    examRoll,
+    academicYear,
+    isSel,
+    score,
+  } = req.body;
 
   if (!req.files || !req.files.length) {
     throw new ApiError(400, "File upload required");
@@ -14,14 +25,16 @@ const createExam = asyncHandler(async (req, res) => {
 
   const docsURL = [];
 
-  const isDup=await Exam.findOne({
-    name:req.user._id,
-    examName: { $regex: new RegExp(`^${examName}$`, 'i') }
-  })
+  const isDup = await Exam.findOne({
+    name: req.user._id,
+    examName: { $regex: new RegExp(`^${examName}$`, "i") },
+  });
 
   // console.log(examName.toLowerCase());
 
-  if(isDup) {throw new Error("exam exists already!")}
+  if (isDup) {
+    throw new Error("exam exists already!");
+  }
 
   for (const file of req.files) {
     try {
@@ -46,7 +59,6 @@ const createExam = asyncHandler(async (req, res) => {
     score,
   });
 
-  
   await User.findByIdAndUpdate(req.user._id, { $push: { exams: exam._id } });
 
   res.status(201).json({
@@ -56,7 +68,10 @@ const createExam = asyncHandler(async (req, res) => {
 });
 
 const getExams = asyncHandler(async (req, res) => {
-  const exams = await Exam.find({ name: req.user._id }).populate('name', 'rollNumber fullName');
+  const exams = await Exam.find({ name: req.user._id }).populate(
+    "name",
+    "rollNumber fullName"
+  );
 
   res.status(200).json({
     success: true,
@@ -98,12 +113,11 @@ const getExams = asyncHandler(async (req, res) => {
 //   }
 // });
 
-
 const getExamById = asyncHandler(async (req, res) => {
   const exam = await Exam.findById(req.params.id);
 
   if (!exam) {
-    throw new ApiError(404, "Exam not found"); 
+    throw new ApiError(404, "Exam not found");
   }
 
   res.status(200).json({
@@ -176,7 +190,7 @@ const getExamById = asyncHandler(async (req, res) => {
 // });
 
 const getAllExams = asyncHandler(async (req, res) => {
-  const exams = await Exam.find().populate('name', 'rollNumber fullName');
+  const exams = await Exam.find().populate("name", "rollNumber fullName");
 
   res.status(200).json({
     success: true,
@@ -184,5 +198,4 @@ const getAllExams = asyncHandler(async (req, res) => {
   });
 });
 
-export { createExam, getExams, getExamById, getAllExams}// deleteExam , updateExam, }
-
+export { createExam, getExams, getExamById, getAllExams }; // deleteExam , updateExam, }

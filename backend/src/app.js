@@ -32,10 +32,13 @@ import userRouter from "./routes/user.routes.js";
 app.use("/api/v1/users", userRouter);
 
 import peCourseRouter from "./routes/peCourse.routes.js";
-app.use("/api/v1/pe", (req, res, next) => {
-  next();
-}, peCourseRouter);
-
+app.use(
+  "/api/v1/pe",
+  (req, res, next) => {
+    next();
+  },
+  peCourseRouter
+);
 
 import adminRouter from "./routes/admin.routes.js";
 app.use("/api/v1/admin", adminRouter);
@@ -79,7 +82,10 @@ import chatRouter from "./routes/chat.routes.js";
 app.use("/api/v1/chat", chatRouter);
 
 // Import error handlers
-import { errorHandler, notFoundHandler } from "./middlewares/errorHandler.middleware.js";
+import {
+  errorHandler,
+  notFoundHandler,
+} from "./middlewares/errorHandler.middleware.js";
 
 // Handle 404 routes - must be after all other routes
 app.use(notFoundHandler);
