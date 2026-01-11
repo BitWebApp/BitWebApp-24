@@ -14,10 +14,12 @@ export const addPeCourse = async (req, res) => {
     }
 
     if (peCourseIVId.toString() === peCourseVId.toString()) {
-      return res.status(400).json({
-        success: false,
-        message: "Please select two different PE courses.",
-      });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Please select two different PE courses.",
+        });
     }
 
     const userId = req.user._id;
@@ -35,10 +37,12 @@ export const addPeCourse = async (req, res) => {
 
     // Ensure student is selecting courses for their own batch
     if (Number(user.batch) !== Number(batchToUse)) {
-      return res.status(400).json({
-        success: false,
-        message: "You can only select PE courses for your own batch.",
-      });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "You can only select PE courses for your own batch.",
+        });
     }
 
     const course1 = await PeCourse.findOne({
@@ -54,30 +58,36 @@ export const addPeCourse = async (req, res) => {
     // console.log(peCourseVId)
 
     if (!course1 || !course2) {
-      return res.status(404).json({
-        success: false,
-        message: "PE Course not found for the specified batch!",
-      });
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message: "PE Course not found for the specified batch!",
+        });
     }
 
     console.log("User PE Courses:", user.peCourses);
 
     console.log(course1.branch);
     if (user.branch !== course1.branch || user.branch !== course2.branch) {
-      return res.status(400).json({
-        success: false,
-        message: "You cannot select a PE course from a different branch.",
-      });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "You cannot select a PE course from a different branch.",
+        });
     }
 
     // Added Section for
     const validSections = ["A", "B", "C", "D"];
     if (!validSections.includes(user.section)) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "You are not eligible to select a PE course from your section.",
-      });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message:
+            "You are not eligible to select a PE course from your section.",
+        });
     }
 
     const isStudentAlreadyEnrolled = user.peCourses.some(
@@ -89,10 +99,12 @@ export const addPeCourse = async (req, res) => {
     console.log("Student Enrolled? ", isStudentAlreadyEnrolled);
 
     if (isStudentAlreadyEnrolled) {
-      return res.status(400).json({
-        success: false,
-        message: "You have already selected a PE course.",
-      });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "You have already selected a PE course.",
+        });
     }
 
     course1.students.push(userId);

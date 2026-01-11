@@ -45,14 +45,14 @@ const setProjectTitle = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, group, "Project title set successfully."));
 });
-import { asyncHandler } from "../utils/asyncHandler.js";
+import { customAlphabet } from "nanoid";
+import { Company } from "../models/company.model.js";
+import { Major } from "../models/major.model.js";
+import { Professor } from "../models/professor.model.js";
+import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { User } from "../models/user.model.js";
-import { Major } from "../models/major.model.js";
-import { customAlphabet, nanoid } from "nanoid";
-import { Professor } from "../models/professor.model.js";
-import { Company } from "../models/company.model.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const createGroup = asyncHandler(async (req, res) => {
   const leader = req?.user?._id;
@@ -1164,23 +1164,23 @@ const profApproveTypeChange = asyncHandler(async (req, res) => {
 });
 
 export {
-  addMarks,
-  createGroup,
-  getDiscussionByStudent,
-  addMember,
-  removeMember,
-  applyToFaculty,
-  withdrawFromFaculty,
-  requestTypeChange,
-  getTypeChangeStatus,
-  profApproveTypeChange,
-  getGroup,
-  getDiscussion,
-  getAppliedProfs,
-  majorSorted,
   acceptReq,
-  getReq,
   addDiscussion,
+  addMarks,
+  addMember,
   addRemarkAbsent,
+  applyToFaculty,
+  createGroup,
+  getAppliedProfs,
+  getDiscussion,
+  getDiscussionByStudent,
+  getGroup,
+  getReq,
+  getTypeChangeStatus,
+  majorSorted,
+  profApproveTypeChange,
+  removeMember,
+  requestTypeChange,
   setProjectTitle,
+  withdrawFromFaculty,
 };
