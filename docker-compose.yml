@@ -15,7 +15,7 @@ services:
     networks:
       - bitwebapp-network
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -64,8 +64,6 @@ services:
       - "5173:5173"
     env_file:
       - .env.docker
-    environment:
-      - VITE_API_URL=${VITE_API_URL:-http://localhost:3000}
     depends_on:
       - backend
     networks:
@@ -77,6 +75,7 @@ services:
 
 volumes:
   mongodb_data:
+
 
 networks:
   bitwebapp-network:
