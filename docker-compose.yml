@@ -30,20 +30,20 @@ services:
       - "3000:3000"
     env_file:
       - .env.docker
-    environment:
-      # These can be overridden in .env file
-      - PORT=${PORT:-3000}
-      - MONGODB_URI=${MONGODB_URI:-mongodb://mongodb:27017}
-      - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
-      - ACCESS_TOKEN_EXPIRY=${ACCESS_TOKEN_EXPIRY:-1d}
-      - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
-      - REFRESH_TOKEN_EXPIRY=${REFRESH_TOKEN_EXPIRY:-10d}
-      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5173}
-      - AUTH_EMAIL=${AUTH_EMAIL}
-      - AUTH_PASSWORD=${AUTH_PASSWORD}
-      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
-      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
-      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+    # environment:
+    #   # These can be overridden in .env file
+    #   - PORT=${PORT:-3000}
+    #   - MONGODB_URI=${MONGODB_URI:-mongodb://mongodb:27017}
+    #   - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
+    #   - ACCESS_TOKEN_EXPIRY=${ACCESS_TOKEN_EXPIRY:-1d}
+    #   - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
+    #   - REFRESH_TOKEN_EXPIRY=${REFRESH_TOKEN_EXPIRY:-10d}
+    #   - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5173}
+    #   - AUTH_EMAIL=${AUTH_EMAIL}
+    #   - AUTH_PASSWORD=${AUTH_PASSWORD}
+    #   - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+    #   - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+    #   - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
     depends_on:
       mongodb:
         condition: service_healthy
