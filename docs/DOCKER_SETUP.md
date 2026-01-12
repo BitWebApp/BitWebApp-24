@@ -11,13 +11,7 @@ This guide explains how to run the entire BitWebApp stack using Docker Compose.
 
 ### 1. Configure Environment Variables
 
-Copy the example environment file and update it with your actual values:
-
-```bash
-cp .env.docker .env
-```
-
-Edit `.env` and configure the following variables:
+Edit `.env.docker` and update with your actual values:
 
 | Variable                | Description                            | Required |
 | ----------------------- | -------------------------------------- | -------- |
