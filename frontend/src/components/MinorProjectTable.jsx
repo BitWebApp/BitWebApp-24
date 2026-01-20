@@ -163,7 +163,7 @@ export default function MinorProjectTable() {
     filteredData.forEach((record, index) => {
       const mentor =
         record.mentor?.idNumber && record.mentor?.fullName
-          ? `${record.mentor.idNumber}: ${record.mentor.fullName}`
+          ? `${record.mentor.fullName}`
           : "N/A";
 
       const row = worksheet.addRow({
