@@ -19,7 +19,8 @@ const CompanyAssignmentForm = () => {
   const fetchCompanies = async () => {
     try {
       const response = await axios.get("/api/v1/admin/get-companies");
-      setCompanies(response.data.data); // Access the data property of the response
+      setCompanies(response.data.data.sort((a, b) => 
+          a.companyName.localeCompare(b.companyName))); // Access the data property of the response
       setError(null);
     } catch (err) {
       setError(err.message);
