@@ -323,7 +323,7 @@ export default function MinorProjectTable() {
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {record?.mentor
-                  ? record?.mentor?.idNumber + ": " + record?.mentor?.fullName
+                  ? record?.mentor?.fullName
                   : "N/A"}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
