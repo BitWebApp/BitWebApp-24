@@ -300,7 +300,7 @@ export default function MajorProjectTable() {
               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.student?.email}</td>
               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.student?.mobileNumber}</td>
               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.groupId?.toUpperCase()}</td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.mentor ? record?.mentor?.idNumber + ": " + record?.mentor?.fullName : "N/A"}</td>
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.mentor ?record?.mentor?.fullName : "N/A"}</td>
               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.type}</td>
               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.org}</td>
               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.location}</td>
