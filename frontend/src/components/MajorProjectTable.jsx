@@ -34,12 +34,12 @@ export default function MajorProjectTable() {
       // Extract unique sections and branches from the fetched data
       const sections = [
         ...new Set(
-          response.data.data.response.map((record) => record.student.section)
+          response.data.data.response.map((record) => record.student.section),
         ),
       ];
       const branches = [
         ...new Set(
-          response.data.data.response.map((record) => record.student.branch)
+          response.data.data.response.map((record) => record.student.branch),
         ),
       ];
       setSectionOptions(sections);
@@ -50,12 +50,14 @@ export default function MajorProjectTable() {
         toast.error(
           error.response.data?.message ||
             `You don't have access to view data from this batch`,
-          { toastId: 'major-batch-access-error' }
+          { toastId: "major-batch-access-error" },
         );
         setProjectData([]);
         setFilteredData([]);
       } else {
-        toast.error("Failed to load major project data", { toastId: 'major-fetch-error' });
+        toast.error("Failed to load major project data", {
+          toastId: "major-fetch-error",
+        });
       }
     }
   };
@@ -70,21 +72,21 @@ export default function MajorProjectTable() {
     let data = projectData;
     if (filters.groupId) {
       data = data.filter((record) =>
-        record.groupId.toLowerCase().includes(filters.groupId.toLowerCase())
+        record.groupId.toLowerCase().includes(filters.groupId.toLowerCase()),
       );
     }
     if (filters.section) {
       data = data.filter((record) =>
         record.student.section
           .toLowerCase()
-          .includes(filters.section.toLowerCase())
+          .includes(filters.section.toLowerCase()),
       );
     }
     if (filters.branch) {
       data = data.filter((record) =>
         record.student.branch
           .toLowerCase()
-          .includes(filters.branch.toLowerCase())
+          .includes(filters.branch.toLowerCase()),
       );
     }
     setFilteredData(data);
@@ -110,37 +112,72 @@ export default function MajorProjectTable() {
 
     // Iterate through filteredData to find maximum lengths
     filteredData.forEach((record, index) => {
-      const mentor =
-        record.mentor?.idNumber && record.mentor?.fullName
-          ? `${record.mentor.idNumber}: ${record.mentor.fullName}`
-          : "N/A";
+      const mentor = record.mentor?.fullName ? record.mentor.fullName : "N/A";
+
       maxIndexLength = Math.max(maxIndexLength, (index + 1).toString().length);
-      maxRollNumberLength = Math.max(maxRollNumberLength, (record?.student?.rollNumber || "").length);
-      maxNameLength = Math.max(maxNameLength, (record?.student?.fullName || "").toUpperCase().length);
-      maxEmailLength = Math.max(maxEmailLength, (record?.student?.email || "").length);
-      maxGroupIdLength = Math.max(maxGroupIdLength, (record?.groupId || "").toUpperCase().length);
+      maxRollNumberLength = Math.max(
+        maxRollNumberLength,
+        (record?.student?.rollNumber || "").length,
+      );
+      maxNameLength = Math.max(
+        maxNameLength,
+        (record?.student?.fullName || "").toUpperCase().length,
+      );
+      maxEmailLength = Math.max(
+        maxEmailLength,
+        (record?.student?.email || "").length,
+      );
+      maxGroupIdLength = Math.max(
+        maxGroupIdLength,
+        (record?.groupId || "").toUpperCase().length,
+      );
       maxMentorLength = Math.max(maxMentorLength, mentor.length);
-      maxMobileLength = Math.max(maxMobileLength, (record?.student?.mobileNumber || "").length);
+      maxMobileLength = Math.max(
+        maxMobileLength,
+        (record?.student?.mobileNumber || "").length,
+      );
       maxTypeLength = Math.max(maxTypeLength, (record?.type || "").length);
       maxOrgLength = Math.max(maxOrgLength, (record?.org || "").length);
-      maxLocationLength = Math.max(maxLocationLength, (record?.location || "").length);
-      maxProjectTitleLength = Math.max(maxProjectTitleLength, (record?.projectTitle || record?.student?.projectTitle || "").length);
+      maxLocationLength = Math.max(
+        maxLocationLength,
+        (record?.location || "").length,
+      );
+      maxProjectTitleLength = Math.max(
+        maxProjectTitleLength,
+        (record?.projectTitle || record?.student?.projectTitle || "").length,
+      );
     });
 
     // Define columns with dynamic widths
     worksheet.columns = [
       { header: "#", key: "index", width: maxIndexLength + 3 },
-      { header: "Roll Number", key: "rollNumber", width: maxRollNumberLength + 3 },
+      {
+        header: "Roll Number",
+        key: "rollNumber",
+        width: maxRollNumberLength + 3,
+      },
       { header: "Name", key: "name", width: maxNameLength + 3 },
       { header: "Email", key: "email", width: maxEmailLength + 3 },
-      { header: "Mobile Number", key: "mobileNumber", width: maxMobileLength + 3 },
+      {
+        header: "Mobile Number",
+        key: "mobileNumber",
+        width: maxMobileLength + 3,
+      },
       { header: "Group ID", key: "groupId", width: maxGroupIdLength + 3 },
       { header: "Mentor", key: "mentor", width: maxMentorLength + 3 },
       { header: "Type", key: "type", width: maxTypeLength + 3 },
       { header: "Organisation", key: "org", width: maxOrgLength + 3 },
       { header: "Location", key: "location", width: maxLocationLength + 3 },
-      { header: "Project Title", key: "projectTitle", width: maxProjectTitleLength + 3 },
-      { header: "Major Project Marks", key: "marks", width: maxMarksLength + 3 },
+      {
+        header: "Project Title",
+        key: "projectTitle",
+        width: maxProjectTitleLength + 3,
+      },
+      {
+        header: "Major Project Marks",
+        key: "marks",
+        width: maxMarksLength + 3,
+      },
     ];
 
     // Style the header row
@@ -157,7 +194,7 @@ export default function MajorProjectTable() {
     filteredData.forEach((record, index) => {
       const mentor =
         record.mentor?.idNumber && record.mentor?.fullName
-          ? `${record.mentor.idNumber}: ${record.mentor.fullName}`
+          ? `${record.mentor.fullName}`
           : "N/A";
       const row = worksheet.addRow({
         index: index + 1,
@@ -170,7 +207,8 @@ export default function MajorProjectTable() {
         type: record?.type,
         org: record?.org,
         location: record?.location,
-        projectTitle: record?.projectTitle || record?.student?.projectTitle || "",
+        projectTitle:
+          record?.projectTitle || record?.student?.projectTitle || "",
         marks: record?.student?.marks?.majorProject || 0,
       });
       // Add alternating row colors for better readability
@@ -274,41 +312,103 @@ export default function MajorProjectTable() {
         Export to Excel
       </button>
 
-      <table className="min-w-full divide-y divide-gray-200" style={{ tableLayout: 'auto' }}>
+      <table
+        className="min-w-full divide-y divide-gray-200"
+        style={{ tableLayout: "auto" }}
+      >
         <thead className="bg-black">
           <tr>
-            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">#</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Roll Number</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Name</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Email</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Mobile Number</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Group ID</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Mentor</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Type</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Organisation</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Location</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Project Title</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Major Project Marks</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              #
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Roll Number
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Name
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Email
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Mobile Number
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Group ID
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Mentor
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Type
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Organisation
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Location
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Project Title
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Major Project Marks
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {filteredData.map((record, index) => (
             <tr key={index} className="hover:bg-gray-50">
-              <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{index + 1}</td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.student?.rollNumber}</td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.student?.fullName?.toUpperCase()}</td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.student?.email}</td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.student?.mobileNumber}</td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.groupId?.toUpperCase()}</td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.mentor ?record?.mentor?.fullName : "N/A"}</td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.type}</td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.org}</td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.location}</td>
-              <td className="px-4 py-4 text-sm text-gray-500 break-words" style={{ minWidth: '350px', maxWidth: '900px', wordBreak: 'break-word', whiteSpace: 'normal' }}>{
-                typeof record?.projectTitle === 'string' && record.projectTitle.trim() ? record.projectTitle.trim() :
-                (typeof record?.student?.projectTitle === 'string' && record.student.projectTitle.trim() ? record.student.projectTitle.trim() : "N/A")
-              }</td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{record?.student?.marks?.majorProject || "N/A"}</td>
+              <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                {index + 1}
+              </td>
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.student?.rollNumber}
+              </td>
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.student?.fullName?.toUpperCase()}
+              </td>
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.student?.email}
+              </td>
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.student?.mobileNumber}
+              </td>
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.groupId?.toUpperCase()}
+              </td>
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.mentor ? record?.mentor?.fullName : "N/A"}
+              </td>
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.type}
+              </td>
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.org}
+              </td>
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.location}
+              </td>
+              <td
+                className="px-4 py-4 text-sm text-gray-500 break-words"
+                style={{
+                  minWidth: "350px",
+                  maxWidth: "900px",
+                  wordBreak: "break-word",
+                  whiteSpace: "normal",
+                }}
+              >
+                {typeof record?.projectTitle === "string" &&
+                record.projectTitle.trim()
+                  ? record.projectTitle.trim()
+                  : typeof record?.student?.projectTitle === "string" &&
+                      record.student.projectTitle.trim()
+                    ? record.student.projectTitle.trim()
+                    : "N/A"}
+              </td>
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.student?.marks?.majorProject || "N/A"}
+              </td>
             </tr>
           ))}
         </tbody>
