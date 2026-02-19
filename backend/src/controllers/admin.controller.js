@@ -383,14 +383,17 @@ const getAllMinorProjects = asyncHandler(async (req, res) => {
     const minorProjects = await Minor.find()
       .populate({
         path: "members",
-        select: "fullName rollNumber email branch section marks.minorProject",
+        select:
+          "fullName rollNumber email branch section mobileNumber marks.minorProject",
       })
+
       .populate({
         path: "leader",
         select:
-          "fullName rollNumber email branch section marks.minorProject batch",
+          "fullName rollNumber email branch section mobileNumber marks.minorProject batch",
         match: { batch: batchNumber },
       })
+
       .populate({
         path: "minorAllocatedProf",
         select: "idNumber fullName email",
@@ -428,10 +431,13 @@ const getAllMinorProjects = asyncHandler(async (req, res) => {
             email: member.email,
             branch: member.branch,
             section: member.section,
+            mobileNumber: member.mobileNumber,
             marks: {
               minorProject: member.marks?.minorProject || 0,
             },
           },
+          projectTitle: project.projectTitle || "",
+
           groupId: project.groupId,
           mentor: project.minorAllocatedProf
             ? {

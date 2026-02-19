@@ -208,7 +208,9 @@ export default function MajorProjectTable() {
         org: record?.org,
         location: record?.location,
         projectTitle:
-          record?.projectTitle || record?.student?.projectTitle || "",
+          record?.projectTitle?.trim() ||
+          record?.student?.projectTitle?.trim() ||
+          "N/A",
         marks: record?.student?.marks?.majorProject || 0,
       });
       // Add alternating row colors for better readability
@@ -398,13 +400,9 @@ export default function MajorProjectTable() {
                   whiteSpace: "normal",
                 }}
               >
-                {typeof record?.projectTitle === "string" &&
-                record.projectTitle.trim()
-                  ? record.projectTitle.trim()
-                  : typeof record?.student?.projectTitle === "string" &&
-                      record.student.projectTitle.trim()
-                    ? record.student.projectTitle.trim()
-                    : "N/A"}
+                {record?.projectTitle?.trim() ||
+                  record?.student?.projectTitle?.trim() ||
+                  "N/A"}
               </td>
               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                 {record?.student?.marks?.majorProject || "N/A"}
