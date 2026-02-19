@@ -30,8 +30,6 @@ export default function MinorProjectTable() {
       // console.log(response);
       setProjectData(response.data.data.response);
       setFilteredData(response.data.data.response);
-      console.log("FULL RECORD SAMPLE:", response.data.data.response[0]);
-
       // Extract unique sections and branches from the fetched data
       const sections = [
         ...new Set(
