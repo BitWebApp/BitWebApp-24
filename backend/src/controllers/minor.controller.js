@@ -35,6 +35,38 @@ const createGroup = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, newGroup, "Minor group created successfully"));
 });
 
+
+const setProjectTitle = asyncHandler(async (req, res) => {
+  const { groupId, projectTitle } = req.body;
+
+  const professorId = req?.professor?._id;
+
+  const group = await Minor.findById(groupId);
+
+  if (!group) {
+    throw new ApiError(404, "Group not found");
+  }
+
+  // Only allocated professor can set title
+  if (!group.minorAllocatedProf.equals(professorId)) {
+    throw new ApiError(403, "Unauthorized");
+  }
+
+  // ✅ Allow empty → store as null
+  group.projectTitle = projectTitle?.trim() || null;
+
+  await group.save();
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      group.projectTitle,
+      group.projectTitle
+        ? "Project title updated successfully"
+        : "Project title cleared successfully"
+    )
+  );
+});
 const addMember = asyncHandler(async (req, res) => {
   const loggedIn = req?.user?._id;
   const { rollNumber, groupId } = req.body;
@@ -501,4 +533,5 @@ export {
   getReq,
   addDiscussion,
   addRemarkAbsent,
+  setProjectTitle, 
 };

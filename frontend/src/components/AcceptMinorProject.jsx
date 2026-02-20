@@ -20,6 +20,7 @@ const AcceptMinorProject = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [marks, setMarks] = useState({});
   const [showMarksInputFor, setShowMarksInputFor] = useState(null);
+  const [projectTitles, setProjectTitles] = useState({});
 
   useEffect(() => {
     const fetchGroups = async () => {
@@ -168,6 +169,35 @@ const AcceptMinorProject = () => {
       }
     }
   };
+  const handleSaveTitle = async (groupId) => {
+  const title = projectTitles[groupId];
+
+  try {
+    const response = await axios.patch(
+      "/api/v1/minor/set-project-title",
+      {
+        groupId,
+        projectTitle: title,
+      }
+    );
+
+    toast.success("Project title saved successfully");
+
+    // Update UI immediately without reload
+    setAcceptedGroups((prev) =>
+      prev.map((group) =>
+        group._id === groupId
+          ? { ...group, projectTitle: title }
+          : group
+      )
+    );
+
+  } catch (err) {
+    toast.error(
+      err.response?.data?.message || "Failed to save project title"
+    );
+  }
+};
 
   const handleCreateDiscussionLog = async () => {
     try {
@@ -300,6 +330,34 @@ const AcceptMinorProject = () => {
                         </>
                       )}
                     </div>
+                    <div className="mt-2">
+  {viewMode === "accepted" && (
+    <div className="flex items-center gap-2">
+      <input
+        type="text"
+        placeholder="Enter Project Title"
+        value={
+          projectTitles[group._id] ??
+          group.projectTitle ??
+          ""
+        }
+        onChange={(e) =>
+          setProjectTitles((prev) => ({
+            ...prev,
+            [group._id]: e.target.value,
+          }))
+        }
+        className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
+      />
+      <button
+        onClick={() => handleSaveTitle(group._id)}
+        className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm"
+      >
+        Save
+      </button>
+    </div>
+  )}
+</div>
                   </div>
 
                   {/* Expanded Members View */}
