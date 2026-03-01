@@ -34,12 +34,12 @@ export default function InternshipTable() {
       // Extract unique sections and branches from the fetched data
       const sections = [
         ...new Set(
-          response.data.data.response.map((record) => record.student.section)
+          response.data.data.response.map((record) => record.student.section),
         ),
       ];
       const branches = [
         ...new Set(
-          response.data.data.response.map((record) => record.student.branch)
+          response.data.data.response.map((record) => record.student.branch),
         ),
       ];
       setSectionOptions(sections);
@@ -50,12 +50,14 @@ export default function InternshipTable() {
         toast.error(
           error.response.data?.message ||
             `You don't have access to view data from this batch`,
-          { toastId: 'intern-batch-access-error' }
+          { toastId: "intern-batch-access-error" },
         );
         setInternData([]);
         setFilteredData([]);
       } else {
-        toast.error("Failed to load internship data", { toastId: 'intern-fetch-error' });
+        toast.error("Failed to load internship data", {
+          toastId: "intern-fetch-error",
+        });
       }
     }
   };
@@ -72,21 +74,21 @@ export default function InternshipTable() {
       data = data.filter((record) =>
         record.company?.companyName
           .toLowerCase()
-          .includes(filters.company.toLowerCase())
+          .includes(filters.company.toLowerCase()),
       );
     }
     if (filters.section) {
       data = data.filter((record) =>
         record.student.section
           .toLowerCase()
-          .includes(filters.section.toLowerCase())
+          .includes(filters.section.toLowerCase()),
       );
     }
     if (filters.branch) {
       data = data.filter((record) =>
         record.student.branch
           .toLowerCase()
-          .includes(filters.branch.toLowerCase())
+          .includes(filters.branch.toLowerCase()),
       );
     }
     setFilteredData(data);
@@ -106,6 +108,8 @@ export default function InternshipTable() {
     let maxLocationLength = "Location".length;
     let maxMentorLength = "Mentor".length;
     let maxMarksLength = "Summer Training Marks".length;
+    let maxProjectLength = "Project Title".length;
+    let maxMobileLength = "Mobile Number".length;
 
     // Iterate through filteredData to find maximum lengths
     filteredData.forEach((record, index) => {
@@ -117,24 +121,35 @@ export default function InternshipTable() {
       maxIndexLength = Math.max(maxIndexLength, (index + 1).toString().length);
       maxRollNumberLength = Math.max(
         maxRollNumberLength,
-        (record?.student?.rollNumber || "").length
+        (record?.student?.rollNumber || "").length,
       );
       maxNameLength = Math.max(
         maxNameLength,
-        (record?.student?.fullName || "").toUpperCase().length
+        (record?.student?.fullName || "").toUpperCase().length,
       );
       maxEmailLength = Math.max(
         maxEmailLength,
-        (record?.student?.email || "").length
+        (record?.student?.email || "").length,
       );
       maxCompanyLength = Math.max(
         maxCompanyLength,
-        (record?.company?.companyName || "").toUpperCase().length
+        (record?.company?.companyName || "").toUpperCase().length,
       );
+
+      maxProjectLength = Math.max(
+        maxProjectLength,
+        (record?.group?.projectTitle || "").length,
+      );
+
+      maxMobileLength = Math.max(
+        maxMobileLength,
+        (record?.student?.mobileNumber || "").length,
+      );
+
       maxTypeLength = Math.max(maxTypeLength, (record?.type || "").length);
       maxLocationLength = Math.max(
         maxLocationLength,
-        (record?.location || "").length
+        (record?.location || "").length,
       );
       maxMentorLength = Math.max(maxMentorLength, mentor.length);
     });
@@ -149,10 +164,20 @@ export default function InternshipTable() {
       },
       { header: "Name", key: "name", width: maxNameLength + 3 },
       { header: "Email", key: "email", width: maxEmailLength + 3 },
+      {
+        header: "Mobile Number",
+        key: "mobileNumber",
+        width: maxMobileLength + 3,
+      },
       { header: "Company", key: "company", width: maxCompanyLength + 3 },
       { header: "Internship Type", key: "type", width: maxTypeLength + 3 },
       { header: "Location", key: "location", width: maxLocationLength + 3 },
       { header: "Mentor", key: "mentor", width: maxMentorLength + 3 },
+      {
+        header: "Project Title",
+        key: "projectTitle",
+        width: maxProjectLength + 3,
+      },
       {
         header: "Summer Training Marks",
         key: "marks",
@@ -172,20 +197,19 @@ export default function InternshipTable() {
 
     // Add data rows matching the frontend table
     filteredData.forEach((record, index) => {
-      const mentor =
-        record.mentor?.idNumber && record.mentor?.fullName
-          ? `${record.mentor.idNumber}: ${record.mentor.fullName}`
-          : "N/A";
+      const mentor = record.mentor?.fullName || "N/A";
 
       const row = worksheet.addRow({
         index: index + 1,
         rollNumber: record?.student?.rollNumber,
         name: record?.student?.fullName.toUpperCase(),
         email: record?.student?.email,
+        mobileNumber: record?.student?.mobileNumber || "N/A",
         company: record?.company?.companyName.toUpperCase(),
         type: record?.type,
         location: record?.location,
         mentor,
+        projectTitle: record?.group?.projectTitle || "N/A",
         marks: record?.student?.marks?.summerTraining || "N/A",
       });
 
@@ -306,6 +330,9 @@ export default function InternshipTable() {
               Email
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Mobile Number
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
               Company
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
@@ -317,6 +344,10 @@ export default function InternshipTable() {
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
               Mentor
             </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Project Title
+            </th>
+
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
               Summer Training Marks
             </th>
@@ -338,6 +369,9 @@ export default function InternshipTable() {
                 {record?.student?.email}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.student?.mobileNumber || "N/A"}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {record?.company?.companyName.toUpperCase()}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -348,9 +382,13 @@ export default function InternshipTable() {
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {record?.mentor
-                  ? record?.mentor?.idNumber + ": " + record?.mentor?.fullName
+                  ? record?.mentor?.fullName
                   : "N/A"}
               </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.group?.projectTitle || "N/A"}
+              </td>
+
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {record?.student?.marks?.summerTraining || "N/A"}
               </td>

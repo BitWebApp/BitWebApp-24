@@ -51,11 +51,15 @@ import {
   getMajorLimits,
   selectMajorStudents,
   getPendingTypeChangeRequests,
+  saveSummerProjectTitle,
 } from "../controllers/professor.controller.js";
 
 const router = Router();
 router.route("/addprof").post(verifyAdmin, addProf);
 router.route("/getProf").get(getProf);
+
+router.post("/save-summer-project-title", saveSummerProjectTitle);
+
 
 router.route("/login").post(loginProf);
 router.route("/logout").post(verifyProfessor, logoutProf);
