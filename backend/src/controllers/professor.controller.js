@@ -17,6 +17,40 @@ import { Minor } from "../models/minor.model.js";
 import { Major } from "../models/major.model.js";
 const url = "http://139.167.188.221:3000/faculty-login";
 
+
+
+const saveSummerProjectTitle = asyncHandler(async (req, res) => {
+  const { groupId, projectTitle } = req.body;
+
+  const professorId = req?.professor?._id;
+
+  const group = await Group.findById(groupId);
+
+  if (!group) {
+    throw new ApiError(404, "Group not found");
+  }
+
+  // Only allocated professor can set title
+  if (!group.summerAllocatedProf.equals(professorId)) {
+    throw new ApiError(403, "Unauthorized");
+  }
+
+  // ✅ Allow empty → store as null
+  group.projectTitle = projectTitle?.trim() || null;
+
+  await group.save();
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      group.projectTitle,
+      group.projectTitle
+        ? "Project title updated successfully"
+        : "Project title cleared successfully"
+    )
+  );
+});
+
 const addProf = asyncHandler(async (req, res) => {
   const { idNumber, fullName, contact, email } = req.body;
   if (!idNumber || !fullName || !contact || !email) {
@@ -1830,4 +1864,5 @@ export {
   mergeGroups,
   otpForgotPassword,
   changePassword,
+  saveSummerProjectTitle,
 };

@@ -10,6 +10,10 @@ const groupSchema = new Schema({
     type: String,
     enum: ["summer", "minor"],
   },
+  projectTitle: {
+  type: String,
+  default: "",
+},
   typeOfSummer: {
     type: String,
     enum: ["industrial", "research"],
