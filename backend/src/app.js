@@ -2,6 +2,11 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 const app = express();
+import { User } from "./models/user.model.js";
+import { Company } from "./models/company.model.js";
+import { Professor } from "./models/professor.model.js";
+
+
 
 app.use(
   cors({
@@ -91,6 +96,103 @@ import {
 app.use(notFoundHandler);
 
 // Global error handler - must be the last middleware
-app.use(errorHandler);
+// Temporary debug test for companyInterview
 
+const testKushagra = async () => {
+  try {
+    const user = await User.findOne({
+      email: "btech10060.22@bitmesra.ac.in",
+    });
+
+    if (!user) {
+      console.log("❌ User not found");
+      return;
+    }
+
+    console.log("========== RAW USER ==========");
+    console.log("Email:", user.email);
+    console.log("User ID:", user._id);
+    console.log("companyInterview (raw):", user.companyInterview);
+    console.log("Type of first item:", typeof user.companyInterview[0]);
+    console.log("Is Array?", Array.isArray(user.companyInterview));
+    console.log("Array Length:", user.companyInterview.length);
+
+    console.log("\n========== POPULATED ==========");
+
+    const populatedUser = await User.findOne({
+      email: "btech10060.22@bitmesra.ac.in",
+    }).populate("companyInterview");
+
+    console.log(
+      "companyInterview (populated):",
+      populatedUser.companyInterview
+    );
+
+    const company = await Company.findOne({
+  companyName: { $regex: "grid dynamics", $options: "i" }
+});
+console.log(company);
+
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
+
+// testKushagra();
+
+const assignLumberfi = async () => {
+  try {
+    const user = await User.findOne({
+      email: "btech10060.22@bitmesra.ac.in",
+    });
+
+    const company = await Company.findOne({
+      companyName: "Grid Dynamics",
+    });
+
+    if (!user) {
+      console.log("User not found");
+      return;
+    }
+
+    if (!company) {
+      console.log("Company not found");
+      return;
+    }
+
+    await User.updateOne(
+      { email: "btech10060.22@bitmesra.ac.in" },
+      { $addToSet: { companyInterview: company._id } }
+    );
+
+    console.log("✅ Grid Dynamics assigned successfully");
+
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const decreaseSuvenduSeat = async () => {
+  try {
+    const updated = await Professor.findOneAndUpdate(
+      { idNumber: "00041" },
+      { $inc: { "currentCount.summer_training": -1 } },
+      { new: true }
+    );
+
+    if (!updated) {
+      console.log("Professor not found");
+      return;
+    }
+
+    console.log("Seat decreased successfully");
+    console.log("Current Count:", updated.currentCount.summer_training);
+    console.log("Limit:", updated.limits.summer_training);
+
+  } catch (error) {
+    console.error("Error decreasing seat:", error);
+  }
+};
+// decreaseSuvenduSeat();
+// assignLumberfi();
 export { app };

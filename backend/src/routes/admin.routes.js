@@ -14,6 +14,7 @@ import {
   rejectUser,
   updateAdmin,
   verifyUser,
+  resetSummerTrainingSeats,
 } from "../controllers/admin.controller.js";
 import { addbacklogSubject } from "../controllers/backlog.controller.js";
 import {
@@ -69,5 +70,6 @@ router.route("/admins").get(verifyMasterAdmin, getAllAdmins);
 router.route("/admins/create").post(verifyMasterAdmin, createBatchAdmin);
 router.route("/admins/:adminId").patch(verifyMasterAdmin, updateAdmin);
 router.route("/admins/:adminId").delete(verifyMasterAdmin, deleteAdmin);
+router.route("/reset-summer-seats").post(verifyMasterAdmin, resetSummerTrainingSeats);
 
 export default router;

@@ -4,6 +4,7 @@ import { Admin } from "../models/admin.model.js";
 import { Major } from "../models/major.model.js";
 import { Minor } from "../models/minor.model.js";
 import { User } from "../models/user.model.js";
+import { Professor } from "../models/professor.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -766,6 +767,37 @@ const getBatchStats = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, stats, "Batch statistics fetched"));
 });
 
+/**
+ * Reset all professor summer training seats (Master Admin only)
+ */
+const resetSummerTrainingSeats = asyncHandler(async (req, res) => {
+  const admin = req.admin;
+  if (admin.role !== "master") {
+    throw new ApiError(403, "Access forbidden: Master admins only");
+  }
+
+  const result = await Professor.updateMany(
+    {},
+    {
+      $set: {
+        "currentCount.summer_training": 0,
+        "students.summer_training": [],
+        "appliedGroups.summer_training": [],
+      },
+    }
+  );
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { modifiedCount: result.modifiedCount },
+        "Summer training seats have been successfully reset to 0."
+      )
+    );
+});
+
 export {
   createBatchAdmin,
   deleteAdmin,
@@ -780,4 +812,5 @@ export {
   registerAdmin,
   updateAdmin,
   verifyUser,
+  resetSummerTrainingSeats,
 };

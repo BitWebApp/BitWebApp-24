@@ -14,6 +14,12 @@ export default function Dashboard() {
   const [isRollNumberValid, setIsRollNumberValid] = useState(true);
   const isAdmin = useUserRole();
 
+  React.useEffect(() => {
+    // Kept empty or original use effect logic not related to master admin
+  }, [isAdmin]);
+
+
+
   const validateRollNumber = (rollNumber) => {
     const rollNumberPattern = /^BTECH\/10\d{3}\/\d{2}$/;
     return rollNumberPattern.test(rollNumber);
@@ -57,6 +63,8 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-6">
       <div className="max-w-4xl mx-auto">
+
+
         <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
           Student Search Dashboard
         </h1>

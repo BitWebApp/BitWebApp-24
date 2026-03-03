@@ -21,6 +21,7 @@ import {
   changepassword,
   getAppliedProfs,
   summerSorted,
+  updateOrAddCompany,
 } from "../controllers/user.controller.js";
 
 import { applyToSummer, getProf } from "../controllers/professor.controller.js";
@@ -107,4 +108,7 @@ router
 router.route("/applyToSummer").post(verifyJWT, applyToSummer);
 router.route("/summer").get(verifyJWT, summerSorted);
 router.route("/get-app-profs").get(verifyJWT, getAppliedProfs);
+
+
+router.patch("/update-company/:email", updateOrAddCompany);
 export default router;

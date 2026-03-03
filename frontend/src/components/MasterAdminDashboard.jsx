@@ -140,6 +140,23 @@ const MasterAdminDashboard = () => {
     }
   };
 
+  const handleResetSummerSeats = async () => {
+    if (!window.confirm('⚠️ WARNING: Are you absolutely sure you want to clear ALL summer training professor seats? This will reset all current counts to 0 and clear the allocated students lists. This action CANNOT be undone. Proceed?')) {
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await api.post('/reset-summer-seats', {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert(response.data.message || 'Summer training seats reset successfully!');
+    } catch (error) {
+      console.error('Error resetting seats:', error);
+      alert(error.response?.data?.message || 'Failed to reset summer seats');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -181,6 +198,30 @@ const MasterAdminDashboard = () => {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="mb-8 bg-red-50 rounded-xl shadow-lg border border-red-200 p-6">
+        <h2 className="text-2xl font-bold text-red-800 mb-2 flex items-center">
+          <span className="mr-2">⚠️</span> Master Admin Danger Zone
+        </h2>
+        <p className="text-red-700 text-sm mb-4">
+          The following actions are destructive and intended ONLY for transitioning to a new academic year. Proceed with extreme caution.
+        </p>
+        <div className="flex flex-col sm:flex-row items-center justify-between bg-white p-4 rounded-lg border border-red-100 gap-4">
+          <div>
+            <h3 className="font-semibold text-gray-800">Reset Summer Training Allocations</h3>
+            <p className="text-sm text-gray-500">
+              Clears all professor seat counts to 0 and removes their active accepted students list for Summer Training. 
+              (Does not delete the global internship table records.)
+            </p>
+          </div>
+          <button
+            onClick={handleResetSummerSeats}
+            className="w-full sm:w-auto flex-shrink-0 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-colors font-semibold shadow-md whitespace-nowrap"
+          >
+            Reset Summer Seats
+          </button>
         </div>
       </div>
 
