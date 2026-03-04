@@ -31,7 +31,8 @@ const saveSummerProjectTitle = asyncHandler(async (req, res) => {
   }
 
   // Only allocated professor can set title
-  if (!group.summerAllocatedProf.equals(professorId)) {
+  // Only allocated professor can set title
+  if (group.summerAllocatedProf?.toString() !== professorId?.toString()) {
     throw new ApiError(403, "Unauthorized");
   }
 
@@ -312,6 +313,7 @@ const loginProf = asyncHandler(async (req, res) => {
       )
     );
 });
+
 const logoutProf = asyncHandler(async (req, res) => {
   await Professor.findByIdAndUpdate(
     req.professor._id,
@@ -787,9 +789,6 @@ const acceptedGroups = asyncHandler(async (req, res) => {
     .populate("deniedProf")
     .populate({
       path: "discussion.absent",
-    })
-    .populate({
-      path: "discussion.description",
     })
     .populate({
       path: "org",
@@ -1286,9 +1285,6 @@ const acceptedMinorGroups = asyncHandler(async (req, res) => {
     .populate("deniedProf")
     .populate({
       path: "discussion.absent",
-    })
-    .populate({
-      path: "discussion.description",
     });
   return res
     .status(200)
@@ -1634,9 +1630,6 @@ const acceptedMajorGroups = asyncHandler(async (req, res) => {
     .populate("org")
     .populate({
       path: "discussion.absent",
-    })
-    .populate({
-      path: "discussion.description",
     });
   return res
     .status(200)

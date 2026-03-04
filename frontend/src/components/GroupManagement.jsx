@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
 
 const handleError = (error, defaultMessage) => {
-  let message = error.response.data.message;
+  let message = error.response?.data?.message || defaultMessage || "An error occurred";
   toast.error(message);
 };
 
@@ -70,9 +70,7 @@ const GroupManagement = () => {
       toast.success("Group created successfully");
       fetchGroup();
     } catch (error) {
-      let errorMessage = error.response.data.message;
-      toast.error(errorMessage || "Failed to create group");
-      // handleError(error, "Failed to create group");
+      handleError(error, "Failed to create group");
     }
     setLoading(false);
   };
@@ -88,9 +86,7 @@ const GroupManagement = () => {
       setRollNumber("");
       fetchGroup();
     } catch (error) {
-      let errorMessage = error.response.data.message;
-      toast.error(errorMessage || "Failed to add member");
-      // handleError(error, "Failed to add member");
+      handleError(error, "Failed to add member");
     }
   };
 
@@ -103,9 +99,7 @@ const GroupManagement = () => {
       toast.success("Member removed successfully");
       fetchGroup();
     } catch (error) {
-      let errorMessage = error.response.data.message;
-      toast.error(errorMessage || "Failed to remove member");
-      //handleError(error, "Failed to remove member");
+      handleError(error, "Failed to remove member");
     }
   };
 
@@ -116,9 +110,7 @@ const GroupManagement = () => {
       fetchRequests();
       fetchGroup();
     } catch (error) {
-      let errorMessage = error.response.data.message;
-      toast.error(errorMessage || "Failed to accept request");
-      //handleError(error, "Failed to accept request");
+      handleError(error, "Failed to accept request");
     }
   };
 

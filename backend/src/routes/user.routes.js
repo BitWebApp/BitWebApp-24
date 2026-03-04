@@ -107,4 +107,5 @@ router
 router.route("/applyToSummer").post(verifyJWT, applyToSummer);
 router.route("/summer").get(verifyJWT, summerSorted);
 router.route("/get-app-profs").get(verifyJWT, getAppliedProfs);
+
 export default router;

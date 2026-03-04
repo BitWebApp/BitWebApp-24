@@ -58,7 +58,7 @@ const router = Router();
 router.route("/addprof").post(verifyAdmin, addProf);
 router.route("/getProf").get(getProf);
 
-router.post("/save-summer-project-title", saveSummerProjectTitle);
+router.post("/save-summer-project-title", verifyProfessor, saveSummerProjectTitle);
 
 
 router.route("/login").post(loginProf);

@@ -8,8 +8,9 @@ export default defineConfig({
     port: 3000,
     proxy: {
       //"/api": "https://bitwebapp-24.onrender.com",
-      "/api": "http://localhost:3000",
+      "/api": "http://localhost:8000",
     },
   },
   plugins: [react()],
 });
+
