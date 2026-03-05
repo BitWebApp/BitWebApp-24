@@ -16,6 +16,7 @@ import {
   HiOutlineLogout,
   HiUserGroup,
   HiArchive,
+  HiSun,
 } from "react-icons/hi";
 import useLinks from './admin/user-links';
 const linkClasses = 'flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base';
@@ -73,6 +74,16 @@ export default function Header() {
       text: "Interview Experience",
       icon: <HiBriefcase />,
       to: "/db/interview",
+    },
+    {
+      text: "Apply to Profs",
+      icon: <HiSun />,
+      to: "/db/apply-summer",
+    },
+    {
+      text: "Manage Summer Intern Group",
+      icon: <HiUserGroup />,
+      to: "/db/manage-group",
     },
     {
       text: "Apply to Minor",
