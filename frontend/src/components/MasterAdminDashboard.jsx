@@ -201,6 +201,7 @@ const MasterAdminDashboard = () => {
         </div>
       </div>
 
+      {/* Danger Zone temporarily disabled for future use
       <div className="mb-8 bg-red-50 rounded-xl shadow-lg border border-red-200 p-6">
         <h2 className="text-2xl font-bold text-red-800 mb-2 flex items-center">
           <span className="mr-2">⚠️</span> Master Admin Danger Zone
@@ -224,6 +225,7 @@ const MasterAdminDashboard = () => {
           </button>
         </div>
       </div>
+      */}
 
       {/* Admin Management Section */}
       <div className="bg-white rounded-lg shadow-md border border-gray-200">
