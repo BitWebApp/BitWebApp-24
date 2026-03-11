@@ -5,12 +5,20 @@ import { defineConfig } from "vite";
 export default defineConfig({
   server: {
     host: true,
-    port: 3000,
+    port: 5173,
     proxy: {
       //"/api": "https://bitwebapp-24.onrender.com",
       "/api": "http://localhost:8000",
     },
   },
   plugins: [react()],
+  preview: {
+    host: true,
+    port: 3000,
+    proxy: {
+      //"/api": "https://bitwebapp-24.onrender.com",
+      "/api": "http://localhost:8000",
+    },
+  },
 });
 
