@@ -47,6 +47,9 @@ export default function LoginFaculty() {
         "faculty",
         JSON.stringify(response.data.data.professor)
       );
+      if (response.data.data.accessToken) {
+        localStorage.setItem("accessToken", response.data.data.accessToken);
+      }
 
       setProfessorData(response.data.data.professor);
       toast.success("Login Successful!");

@@ -30,7 +30,7 @@ import {
 } from "../controllers/interview.controller.js";
 import { getUserCompanies } from "../controllers/company.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
-import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
+import { verifyJWT, verifyAdmin, verifyAnyAuth, optionalAuth } from "../middlewares/auth.middleware.js";
 
 import { getAllBacklogSubjects } from "../controllers/backlog.controller.js";
 import {
@@ -39,13 +39,18 @@ import {
 } from "../middlewares/ratelimiter.middleware.js";
 
 const router = Router();
-router.route("/verifyMail").post(verifyMail);
+
+// Rate limiters for auth routes
+const authLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10 });
+const otpLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 5 });
+
+router.route("/verifyMail").post(requestIpMiddleware, otpLimiter, verifyMail);
 
 router
   .route("/register")
-  .post(upload.fields([{ name: "idCard", maxCount: 1 }]), registerUser);
+  .post(requestIpMiddleware, authLimiter, upload.fields([{ name: "idCard", maxCount: 1 }]), registerUser);
 
-router.route("/login").post(loginUser);
+router.route("/login").post(requestIpMiddleware, authLimiter, loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/update").patch(
   verifyJWT,
@@ -63,7 +68,7 @@ router
     upload.fields([{ name: "doc", maxCount: 1 }]),
     updatePlacementOne
   );
-router.route("/getbyroll").post(getUserbyRoll);
+router.route("/getbyroll").post(optionalAuth, getUserbyRoll);
 router
   .route("/ptwo")
   .patch(
@@ -86,7 +91,7 @@ router.route("/placementTwo").get(verifyJWT, getPlacementTwo);
 router.route("/placementThree").get(verifyJWT, getPlacementThree);
 router.route("/get-all-users").get(verifyAdmin, getAllUsers);
 router.route("/get-backlogs").get(verifyJWT, getAllBacklogSubjects);
-router.route("/get-pass-otp").post(otpForgotPass);
+router.route("/get-pass-otp").post(requestIpMiddleware, otpLimiter, otpForgotPass);
 const changePassLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 5,

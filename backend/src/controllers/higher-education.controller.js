@@ -104,6 +104,9 @@ const getHigherEducationById = asyncHandler(async (req, res) => {
   if (!higherEducation) {
     throw new ApiError(404, "Higher Education not found");
   }
+  if (higherEducation.name.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You can only view your own higher education records");
+  }
 
   res.status(200).json({
     success: true,

@@ -34,7 +34,7 @@ const addInternship = asyncHandler(async (req, res) => {
     if (!uploadedDoc) {
       throw new ApiError(400, "Document upload failed!");
     }
-    docUrl = uploadedDoc.url;
+    docUrl = uploadedDoc.secure_url;
   } else if (location === "outside_bit" && !req.file) {
     throw new ApiError(
       400,
@@ -97,11 +97,11 @@ const addInternDocs = asyncHandler(async (req, res) => {
   if (!InternDocsLocalPath) throw new ApiError(400, "Document is neccesary");
   const InternDocs = await uploadOnCloudinary(InternDocsLocalPath);
   if (!InternDocs) {
-    throw new ApiError(400, "Not uploaded on Closuinary. something went wrong");
+    throw new ApiError(400, "Not uploaded on Cloudinary. Something went wrong");
   }
   const newInternRecord = await Internship.updateOne(
     { _id },
-    { $set: { doc: InternDocs.url } }
+    { $set: { doc: InternDocs.secure_url } }
   );
   res
     .status(200)
@@ -226,12 +226,12 @@ const getAllVerifiedInternshipData = asyncHandler(async (req, res) => {
 });
 
 const getInternshipDataforStudent = asyncHandler(async (req, res) => {
-  const { student_id } = req.body;
+  const student_id = req.user._id;
   const response = await Internship.find(
     { student: student_id },
     { verfied: true }
   )
-    .populate("student")
+    .populate("student", "-password -refreshToken")
     .populate("company");
   res
     .status(200)

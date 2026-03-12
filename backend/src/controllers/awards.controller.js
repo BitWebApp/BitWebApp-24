@@ -46,6 +46,13 @@ const deleteAward = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   try {
+    const award = await Award.findById(id);
+    if (!award) {
+      throw new ApiError(404, "Award not found");
+    }
+    if (award.student.toString() !== req.user._id.toString()) {
+      throw new ApiError(403, "You can only delete your own awards");
+    }
     const deletedAward = await Award.findByIdAndDelete(id);
 
     if (!deletedAward) {
@@ -78,6 +85,9 @@ const getAwardById = asyncHandler(async (req, res) => {
   if (!award) {
     throw new ApiError(404, "Award not found");
   }
+  if (award.student.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You can only view your own awards");
+  }
 
   res.status(200).json({
     success: true,
@@ -96,7 +106,7 @@ const getAllAwards = asyncHandler(async (req, res) => {
 
 const updateAward = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { title, description, date, student } = req.body;
+  const { title, description, date } = req.body;
 
   try {
     const award = await Award.findById(id);
@@ -104,11 +114,13 @@ const updateAward = asyncHandler(async (req, res) => {
     if (!award) {
       throw new ApiError(404, "Award not found");
     }
+    if (award.student.toString() !== req.user._id.toString()) {
+      throw new ApiError(403, "You can only update your own awards");
+    }
 
     award.title = title;
     award.description = description;
     award.date = date;
-    award.student = student;
 
     const docURL = award.doc;
     if (docURL) {

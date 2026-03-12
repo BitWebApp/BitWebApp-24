@@ -30,7 +30,12 @@ import {
   assignCompany,
   getAllCompanies,
 } from "../controllers/company.controller.js";
+import {
+  createRateLimiter,
+  requestIpMiddleware,
+} from "../middlewares/ratelimiter.middleware.js";
 const router = Router();
+const adminAuthLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10 });
 
 /**
  * Bootstrap guard middleware - allows registration only when no admins exist.
@@ -49,7 +54,7 @@ const bootstrapGuard = asyncHandler(async (req, res, next) => {
 
 // Public routes
 router.route("/register").post(bootstrapGuard, registerAdmin);
-router.route("/login").post(loginAdmin);
+router.route("/login").post(requestIpMiddleware, adminAuthLimiter, loginAdmin);
 
 // Protected routes (any admin)
 router.route("/unverifiedUsers").get(verifyAdmin, getUnverifiedUsers);

@@ -53,6 +53,7 @@ export default function Sidebar() {
       const resp = await axios.post("/api/v1/prof/logout");
       // console.log(resp);
       localStorage.removeItem("faculty");
+      localStorage.removeItem("accessToken");
       navigate("/");
     } catch (err) {
       // console.log(err);

@@ -44,6 +44,9 @@ export default function Login() {
       });
 
       localStorage.setItem("user", JSON.stringify(response.data.data.user));
+      if (response.data.data.accessToken) {
+        localStorage.setItem("accessToken", response.data.data.accessToken);
+      }
       toast.success("Login successful!");
       setTimeout(() => {
         navigate("/db");

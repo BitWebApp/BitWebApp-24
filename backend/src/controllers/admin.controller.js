@@ -8,6 +8,7 @@ import { Professor } from "../models/professor.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { Otp } from "../models/otp.model.js";
 
 const getUnverifiedUsers = asyncHandler(async (req, res) => {
   const admin = req.admin;
@@ -193,7 +194,7 @@ const loginAdmin = asyncHandler(async (req, res) => {
     admin._id
   );
   const loggedInAdmin = await Admin.findById(admin._id).select(
-    "-password -refeshToken"
+    "-password -refreshToken"
   );
   // if (!admin.isAdmin) {
   //   throw new ApiError(403, "You are not verified as an admin yet!");
@@ -201,7 +202,8 @@ const loginAdmin = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Lax",
   };
   return res
     .status(200)
@@ -230,8 +232,13 @@ const logoutAdmin = asyncHandler(async (req, res) => {
       new: true,
     }
   );
-  res.clearCookie("accessToken");
-  res.clearCookie("refreshToken");
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Lax",
+  };
+  res.clearCookie("accessToken", cookieOptions);
+  res.clearCookie("refreshToken", cookieOptions);
   return res
     .status(200)
     .json(new ApiResponse(200, {}, "Admin logged out successfully!"));
@@ -239,12 +246,10 @@ const logoutAdmin = asyncHandler(async (req, res) => {
 
 const getCurrendAdmin = asyncHandler(async (req, res) => {
   const _id = req?.admin?._id;
-  const admin = await Admin.findById({ _id });
+  const admin = await Admin.findById({ _id }).select("-password -refreshToken");
   if (!admin) throw new ApiError(404, "admin not found");
   res.status(200).json(new ApiResponse(200, admin, "admin fetched"));
 });
-
-import { Otp } from "../models/otp.model.js";
 
 export const rejectUser = asyncHandler(async (req, res) => {
   const { userId, reason } = req.body;

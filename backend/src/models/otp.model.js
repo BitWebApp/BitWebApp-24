@@ -1,10 +1,8 @@
 import mongoose, { Schema } from "mongoose";
-import { User } from "./user.model.js";
 
 const otpSchema = new Schema({
   email: {
     type: String,
-    ref: "User",
     required: true,
     lowercase: true,
     trim: true,
@@ -12,6 +10,11 @@ const otpSchema = new Schema({
   otp: {
     type: String,
     required: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    expires: 600, // TTL: auto-delete after 10 minutes
   },
 });
 

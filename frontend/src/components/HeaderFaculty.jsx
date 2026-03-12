@@ -70,6 +70,7 @@ export default function Header() {
       try {
         const resp = await axios.post('/api/v1/prof/logout');
         localStorage.removeItem('faculty');
+        localStorage.removeItem('accessToken');
         navigate('/');
       } catch (err) {
         console.error(err);

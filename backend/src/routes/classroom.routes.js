@@ -33,6 +33,6 @@ router.get("/bookings/approved", verifyAdmin, getApprovedBookings);
 // Get all rejected bookings
 router.get("/bookings/rejected", verifyAdmin, getRejectedBookings);
 
-router.route("/bookedSlots").get(getDateSlots);
+router.route("/bookedSlots").get(verifyJWT, getDateSlots);
 
 export default router;

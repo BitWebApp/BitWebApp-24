@@ -170,6 +170,7 @@ export default function Sidebar() {
       const response = await axios.post("/api/v1/users/logout");
       // console.log(response);
       localStorage.removeItem("user");
+      localStorage.removeItem("accessToken");
       navigate("/");
     } catch (error) {
       // console.log(error);

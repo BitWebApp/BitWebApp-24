@@ -49,9 +49,9 @@ const verifyAdmin = asyncHandler(async (req, res, next) => {
     if (!admin) {
       throw new ApiError(401, "Invalid Access Token!");
     }
-    // if (!admin.isAdmin) {
-    //   throw new ApiError(403, "You are not verified as an admin yet!");
-    // }
+    if (!admin.isAdmin) {
+      throw new ApiError(403, "You are not verified as an admin yet!");
+    }
     req.admin = admin;
     next();
   } catch (error) {
@@ -154,8 +154,106 @@ const verifyBatchAccess = (getBatchFromReq) =>
     next();
   });
 
+/**
+ * Middleware that accepts User, Admin, or Professor tokens.
+ * Sets req.user, req.admin, or req.professor accordingly.
+ */
+const verifyAnyAuth = asyncHandler(async (req, res, next) => {
+  try {
+    const token =
+      req.cookies?.accessToken ||
+      req.header("Authorization")?.replace("Bearer ", "");
+    if (!token) {
+      throw new ApiError(401, "Unauthorized request!");
+    }
+    const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
+    // Try admin first (has isAdmin flag in token)
+    if (decodedToken.isAdmin) {
+      const admin = await Admin.findById(decodedToken?._id).select(
+        "-password -refreshToken"
+      );
+      if (admin) {
+        req.admin = admin;
+        return next();
+      }
+    }
+
+    // Try user
+    const user = await User.findById(decodedToken?._id).select(
+      "-password -refreshToken"
+    );
+    if (user) {
+      req.user = user;
+      return next();
+    }
+
+    // Try professor
+    const professor = await Professor.findById(decodedToken?._id).select(
+      "-password -refreshToken"
+    );
+    if (professor) {
+      req.professor = professor;
+      return next();
+    }
+
+    throw new ApiError(401, "Invalid Access Token");
+  } catch (error) {
+    throw new ApiError(401, error?.message || "Invalid Access Token");
+  }
+});
+
+/**
+ * Optional auth middleware — attempts to authenticate but allows
+ * unauthenticated requests through. Sets req.admin, req.user, or
+ * req.professor if a valid token is present; otherwise calls next()
+ * with no user attached.
+ */
+const optionalAuth = asyncHandler(async (req, res, next) => {
+  const token =
+    req.cookies?.accessToken ||
+    req.header("Authorization")?.replace("Bearer ", "");
+  if (!token) {
+    return next();
+  }
+  try {
+    const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
+    if (decodedToken.isAdmin) {
+      const admin = await Admin.findById(decodedToken?._id).select(
+        "-password -refreshToken"
+      );
+      if (admin) {
+        req.admin = admin;
+        return next();
+      }
+    }
+
+    const user = await User.findById(decodedToken?._id).select(
+      "-password -refreshToken"
+    );
+    if (user) {
+      req.user = user;
+      return next();
+    }
+
+    const professor = await Professor.findById(decodedToken?._id).select(
+      "-password -refreshToken"
+    );
+    if (professor) {
+      req.professor = professor;
+      return next();
+    }
+  } catch (_err) {
+    // Token invalid/expired — proceed as unauthenticated
+  }
+  next();
+});
+
 export {
+  optionalAuth,
   verifyAdmin,
+  verifyAnyAuth,
   verifyBatchAccess,
   verifyJWT,
   verifyMasterAdmin,
