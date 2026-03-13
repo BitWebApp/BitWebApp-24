@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { FaEdit, FaSave, FaTimes, FaPlus, FaLinkedin, FaGithub, FaCode, FaFilePdf, FaUserCircle } from 'react-icons/fa';
+
+const SECTIONS = ["A", "B", "C", "D"];
 export default function UserForm() {
   // State declarations remain the same
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [branch, setBranch] = useState("");
-  const [section, setSection] = useState("");
+  const [section, setSection] = useState(SECTIONS[0]); // Since browser auto-selects first option, user sees "A" already selected hence he never touch it and setSection never gets called leading to frontend showing section A while backend having "". So we should set default value to "A" since browser also defaults to that.
   const [mobileNumber, setMobileNumber] = useState("");
   const [semester, setSemester] = useState("");
   const [cgpa, setCgpa] = useState("");
@@ -41,7 +43,7 @@ export default function UserForm() {
         setFullName(userData.fullName);
         setEmail(userData.email);
         setBranch(userData.branch);
-        setSection(userData.section);
+        setSection(userData.section || SECTIONS[0]);
         setMobileNumber(userData.mobileNumber);
         setSemester(userData.semester);
         setCgpa(userData.cgpa);
@@ -79,9 +81,9 @@ export default function UserForm() {
 
   const setAvailableSectionsBasedOnBranch = (branch) => {
     if (branch === "artificial intelligence and machine learning") {
-      setAvailableSections(["A"]);
+      setAvailableSections([SECTIONS[0]]);
     } else {
-      setAvailableSections(["A", "B", "C", "D"]);
+      setAvailableSections(SECTIONS);
     }
   };
 
