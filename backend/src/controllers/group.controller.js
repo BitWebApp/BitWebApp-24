@@ -9,8 +9,8 @@ import { Company } from "../models/company.model.js";
 
 const createGroup = asyncHandler(async (req, res) => {
   const leader = req?.user?._id;
-  const { typeofSummer, org } = req.body;
-  console.log(typeofSummer, org);
+  const { typeofSummer, org, location } = req.body;
+  console.log(typeofSummer, org, location);
   const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
   const members = [leader];
   const user = await User.findById(leader);
@@ -29,6 +29,9 @@ const createGroup = asyncHandler(async (req, res) => {
       "Organisation Name is required for industrial summer internship"
     );
   }
+  if (!location || (location !== "inside_bit" && location !== "outside_bit")) {
+    throw new ApiError(400, "Valid location (inside_bit or outside_bit) is required");
+  }
   let newGroup;
   if (org) {
     const company = await Company.findById(org);
@@ -43,6 +46,7 @@ const createGroup = asyncHandler(async (req, res) => {
       type: "summer",
       typeOfSummer: typeofSummer,
       org,
+      location,
     });
     user.group = newGroup._id;
     await user.save();
@@ -53,6 +57,7 @@ const createGroup = asyncHandler(async (req, res) => {
       members,
       type: "summer",
       typeOfSummer: typeofSummer,
+      location,
     });
     user.group = newGroup._id;
     await user.save();
@@ -75,6 +80,10 @@ const addMember = asyncHandler(async (req, res) => {
   if (group.typeOfSummer === "industrial") {
     console.log("Cannot add member to industrial group");
     throw new ApiError(409, "Cannot add member to industrial group");
+  }
+  if (group.typeOfSummer === "research" && group.location === "outside_bit") {
+    console.log("Cannot add member to outside_bit research group");
+    throw new ApiError(409, "Outside BIT research groups can only have 1 member");
   }
 
   if (!group.leader.equals(loggedIn)) {
@@ -103,6 +112,16 @@ const acceptReq = asyncHandler(async (req, res) => {
   console.log(groupId);
   const user = await User.findById({ _id: userId });
   const group = await Group.findById({ _id: groupId });
+  if (!group) {
+    console.log("group not found");
+    throw new ApiError(404, "Group not found");
+  }
+  if (group.typeOfSummer === "industrial") {
+     throw new ApiError(409, "Cannot join industrial group");
+  }
+  if (group.typeOfSummer === "research" && group.location === "outside_bit") {
+     throw new ApiError(409, "Outside BIT research groups can only have 1 member");
+  }
   if (!group) {
     console.log("group not found");
     throw new ApiError(404, "Group not found");
