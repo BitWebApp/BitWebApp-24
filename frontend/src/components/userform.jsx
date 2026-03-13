@@ -134,7 +134,7 @@ export default function UserForm() {
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: response.error.message
+          text: error.response.data.message
         });
       });
     setIsEditMode(false);
