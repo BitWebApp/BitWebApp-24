@@ -120,6 +120,7 @@ export default function Header() {
     try {
       const response = await axios.post('/api/v1/users/logout');
       localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
       navigate('/');
     } catch (error) {
       console.error(error);

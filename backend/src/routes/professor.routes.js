@@ -5,8 +5,8 @@ import {
   requestIpMiddleware,
 } from "../middlewares/ratelimiter.middleware.js";
 import {
-  verifyJWT,
   verifyAdmin,
+  verifyAnyAuth,
   verifyProfessor,
 } from "../middlewares/auth.middleware.js";
 import {
@@ -56,12 +56,14 @@ import {
 
 const router = Router();
 router.route("/addprof").post(verifyAdmin, addProf);
-router.route("/getProf").get(getProf);
+router.route("/getProf").get(verifyAnyAuth, getProf);
 
 router.post("/save-summer-project-title", verifyProfessor, saveSummerProjectTitle);
 
 
-router.route("/login").post(loginProf);
+const profAuthLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10 });
+const profOtpLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 5 });
+router.route("/login").post(requestIpMiddleware, profAuthLimiter, loginProf);
 router.route("/logout").post(verifyProfessor, logoutProf);
 router.route("/generate-auto-login").post(verifyAdmin, generateAutoLoginUrl);
 router.route("/auto-login").post(autoLoginProf);
@@ -86,7 +88,7 @@ router.route("/deny-group").post(verifyProfessor, denyGroup);
 router.route("/accept-group").post(verifyProfessor, acceptGroup);
 router.route("/add-remark").post(verifyProfessor, addRemark);
 router.route("/meet-attend").post(verifyProfessor, groupAttendance);
-router.route("/forgot-pass").post(otpForgotPassword);
+router.route("/forgot-pass").post(requestIpMiddleware, profOtpLimiter, otpForgotPassword);
 const changePassLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 5,

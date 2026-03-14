@@ -181,6 +181,7 @@ export default function Header() {
       try {
         const resp = await axios.post('/api/v1/admin/logout');
         localStorage.removeItem('user');
+        localStorage.removeItem('accessToken');
         navigate('/');
       } catch (err) {
         console.error(err);

@@ -15,7 +15,8 @@ import { Otp } from "../models/otp.model.js";
 import { Review } from "../models/review.model.js";
 import { Minor } from "../models/minor.model.js";
 import { Major } from "../models/major.model.js";
-const url = "http://139.167.188.221:3000/faculty-login";
+const url = process.env.FACULTY_LOGIN_URL || "http://localhost:3000/faculty-login";
+const autoLoginBaseUrl = process.env.FACULTY_AUTO_LOGIN_URL || "http://localhost:3000/faculty-auto-login";
 
 
 
@@ -244,7 +245,7 @@ const addProf = asyncHandler(async (req, res) => {
 // });
 
 const getProf = asyncHandler(async (req, res) => {
-  const professors = await Professor.find().select("-password");
+  const professors = await Professor.find().select("-password -refreshToken");
   res
     .status(200)
     .json(
@@ -285,7 +286,7 @@ const loginProf = asyncHandler(async (req, res) => {
     professor._id
   );
   const loggedInProfessor = await Professor.findById(professor._id).select(
-    "-password -refeshToken"
+    "-password -refreshToken"
   );
   const reviewLog = await Review.findOne({ user: professor._id });
   let review = false;
@@ -294,7 +295,8 @@ const loginProf = asyncHandler(async (req, res) => {
   }
   const options = {
     httpOnly: true,
-    secure: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Lax",
   };
   return res
     .status(200)
@@ -324,8 +326,13 @@ const logoutProf = asyncHandler(async (req, res) => {
       new: true,
     }
   );
-  res.clearCookie("accessToken");
-  res.clearCookie("refreshToken");
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Lax",
+  };
+  res.clearCookie("accessToken", cookieOptions);
+  res.clearCookie("refreshToken", cookieOptions);
   return res
     .status(200)
     .json(new ApiResponse(200, {}, "Prof logged out successfully!"));
@@ -347,11 +354,11 @@ const generateAutoLoginUrl = asyncHandler(async (req, res) => {
   const autoLoginToken = jwt.sign(
     { _id: professor._id },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "12h" }
+    { expiresIn: "30m" }
   );
 
   // Create the auto-login URL
-  const autoLoginUrl = `http://139.167.188.221:3000/faculty-auto-login?token=${autoLoginToken}`;
+  const autoLoginUrl = `${autoLoginBaseUrl}?token=${autoLoginToken}`;
 
   return res
     .status(200)
@@ -396,7 +403,8 @@ const autoLoginProf = asyncHandler(async (req, res) => {
 
     const options = {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax",
     };
 
     return res
@@ -661,6 +669,10 @@ const denyGroup = asyncHandler(async (req, res) => {
   const profId = req?.professor?._id;
   const group = await Group.findById({ _id });
   if (!group) throw new ApiError(409, "Group not exists");
+  // Verify this professor is in the applied list
+  if (!group.summerAppliedProfs.some((p) => p.toString() === profId.toString())) {
+    throw new ApiError(403, "You are not in the applied professors list for this group");
+  }
   group.summerAppliedProfs.pull(profId);
   const prof = await Professor.findById(profId);
   prof.appliedGroups.summer_training.pull(_id);
@@ -712,6 +724,10 @@ const acceptGroup = asyncHandler(async (req, res) => {
     }
     if (!group) {
       throw new ApiError(404, "Group not found");
+    }
+    // Verify this professor is in the applied list
+    if (!group.summerAppliedProfs.some((p) => p.toString() === profId.toString())) {
+      throw new ApiError(403, "You are not in the applied professors list for this group");
     }
     const numOfMem = group.members.length;
     if (
@@ -920,7 +936,7 @@ const mergeGroups = asyncHandler(async (req, res) => {
   await newGroup.save();
 
   // For each student in the merged groups, update their group field to the new group object id
-  await Student.updateMany(
+  await User.updateMany(
     { _id: { $in: uniqueMembers.map((member) => member._id) } },
     { $set: { group: newGroup._id } }
   );
@@ -940,7 +956,7 @@ const otpForgotPassword = asyncHandler(async (req, res) => {
   if (!prof) {
     throw new ApiError(404, "Professor does not exists");
   }
-  const otp = `${Math.floor(Math.random() * 9000 + 1000)}`;
+  const otp = `${crypto.randomInt(100000, 1000000)}`;
   await Otp.create({ email, otp });
 
   const tOtp = await Otp.findOne({ email });
@@ -1050,7 +1066,7 @@ const changePassword = asyncHandler(async (req, res) => {
     const validOTP = otp === hashedOTP;
     // console.log(validOTP)
     if (!validOTP) {
-      throw new ApiError("Invalid code. Check your Inbox");
+      throw new ApiError(400, "Invalid code. Check your Inbox");
     } else {
       const savepass = await bcrypt.hash(newpassword, 12);
       const response = await Professor.updateOne(
@@ -1202,6 +1218,10 @@ const denyMinorGroup = asyncHandler(async (req, res) => {
   const profId = req?.professor?._id;
   const group = await Minor.findById({ _id });
   if (!group) throw new ApiError(409, "Group not exists");
+  // Verify this professor is in the applied list
+  if (!group.minorAppliedProfs.some((p) => p.toString() === profId.toString())) {
+    throw new ApiError(403, "You are not in the applied professors list for this group");
+  }
   group.minorAppliedProfs.pull(profId);
   const prof = await Professor.findById(profId);
   prof.appliedGroups.minor_project.pull(_id);
@@ -1235,6 +1255,10 @@ const acceptMinorGroup = asyncHandler(async (req, res) => {
     }
     if (!group) {
       throw new ApiError(404, "Group not found");
+    }
+    // Verify this professor is in the applied list
+    if (!group.minorAppliedProfs.some((p) => p.toString() === profId.toString())) {
+      throw new ApiError(403, "You are not in the applied professors list for this group");
     }
     const numOfMem = group.members.length;
     if (
@@ -1546,6 +1570,10 @@ const denyMajorGroup = asyncHandler(async (req, res) => {
   const profId = req?.professor?._id;
   const group = await Major.findById({ _id });
   if (!group) throw new ApiError(409, "Group not exists");
+  // Verify this professor is in the applied list
+  if (!group.majorAppliedProfs.some((p) => p.toString() === profId.toString())) {
+    throw new ApiError(403, "You are not in the applied professors list for this group");
+  }
   group.majorAppliedProfs.pull(profId);
   const prof = await Professor.findById(profId);
   prof.appliedGroups.major_project.pull(_id);
@@ -1579,6 +1607,10 @@ const acceptMajorGroup = asyncHandler(async (req, res) => {
     }
     if (!group) {
       throw new ApiError(404, "Group not found");
+    }
+    // Verify this professor is in the applied list
+    if (!group.majorAppliedProfs.some((p) => p.toString() === profId.toString())) {
+      throw new ApiError(403, "You are not in the applied professors list for this group");
     }
     const numOfMem = group.members.length;
     if (

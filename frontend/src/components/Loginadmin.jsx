@@ -19,6 +19,9 @@ export default function SignInPage() {
         password,
       });
       localStorage.setItem("user", JSON.stringify(response.data.data.admin));
+      if (response.data.data.accessToken) {
+        localStorage.setItem("accessToken", response.data.data.accessToken);
+      }
       // console.log(response);
 
       // Show success toast

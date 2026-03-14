@@ -9,8 +9,10 @@ import {
 import { Professor } from "../models/professor.model.js";
 
 const addNewProject = asyncHandler(async (req, res) => {
-  const { profId, title, desc, categories, startDate, endDate, relevantLinks } =
+  const { title, desc, categories, startDate, endDate, relevantLinks } =
     req.body;
+  // Derive professor ID from authenticated token, not client input
+  const profId = req.professor._id;
   const professor = await Professor.findById(profId);
   if (!professor) {
     throw new ApiError(404, "Professor not found!");
@@ -86,6 +88,11 @@ const editProject = asyncHandler(async (req, res) => {
 
     if (!project) {
       throw new ApiError(404, "Project not found");
+    }
+
+    // Verify ownership
+    if (project.professor.toString() !== req.professor._id.toString()) {
+      throw new ApiError(403, "Not authorized to edit this project");
     }
 
     project.title = title || project.title;
@@ -191,11 +198,13 @@ const applyToProject = asyncHandler(async (req, res) => {
 
 const getAllApplications = asyncHandler(async (req, res) => {
   const { status } = req.params;
-  const applications = await RequestProj.find({ status })
+  // Only return applications for projects owned by this professor
+  const profProjects = await AdhocProject.find({ professor: req.professor._id }).select("_id");
+  const projectIds = profProjects.map((p) => p._id);
+  const applications = await RequestProj.find({ status, projectId: { $in: projectIds } })
     .populate("studentId", "fullName email rollNumber mobileNumber")
-    .populate("projectId", "title profName") // Added populate for projectId
-    .select("status applicationDate doc projectId"); // Included projectId in selected fields
-  console.log("applications", applications);
+    .populate("projectId", "title profName")
+    .select("status applicationDate doc projectId");
   res.status(200).json({ success: true, data: applications });
 });
 
@@ -210,16 +219,22 @@ const updateApplicationStatus = asyncHandler(async (req, res) => {
     );
   }
 
-  const updatedApplication = await RequestProj.findByIdAndUpdate(
-    applicationId,
-    { status },
-    { new: true }
-  );
-
-  if (!updatedApplication) {
+  const application = await RequestProj.findById(applicationId).populate("projectId");
+  if (!application) {
     throw new ApiError(404, "Application not found");
   }
-  res.status(200).json({ success: true, data: updatedApplication });
+  if (!application.projectId) {
+    throw new ApiError(404, "Referenced project no longer exists");
+  }
+
+  // Verify the professor owns the project
+  if (application.projectId.professor.toString() !== req.professor._id.toString()) {
+    throw new ApiError(403, "Not authorized to update this application");
+  }
+
+  application.status = status;
+  await application.save();
+  res.status(200).json({ success: true, data: application });
 });
 
 const getStudentApplications = asyncHandler(async (req, res) => {
@@ -248,6 +263,11 @@ const closeProject = asyncHandler(async (req, res) => {
   const project = await AdhocProject.findById(id);
   if (!project) {
     throw new ApiError(404, "Project not found");
+  }
+
+  // Verify ownership
+  if (project.professor.toString() !== req.professor._id.toString()) {
+    throw new ApiError(403, "Not authorized to close this project");
   }
 
   project.closed = true;

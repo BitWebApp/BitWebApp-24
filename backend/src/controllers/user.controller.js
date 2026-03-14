@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import cron from "node-cron";
 import { Otp } from "../models/otp.model.js";
 import { Placement } from "../models/placement.model.js";
@@ -29,7 +30,7 @@ const generateAcessAndRefreshToken = async (userId) => {
 const verifyMail = asyncHandler(async (req, res) => {
   try {
     const { email } = req.body;
-    const otp = Math.floor(100000 + Math.random() * 900000);
+    const otp = crypto.randomInt(100000, 1000000);
     const existedUser = await User.findOne({ email });
 
     if (existedUser) {
@@ -126,15 +127,26 @@ const registerUser = asyncHandler(async (req, res) => {
     // throw new ApiError(500, "id card file is cannot be uploaded");
   }
 
-  const user = await User.create({
-    username: username.toLowerCase(),
-    password,
-    fullName,
-    rollNumber,
-    email,
-    idCard: idCard.url,
-    batch,
-  });
+  let user;
+  try {
+    user = await User.create({
+      username: username.toLowerCase(),
+      password,
+      fullName,
+      rollNumber,
+      email,
+      idCard: idCard.url,
+      batch,
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "User with this email, username, or roll number already exists",
+      });
+    }
+    throw error;
+  }
 
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"
@@ -146,7 +158,6 @@ const registerUser = asyncHandler(async (req, res) => {
       success: false,
       message: "Something went wrong while registering the user",
     });
-    // throw new ApiError(500, "Something went wrong while registering the user");
   }
 
   return res
@@ -183,24 +194,23 @@ const loginUser = asyncHandler(async (req, res) => {
     });
     // throw new ApiError(401, "Invalid Credentials!");
   }
-  const { accessToken, refreshToken } = await generateAcessAndRefreshToken(
-    user._id
-  );
-  const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshToken"
-  );
   if (!user.isVerified) {
     console.log("You are not verified yet!");
     return res.status(403).json({
       success: false,
       message: "You are not verified yet!",
     });
-
-    //throw new ApiError(403, "You are not verified yet!");
   }
+  const { accessToken, refreshToken } = await generateAcessAndRefreshToken(
+    user._id
+  );
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
   const options = {
     httpOnly: true,
-    secure: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Lax",
   };
   return res
     .status(200)
@@ -229,7 +239,7 @@ export const otpForgotPass = asyncHandler(async (req, res) => {
     if (!user) {
       throw new ApiError(404, "User does not exists");
     }
-    const otp = `${Math.floor(Math.random() * 9000 + 1000)}`;
+    const otp = `${crypto.randomInt(100000, 1000000)}`;
     await Otp.create({ email, otp });
 
     // Send OTP email using utility function
@@ -305,8 +315,13 @@ const logoutUser = asyncHandler(async (req, res) => {
       new: true,
     }
   );
-  res.clearCookie("accessToken");
-  res.clearCookie("refreshToken");
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Lax",
+  };
+  res.clearCookie("accessToken", cookieOptions);
+  res.clearCookie("refreshToken", cookieOptions);
   return res
     .status(200)
     .json(new ApiResponse(200, {}, "User logged out successfully!"));
@@ -432,7 +447,7 @@ const updateUser1 = asyncHandler(async (req, res) => {
 
 const getCurrentUser = asyncHandler(async (req, res) => {
   const _id = req?.user?._id;
-  const user = await User.findById({ _id }).select("-marks");
+  const user = await User.findById({ _id }).select("-password -refreshToken -marks");
   if (!user) throw new ApiError(404, "user not found");
   // console.log(user)
   res.status(200).json(new ApiResponse(200, user, "user fetched"));
@@ -692,11 +707,22 @@ const fetchBranch = asyncHandler(async (req, res) => {
 });
 
 const getUserbyRoll = asyncHandler(async (req, res) => {
-  const { rollNumber, isAdmin } = req.body;
+  const { rollNumber } = req.body;
 
   let query = User.findOne({ rollNumber: rollNumber });
 
-  if (!isAdmin) {
+  // Admins get full data; regular users get limited fields
+  if (req.admin) {
+    query = query.select("-password -refreshToken");
+    query = query
+      .populate("internShips")
+      .populate("placementOne")
+      .populate("placementTwo")
+      .populate("placementThree")
+      .populate("awards")
+      .populate("exams")
+      .populate("higherEd");
+  } else {
     query = query.select(
       "-password -username -refreshToken -fatherName -fatherMobileNumber -motherName -residentialAddress -alternateEmail -alumni -awards -backlogs -codingProfiles -companyInterview -createdAt -exams -graduationYear -group -groupReq -higherEd -idCard -isSummerAllocated -isVerified -linkedin -marks -mobileNumber -peCourses -proj -resume -summerAppliedProfs -updatedAt -workExp -__v -abcId"
     );
@@ -705,18 +731,6 @@ const getUserbyRoll = asyncHandler(async (req, res) => {
       .populate("placementOne", "company role ctc date")
       .populate("placementTwo", "company role ctc date")
       .populate("placementThree", "company role ctc date");
-  } else {
-    query = query
-      .populate("placementOne")
-      .populate("placementTwo")
-      .populate("placementThree")
-      .populate("proj")
-      .populate("awards")
-      .populate("higherEd")
-      .populate("internShips")
-      .populate("exams")
-      .populate("academics")
-      .populate("backlogs");
   }
 
   const user = await query;

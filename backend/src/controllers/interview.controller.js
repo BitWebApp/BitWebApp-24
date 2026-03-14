@@ -62,8 +62,11 @@ const getAllInterviewExps = asyncHandler(async (req, res) => {
     sort = "-createdAt",
   } = req.query;
 
+  // Whitelist allowed sort fields to prevent sort injection
+  const allowedSortFields = ["createdAt", "-createdAt", "company", "-company"];
+  const sanitizedSort = allowedSortFields.includes(sort) ? sort : "-createdAt";
+
   const filter = {};
-  console.log(companyId, studentId);
   if (companyId) {
     filter.company = companyId;
   }
@@ -77,7 +80,7 @@ const getAllInterviewExps = asyncHandler(async (req, res) => {
   const interviewExps = await InterviewExp.find(filter)
     .populate("company", "companyName")
     .populate("student", "fullName email image branch cgpa")
-    .sort(sort)
+    .sort(sanitizedSort)
     .skip(skip)
     .limit(parseInt(limit, 10));
 

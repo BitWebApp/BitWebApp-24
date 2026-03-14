@@ -116,6 +116,9 @@ const getExamById = asyncHandler(async (req, res) => {
   if (!exam) {
     throw new ApiError(404, "Exam not found");
   }
+  if (exam.name.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You can only view your own exam records");
+  }
 
   res.status(200).json({
     success: true,

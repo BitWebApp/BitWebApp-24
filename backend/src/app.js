@@ -1,12 +1,15 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
 const app = express();
 import { User } from "./models/user.model.js";
 import { Company } from "./models/company.model.js";
 import { Professor } from "./models/professor.model.js";
 
-
+// Security headers (disable CSP initially to avoid breaking frontend inline scripts/styles)
+app.use(helmet({ contentSecurityPolicy: false }));
 
 app.use(
   cors({
@@ -21,6 +24,9 @@ app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
+
+// Sanitize MongoDB queries to prevent NoSQL injection
+app.use(mongoSanitize());
 
 import academicsRouter from "./routes/academic.routes.js";
 app.use("/api/v1/academics", academicsRouter);
@@ -96,7 +102,6 @@ import {
 app.use(notFoundHandler);
 
 // Global error handler - must be the last middleware
-// Temporary debug test for companyInterview
-
+app.use(errorHandler);
 
 export { app };

@@ -20,7 +20,7 @@ async function sendMajorNotificationEmail(professor) {
     { expiresIn: "30m" }
   );
 
-  const autoLoginUrl = `http://139.167.188.221:3000/faculty-auto-login?token=${autoLoginToken}`;
+  const autoLoginUrl = `${process.env.FACULTY_AUTO_LOGIN_URL || "http://localhost:3000/faculty-auto-login"}?token=${autoLoginToken}`;
 
   const mailOptions = {
     from: process.env.AUTH_EMAIL,
@@ -46,7 +46,7 @@ async function sendMajorNotificationEmail(professor) {
           <a href="${autoLoginUrl}" style="background-color: #007bff; color: #fff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-size: 16px; font-weight: bold; display: inline-block;">Visit Dashboard</a>
         </div>
 
-        <p style="margin-top: 15px; color: #999; font-size: 12px;">This link is valid for 30 minutes. If you prefer to login manually, <a href="http://139.167.188.221:3000/faculty-login" style="color: #007bff; text-decoration: none;">click here</a>.</p>
+        <p style="margin-top: 15px; color: #999; font-size: 12px;">This link is valid for 30 minutes. If you prefer to login manually, <a href="${process.env.FACULTY_LOGIN_URL || "http://localhost:3000/faculty-login"}" style="color: #007bff; text-decoration: none;">click here</a>.</p>
 
         <p style="margin-top: 20px; color: #777; font-size: 12px; text-align: center;">Best regards,<br><strong>BITACADEMIA</strong></p>
       </div>
