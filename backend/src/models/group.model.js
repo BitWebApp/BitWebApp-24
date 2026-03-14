@@ -26,6 +26,13 @@ const groupSchema = new Schema({
       return this.type === "industrial";
     },
   },
+  location: {
+    type: String,
+    enum: ["inside_bit", "outside_bit"],
+    required: function() {
+      return this.type === "summer";
+    }
+  },
 
   leader: {
     type: Schema.Types.ObjectId,

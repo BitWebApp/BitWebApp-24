@@ -735,14 +735,14 @@ const acceptGroup = asyncHandler(async (req, res) => {
       internships = group.members.map((studentId) => ({
         student: studentId,
         type: group.typeOfSummer,
-        location: "inside_bit",
+        location: group.location || "inside_bit", // backwards compatibility fallback
         mentor: profId,
       }));
     } else {
       internships = group.members.map((studentId) => ({
         student: studentId,
         type: group.typeOfSummer,
-        location: "outside_bit",
+        location: group.location || "outside_bit", // backwards compatibility fallback
         company: group.org,
         mentor: profId,
       }));

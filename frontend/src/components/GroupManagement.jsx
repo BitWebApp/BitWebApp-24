@@ -15,6 +15,7 @@ const GroupManagement = () => {
   const [typeofSummer, setTypeofSummer] = useState("");
   const [company, setCompany] = useState([]);
   const [org, setOrg] = useState("");
+  const [location, setLocation] = useState(""); // new location state
   const [activeTab, setActiveTab] = useState("group");
 
   useEffect(() => {
@@ -59,15 +60,22 @@ const GroupManagement = () => {
       return toast.error(
         "Organisation Name is required for industrial internship"
       );
+    if (typeofSummer === "research" && !location)
+      return toast.error("Please specify if the research is inside or outside BIT");
 
     setLoading(true);
     try {
       const response = await axios.post("/api/v1/group/create-group", {
         typeofSummer,
         org,
+        location: typeofSummer === "research" ? location : "outside_bit" // industrial is always outside
       });
       setGroup(response.data.data);
-      toast.success("Group created successfully");
+      if (typeofSummer === "research" && location === "outside_bit") {
+        toast.success("Outside BIT research group created. Max size is 1.");
+      } else {
+        toast.success("Group created successfully");
+      }
       fetchGroup();
     } catch (error) {
       handleError(error, "Failed to create group");
@@ -76,6 +84,9 @@ const GroupManagement = () => {
   };
 
   const addMember = async () => {
+    if (group?.typeOfSummer === "research" && group?.location === "outside_bit") {
+      return toast.error("Outside BIT research groups can only have 1 member.");
+    }
     if (!rollNumber) return toast.error("Please enter a roll number");
     try {
       await axios.post("/api/v1/group/add-member", {
@@ -277,30 +288,32 @@ const GroupManagement = () => {
                         </div>
                       </div>
 
-                      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                        <div className="p-4 border-b border-gray-200 bg-gray-50">
-                          <h3 className="font-medium text-gray-800">
-                            Add New Member
-                          </h3>
-                        </div>
-                        <div className="p-4">
-                          <div className="flex flex-col sm:flex-row gap-2">
-                            <input
-                              type="text"
-                              value={rollNumber}
-                              onChange={(e) => setRollNumber(e.target.value)}
-                              placeholder="Enter Roll Number"
-                              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                            <button
-                              onClick={addMember}
-                              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm"
-                            >
-                              Send Request
-                            </button>
+                      {(group?.typeOfSummer !== "research" || group?.location !== "outside_bit") && (
+                        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                          <div className="p-4 border-b border-gray-200 bg-gray-50">
+                            <h3 className="font-medium text-gray-800">
+                              Add New Member
+                            </h3>
+                          </div>
+                          <div className="p-4">
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <input
+                                type="text"
+                                value={rollNumber}
+                                onChange={(e) => setRollNumber(e.target.value)}
+                                placeholder="Enter Roll Number"
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                              <button
+                                onClick={addMember}
+                                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm"
+                              >
+                                Send Request
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
 
                       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                         <div className="p-4 border-b border-gray-200 bg-gray-50">
@@ -461,6 +474,27 @@ const GroupManagement = () => {
                             </select>
                           </div>
 
+                          {typeofSummer === "research" && (
+                            <div>
+                              <label
+                                htmlFor="location-type"
+                                className="block text-sm font-medium text-gray-700 mb-1"
+                              >
+                                Location
+                              </label>
+                              <select
+                                id="location-type"
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                                className="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              >
+                                <option value="">Select Location</option>
+                                <option value="inside_bit">Inside BIT</option>
+                                <option value="outside_bit">Outside BIT (Max 1 Member)</option>
+                              </select>
+                            </div>
+                          )}
+
                           {typeofSummer === "industrial" && (
                             <div>
                               <label
@@ -490,12 +524,14 @@ const GroupManagement = () => {
                               disabled={
                                 loading ||
                                 !typeofSummer ||
-                                (typeofSummer === "industrial" && !org)
+                                (typeofSummer === "industrial" && !org) ||
+                                (typeofSummer === "research" && !location)
                               }
                               className={`w-full py-3 px-4 rounded-lg font-medium text-white shadow-md ${
                                 loading ||
                                 !typeofSummer ||
-                                (typeofSummer === "industrial" && !org)
+                                (typeofSummer === "industrial" && !org) ||
+                                (typeofSummer === "research" && !location)
                                   ? "bg-gray-400 cursor-not-allowed"
                                   : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
                               }`}
