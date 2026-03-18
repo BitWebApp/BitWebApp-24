@@ -95,6 +95,9 @@ export default function ProfessorTable() {
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
               Major Project
             </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Summer Training
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -120,6 +123,9 @@ export default function ProfessorTable() {
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {prof.currentCount?.major_project}/{prof.limits?.major_project}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {prof.currentCount?.summer_training}/{prof.limits?.summer_training}
               </td>
             </tr>
           ))}
