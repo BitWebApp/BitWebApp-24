@@ -17,6 +17,41 @@ import { Minor } from "../models/minor.model.js";
 import { Major } from "../models/major.model.js";
 const url = "http://139.167.188.221:3000/faculty-login";
 
+
+
+const saveSummerProjectTitle = asyncHandler(async (req, res) => {
+  const { groupId, projectTitle } = req.body;
+
+  const professorId = req?.professor?._id;
+
+  const group = await Group.findById(groupId);
+
+  if (!group) {
+    throw new ApiError(404, "Group not found");
+  }
+
+  // Only allocated professor can set title
+  // Only allocated professor can set title
+  if (group.summerAllocatedProf?.toString() !== professorId?.toString()) {
+    throw new ApiError(403, "Unauthorized");
+  }
+
+  // ✅ Allow empty → store as null
+  group.projectTitle = projectTitle?.trim() || null;
+
+  await group.save({ validateBeforeSave: false });
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      group.projectTitle,
+      group.projectTitle
+        ? "Project title updated successfully"
+        : "Project title cleared successfully"
+    )
+  );
+});
+
 const addProf = asyncHandler(async (req, res) => {
   const { idNumber, fullName, contact, email } = req.body;
   if (!idNumber || !fullName || !contact || !email) {
@@ -278,6 +313,7 @@ const loginProf = asyncHandler(async (req, res) => {
       )
     );
 });
+
 const logoutProf = asyncHandler(async (req, res) => {
   await Professor.findByIdAndUpdate(
     req.professor._id,
@@ -430,6 +466,15 @@ const applyToSummer = asyncHandler(async (req, res) => {
 
   await user.save();
 
+  if (appliedProfIds.length > 0 && user.summerAppliedProfs.length === appliedProfIds.length) {
+    // This is their first time applying, create a pending internship record
+    await Internship.create({
+      student: user._id,
+      type: "research",
+      location: "inside_bit",
+    });
+  }
+
   const responseMessage = {
     appliedProfessors: appliedProfIds,
     errors,
@@ -514,18 +559,16 @@ const selectSummerStudents = asyncHandler(async (req, res) => {
       );
       await student.save({ session });
       // console.log("check2!");
-      const internRecord = await Internship.create(
-        [
-          {
-            student: student._id,
-            type: "research",
-            location: "inside_bit",
-            mentor: profId,
-            startDate: new Date(),
-            endDate: new Date(),
-          },
-        ],
-        { session }
+      const internRecord = await Internship.findOneAndUpdate(
+        { student: student._id, mentor: { $exists: false } },
+        {
+          type: "research",
+          location: "inside_bit",
+          mentor: profId,
+          startDate: new Date(),
+          endDate: new Date(),
+        },
+        { upsert: true, new: true, session }
       );
       // console.log("check3!");
       if (!internRecord) {
@@ -569,7 +612,7 @@ const incrementLimit = asyncHandler(async (req, res) => {
   if (!professor) {
     throw new ApiError(404, "Professor not found!");
   }
-  if (!limit || !type) {
+  if (limit === undefined || limit === null || !type) {
     throw new ApiError(400, "Limit and field are required!");
   }
   if (type == "summer_training") {
@@ -630,7 +673,7 @@ const denyGroup = asyncHandler(async (req, res) => {
   prof.appliedGroups.summer_training.pull(_id);
   group.deniedProf.push(profId);
   group.preferenceLastMovedAt = Date.now();
-  await group.save();
+  await group.save({ validateBeforeSave: false });
   await prof.save();
   if (group.summerAppliedProfs.length > 0) {
     const profToApply = group.summerAppliedProfs[0];
@@ -689,38 +732,24 @@ const acceptGroup = asyncHandler(async (req, res) => {
     }
     group.summerAllocatedProf = profId;
     group.summerAppliedProfs = [];
+    if (!group.location) group.location = "inside_bit";
     await group.save({ session });
     prof.currentCount.summer_training += numOfMem;
     prof.appliedGroups.summer_training.pull(group._id);
     prof.students.summer_training.push(group._id);
     await prof.save({ session });
-    let internships;
-    if (group.typeOfSummer === "research") {
-      internships = group.members.map((studentId) => ({
-        student: studentId,
-        type: group.typeOfSummer,
-        location: "inside_bit",
-        mentor: profId,
-      }));
-    } else {
-      internships = group.members.map((studentId) => ({
-        student: studentId,
-        type: group.typeOfSummer,
-        location: "outside_bit",
-        company: group.org,
-        mentor: profId,
-      }));
+    for (const studentId of group.members) {
+      await Internship.findOneAndUpdate(
+        { student: studentId, mentor: { $exists: false } },
+        {
+          type: group.typeOfSummer,
+          location: group.location || (group.typeOfSummer === "research" ? "inside_bit" : "outside_bit"),
+          company: group.typeOfSummer === "industrial" ? group.org : undefined,
+          mentor: profId,
+        },
+        { upsert: true, new: true, session }
+      );
     }
-
-    // const internships = group.members.map((studentId) => ({
-    //   student: studentId,
-    //   type: group.typeOfSummer,
-    //   location:
-    //     group.typeOfSummer === "research" ? "inside_bit" : "outside_bit",
-    //   company: group.typeOfSummer === "industrial" ? group.org : null,
-    //   mentor: profId,
-    // }));
-    await Internship.insertMany(internships, { session });
     await session.commitTransaction();
     session.endSession();
     return res.status(200).json(new ApiResponse(200, "Group accepted"));
@@ -753,9 +782,6 @@ const acceptedGroups = asyncHandler(async (req, res) => {
     .populate("deniedProf")
     .populate({
       path: "discussion.absent",
-    })
-    .populate({
-      path: "discussion.description",
     })
     .populate({
       path: "org",
@@ -1174,7 +1200,7 @@ const denyMinorGroup = asyncHandler(async (req, res) => {
   prof.appliedGroups.minor_project.pull(_id);
   group.deniedProf.push(profId);
   group.preferenceLastMovedAt = Date.now();
-  await group.save();
+  await group.save({ validateBeforeSave: false });
   await prof.save();
   if (group.minorAppliedProfs.length > 0) {
     const profToApply = group.minorAppliedProfs[0];
@@ -1252,9 +1278,6 @@ const acceptedMinorGroups = asyncHandler(async (req, res) => {
     .populate("deniedProf")
     .populate({
       path: "discussion.absent",
-    })
-    .populate({
-      path: "discussion.description",
     });
   return res
     .status(200)
@@ -1521,7 +1544,7 @@ const denyMajorGroup = asyncHandler(async (req, res) => {
   prof.appliedGroups.major_project.pull(_id);
   group.deniedProf.push(profId);
   group.preferenceLastMovedAt = Date.now();
-  await group.save();
+  await group.save({ validateBeforeSave: false });
   await prof.save();
   if (group.majorAppliedProfs.length > 0) {
     const profToApply = group.majorAppliedProfs[0];
@@ -1600,9 +1623,6 @@ const acceptedMajorGroups = asyncHandler(async (req, res) => {
     .populate("org")
     .populate({
       path: "discussion.absent",
-    })
-    .populate({
-      path: "discussion.description",
     });
   return res
     .status(200)
@@ -1830,4 +1850,5 @@ export {
   mergeGroups,
   otpForgotPassword,
   changePassword,
+  saveSummerProjectTitle,
 };

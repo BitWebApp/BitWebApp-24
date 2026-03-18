@@ -56,6 +56,7 @@ import Layout from "./components/Layout";
 import Login from "./components/Login";
 import Loginadmin from "./components/Loginadmin";
 import LoginFaculty from "./components/LoginFaculty";
+import GroupManagement from "./components/GroupManagement";
 import MajorGroupManagement from "./components/MajorGroupManagement";
 import MajorProject from "./components/MajorProject";
 import MajorProjectTable from "./components/MajorProjectTable";
@@ -92,6 +93,7 @@ import UserBugReporter from "./components/UserBugReporter";
 import Userform from "./components/userform";
 import VerifyUsers from "./components/VerifyUsers";
 import ViewProfProjectDetails from "./components/ViewProfProjectDetails";
+import Research from "./components/Research";
 export default function App() {
   return (
     <Router>
@@ -138,14 +140,14 @@ export default function App() {
           <Route path="internship-form" element={<InternshipForm />} />
           <Route path="interview" element={<InterviewForm />} />
           <Route path="classroom-form" element={<ClassroomForm />} />
-          {/* <Route path="apply-summer" element={<Research />} /> */}
+          <Route path="apply-summer" element={<Research />} />
           <Route path="apply-minor" element={<MinorProject />} />
           <Route path="apply-major" element={<MajorProject />} />
           <Route path="userform" element={<Userform />} />
           <Route path="add-work-experience" element={<AddWorkExperience />} />
           <Route path="show-work-experience" element={<ShowWorkExperience />} />
           <Route path="academic-form" element={<Academicform />} />
-          {/* <Route path="manage-group" element={<GroupManagement />} /> */}
+          <Route path="manage-group" element={<GroupManagement />} />
           <Route path="manage-minor-group" element={<MinorGroupManagement />} />
           <Route path="manage-major-group" element={<MajorGroupManagement />} />
           <Route path="room-status" element={<RoomStatus />} />

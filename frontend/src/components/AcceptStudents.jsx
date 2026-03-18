@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
-import { FaUsers, FaCheckCircle, FaTimesCircle, FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
+import {
+  FaUsers,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaSearch,
+} from "react-icons/fa";
 import Swal from "sweetalert2";
 import ChatBox from "./ChatBox";
 
@@ -20,19 +28,21 @@ const AcceptStudents = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [marks, setMarks] = useState({});
   const [showMarksInputFor, setShowMarksInputFor] = useState(null);
+  const [projectTitles, setProjectTitles] = useState({});
 
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const [appliedResponse, getLimits, acceptedResponse] = await Promise.all([
-          axios.get("/api/v1/prof/getAppliedGroups"),
-          axios.get("/api/v1/prof/get-limit"),
-          axios.get("/api/v1/prof/accepted-groups")
-        ]);
-        
+        const [appliedResponse, getLimits, acceptedResponse] =
+          await Promise.all([
+            axios.get("/api/v1/prof/getAppliedGroups"),
+            axios.get("/api/v1/prof/get-limit"),
+            axios.get("/api/v1/prof/accepted-groups"),
+          ]);
+
         setAppliedGroups(appliedResponse.data.data);
         setLimits(getLimits.data.data);
-        setAcceptedGroups(acceptedResponse.data.message);
+        setAcceptedGroups(acceptedResponse.data.data);
       } catch (err) {
         toast.error(err.response?.data?.message || "Failed to fetch groups.");
       }
@@ -41,27 +51,38 @@ const AcceptStudents = () => {
   }, [marks]);
 
   // Filter groups based on search term
-  const filteredGroups = (viewMode === "applied" ? appliedGroups : acceptedGroups).filter(group => 
-    group.groupId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    group.members.some(member => 
-      member.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.rollNumber.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+  const groupsToFilter =
+    viewMode === "applied" ? appliedGroups : acceptedGroups;
+
+  const filteredGroups = Array.isArray(groupsToFilter)
+    ? groupsToFilter.filter(
+        (group) =>
+          group.groupId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          group.members?.some(
+            (member) =>
+              member.fullName
+                ?.toLowerCase()
+                .includes(searchTerm.toLowerCase()) ||
+              member.rollNumber
+                ?.toLowerCase()
+                .includes(searchTerm.toLowerCase()),
+          ),
+      )
+    : [];
 
   const handleGiveMarks = async (studentId) => {
     if (!marks[studentId] || isNaN(marks[studentId])) {
       toast.error("Please enter valid marks");
       return;
     }
-  
+
     try {
       const response = await axios.post("/api/v1/group/give-marks", {
         userId: studentId,
-        marks: parseFloat(marks[studentId])
+        marks: parseFloat(marks[studentId]),
       });
       toast.success(response.data.message);
-      setMarks(prev => ({ ...prev, [studentId]: "" }));
+      setMarks((prev) => ({ ...prev, [studentId]: "" }));
       setShowMarksInputFor(null);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to submit marks");
@@ -96,12 +117,14 @@ const AcceptStudents = () => {
         url("/images/confetti.gif")
         left top
         no-repeat
-      `
+      `,
     });
 
     if (result.isConfirmed) {
       try {
-        const response = await axios.post("/api/v1/prof/accept-group", { _id: groupId });
+        const response = await axios.post("/api/v1/prof/accept-group", {
+          _id: groupId,
+        });
         toast.success(response.data.message);
         if (response.status === 200) window.location.reload();
       } catch (err) {
@@ -120,12 +143,14 @@ const AcceptStudents = () => {
       cancelButtonColor: "#6B7280",
       confirmButtonText: "Yes, deny",
       cancelButtonText: "Cancel",
-      background: "#F9FAFB"
+      background: "#F9FAFB",
     });
 
     if (result.isConfirmed) {
       try {
-        const response = await axios.post("/api/v1/prof/deny-group", { _id: groupId });
+        const response = await axios.post("/api/v1/prof/deny-group", {
+          _id: groupId,
+        });
         toast.success(response.data.message);
         if (response.status === 200) window.location.reload();
       } catch (err) {
@@ -136,7 +161,9 @@ const AcceptStudents = () => {
 
   const handleSelectAcceptedGroup = (groupId) => {
     setSelectedAcceptedGroups((prev) =>
-      prev.includes(groupId) ? prev.filter((id) => id !== groupId) : [...prev, groupId]
+      prev.includes(groupId)
+        ? prev.filter((id) => id !== groupId)
+        : [...prev, groupId],
     );
   };
 
@@ -155,12 +182,14 @@ const AcceptStudents = () => {
       cancelButtonColor: "#6B7280",
       confirmButtonText: "Confirm Merge",
       cancelButtonText: "Cancel",
-      background: "#F9FAFB"
+      background: "#F9FAFB",
     });
 
     if (result.isConfirmed) {
       try {
-        const response = await axios.post("/api/v1/prof/merge-groups", { groupIds: selectedAcceptedGroups });
+        const response = await axios.post("/api/v1/prof/merge-groups", {
+          groupIds: selectedAcceptedGroups,
+        });
         toast.success(response.data.message);
         if (response.status === 200) window.location.reload();
       } catch (err) {
@@ -184,7 +213,9 @@ const AcceptStudents = () => {
       setRemark("");
       await handleGetDiscussionLogs(selectedGroup);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to create discussion log.");
+      toast.error(
+        err.response?.data?.message || "Failed to create discussion log.",
+      );
     }
   };
 
@@ -195,7 +226,28 @@ const AcceptStudents = () => {
       setDiscussionLogs(response.data.data);
       // console.log(response.data.data)
     } catch (err) {
-      toast.error(err.response?.data?.data || "Failed to fetch discussion logs.");
+      toast.error(
+        err.response?.data?.data || "Failed to fetch discussion logs.",
+      );
+    }
+  };
+
+  const handleSaveProjectTitle = async (groupId) => {
+    if (!projectTitles[groupId]) {
+      toast.error("Enter project title");
+      return;
+    }
+
+    try {
+      const res = await axios.post("/api/v1/prof/save-summer-project-title", {
+        groupId,
+        projectTitle: projectTitles[groupId],
+      });
+
+      toast.success(res.data.message);
+      window.location.reload();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to save");
     }
   };
 
@@ -205,7 +257,9 @@ const AcceptStudents = () => {
       <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
-          <h1 className="text-3xl md:text-4xl font-bold text-center">Summer Training Groups</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-center">
+            Summer Training Groups
+          </h1>
           <p className="text-center text-blue-100 mt-2">
             Limit Left : You are left to accept {limits} students only.
           </p>
@@ -255,22 +309,33 @@ const AcceptStudents = () => {
           {filteredGroups.length > 0 ? (
             <div className="space-y-4">
               {filteredGroups.map((group) => (
-                <div key={group._id} className="border border-gray-200 rounded-lg overflow-hidden">
+                <div
+                  key={group._id}
+                  className="border border-gray-200 rounded-lg overflow-hidden"
+                >
                   {/* Group Header */}
-                  <div className={`p-4 flex items-center justify-between ${selectedGroup === group._id ? 'bg-blue-50' : 'bg-white'} hover:bg-gray-50 cursor-pointer`}>
+                  <div
+                    className={`p-4 flex items-center justify-between ${selectedGroup === group._id ? "bg-blue-50" : "bg-white"} hover:bg-gray-50 cursor-pointer`}
+                  >
                     <div className="flex items-center space-x-4">
-                      {viewMode === "accepted" && (
-                        <input
-                          type="checkbox"
-                          checked={selectedAcceptedGroups.includes(group._id)}
-                          onChange={() => handleSelectAcceptedGroup(group._id)}
-                          className="h-5 w-5 text-blue-600 rounded focus:ring-blue-500"
-                        />
+                      {viewMode === "accepted" && group.projectTitle && (
+                        <div className="hidden md:flex flex-col mr-4">
+                          <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Project Title</span>
+                          <span className="text-sm font-semibold text-green-700 max-w-xs truncate" title={group.projectTitle}>
+                            {group.projectTitle}
+                          </span>
+                        </div>
                       )}
                       <div>
-                        <h3 className="font-bold text-lg text-gray-800">Group ID: {group.groupId}</h3>
-                        <p className="text-gray-600">{group.members.length} members</p>
-                        <p className="text-gray-600">{group?.org?.companyName.toUpperCase()}</p>
+                        <h3 className="font-bold text-lg text-gray-800">
+                          Group ID: {group.groupId}
+                        </h3>
+                        <p className="text-gray-600">
+                          {group.members.length} members
+                        </p>
+                        <p className="text-gray-600">
+                          {group?.org?.companyName.toUpperCase()}
+                        </p>
                       </div>
                     </div>
                     <div className="flex space-x-2">
@@ -305,141 +370,223 @@ const AcceptStudents = () => {
                   {/* Expanded Members View */}
                   {selectedGroup === group._id && (
                     <div className="p-4 bg-gray-50 border-t">
-                      <h4 className="font-semibold text-lg text-gray-800 mb-4">Group Members</h4>
+                      {/* Project Title Section */}
+                      {viewMode === "accepted" && (
+                        <div className="bg-green-50 rounded-lg p-5 border border-green-200 mb-6 shadow-sm">
+                          <h3 className="text-sm font-bold text-green-800 uppercase tracking-wider mb-2">Project Title</h3>
+                          <div className="flex flex-col md:flex-row gap-3">
+                            <input
+                              type="text"
+                              placeholder="Enter Project Title"
+                              value={
+                                projectTitles[group._id] !== undefined
+                                  ? projectTitles[group._id]
+                                  : (group.projectTitle || "")
+                              }
+                              onChange={(e) =>
+                                setProjectTitles({
+                                  ...projectTitles,
+                                  [group._id]: e.target.value,
+                                })
+                              }
+                              className="flex-1 px-4 py-3 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all text-gray-800"
+                            />
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSaveProjectTitle(group._id);
+                              }}
+                              className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md font-medium whitespace-nowrap flex items-center justify-center gap-2"
+                            >
+                              <FaCheckCircle /> Save Title
+                            </button>
+                          </div>
+                          {(!group.projectTitle || group.projectTitle.trim() === "") && (
+                            <p className="text-gray-500 text-sm mt-2 flex items-center gap-1 italic">
+                              <span className="text-amber-500">⚠️</span> Project title is currently not set for this group.
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      <h4 className="font-semibold text-lg text-gray-800 mb-4">
+                        Group Members
+                      </h4>
                       <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                           <thead className="bg-gray-100">
                             <tr>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marks</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Photo</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Roll No</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CGPA</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profiles</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Marks
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Photo
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Name
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Roll No
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                CGPA
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Branch
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Profiles
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
-                          {group.members.map((member, index) => (
-                            <tr key={member._id} className="hover:bg-gray-50">
-                              {(viewMode === "accepted") && (
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                {showMarksInputFor === member._id ? (
-                                  <div className="flex items-center space-x-2">
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      max="50"
-                                      step="1"
-                                      value={marks[member._id] ?? member.marks.summerTraining ?? ""}
-                                      onChange={(e) => {
-                                        const value = e.target.value;
-                                        // Allow empty string or valid number between 0-50
-                                        if (value === "" || (!isNaN(value) && value >= 0 && value <= 50)) {
-                                          setMarks(prev => ({
-                                            ...prev,
-                                            [member._id]: value === "" ? "" : value
-                                          }));
+                            {group.members.map((member, index) => (
+                              <tr key={member._id} className="hover:bg-gray-50">
+                                {viewMode === "accepted" && (
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    {showMarksInputFor === member._id ? (
+                                      <div className="flex items-center space-x-2">
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          max="50"
+                                          step="1"
+                                          value={
+                                            marks[member._id] ??
+                                            member.marks.summerTraining ??
+                                            ""
+                                          }
+                                          onChange={(e) => {
+                                            const value = e.target.value;
+                                            // Allow empty string or valid number between 0-50
+                                            if (
+                                              value === "" ||
+                                              (!isNaN(value) &&
+                                                value >= 0 &&
+                                                value <= 50)
+                                            ) {
+                                              setMarks((prev) => ({
+                                                ...prev,
+                                                [member._id]:
+                                                  value === "" ? "" : value,
+                                              }));
+                                            }
+                                          }}
+                                          onBlur={(e) => {
+                                            if (e.target.value === "") {
+                                              setMarks((prev) => ({
+                                                ...prev,
+                                                [member._id]: "0",
+                                              }));
+                                            }
+                                          }}
+                                          className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                          placeholder="0-50"
+                                        />
+                                        <span className="text-xs text-gray-500">
+                                          /50
+                                        </span>
+                                        <button
+                                          onClick={() =>
+                                            handleGiveMarks(member._id)
+                                          }
+                                          className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm"
+                                        >
+                                          Submit
+                                        </button>
+                                        <button
+                                          onClick={() =>
+                                            setShowMarksInputFor(null)
+                                          }
+                                          className="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors text-sm"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        onClick={() =>
+                                          setShowMarksInputFor(member._id)
                                         }
-                                      }}
-                                      onBlur={(e) => {
-                                        if (e.target.value === "") {
-                                          setMarks(prev => ({
-                                            ...prev,
-                                            [member._id]: "0"
-                                          }));
-                                        }
-                                      }}
-                                      className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                                      placeholder="0-50"
+                                        className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors flex items-center"
+                                      >
+                                        <span>
+                                          {member.marks.summerTraining || 0}/50
+                                        </span>
+                                        <FaEdit className="ml-2 text-sm" />
+                                      </button>
+                                    )}
+                                  </td>
+                                )}
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="flex flex-col items-center">
+                                    <img
+                                      src={
+                                        member.image ||
+                                        "/images/default-avatar.png"
+                                      }
+                                      alt={member.fullName}
+                                      className="h-10 w-10 rounded-full object-cover"
                                     />
-                                    <span className="text-xs text-gray-500">/50</span>
-                                    <button
-                                      onClick={() => handleGiveMarks(member._id)}
-                                      className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm"
-                                    >
-                                      Submit
-                                    </button>
-                                    <button
-                                      onClick={() => setShowMarksInputFor(null)}
-                                      className="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors text-sm"
-                                    >
-                                      Cancel
-                                    </button>
+                                    {index === 0 && (
+                                      <span className="ml-2 px-2 py-0.5 bg-red-50 text-red-600 text-xs font-medium rounded-full">
+                                        Team Lead
+                                      </span>
+                                    )}
                                   </div>
-                                ) : (
-                                  <button
-                                    onClick={() => setShowMarksInputFor(member._id)}
-                                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors flex items-center"
-                                  >
-                                    <span>{member.marks.summerTraining || 0}/50</span>
-                                    <FaEdit className="ml-2 text-sm" />
-                                  </button>
-                                )}
-                              </td>
-                              )}
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex flex-col items-center">
-                                  <img 
-                                    src={member.image || "/images/default-avatar.png"} 
-                                    alt={member.fullName}
-                                    className="h-10 w-10 rounded-full object-cover"
-                                  />
-                                  {index === 0 && (
-                                    <span className="ml-2 px-2 py-0.5 bg-red-50 text-red-600 text-xs font-medium rounded-full">
-                                      Team Lead
-                                    </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
+                                  {member.fullName}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                                  {member.rollNumber}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                                  {member.cgpa}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                                  {member.branch ===
+                                  "computer science and engineering"
+                                    ? "CSE"
+                                    : member.branch ===
+                                        "artificial intelligence and machine learning"
+                                      ? "AIML"
+                                      : member.branch}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap space-x-2">
+                                  {member.codingProfiles?.leetcode && (
+                                    <a
+                                      href={member.codingProfiles.leetcode}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-block px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs hover:bg-orange-200"
+                                    >
+                                      LeetCode
+                                    </a>
                                   )}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
-                                {member.fullName}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                                {member.rollNumber}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                                {member.cgpa}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                                {member.branch === "computer science and engineering" ? "CSE" : 
-                                member.branch === "artificial intelligence and machine learning" ? "AIML" : 
-                                member.branch}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap space-x-2">
-                                {member.codingProfiles?.leetcode && (
-                                  <a 
-                                    href={member.codingProfiles.leetcode} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="inline-block px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs hover:bg-orange-200"
-                                  >
-                                    LeetCode
-                                  </a>
-                                )}
-                                {member.codingProfiles?.github && (
-                                  <a 
-                                    href={member.codingProfiles.github} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="inline-block px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs hover:bg-gray-200"
-                                  >
-                                    GitHub
-                                  </a>
-                                )}
-                                {member.linkedin && (
-                                  <a 
-                                    href={member.linkedin} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs hover:bg-blue-200"
-                                  >
-                                    LinkedIn
-                                  </a>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
+                                  {member.codingProfiles?.github && (
+                                    <a
+                                      href={member.codingProfiles.github}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-block px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs hover:bg-gray-200"
+                                    >
+                                      GitHub
+                                    </a>
+                                  )}
+                                  {member.linkedin && (
+                                    <a
+                                      href={member.linkedin}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs hover:bg-blue-200"
+                                    >
+                                      LinkedIn
+                                    </a>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
                           </tbody>
                         </table>
                       </div>
@@ -448,7 +595,9 @@ const AcceptStudents = () => {
                       {viewMode === "accepted" && (
                         <div className="mt-6">
                           <div className="flex justify-between items-center mb-4">
-                            <h4 className="font-semibold text-lg text-gray-800">Discussion Logs</h4>
+                            <h4 className="font-semibold text-lg text-gray-800">
+                              Discussion Logs
+                            </h4>
                             <button
                               onClick={() => setShowModal(true)}
                               className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -457,22 +606,40 @@ const AcceptStudents = () => {
                               Add Log
                             </button>
                           </div>
-                          
+
                           {discussionLogs.length > 0 ? (
                             <div className="space-y-3">
                               {discussionLogs.map((log, index) => (
-                                <div key={index} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                                <div
+                                  key={index}
+                                  className="bg-white p-4 rounded-lg shadow-sm border border-gray-200"
+                                >
                                   <div className="flex justify-between items-start">
                                     <div>
-                                      <p className="text-gray-700"><span className="font-medium">Description:</span> {log.description}</p>
+                                      <p className="text-gray-700">
+                                        <span className="font-medium">
+                                          Description:
+                                        </span>{" "}
+                                        {log.description}
+                                      </p>
                                       {log.absent?.length > 0 && (
                                         <p className="text-gray-700 mt-1">
-                                          <span className="font-medium">Absentees:</span> {log.absent.map(a => a.fullName).join(", ")}
+                                          <span className="font-medium">
+                                            Absentees:
+                                          </span>{" "}
+                                          {log.absent
+                                            .map((a) => a.fullName)
+                                            .join(", ")}
                                         </p>
                                       )}
                                       {log.remark && (
                                         <p className="text-gray-700 mt-1">
-                                          <span className="font-medium">Remark:</span> <span className="capitalize">{log.remark}</span>
+                                          <span className="font-medium">
+                                            Remark:
+                                          </span>{" "}
+                                          <span className="capitalize">
+                                            {log.remark}
+                                          </span>
                                         </p>
                                       )}
                                     </div>
@@ -496,7 +663,9 @@ const AcceptStudents = () => {
                       )}
 
                       <div className="mt-6">
-                        <h4 className="font-semibold text-lg text-gray-800 mb-4">Group Chat</h4>
+                        <h4 className="font-semibold text-lg text-gray-800 mb-4">
+                          Group Chat
+                        </h4>
                         <ChatBox groupId={group.groupId} />
                       </div>
                     </div>
@@ -509,9 +678,13 @@ const AcceptStudents = () => {
               <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                 <FaUsers className="text-gray-400 text-3xl" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900">No groups found</h3>
+              <h3 className="text-lg font-medium text-gray-900">
+                No groups found
+              </h3>
               <p className="mt-1 text-gray-500">
-                {searchTerm ? "Try adjusting your search" : `No ${viewMode === "applied" ? "applied" : "accepted"} groups at this time`}
+                {searchTerm
+                  ? "Try adjusting your search"
+                  : `No ${viewMode === "applied" ? "applied" : "accepted"} groups at this time`}
               </p>
             </div>
           )}
@@ -523,11 +696,15 @@ const AcceptStudents = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
             <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Create Discussion Log</h2>
-              
+              <h2 className="text-xl font-bold text-gray-800 mb-4">
+                Create Discussion Log
+              </h2>
+
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
                   <input
                     type="text"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
@@ -535,32 +712,40 @@ const AcceptStudents = () => {
                     onChange={(e) => setDescription(e.target.value)}
                   />
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Absentees</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Absentees
+                  </label>
                   <div className="space-y-2">
-                    {acceptedGroups.find(g => g._id === selectedGroup)?.members.map(member => (
-                      <div key={member._id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={absentees.includes(member._id)}
-                          onChange={() => setAbsentees(prev => 
-                            prev.includes(member._id) 
-                              ? prev.filter(id => id !== member._id) 
-                              : [...prev, member._id]
-                          )}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                        <label className="ml-2 text-sm text-gray-700">
-                          {member.fullName} ({member.rollNumber})
-                        </label>
-                      </div>
-                    ))}
+                    {acceptedGroups
+                      .find((g) => g._id === selectedGroup)
+                      ?.members.map((member) => (
+                        <div key={member._id} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={absentees.includes(member._id)}
+                            onChange={() =>
+                              setAbsentees((prev) =>
+                                prev.includes(member._id)
+                                  ? prev.filter((id) => id !== member._id)
+                                  : [...prev, member._id],
+                              )
+                            }
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                          <label className="ml-2 text-sm text-gray-700">
+                            {member.fullName} ({member.rollNumber})
+                          </label>
+                        </div>
+                      ))}
                   </div>
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Remark</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Remark
+                  </label>
                   <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                     value={remark}
@@ -574,7 +759,7 @@ const AcceptStudents = () => {
                   </select>
                 </div>
               </div>
-              
+
               <div className="mt-6 flex justify-end space-x-3">
                 <button
                   onClick={() => setShowModal(false)}

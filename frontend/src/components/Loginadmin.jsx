@@ -28,25 +28,13 @@ export default function SignInPage() {
         navigate("/admin-db/");
       }, 2000);
     } catch (error) {
-      if (error.response && error.response.data) {
-        const htmlDoc = new DOMParser().parseFromString(
-          error.response.data,
-          "text/html"
-        );
-        const errorElement = htmlDoc.querySelector("body");
-        if (errorElement) {
-          const errorMessage = errorElement.textContent.trim();
-          const errormsg = errorMessage.split("at")[0].trim();
-          // console.log(errormsg);
-          toast.error(errormsg);
-        } else {
-          // console.log("Error: An unknown error occurred");
-          toast.error("An unknown error occurred");
-        }
-      } else {
-        // console.log("Error:", error.message);
-        toast.error("Error occurred during signup");
-      }
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+
+      toast.error(message);
     } finally {
       setLoading(false); // Set loading to false after the login process is complete
     }
@@ -73,7 +61,9 @@ export default function SignInPage() {
           </p>
           <p className="mb-4">
             <div className="flex justify-between items-center">
-              <label className="block text-left text-sm font-medium text-gray-700">Password</label>
+              <label className="block text-left text-sm font-medium text-gray-700">
+                Password
+              </label>
               <Link
                 to="/forgot-password"
                 className="text-sm text-blue-500 hover:text-blue-700 font-medium"
@@ -104,11 +94,17 @@ export default function SignInPage() {
         <footer className="text-sm text-gray-600">
           <p className="mb-2">
             First time?{" "}
-            <Link to="/sg.a" className="text-blue-500 hover:text-blue-700 font-medium">
+            <Link
+              to="/sg.a"
+              className="text-blue-500 hover:text-blue-700 font-medium"
+            >
               Create an account
             </Link>
           </p>
-          <Link to="/" className="text-blue-500 hover:text-blue-700 font-medium">
+          <Link
+            to="/"
+            className="text-blue-500 hover:text-blue-700 font-medium"
+          >
             Back to Homepage
           </Link>
         </footer>

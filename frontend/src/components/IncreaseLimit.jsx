@@ -62,7 +62,7 @@ const IncreaseLimit = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedProf || !limit || !type) {
+    if (!selectedProf || limit === "" || !type) {
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -228,7 +228,7 @@ const IncreaseLimit = () => {
             </label>
             <input
               type="number"
-              min="1"
+              min="0"
               className="w-full p-2 border rounded-lg"
               value={limit}
               onChange={(e) => setLimit(e.target.value)}

@@ -103,7 +103,7 @@ export default function Sidebar() {
     //   to: "/admin-db/internship-form-table",
     // },
     {
-      text: "Internship Records",
+      text: "Summer Internship Records",
       icon: <HiBriefcase />,
       to: "/admin-db/internship-table",
     },

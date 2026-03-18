@@ -63,41 +63,25 @@ const createGroup = asyncHandler(async (req, res) => {
   const user = await User.findById(leader);
   if (user?.MajorGroup) {
     // console.log("already in a group");
-    return res.status(409).json({
-      success: false,
-      message: "Already in a group",
-    });
-    // throw new ApiError(409, "Already in a group");
+    throw new ApiError(409, "Already in a group");
   }
   if (!type) {
     // console.log("type of major internship is required");
-    return res.status(400).json({
-      success: false,
-      message: "Type of major internship is required",
-    });
-    // throw new ApiError(400, "Type of major internship is required");
+    throw new ApiError(400, "Type of major internship is required");
   }
   if (type === "industrial" && !org) {
     // console.log("organisation name is required");
-    return res.status(400).json({
-      success: false,
-      message: "Organisation Name is required for industrial major internship",
-    });
-    // throw new ApiError(
-    //   400,
-    //   "Organisation Name is required for industrial major internship"
-    // );
+    throw new ApiError(
+      400,
+      "Organisation Name is required for industrial major internship"
+    );
   }
   let newGroup;
   if (org) {
     const company = await Company.findById(org);
     if (!company) {
       // console.log("company not found");
-      return res.status(404).json({
-        success: false,
-        message: "Company not found",
-      });
-      // throw new ApiError(404, "Company not found");
+      throw new ApiError(404, "Company not found");
     }
     newGroup = await Major.create({
       groupId: nanoid(),
@@ -107,7 +91,7 @@ const createGroup = asyncHandler(async (req, res) => {
       org,
     });
     user.MajorGroup = newGroup._id;
-    user.save();
+    await user.save();
   } else {
     newGroup = await Major.create({
       groupId: nanoid(),
@@ -116,7 +100,7 @@ const createGroup = asyncHandler(async (req, res) => {
       type,
     });
     user.MajorGroup = newGroup._id;
-    user.save();
+    await user.save();
   }
 
   return res

@@ -10,6 +10,11 @@ import "./cron-jobs/notifyProfMinor.js";
 import "./cron-jobs/autoMovePreferencesMinor.js";
 import "./cron-jobs/notifyMajorProf.js";
 import "./cron-jobs/autoMovePreferencesMajor.js";
+import fs from 'fs'
+
+//Creating mission public dir
+fs.mkdirSync(import.meta.dirname + '/../public/temp/', { recursive: true });
+fs.mkdirSync(import.meta.dirname + '/../public/uploads/', { recursive: true });
 
 // Global error handlers
 process.on("uncaughtException", (error) => {

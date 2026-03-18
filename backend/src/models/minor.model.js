@@ -6,6 +6,11 @@ const minorSchema = new Schema({
     required: true,
     index: true,
   },
+  projectTitle: {
+  type: String,
+  default: "",
+},
+
   leader: {
     type: Schema.Types.ObjectId,
     ref: "User",

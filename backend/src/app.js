@@ -2,6 +2,11 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 const app = express();
+import { User } from "./models/user.model.js";
+import { Company } from "./models/company.model.js";
+import { Professor } from "./models/professor.model.js";
+
+
 
 app.use(
   cors({
@@ -91,6 +96,7 @@ import {
 app.use(notFoundHandler);
 
 // Global error handler - must be the last middleware
-app.use(errorHandler);
+// Temporary debug test for companyInterview
+
 
 export { app };

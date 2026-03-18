@@ -10,6 +10,10 @@ const groupSchema = new Schema({
     type: String,
     enum: ["summer", "minor"],
   },
+  projectTitle: {
+  type: String,
+  default: "",
+},
   typeOfSummer: {
     type: String,
     enum: ["industrial", "research"],
@@ -21,6 +25,13 @@ const groupSchema = new Schema({
     required: function () {
       return this.type === "industrial";
     },
+  },
+  location: {
+    type: String,
+    enum: ["inside_bit", "outside_bit"],
+    required: function() {
+      return this.type === "summer";
+    }
   },
 
   leader: {

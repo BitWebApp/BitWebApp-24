@@ -121,16 +121,16 @@ export default function Sidebar() {
     //   icon: <FaCalendar />,
     //   to: "/db/booking-calendar",
     // },
-    // {
-    //   text: "Apply to Profs",
-    //   icon: <HiSun />,
-    //   to: "/db/apply-summer",
-    // },
-    // {
-    //   text: "Manage Group",
-    //   icon: <HiUserGroup />,
-    //   to: "/db/manage-group",
-    // },
+    {
+      text: "Apply to Profs",
+      icon: <HiSun />,
+      to: "/db/apply-summer",
+    },
+    {
+      text: "Manage Summer Intern Group",
+      icon: <HiUserGroup />,
+      to: "/db/manage-group",
+    },
     {
       text: "Apply to Minor",
       icon: <HiSun />,
@@ -194,19 +194,21 @@ export default function Sidebar() {
           />
         </Link>
 
-        <div className="whitespace-pre flex-1 py-[1rem] text-[0.9rem] flex flex-col gap-0.5">
+        <div className="flex-1 py-[1rem] text-[0.9rem] flex flex-col gap-0.5">
           {links.map((link, index) => (
             <Link
-              to={link.to}
-              key={index}
-              className={classNames(
-                "cursor-pointer border-t text-white hover:bg-orange-600 border-neutral-700",
-                linkclasses
-              )}
-            >
-              <span className="text-xl">{link.icon}</span>
-              {link.text}
-            </Link>
+  to={link.to}
+  key={index}
+  className={classNames(
+    "cursor-pointer border-t text-white hover:bg-orange-600 border-neutral-700",
+    linkclasses
+  )}
+>
+  <span className="text-xl shrink-0">{link.icon}</span>
+<span className="flex-1 min-w-0 break-words leading-tight">
+  {link.text}
+  </span>
+</Link>
           ))}
           <div
             onClick={() => handleLogout()}

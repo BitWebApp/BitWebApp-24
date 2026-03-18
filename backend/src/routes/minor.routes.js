@@ -14,6 +14,7 @@ import {
   getDiscussion,
   getDiscussionByStudent,
   addMarks,
+  setProjectTitle,
 } from "../controllers/minor.controller.js";
 import {
   verifyAdmin,
@@ -38,4 +39,6 @@ router.route("/add-remark").post(verifyProfessor, addRemarkAbsent);
 router.route("/get-disc").post(verifyProfessor, getDiscussion);
 router.route("/get-disc-student").post(verifyJWT, getDiscussionByStudent);
 router.route("/give-marks").post(verifyProfessor, addMarks);
+router.route("/set-project-title").patch(verifyProfessor, setProjectTitle);
 export default router;
+

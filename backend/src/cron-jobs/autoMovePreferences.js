@@ -52,7 +52,7 @@ const preprocessGroups = async () => {
 
           group.preferenceLastMovedAt = new Date();
         }
-        await group.save();
+        await group.save({ validateBeforeSave: false });
 
         if (
           originalFirstPref &&
@@ -75,13 +75,13 @@ const preprocessGroups = async () => {
 const moveApplications = async () => {
   try {
     console.log("Checking and moving pending applications...");
-    const fiveDaysAgo = moment().subtract(7, "days").toDate();
-    console.log(fiveDaysAgo);
-    console.log(`Looking for groups with no movement since: ${fiveDaysAgo}`);
+    const daysAgo = moment().subtract(2, "days").toDate();
+    console.log(daysAgo);
+    console.log(`Looking for groups with no movement since: ${daysAgo}`);
     const groups = await Group.find({
       summerAppliedProfs: { $exists: true, $ne: [] },
       summerAllocatedProf: { $exists: false },
-      preferenceLastMovedAt: { $lte: fiveDaysAgo },
+      preferenceLastMovedAt: { $lte: daysAgo },
     });
     console.log(
       `Found ${groups.length} groups eligible for preference movement`
@@ -118,7 +118,7 @@ const moveApplications = async () => {
         }
       }
       group.preferenceLastMovedAt = new Date();
-      await group.save();
+      await group.save({ validateBeforeSave: false });
       console.log(`Group ${group.groupId} saved successfully`);
     }
     console.log("Pending applications moved successfully!");
