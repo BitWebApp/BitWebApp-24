@@ -111,7 +111,7 @@ export default function ProfessorTable() {
               Major Project
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-              Intern Seats Left
+                SUMMER INTERNSHIP
             </th>
           </tr>
         </thead>
@@ -140,8 +140,7 @@ export default function ProfessorTable() {
                 {prof.currentCount?.major_project}/{prof.limits?.major_project}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {(prof.limits?.summer_training ?? 0) -
-                  (prof.currentCount?.summer_training ?? 0)}
+                {prof.currentCount?.summer_training}/{prof.limits?.summer_training}
               </td>
             </tr>
           ))}
