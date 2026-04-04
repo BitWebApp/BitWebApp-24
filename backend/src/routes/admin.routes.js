@@ -5,11 +5,13 @@ import {
   getAllAdmins,
   getAllMajorProjects,
   getAllMinorProjects,
+  getAllProfessors,
   getBatchStats,
   getCurrendAdmin,
   getUnverifiedUsers,
   loginAdmin,
   logoutAdmin,
+  reassignMajorMentor,
   registerAdmin,
   rejectUser,
   updateAdmin,
@@ -71,5 +73,7 @@ router.route("/admins/create").post(verifyMasterAdmin, createBatchAdmin);
 router.route("/admins/:adminId").patch(verifyMasterAdmin, updateAdmin);
 router.route("/admins/:adminId").delete(verifyMasterAdmin, deleteAdmin);
 router.route("/reset-summer-seats").post(verifyMasterAdmin, resetSummerTrainingSeats);
+router.route("/get-all-professors").get(verifyMasterAdmin, getAllProfessors);
+router.route("/reassign-major-mentor").post(verifyMasterAdmin, reassignMajorMentor);
 
 export default router;

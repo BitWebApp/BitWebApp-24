@@ -177,12 +177,15 @@ export default function Sidebar() {
   }, []);
 
   // Add Manage Admins link for master admins
-  const finalLinks = isMasterAdmin 
+  const finalLinks = isMasterAdmin
     ? [...adminLinks, {
+        text: "Reassign Major Mentor",
+        icon: <HiArchive />,
+        to: "/admin-db/reassign-major-mentor",
+      }, {
         text: "Manage Admins",
         icon: <HiUser />,
         to: "/admin-db/manage-admins",
-        isMasterOnly: true,
       }]
     : adminLinks;
   // const [isAdmin, setIsAdmin] = useState(true);

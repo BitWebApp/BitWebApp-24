@@ -60,6 +60,7 @@ import GroupManagement from "./components/GroupManagement";
 import MajorGroupManagement from "./components/MajorGroupManagement";
 import MajorProject from "./components/MajorProject";
 import MajorProjectTable from "./components/MajorProjectTable";
+import ReassignMajorMentor from "./components/ReassignMajorMentor";
 import MasterAdminDashboard from "./components/MasterAdminDashboard";
 import MinorGroupManagement from "./components/MinorGroupManagement";
 import MinorProject from "./components/MinorProject";
@@ -187,6 +188,7 @@ export default function App() {
           <Route path="internship-table" element={<Internshiptable />} />
           <Route path="minor-project-table" element={<MinorProjectTable />} />
           <Route path="major-project-table" element={<MajorProjectTable />} />
+          <Route path="reassign-major-mentor" element={<ReassignMajorMentor />} />
           <Route path="admin-room-request" element={<AdminRoomRequests />} />
           <Route path="companies-table" element={<AdminAddCompanies />} />
           <Route path="assign-company" element={<CompanyAssignmentForm />} />

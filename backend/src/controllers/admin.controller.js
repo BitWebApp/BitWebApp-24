@@ -798,17 +798,133 @@ const resetSummerTrainingSeats = asyncHandler(async (req, res) => {
     );
 });
 
+/**
+ * Get all professors (for admin dropdown when reassigning mentors)
+ */
+const getAllProfessors = asyncHandler(async (req, res) => {
+  const professors = await Professor.find(
+    {},
+    "fullName idNumber email currentCount limits"
+  ).sort({ fullName: 1 });
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, professors, "All professors fetched successfully")
+    );
+});
+
+/**
+ * Reassign a major project group's mentor from one professor to another.
+ * Updates: Major group, old professor, new professor — all in a transaction.
+ */
+const reassignMajorMentor = asyncHandler(async (req, res) => {
+  const { groupId, newProfessorId } = req.body;
+
+  if (!groupId || !newProfessorId) {
+    throw new ApiError(400, "groupId and newProfessorId are required");
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(newProfessorId)) {
+    throw new ApiError(400, "Invalid newProfessorId");
+  }
+
+  // Find the group by its 6-char groupId string
+  const group = await Major.findOne({ groupId }).populate("members");
+  if (!group) {
+    throw new ApiError(404, `Major group with ID "${groupId}" not found`);
+  }
+
+  const newProf = await Professor.findById(newProfessorId);
+  if (!newProf) {
+    throw new ApiError(404, "New professor not found");
+  }
+
+  // Check if already assigned to this professor
+  if (
+    group.majorAllocatedProf &&
+    group.majorAllocatedProf.toString() === newProfessorId
+  ) {
+    throw new ApiError(
+      409,
+      "This group is already assigned to the selected professor"
+    );
+  }
+
+  const numMembers = group.members.length;
+  const oldProfId = group.majorAllocatedProf;
+
+  // Start a transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // 1. Update the group's allocated professor
+    group.majorAllocatedProf = newProfessorId;
+    await group.save({ session, validateBeforeSave: false });
+
+    // 2. Remove from old professor (if one existed)
+    if (oldProfId) {
+      const oldProf = await Professor.findById(oldProfId).session(session);
+      if (oldProf) {
+        oldProf.students.major_project.pull(group._id);
+        oldProf.currentCount.major_project = Math.max(
+          0,
+          oldProf.currentCount.major_project - numMembers
+        );
+        await oldProf.save({ session });
+      }
+    }
+
+    // 3. Add to new professor
+    if (!newProf.students.major_project.includes(group._id)) {
+      newProf.students.major_project.push(group._id);
+    }
+    newProf.currentCount.major_project += numMembers;
+    await newProf.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    // Fetch updated group with populated data for the response
+    const updatedGroup = await Major.findById(group._id)
+      .populate("members", "fullName rollNumber email")
+      .populate("majorAllocatedProf", "fullName idNumber email")
+      .populate("org", "companyName");
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          updatedGroup,
+          `Mentor successfully reassigned to ${newProf.fullName}`
+        )
+      );
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Error reassigning mentor:", error);
+    throw new ApiError(
+      500,
+      "Something went wrong while reassigning mentor: " + error.message
+    );
+  }
+});
+
 export {
   createBatchAdmin,
   deleteAdmin,
   getAllAdmins,
   getAllMajorProjects,
   getAllMinorProjects,
+  getAllProfessors,
   getBatchStats,
   getCurrendAdmin,
   getUnverifiedUsers,
   loginAdmin,
   logoutAdmin,
+  reassignMajorMentor,
   registerAdmin,
   updateAdmin,
   verifyUser,
