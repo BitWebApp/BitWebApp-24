@@ -21,11 +21,15 @@ const MajorGroupManagement = () => {
 
 
   // Project Title State
+  const [inputProjectTitle, setInputProjectTitle] = useState("");
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState(null);
   // Effect: set input to current title if erased
   useEffect(() => {
-    // Optionally we can set other defaults when group changes
+    if (group?.projectTitle) {
+      setInputProjectTitle(group.projectTitle);
+    }
   }, [group]);
 
   // Helper function to check if current user has a pending request
@@ -142,6 +146,22 @@ const MajorGroupManagement = () => {
       toast.error(errorMessage || "Failed to add member");
       // handleError(error, "Failed to add member");
     }
+  };
+
+  const submitProjectTitle = async () => {
+    setLoading(true);
+    try {
+      await axios.post("/api/v1/major/set-project-title", {
+        projectTitle: inputProjectTitle,
+      });
+      toast.success("Project title set successfully");
+      setIsEditingTitle(false);
+      fetchGroup();
+    } catch (error) {
+      let errorMessage = error.response?.data?.message;
+      toast.error(errorMessage || "Failed to set project title");
+    }
+    setLoading(false);
   };
 
   const removeMember = async (rollNumber) => {
@@ -546,17 +566,60 @@ const MajorGroupManagement = () => {
                                                   <h3 className="text-sm font-medium text-green-800">Project Title</h3>
                                               <div className="flex flex-col sm:flex-row gap-2 mt-4">
                                                 <div className="flex-grow">
-                                                  {group?.projectTitle && group.projectTitle.trim() !== "" ? (
-                                                    <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                                                      <span className="text-gray-500 text-sm block mb-1">Current Title:</span>
-                                                      <span className="text-gray-800 font-medium">
-                                                        {group.projectTitle}
-                                                      </span>
+                                                  {group?.projectTitle && group.projectTitle.trim() !== "" && !isEditingTitle ? (
+                                                    <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg flex justify-between items-center">
+                                                      <div>
+                                                        <span className="text-gray-500 text-sm block mb-1">Current Title:</span>
+                                                        <span className="text-gray-800 font-medium">
+                                                          {group.projectTitle}
+                                                        </span>
+                                                      </div>
+                                                      {isLeader && (
+                                                        <button
+                                                          onClick={() => {
+                                                            setInputProjectTitle(group.projectTitle);
+                                                            setIsEditingTitle(true);
+                                                          }}
+                                                          className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
+                                                        >
+                                                          Edit
+                                                        </button>
+                                                      )}
                                                     </div>
                                                   ) : (
-                                                    <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-500 italic">
-                                                      No project title assigned yet.
-                                                    </div>
+                                                    isLeader ? (
+                                                      <div className="flex flex-col sm:flex-row gap-2">
+                                                        <input
+                                                          type="text"
+                                                          value={inputProjectTitle}
+                                                          onChange={(e) => setInputProjectTitle(e.target.value)}
+                                                          placeholder="Enter Project Title"
+                                                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        />
+                                                        <button
+                                                          onClick={submitProjectTitle}
+                                                          disabled={loading}
+                                                          className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-sm disabled:opacity-50"
+                                                        >
+                                                          {loading ? "Saving..." : "Save Title"}
+                                                        </button>
+                                                        {group?.projectTitle && (
+                                                          <button
+                                                            onClick={() => {
+                                                              setInputProjectTitle(group.projectTitle);
+                                                              setIsEditingTitle(false);
+                                                            }}
+                                                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors shadow-sm"
+                                                          >
+                                                            Cancel
+                                                          </button>
+                                                        )}
+                                                      </div>
+                                                    ) : (
+                                                      <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-500 italic">
+                                                        No project title assigned yet. Only the leader can assign it.
+                                                      </div>
+                                                    )
                                                   )}
                                                 </div>
                                               </div>

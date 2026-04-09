@@ -623,13 +623,13 @@ const AcceptMajorProject = () => {
                                     <input
                                       type="number"
                                       min="0"
-                                      max="50"
+                                      max="25"
                                       step="1"
                                       value={marks[member._id] ?? member.marks.majorProject ?? ""}
                                       onChange={(e) => {
                                         const value = e.target.value;
-                                        // Allow empty string or valid number between 0-50
-                                        if (value === "" || (!isNaN(value) && value >= 0 && value <= 50)) {
+                                        // Allow empty string or valid number between 0-25
+                                        if (value === "" || (!isNaN(value) && value >= 0 && value <= 25)) {
                                           setMarks(prev => ({
                                             ...prev,
                                             [member._id]: value === "" ? "" : value
@@ -645,9 +645,9 @@ const AcceptMajorProject = () => {
                                         }
                                       }}
                                       className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                                      placeholder="0-50"
+                                      placeholder="0-25"
                                     />
-                                    <span className="text-xs text-gray-500">/50</span>
+                                    <span className="text-xs text-gray-500">/25</span>
                                     <button
                                       onClick={() => handleGiveMarks(member._id)}
                                       className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm"
@@ -666,7 +666,7 @@ const AcceptMajorProject = () => {
                                     onClick={() => setShowMarksInputFor(member._id)}
                                     className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors flex items-center"
                                   >
-                                    <span>{member.marks.majorProject || 0}/50</span>
+                                    <span>{member.marks.majorProject || 0}/25</span>
                                     <FaEdit className="ml-2 text-sm" />
                                   </button>
                                 )}

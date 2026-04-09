@@ -2,14 +2,10 @@
 const setProjectTitle = asyncHandler(async (req, res) => {
   const userId = req?.user?._id;
   const { projectTitle } = req.body;
-  if (
-    !projectTitle ||
-    typeof projectTitle !== "string" ||
-    !projectTitle.trim()
-  ) {
+  if (projectTitle === undefined || typeof projectTitle !== "string") {
     return res.status(400).json({
       success: false,
-      message: "Project title is required.",
+      message: "Project title must be a string.",
     });
   }
   const user = await User.findById(userId);
@@ -30,13 +26,6 @@ const setProjectTitle = asyncHandler(async (req, res) => {
     return res.status(403).json({
       success: false,
       message: "Only the group leader can set the project title.",
-    });
-  }
-  if (group.projectTitle && group.projectTitle.trim().length > 0) {
-    return res.status(409).json({
-      success: false,
-      message:
-        "Project title has already been set and cannot be changed unless group type is changed.",
     });
   }
   group.projectTitle = projectTitle.trim();

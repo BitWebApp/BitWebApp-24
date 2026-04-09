@@ -219,7 +219,6 @@ const loginUser = asyncHandler(async (req, res) => {
     );
 });
 
-
 export const otpForgotPass = asyncHandler(async (req, res) => {
   try {
     const { email } = req.body;
