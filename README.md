@@ -63,3 +63,10 @@ Faculty Incharge - Prof. Suvendu Kanungo, Department of CSE, BIT Mesra.
 4. Parth Shresth - Frontend Developer
 5. Ankit Verma - Backend Developer
 6. Hritabhash Ray - Frontend Developer and Data Analyst
+
+### K23 Developers
+1. Shaurya Aditya Verma - Full Stack Developer
+2. Suryansh Dey - Full Stack Developer
+3. Saquib Jawed - Backend Developer
+4. Ankit Singh Sisodiya - Backend Developer
+5. Yash Aggarwal - Frontend Developer
