@@ -32,6 +32,12 @@ const MajorGroupManagement = () => {
     }
   }, [group]);
 
+  const currentGroup = group || typeChangeStatus?.group;
+  const currentOrgId = currentGroup?.org?._id || currentGroup?.org || "";
+  const availableCompanies = company.filter(
+    (comp) => comp._id !== currentOrgId
+  );
+
   // Helper function to check if current user has a pending request
   const currentUserHasPendingRequest = () => {
     if (!typeChangeStatus?.typeChangeRequests || !currentUser?._id) {
@@ -195,6 +201,19 @@ const MajorGroupManagement = () => {
   const requestTypeChange = async () => {
     if (!requestedType) {
       return toast.error("Please select a type");
+    }
+
+    if (requestedType === currentGroup?.type && requestedType !== "industrial") {
+      return toast.error("Group is already of this type");
+    }
+
+    if (
+      requestedType === "industrial" &&
+      currentGroup?.type === "industrial" &&
+      currentOrgId &&
+      requestedOrg === currentOrgId
+    ) {
+      return toast.error("Please select a different organization");
     }
 
     if (requestedType === "industrial" && !requestedOrg) {
@@ -389,27 +408,27 @@ const MajorGroupManagement = () => {
                       <div>
                         <span className="text-gray-600">Type: </span>
                         <span className="font-semibold text-blue-600 capitalize">
-                          {typeChangeStatus?.group?.type || "N/A"}
+                          {currentGroup?.type || "N/A"}
                         </span>
                       </div>
                       <div>
                         <span className="text-gray-600">Members: </span>
                         <span className="font-semibold">
-                          {typeChangeStatus?.group?.members?.length || 0}
+                          {currentGroup?.members?.length || 0}
                         </span>
                       </div>
-                      {typeChangeStatus?.group?.org && (
+                      {currentGroup?.org?.companyName && (
                         <div>
                           <span className="text-gray-600">Organization: </span>
                           <span className="font-semibold">
-                            {typeChangeStatus?.group?.org?.companyName}
+                            {currentGroup?.org?.companyName}
                           </span>
                         </div>
                       )}
                       <div>
                         <span className="text-gray-600">Professor: </span>
                         <span className="font-semibold">
-                          {typeChangeStatus?.group?.majorAllocatedProf?.fullName || "Not Allocated"}
+                          {currentGroup?.majorAllocatedProf?.fullName || "Not Allocated"}
                         </span>
                       </div>
                     </div>
@@ -464,7 +483,7 @@ const MajorGroupManagement = () => {
                           </div>
                         ))}
                       </div>
-                      {typeChangeStatus?.group?.majorAllocatedProf && (
+                      {currentGroup?.majorAllocatedProf && (
                         <p className="text-sm text-gray-600 mt-3">
                           ⏳ Waiting for professor approval. You cannot submit a new request while a request is pending.
                         </p>
@@ -496,7 +515,7 @@ const MajorGroupManagement = () => {
                         {requestedType === "industrial" && (
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Organization
+                              {currentGroup?.type === "industrial" ? "New Organization" : "Organization"}
                             </label>
                             <select
                               value={requestedOrg}
@@ -504,7 +523,7 @@ const MajorGroupManagement = () => {
                               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                               <option value="">Select Organization</option>
-                              {company.map((comp) => (
+                              {availableCompanies.map((comp) => (
                                 <option key={comp._id} value={comp._id}>
                                   {comp.companyName}
                                 </option>
@@ -513,11 +532,11 @@ const MajorGroupManagement = () => {
                           </div>
                         )}
 
-                        {typeChangeStatus?.group?.members?.length === 2 && requestedType === "industrial" && (
+                        {currentGroup?.members?.length === 2 && requestedType === "industrial" && (
                           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                             <p className="text-sm text-orange-800">
                               <strong>⚠️ Note:</strong> Changing to industrial type will split your 2-member group. 
-                              {typeChangeStatus?.group?.majorAllocatedProf 
+                              {currentGroup?.majorAllocatedProf 
                                 ? " The professor will decide the outcome." 
                                 : " You will be moved to a new industrial group, and the other member will remain in the current research group."}
                             </p>
@@ -526,7 +545,15 @@ const MajorGroupManagement = () => {
 
                         <button
                           onClick={requestTypeChange}
-                          disabled={loading || !requestedType || (requestedType === "industrial" && !requestedOrg)}
+                          disabled={
+                            loading ||
+                            !requestedType ||
+                            (requestedType === "industrial" && !requestedOrg) ||
+                            (requestedType === "industrial" &&
+                              currentGroup?.type === "industrial" &&
+                              currentOrgId &&
+                              requestedOrg === currentOrgId)
+                          }
                           className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                         >
                           {loading ? "Processing..." : "Submit Type Change Request"}
@@ -547,6 +574,7 @@ const MajorGroupManagement = () => {
                       <li>Industrial groups can only have 1 member</li>
                       <li>Changes before professor allocation are applied immediately</li>
                       <li>Changes after professor allocation require approval</li>
+                      <li>Industrial to industrial changes require a different organization</li>
                       <li>Type change requests cannot be cancelled</li>
                       {typeChangeStatus?.group?.members?.length === 2 && (
                         <li className="font-semibold">If both members request a type change, the professor will approve/reject both together</li>

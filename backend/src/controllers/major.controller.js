@@ -688,11 +688,25 @@ const requestTypeChange = asyncHandler(async (req, res) => {
     });
   }
 
-  // Check if same type
-  if (group.type === requestedType) {
+  const sameType = group.type === requestedType;
+  const sameOrg =
+    requestedType === "industrial" &&
+    group.org &&
+    org &&
+    group.org.toString() === org.toString();
+
+  // Allow industrial -> industrial only if organization changes
+  if (sameType && requestedType !== "industrial") {
     return res.status(400).json({
       success: false,
       message: "Group is already of this type",
+    });
+  }
+
+  if (sameType && requestedType === "industrial" && sameOrg) {
+    return res.status(400).json({
+      success: false,
+      message: "Group is already linked to this organization",
     });
   }
 
@@ -766,8 +780,10 @@ const requestTypeChange = asyncHandler(async (req, res) => {
       } else {
         group.org = undefined;
       }
-      // Erase project title on type change
-      group.projectTitle = "";
+      // Erase project title only on actual type change
+      if (!sameType) {
+        group.projectTitle = "";
+      }
       await group.save();
 
       return res
