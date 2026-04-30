@@ -1796,7 +1796,7 @@ const getPendingTypeChangeRequests = asyncHandler(async (req, res) => {
     "typeChangeRequests.status": "pending",
   })
     .populate(
-      "members leader typeChangeRequests.user typeChangeRequests.org majorAllocatedProf"
+      "members leader typeChangeRequests.user typeChangeRequests.org majorAllocatedProf org"
     )
     .lean();
 
