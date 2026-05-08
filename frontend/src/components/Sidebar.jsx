@@ -51,11 +51,11 @@ export default function Sidebar() {
       icon: <HiHome />,
       to: "/db",
     },
-    // {
-    //   text: "Alumni Profile",
-    //   icon: <HiUser />,
-    //   to: "/db/alumni",
-    // },
+    {
+      text: "Alumni",
+      icon: <HiUser />,
+      to: "/db/alumni",
+    },
     {
       text: "Academic Records",
       icon: <HiAcademicCap />,

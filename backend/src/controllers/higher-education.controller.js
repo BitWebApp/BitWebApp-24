@@ -2,7 +2,7 @@ import { HigherEducation } from "../models/higher-education.model.js";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { uploadOnCloudinary } from "../utils/Cloudinary.js";
+import { deleteFromCloudinary, uploadOnCloudinary } from "../utils/Cloudinary.js";
 
 const createHigherEducation = asyncHandler(async (req, res) => {
   const { institution, degree, fieldOfStudy, startDate, endDate } = req.body;
@@ -62,41 +62,38 @@ const getHigherEducations = asyncHandler(async (req, res) => {
   });
 });
 
-// const deleteHigherEducation = asyncHandler(async (req, res) => {
-//   const { id } = req.params;
+const deleteHigherEducation = asyncHandler(async (req, res) => {
+  const { id } = req.params;
 
-//   try {
-//     const deletedHigherEducation = await HigherEducation.findByIdAndDelete(id);
+  const higherEducation = await HigherEducation.findById(id);
+  if (!higherEducation) {
+    throw new ApiError(404, "Higher Education not found");
+  }
 
-//     if(!deletedHigherEducation){
-//       throw new ApiError(404, "Higher Education not found")
-//     }
+  if (higherEducation.name.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "Not authorized to delete this record");
+  }
 
-//     const docsURL = deletedHigherEducation.docs;
-//     if (docsURL && Array.isArray(docsURL) && docsURL.length > 0) {
-//       for (const url of docsURL) {
-//         try {
-//           const publicId = url.split("/").pop().split(".")[0];
-//           await deleteFromCloudinary(publicId);
-//         } catch (error) {
-//           console.error("Error deleting file from Cloudinary:", error);
-//         }
-//       }
-//     }
+  const docsURL = higherEducation.docs || [];
+  for (const url of docsURL) {
+    try {
+      const publicId = url.split("/").pop().split(".")[0];
+      await deleteFromCloudinary(publicId);
+    } catch (error) {
+      console.error("Error deleting file from Cloudinary:", error);
+    }
+  }
 
-//     await User.findByIdAndUpdate(deletedHigherEducation.name, { $pull: { higherEd: id } });
+  await HigherEducation.findByIdAndDelete(id);
+  await User.findByIdAndUpdate(higherEducation.name, {
+    $pull: { higherEd: id },
+  });
 
-//     res.status(200).json({
-//       success: true,
-//       data: {},
-//     });
-
-//   } catch (error) {
-//     console.error("Error deleting Higher-education", error);
-//     res.status(500).json({ error : "Internal Server Error" })
-//   }
-
-// });
+  res.status(200).json({
+    success: true,
+    data: {},
+  });
+});
 
 const getHigherEducationById = asyncHandler(async (req, res) => {
   const higherEducation = await HigherEducation.findById(req.params.id);
@@ -104,6 +101,82 @@ const getHigherEducationById = asyncHandler(async (req, res) => {
   if (!higherEducation) {
     throw new ApiError(404, "Higher Education not found");
   }
+
+  res.status(200).json({
+    success: true,
+    data: higherEducation,
+  });
+});
+
+const updateHigherEducation = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { institution, degree, fieldOfStudy, startDate, endDate, keepDocs } =
+    req.body;
+
+  const higherEducation = await HigherEducation.findById(id);
+  if (!higherEducation) {
+    throw new ApiError(404, "Higher Education not found");
+  }
+
+  if (higherEducation.name.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "Not authorized to edit this record");
+  }
+
+  let keepDocsList = [];
+  if (keepDocs) {
+    try {
+      keepDocsList = Array.isArray(keepDocs)
+        ? keepDocs
+        : JSON.parse(keepDocs);
+    } catch (error) {
+      throw new ApiError(400, "Invalid keepDocs payload");
+    }
+  } else {
+    keepDocsList = higherEducation.docs || [];
+  }
+
+  const newDocs = [];
+  const existingDocs = higherEducation.docs || [];
+
+  // Remove docs not present in keep list
+  const removedDocs = existingDocs.filter(
+    (docUrl) => !keepDocsList.includes(docUrl)
+  );
+  for (const docUrl of removedDocs) {
+    const publicId = docUrl.split("/").pop().split(".")[0];
+    try {
+      await deleteFromCloudinary(publicId);
+    } catch (error) {
+      console.error("Failed to delete doc:", error);
+    }
+  }
+
+  // Keep remaining docs
+  newDocs.push(...keepDocsList);
+
+  // Add newly uploaded docs
+  if (req.files && req.files.length) {
+    for (const file of req.files) {
+      const uploaded = await uploadOnCloudinary(file.path);
+      if (!uploaded?.secure_url) {
+        throw new ApiError(400, "Failed to upload supporting docs");
+      }
+      newDocs.push(uploaded.secure_url);
+    }
+  }
+
+  if (!newDocs.length) {
+    throw new ApiError(400, "At least one supporting document is required");
+  }
+
+  higherEducation.institution = institution || higherEducation.institution;
+  higherEducation.degree = degree || higherEducation.degree;
+  higherEducation.fieldOfStudy = fieldOfStudy || higherEducation.fieldOfStudy;
+  higherEducation.startDate = startDate || higherEducation.startDate;
+  higherEducation.endDate = endDate || higherEducation.endDate;
+  higherEducation.docs = newDocs;
+
+  await higherEducation.save();
 
   res.status(200).json({
     success: true,
@@ -213,7 +286,9 @@ const getAllHigherEducations = asyncHandler(async (req, res) => {
 
 export {
   createHigherEducation,
+  deleteHigherEducation,
   getAllHigherEducations,
   getHigherEducationById,
   getHigherEducations,
+  updateHigherEducation,
 };
