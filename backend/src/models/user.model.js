@@ -217,10 +217,28 @@ const userSchema = new Schema(
         ref: "Academics",
       },
     ],
-    alumni: [
+    alumniWorkExperiences: [
       {
-        type: Schema.Types.ObjectId,
-        ref: "Alumni",
+        company: {
+          type: String,
+          required: [true, "Company name is required"],
+        },
+        role: {
+          type: String,
+          required: [true, "Role is required"],
+        },
+        startDate: {
+          type: Date,
+          required: [true, "Start date is required"],
+        },
+        endDate: {
+          type: Date,
+          default: null,
+        },
+        isCurrentlyWorking: {
+          type: Boolean,
+          default: false,
+        },
       },
     ],
     cgpa: {
