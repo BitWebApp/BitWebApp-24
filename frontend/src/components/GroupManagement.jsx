@@ -17,6 +17,11 @@ const GroupManagement = () => {
   const [org, setOrg] = useState("");
   const [location, setLocation] = useState(""); // new location state
   const [activeTab, setActiveTab] = useState("group");
+  const [joinCode, setJoinCode] = useState("");
+  const [showChangeType, setShowChangeType] = useState(false);
+  const [newType, setNewType] = useState("");
+  const [newLocation, setNewLocation] = useState("");
+  const [newOrg, setNewOrg] = useState("");
 
   useEffect(() => {
     fetchCompanies();
@@ -123,6 +128,69 @@ const GroupManagement = () => {
     } catch (error) {
       handleError(error, "Failed to accept request");
     }
+  };
+
+  const leaveGroup = async () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to leave this group? If you are the only member, the group will be deleted."
+      )
+    )
+      return;
+    setLoading(true);
+    try {
+      await axios.post("/api/v1/group/leave-group");
+      toast.success("Left group successfully");
+      setGroup(null);
+      fetchGroup();
+    } catch (error) {
+      handleError(error, "Failed to leave group");
+    }
+    setLoading(false);
+  };
+
+  const joinByCode = async () => {
+    const code = joinCode.trim().toUpperCase();
+    if (!code) return toast.error("Please enter a group code");
+    setLoading(true);
+    try {
+      await axios.post("/api/v1/group/join-by-code", { groupId: code });
+      toast.success("Joined group successfully");
+      setJoinCode("");
+      fetchGroup();
+    } catch (error) {
+      handleError(error, "Failed to join group");
+    }
+    setLoading(false);
+  };
+
+  const openChangeType = () => {
+    setNewType(group?.typeOfSummer || "");
+    setNewLocation(group?.location || "");
+    setNewOrg(group?.org?._id || "");
+    setShowChangeType(true);
+  };
+
+  const submitChangeType = async () => {
+    if (!newType) return toast.error("Select an internship type");
+    if (newType === "industrial" && !newOrg)
+      return toast.error("Select a company for industrial internship");
+    if (newType === "research" && !newLocation)
+      return toast.error("Select a location for research internship");
+    setLoading(true);
+    try {
+      await axios.post("/api/v1/group/change-intern-type", {
+        typeofSummer: newType,
+        location: newType === "research" ? newLocation : "outside_bit",
+        org: newType === "industrial" ? newOrg : undefined,
+      });
+      toast.success("Internship type updated");
+      setShowChangeType(false);
+      fetchGroup();
+    } catch (error) {
+      handleError(error, "Failed to update internship type");
+    }
+    setLoading(false);
   };
 
   return (
@@ -252,6 +320,21 @@ const GroupManagement = () => {
                 <>
                   {group ? (
                     <div className="space-y-6">
+                      <div className="flex flex-wrap gap-2 justify-end">
+                        <button
+                          onClick={openChangeType}
+                          className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all shadow-sm text-sm"
+                        >
+                          Change Internship Type
+                        </button>
+                        <button
+                          onClick={leaveGroup}
+                          disabled={loading}
+                          className="px-4 py-2 bg-gradient-to-r from-rose-500 to-rose-600 text-white rounded-lg hover:from-rose-600 hover:to-rose-700 transition-all shadow-sm text-sm disabled:opacity-60"
+                        >
+                          Leave Group
+                        </button>
+                      </div>
                       <div className="grid md:grid-cols-3 gap-4">
                         <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
                           <h3 className="text-sm font-medium text-blue-800">
@@ -518,6 +601,35 @@ const GroupManagement = () => {
                             </div>
                           )}
 
+                          <div className="border-t border-gray-200 pt-4">
+                            <label
+                              htmlFor="join-code"
+                              className="block text-sm font-medium text-gray-700 mb-1"
+                            >
+                              Or join an existing group by code
+                            </label>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <input
+                                id="join-code"
+                                type="text"
+                                value={joinCode}
+                                onChange={(e) =>
+                                  setJoinCode(e.target.value.toUpperCase())
+                                }
+                                placeholder="6-character Group ID"
+                                maxLength={6}
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg uppercase tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                              />
+                              <button
+                                onClick={joinByCode}
+                                disabled={loading || !joinCode.trim()}
+                                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-sm disabled:opacity-60"
+                              >
+                                Join Group
+                              </button>
+                            </div>
+                          </div>
+
                           <div className="pt-2">
                             <button
                               onClick={createGroup}
@@ -575,6 +687,93 @@ const GroupManagement = () => {
           </div>
         </div>
       </div>
+
+      {showChangeType && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-1">
+              Change Internship Type
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              This updates the group and every member&apos;s internship record.
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Internship Type
+                </label>
+                <select
+                  value={newType}
+                  onChange={(e) => {
+                    setNewType(e.target.value);
+                    setNewLocation("");
+                    setNewOrg("");
+                  }}
+                  className="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select Type</option>
+                  <option value="research">Research</option>
+                  <option value="industrial">Industrial</option>
+                </select>
+              </div>
+
+              {newType === "research" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Location
+                  </label>
+                  <select
+                    value={newLocation}
+                    onChange={(e) => setNewLocation(e.target.value)}
+                    className="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select Location</option>
+                    <option value="inside_bit">Inside BIT</option>
+                    <option value="outside_bit">
+                      Outside BIT (Max 1 Member)
+                    </option>
+                  </select>
+                </div>
+              )}
+
+              {newType === "industrial" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Company
+                  </label>
+                  <select
+                    value={newOrg}
+                    onChange={(e) => setNewOrg(e.target.value)}
+                    className="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select Company</option>
+                    {company?.map((ele) => (
+                      <option key={ele._id} value={ele._id}>
+                        {ele.companyName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={() => setShowChangeType(false)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitChangeType}
+                disabled={loading}
+                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-lg hover:from-blue-700 hover:to-indigo-800 disabled:opacity-60"
+              >
+                {loading ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

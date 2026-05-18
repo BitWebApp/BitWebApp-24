@@ -14,6 +14,9 @@ import {
   getDiscussion,
   getDiscussionByStudent,
   addMarks,
+  leaveGroup,
+  joinGroupByCode,
+  changeInternshipType,
 } from "../controllers/group.controller.js";
 import {
   verifyAdmin,
@@ -38,4 +41,8 @@ router.route("/add-remark").post(verifyProfessor, addRemarkAbsent);
 router.route("/get-disc").post(verifyProfessor, getDiscussion);
 router.route("/get-disc-student").post(verifyJWT, getDiscussionByStudent);
 router.route("/give-marks").post(verifyProfessor, addMarks);
+
+router.route("/leave-group").post(verifyJWT, leaveGroup);
+router.route("/join-by-code").post(verifyJWT, joinGroupByCode);
+router.route("/change-intern-type").post(verifyJWT, changeInternshipType);
 export default router;
