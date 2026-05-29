@@ -512,6 +512,218 @@ const addMarks = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Marks added successfully"));
 });
 
+const leaveGroup = asyncHandler(async (req, res) => {
+  const userId = req?.user?._id;
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "User not found");
+  if (!user.group) throw new ApiError(409, "Not in any group");
+
+  const group = await Group.findById(user.group);
+  if (!group) {
+    user.group = null;
+    user.summerAllocatedProf = null;
+    user.isSummerAllocated = false;
+    user.summerAppliedProfs = [];
+    await user.save();
+    throw new ApiError(404, "Group not found, cleared user reference");
+  }
+
+  const allocatedProfId = group.summerAllocatedProf;
+  const wasLeader = group.leader?.equals(user._id);
+
+  group.members.pull(user._id);
+
+  const internshipFilter = { student: user._id };
+  if (allocatedProfId) internshipFilter.mentor = allocatedProfId;
+  else internshipFilter.mentor = { $exists: false };
+  await Internship.deleteMany(internshipFilter);
+
+  user.group = null;
+  user.summerAllocatedProf = null;
+  user.isSummerAllocated = false;
+  user.summerAppliedProfs = [];
+
+  if (group.members.length === 0) {
+    if (group.summerAppliedProfs && group.summerAppliedProfs.length > 0) {
+      for (const profId of group.summerAppliedProfs) {
+        const prof = await Professor.findById(profId);
+        if (prof) {
+          prof.appliedGroups.summer_training.pull(group._id);
+          await prof.save();
+        }
+      }
+    }
+    if (allocatedProfId) {
+      const prof = await Professor.findById(allocatedProfId);
+      if (prof) {
+        prof.students.summer_training.pull(group._id);
+        prof.currentCount.summer_training = Math.max(
+          0,
+          prof.currentCount.summer_training - 1
+        );
+        await prof.save();
+      }
+    }
+    await group.deleteOne();
+  } else {
+    if (wasLeader) group.leader = group.members[0];
+    if (allocatedProfId) {
+      const prof = await Professor.findById(allocatedProfId);
+      if (prof) {
+        prof.currentCount.summer_training = Math.max(
+          0,
+          prof.currentCount.summer_training - 1
+        );
+        await prof.save();
+      }
+    }
+    await group.save({ validateBeforeSave: false });
+  }
+
+  await user.save();
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Left group successfully"));
+});
+
+const joinGroupByCode = asyncHandler(async (req, res) => {
+  const userId = req?.user?._id;
+  const { groupId } = req.body;
+  if (!groupId) throw new ApiError(400, "Group code is required");
+
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "User not found");
+  if (user.group) {
+    throw new ApiError(
+      409,
+      "Already in a group. Leave your current group first."
+    );
+  }
+
+  const group = await Group.findOne({ groupId: groupId.toUpperCase() });
+  if (!group) throw new ApiError(404, "Group not found for that code");
+
+  if (group.typeOfSummer === "industrial") {
+    throw new ApiError(409, "Cannot join an industrial group");
+  }
+  if (
+    group.typeOfSummer === "research" &&
+    group.location === "outside_bit" &&
+    group.members.length >= 1
+  ) {
+    throw new ApiError(409, "Outside BIT research groups can only have 1 member");
+  }
+
+  group.members.push(user._id);
+  user.group = group._id;
+  user.groupReq = [];
+
+  const allocatedProfId = group.summerAllocatedProf;
+  if (allocatedProfId) {
+    user.summerAllocatedProf = allocatedProfId;
+    user.isSummerAllocated = true;
+    const prof = await Professor.findById(allocatedProfId);
+    if (prof) {
+      prof.currentCount.summer_training += 1;
+      await prof.save();
+    }
+  }
+
+  const internshipDoc = {
+    student: user._id,
+    type: group.typeOfSummer,
+    location:
+      group.location ||
+      (group.typeOfSummer === "research" ? "inside_bit" : "outside_bit"),
+  };
+  if (group.typeOfSummer === "industrial") internshipDoc.company = group.org;
+  if (allocatedProfId) internshipDoc.mentor = allocatedProfId;
+
+  const shouldCreateInternship =
+    allocatedProfId ||
+    (group.summerAppliedProfs && group.summerAppliedProfs.length > 0);
+  if (shouldCreateInternship) await Internship.create(internshipDoc);
+
+  await user.save();
+  await group.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, group, "Joined group successfully"));
+});
+
+const changeInternshipType = asyncHandler(async (req, res) => {
+  const userId = req?.user?._id;
+  const { typeofSummer, location, org } = req.body;
+
+  if (!typeofSummer || !["industrial", "research"].includes(typeofSummer)) {
+    throw new ApiError(400, "Valid internship type is required");
+  }
+  if (typeofSummer === "industrial" && !org) {
+    throw new ApiError(400, "Company is required for industrial type");
+  }
+  const effectiveLocation =
+    typeofSummer === "industrial"
+      ? "outside_bit"
+      : location || "inside_bit";
+  if (!["inside_bit", "outside_bit"].includes(effectiveLocation)) {
+    throw new ApiError(400, "Valid location is required");
+  }
+
+  const user = await User.findById(userId);
+  if (!user || !user.group) throw new ApiError(409, "Not in any group");
+
+  const group = await Group.findById(user.group);
+  if (!group) throw new ApiError(404, "Group not found");
+
+  if (
+    (typeofSummer === "industrial" ||
+      (typeofSummer === "research" && effectiveLocation === "outside_bit")) &&
+    group.members.length > 1
+  ) {
+    throw new ApiError(
+      409,
+      "This type allows only 1 member. Remove other members first."
+    );
+  }
+
+  if (typeofSummer === "industrial") {
+    const company = await Company.findById(org);
+    if (!company) throw new ApiError(404, "Company not found");
+  }
+
+  group.typeOfSummer = typeofSummer;
+  group.location = effectiveLocation;
+  group.org = typeofSummer === "industrial" ? org : undefined;
+  await group.save({ validateBeforeSave: false });
+
+  const internshipUpdate = {
+    type: typeofSummer,
+    location: effectiveLocation,
+  };
+  const internshipUnset = {};
+  if (typeofSummer === "industrial") internshipUpdate.company = org;
+  else internshipUnset.company = "";
+
+  const updateOps = { $set: internshipUpdate };
+  if (Object.keys(internshipUnset).length > 0) updateOps.$unset = internshipUnset;
+
+  await Internship.updateMany({ student: { $in: group.members } }, updateOps);
+
+  const updatedGroup = await Group.findById(group._id)
+    .populate("members")
+    .populate("leader")
+    .populate("summerAppliedProfs")
+    .populate("summerAllocatedProf")
+    .populate("org");
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, updatedGroup, "Internship type updated successfully")
+    );
+});
+
 export {
   addMarks,
   createGroup,
@@ -527,4 +739,7 @@ export {
   getReq,
   addDiscussion,
   addRemarkAbsent,
+  leaveGroup,
+  joinGroupByCode,
+  changeInternshipType,
 };
