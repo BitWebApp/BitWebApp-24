@@ -16,6 +16,7 @@ import ChatBox from "./ChatBox";
 const AcceptStudents = () => {
   const [appliedGroups, setAppliedGroups] = useState([]);
   const [acceptedGroups, setAcceptedGroups] = useState([]);
+  const [typeChangeRequests, setTypeChangeRequests] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [selectedAcceptedGroups, setSelectedAcceptedGroups] = useState([]);
   const [limits, setLimits] = useState(0);
@@ -33,22 +34,39 @@ const AcceptStudents = () => {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const [appliedResponse, getLimits, acceptedResponse] =
+        const [appliedResponse, getLimits, acceptedResponse, typeChangeResponse] =
           await Promise.all([
             axios.get("/api/v1/prof/getAppliedGroups"),
             axios.get("/api/v1/prof/get-limit"),
             axios.get("/api/v1/prof/accepted-groups"),
+            axios.get("/api/v1/prof/summer/pending-type-changes", { validateStatus: () => true })
           ]);
 
         setAppliedGroups(appliedResponse.data.data);
         setLimits(getLimits.data.data);
         setAcceptedGroups(acceptedResponse.data.data);
+        if (typeChangeResponse.status === 200) {
+          setTypeChangeRequests(typeChangeResponse.data.data);
+        }
       } catch (err) {
         toast.error(err.response?.data?.message || "Failed to fetch groups.");
       }
     };
     fetchGroups();
   }, [marks]);
+
+  const handleTypeChangeApproval = async (groupId, action) => {
+    try {
+      const response = await axios.post("/api/v1/group/prof-approve-summer-type-change", {
+        groupId,
+        action
+      });
+      toast.success(response.data.message);
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to process request");
+    }
+  };
 
   // Filter groups based on search term
   const groupsToFilter =
@@ -306,6 +324,72 @@ const AcceptStudents = () => {
 
         {/* Groups List */}
         <div className="p-6">
+          {viewMode === "applied" && typeChangeRequests.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Pending Type Change Requests</h2>
+              <div className="space-y-4">
+                {typeChangeRequests.map((group) => (
+                  <div key={group._id} className="border border-amber-200 rounded-lg overflow-hidden">
+                    <div className="p-4 flex items-center justify-between bg-amber-50">
+                      <div>
+                        <h3 className="font-bold text-lg text-gray-800">
+                          Group ID: {group.groupId}
+                        </h3>
+                        <p className="text-sm font-semibold text-amber-700 mt-1">
+                          Request: Change to {group.typeChangeRequests[0].requestedType === "research" ? "Research" : "Industrial"}
+                        </p>
+                      </div>
+                      <div className="flex space-x-2">
+                         <button
+                           onClick={() => handleTypeChangeApproval(group._id, "approve")}
+                           className="flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                         >
+                           <FaCheckCircle className="mr-2" /> Approve
+                         </button>
+                         <button
+                           onClick={() => handleTypeChangeApproval(group._id, "reject")}
+                           className="flex items-center px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                         >
+                           <FaTimesCircle className="mr-2" /> Reject
+                         </button>
+                      </div>
+                    </div>
+                    {group.typeChangeRequests[0].requestedType === "industrial" && (
+                      <div className="p-4 bg-white border-t border-amber-100">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Member Assignments</h4>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full divide-y divide-gray-200 text-sm border rounded-lg">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Member</th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Company</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200 bg-white">
+                              {group.typeChangeRequests[0].memberAssignments.map(a => (
+                                <tr key={a.user?._id || a.user}>
+                                  <td className="px-4 py-2">{a.user?.fullName || a.user}</td>
+                                  <td className="px-4 py-2">
+                                    {a.action === "industrial" ? (
+                                      <span className="text-blue-600 font-medium">Move to Industrial</span>
+                                    ) : (
+                                      <span className="text-gray-600">Stay in Research</span>
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-2">{a.org?.companyName || "-"}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {filteredGroups.length > 0 ? (
             <div className="space-y-4">
               {filteredGroups.map((group) => (

@@ -22,11 +22,30 @@ const GroupManagement = () => {
   const [newType, setNewType] = useState("");
   const [newLocation, setNewLocation] = useState("");
   const [newOrg, setNewOrg] = useState("");
+  
+  const [pendingRequest, setPendingRequest] = useState(null);
+  const [memberCompanies, setMemberCompanies] = useState([]);
+  const [memberAssignments, setMemberAssignments] = useState([]);
+  const [newLeaderId, setNewLeaderId] = useState("");
+  const currentUser = JSON.parse(localStorage.getItem('user')) || {};
+  const currentUserId = currentUser._id;
+
+  const fetchTypeChangeStatus = async () => {
+    try {
+      const response = await axios.get("/api/v1/group/get-summer-type-change-status");
+      const requests = response.data?.data?.typeChangeRequests || [];
+      const pending = requests.find((req) => req.status === "pending");
+      setPendingRequest(pending || null);
+    } catch (error) {
+      // ignore
+    }
+  };
 
   useEffect(() => {
     fetchCompanies();
     fetchGroup();
     fetchRequests();
+    fetchTypeChangeStatus();
   }, []);
 
   const fetchCompanies = async () => {
@@ -164,31 +183,88 @@ const GroupManagement = () => {
     setLoading(false);
   };
 
-  const openChangeType = () => {
-    setNewType(group?.typeOfSummer || "");
-    setNewLocation(group?.location || "");
-    setNewOrg(group?.org?._id || "");
-    setShowChangeType(true);
+  const openChangeType = async () => {
+    if (group?.typeOfSummer === "research") {
+      setLoading(true);
+      try {
+        const response = await axios.get("/api/v1/group/get-member-companies");
+        const companies = response.data?.data || [];
+        setMemberCompanies(companies);
+        // Initialize assignments
+        const initialAssignments = companies.map(c => ({
+          user: c._id,
+          action: "stay_research",
+          org: ""
+        }));
+        setMemberAssignments(initialAssignments);
+        setNewType("industrial");
+        setNewLeaderId("");
+        setShowChangeType(true);
+      } catch (error) {
+        handleError(error, "Failed to load member companies");
+      }
+      setLoading(false);
+    } else {
+      setNewType("research");
+      setNewLocation(group?.location || "");
+      setShowChangeType(true);
+    }
   };
 
   const submitChangeType = async () => {
-    if (!newType) return toast.error("Select an internship type");
-    if (newType === "industrial" && !newOrg)
-      return toast.error("Select a company for industrial internship");
-    if (newType === "research" && !newLocation)
-      return toast.error("Select a location for research internship");
     setLoading(true);
     try {
-      await axios.post("/api/v1/group/change-intern-type", {
-        typeofSummer: newType,
-        location: newType === "research" ? newLocation : "outside_bit",
-        org: newType === "industrial" ? newOrg : undefined,
-      });
-      toast.success("Internship type updated");
+      if (newType === "research") {
+        if (!newLocation) {
+          toast.error("Select a location for research internship");
+          setLoading(false);
+          return;
+        }
+        await axios.post("/api/v1/group/request-summer-type-change", {
+          requestedType: "research",
+          location: newLocation
+        });
+      } else {
+        // Validate assignments
+        const hasIndustrial = memberAssignments.some(a => a.action === "industrial");
+        if (!hasIndustrial) {
+          toast.error("At least one member must choose industrial");
+          setLoading(false);
+          return;
+        }
+        const invalid = memberAssignments.find(a => a.action === "industrial" && !a.org);
+        if (invalid) {
+          toast.error("Please select a company for all members moving to industrial");
+          setLoading(false);
+          return;
+        }
+
+        const leaderIdStr = group?.leader?._id || group?.leader;
+        const leaderAction = memberAssignments.find(a => a.user === leaderIdStr);
+        const someoneStaying = memberAssignments.some(a => a.action === "stay_research");
+        
+        let finalNewLeaderId = undefined;
+        if (leaderAction?.action === "industrial" && someoneStaying) {
+          if (!newLeaderId) {
+            toast.error("Please select a new group leader for the remaining research group");
+            setLoading(false);
+            return;
+          }
+          finalNewLeaderId = newLeaderId;
+        }
+
+        await axios.post("/api/v1/group/request-summer-type-change", {
+          requestedType: "industrial",
+          memberAssignments,
+          newLeader: finalNewLeaderId
+        });
+      }
+      toast.success("Type change request submitted for approval");
       setShowChangeType(false);
       fetchGroup();
+      fetchTypeChangeStatus();
     } catch (error) {
-      handleError(error, "Failed to update internship type");
+      handleError(error, "Failed to submit type change request");
     }
     setLoading(false);
   };
@@ -321,12 +397,26 @@ const GroupManagement = () => {
                   {group ? (
                     <div className="space-y-6">
                       <div className="flex flex-wrap gap-2 justify-end">
-                        <button
-                          onClick={openChangeType}
-                          className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all shadow-sm text-sm"
-                        >
-                          Change Internship Type
-                        </button>
+                        {pendingRequest ? (
+                          <span className="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg shadow-sm text-sm font-medium border border-yellow-200">
+                            Type Change Request Pending Approval
+                          </span>
+                        ) : !group?.summerAllocatedProf ? (
+                          <span className="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg shadow-sm text-sm border border-gray-200">
+                            Mentor Allocation Required to Change Type
+                          </span>
+                        ) : group?.typeOfSummer === "research" && group?.leader?._id !== currentUserId ? (
+                          <span className="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg shadow-sm text-sm border border-gray-200">
+                            Only Leader can Change Type
+                          </span>
+                        ) : (
+                          <button
+                            onClick={openChangeType}
+                            className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all shadow-sm text-sm"
+                          >
+                            Change Internship Type
+                          </button>
+                        )}
                         <button
                           onClick={leaveGroup}
                           disabled={loading}
@@ -689,32 +779,22 @@ const GroupManagement = () => {
       </div>
 
       {showChangeType && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 m-auto">
             <h2 className="text-xl font-bold text-gray-800 mb-1">
-              Change Internship Type
+              Request Internship Type Change
             </h2>
             <p className="text-sm text-gray-500 mb-4">
-              This updates the group and every member&apos;s internship record.
+              This request requires faculty approval.
             </p>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Internship Type
+                  Requested Internship Type
                 </label>
-                <select
-                  value={newType}
-                  onChange={(e) => {
-                    setNewType(e.target.value);
-                    setNewLocation("");
-                    setNewOrg("");
-                  }}
-                  className="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Select Type</option>
-                  <option value="research">Research</option>
-                  <option value="industrial">Industrial</option>
-                </select>
+                <div className="block w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700">
+                  {newType === "research" ? "Research" : "Industrial"}
+                </div>
               </div>
 
               {newType === "research" && (
@@ -730,29 +810,94 @@ const GroupManagement = () => {
                     <option value="">Select Location</option>
                     <option value="inside_bit">Inside BIT</option>
                     <option value="outside_bit">
-                      Outside BIT (Max 1 Member)
+                      Outside BIT
                     </option>
                   </select>
                 </div>
               )}
 
               {newType === "industrial" && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Company
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Member Company Assignments
                   </label>
-                  <select
-                    value={newOrg}
-                    onChange={(e) => setNewOrg(e.target.value)}
-                    className="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Select Company</option>
-                    {company?.map((ele) => (
-                      <option key={ele._id} value={ele._id}>
-                        {ele.companyName}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="overflow-x-auto border rounded-lg">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Member</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Company</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {memberCompanies.map((mc, idx) => (
+                          <tr key={mc._id}>
+                            <td className="px-4 py-3 text-sm text-gray-900">{mc.fullName} ({mc.rollNumber})</td>
+                            <td className="px-4 py-3">
+                              <select
+                                value={memberAssignments.find(a => a.user === mc._id)?.action || "stay_research"}
+                                onChange={(e) => {
+                                  const action = e.target.value;
+                                  setMemberAssignments(prev => prev.map(a => 
+                                    a.user === mc._id ? { ...a, action, org: action === "stay_research" ? "" : a.org } : a
+                                  ));
+                                }}
+                                className="block w-full border border-gray-300 rounded-md text-sm shadow-sm focus:ring-blue-500 focus:border-blue-500 py-1"
+                              >
+                                <option value="stay_research">Stay in Research</option>
+                                <option value="industrial">Move to Industrial</option>
+                              </select>
+                            </td>
+                            <td className="px-4 py-3">
+                              {memberAssignments.find(a => a.user === mc._id)?.action === "industrial" ? (
+                                <select
+                                  value={memberAssignments.find(a => a.user === mc._id)?.org || ""}
+                                  onChange={(e) => {
+                                    const org = e.target.value;
+                                    setMemberAssignments(prev => prev.map(a => 
+                                      a.user === mc._id ? { ...a, org } : a
+                                    ));
+                                  }}
+                                  className="block w-full border border-gray-300 rounded-md text-sm shadow-sm focus:ring-blue-500 focus:border-blue-500 py-1"
+                                >
+                                  <option value="">Select Company</option>
+                                  {mc.companies.map(c => (
+                                    <option key={c._id} value={c._id}>{c.companyName}</option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <span className="text-gray-400 text-sm italic">N/A</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* New Leader Selection */}
+                  {memberAssignments.find(a => a.user === (group?.leader?._id || group?.leader))?.action === "industrial" && 
+                   memberAssignments.some(a => a.action === "stay_research") && (
+                    <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                      <label className="block text-sm font-medium text-blue-800 mb-1">
+                        Select New Group Leader
+                      </label>
+                      <p className="text-xs text-blue-600 mb-2">Since you are leaving the research group, please appoint a new leader for the remaining members.</p>
+                      <select
+                        value={newLeaderId}
+                        onChange={(e) => setNewLeaderId(e.target.value)}
+                        className="block w-full border border-gray-300 rounded-md text-sm shadow-sm focus:ring-blue-500 focus:border-blue-500 py-2 px-3"
+                      >
+                        <option value="">Select new leader</option>
+                        {memberCompanies
+                          .filter(mc => memberAssignments.find(a => a.user === mc._id)?.action === "stay_research")
+                          .map(mc => (
+                            <option key={mc._id} value={mc._id}>{mc.fullName} ({mc.rollNumber})</option>
+                          ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -768,7 +913,7 @@ const GroupManagement = () => {
                 disabled={loading}
                 className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-lg hover:from-blue-700 hover:to-indigo-800 disabled:opacity-60"
               >
-                {loading ? "Saving..." : "Save Changes"}
+                {loading ? "Submitting..." : "Submit Request"}
               </button>
             </div>
           </div>

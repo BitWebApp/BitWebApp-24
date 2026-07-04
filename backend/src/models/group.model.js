@@ -92,5 +92,54 @@ const groupSchema = new Schema({
     type: String,
     ref: "Chat",
   },
+  typeChangeRequests: [
+    {
+      initiatedBy: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+      requestedType: {
+        type: String,
+        enum: ["industrial", "research"],
+        required: true,
+      },
+      location: {
+        type: String,
+        enum: ["inside_bit", "outside_bit"],
+      },
+      memberAssignments: [
+        {
+          user: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+          },
+          action: {
+            type: String,
+            enum: ["industrial", "stay_research"],
+            required: true,
+          },
+          org: {
+            type: Schema.Types.ObjectId,
+            ref: "Company",
+          },
+        },
+      ],
+      newLeader: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+      status: {
+        type: String,
+        enum: ["pending", "approved", "rejected"],
+        default: "pending",
+      },
+      initiatedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
 });
 export const Group = mongoose.model("Group", groupSchema);

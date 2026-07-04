@@ -53,6 +53,9 @@ import {
   getPendingTypeChangeRequests,
   saveSummerProjectTitle,
 } from "../controllers/professor.controller.js";
+import {
+  getSummerPendingTypeChanges,
+} from "../controllers/group.controller.js";
 
 const router = Router();
 router.route("/addprof").post(verifyAdmin, addProf);
@@ -67,6 +70,11 @@ router.route("/generate-auto-login").post(verifyAdmin, generateAutoLoginUrl);
 router.route("/auto-login").post(autoLoginProf);
 
 router.route("/getAppliedGroups").get(verifyProfessor, getAppliedGroups);
+
+// Summer type change requests
+router
+  .route("/summer/pending-type-changes")
+  .get(verifyProfessor, getSummerPendingTypeChanges);
 
 // Major project type change requests
 router
