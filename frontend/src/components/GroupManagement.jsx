@@ -196,7 +196,7 @@ const GroupManagement = () => {
       if (group?.typeOfSummer === "research") {
         setNewType("industrial");
       } else {
-        setNewType("research");
+        setNewType("industrial"); // Default to industrial to allow company change
       }
       
       setNewLocation(group?.location || "");
@@ -777,9 +777,14 @@ const GroupManagement = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Requested Internship Type
                 </label>
-                <div className="block w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700">
-                  {newType === "research" ? "Research" : "Industrial"}
-                </div>
+                <select
+                  value={newType}
+                  onChange={(e) => setNewType(e.target.value)}
+                  className="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="research">Research</option>
+                  <option value="industrial">Industrial</option>
+                </select>
               </div>
 
               {newType === "research" && (
