@@ -654,7 +654,7 @@ const joinGroupByCode = asyncHandler(async (req, res) => {
 
 const requestSummerTypeChange = asyncHandler(async (req, res) => {
   const userId = req?.user?._id;
-  const { requestedType, location, memberAssignments } = req.body;
+  const { requestedType, location, org, newLeader } = req.body;
 
   if (!requestedType || !["industrial", "research"].includes(requestedType)) {
     throw new ApiError(400, "Valid internship type is required (industrial or research)");
@@ -670,138 +670,70 @@ const requestSummerTypeChange = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Cannot change type without an allocated faculty mentor");
   }
 
-  // Check for existing pending request
+  // Check for existing pending request by this specific user
   const existingPending = group.typeChangeRequests.find(
-    (req) => req.status === "pending"
+    (req) => req.status === "pending" && req.initiatedBy.toString() === userId.toString()
   );
   if (existingPending) {
-    throw new ApiError(409, "There is already a pending type change request for this group");
+    throw new ApiError(409, "You already have a pending type change request");
   }
 
   const currentType = group.typeOfSummer;
+  let validatedOrg;
+  let newLeaderId;
 
-  if (currentType === requestedType) {
-    throw new ApiError(400, "Group is already of this type");
-  }
-
-  // Industrial → Research: any member can request, just needs location
-  if (currentType === "industrial" && requestedType === "research") {
+  if (requestedType === "research") {
+    if (currentType === "research") {
+      throw new ApiError(400, "Group is already in research");
+    }
     if (!location || !["inside_bit", "outside_bit"].includes(location)) {
       throw new ApiError(400, "Valid location is required for research type");
     }
-
-    group.typeChangeRequests.push({
-      initiatedBy: userId,
-      requestedType: "research",
-      location,
-      memberAssignments: [],
-      status: "pending",
-    });
-
-    await group.save({ validateBeforeSave: false });
-
-    return res
-      .status(200)
-      .json(new ApiResponse(200, group, "Type change request submitted for faculty approval"));
-  }
-
-  // Research → Industrial: only leader can request
-  if (currentType === "research" && requestedType === "industrial") {
-    if (!group.leader._id.equals(userId)) {
-      throw new ApiError(403, "Only the group leader can request Research to Industrial type change");
+  } else if (requestedType === "industrial") {
+    if (!org) {
+      throw new ApiError(400, "Company is required for industrial type");
+    }
+    if (currentType === "industrial" && group.org?.toString() === org) {
+      throw new ApiError(400, "You are already assigned to this company");
     }
 
-    if (!memberAssignments || !Array.isArray(memberAssignments)) {
-      throw new ApiError(400, "Member assignments are required for research to industrial change");
+    const hasCompany = user.companyInterview.some((c) => c.toString() === org);
+    if (!hasCompany) {
+      throw new ApiError(400, "This company is not assigned to you");
     }
 
-    // Validate memberAssignments covers all group members
-    const memberIds = group.members.map((m) => m._id.toString());
-    const assignedIds = memberAssignments.map((a) => a.user);
+    validatedOrg = org;
 
-    for (const memberId of memberIds) {
-      if (!assignedIds.includes(memberId)) {
-        throw new ApiError(400, `Assignment missing for member ${memberId}`);
-      }
-    }
-
-    // Validate each assignment
-    for (const assignment of memberAssignments) {
-      if (!["industrial", "stay_research"].includes(assignment.action)) {
-        throw new ApiError(400, `Invalid action for member ${assignment.user}`);
-      }
-
-      if (assignment.action === "industrial") {
-        if (!assignment.org) {
-          throw new ApiError(400, `Company is required for member choosing industrial`);
-        }
-
-        // Verify the company is in the member's companyInterview list
-        const memberUser = await User.findById(assignment.user);
-        if (!memberUser) {
-          throw new ApiError(404, `Member ${assignment.user} not found`);
-        }
-
-        const hasCompany = memberUser.companyInterview.some(
-          (c) => c.toString() === assignment.org
-        );
-        if (!hasCompany) {
-          throw new ApiError(
-            400,
-            `Company ${assignment.org} is not assigned to member ${memberUser.fullName}`
-          );
-        }
-
-        // Verify company exists
-        const company = await Company.findById(assignment.org);
-        if (!company) {
-          throw new ApiError(404, `Company ${assignment.org} not found`);
-        }
-      }
-    }
-
-    // Check that at least one member is going industrial
-    const hasIndustrial = memberAssignments.some((a) => a.action === "industrial");
-    if (!hasIndustrial) {
-      throw new ApiError(400, "At least one member must choose industrial for this change");
-    }
-
-    const leaderAction = memberAssignments.find((a) => a.user.toString() === userId.toString());
-    const someoneStaying = memberAssignments.some((a) => a.action === "stay_research");
-
-    let newLeaderId;
-    if (leaderAction?.action === "industrial" && someoneStaying) {
-      const { newLeader } = req.body;
+    // If the initiator is the leader and there are other members in the group
+    if (group.leader._id.equals(userId) && group.members.length > 1) {
       if (!newLeader) {
-        throw new ApiError(400, "New leader must be selected since current leader is leaving");
+        throw new ApiError(400, "New leader must be selected since you are the current leader");
       }
-      const newLeaderAssignment = memberAssignments.find((a) => a.user.toString() === newLeader.toString());
-      if (!newLeaderAssignment || newLeaderAssignment.action !== "stay_research") {
-        throw new ApiError(400, "New leader must be a member staying in research");
+      if (newLeader.toString() === userId.toString()) {
+        throw new ApiError(400, "You cannot appoint yourself as the new leader");
+      }
+      const isMember = group.members.some((m) => m._id.toString() === newLeader.toString());
+      if (!isMember) {
+        throw new ApiError(400, "New leader must be a current member of the group");
       }
       newLeaderId = newLeader;
     }
-
-    group.typeChangeRequests.push({
-      initiatedBy: userId,
-      requestedType: "industrial",
-      memberAssignments: memberAssignments.map((a) => ({
-        user: a.user,
-        action: a.action,
-        org: a.action === "industrial" ? a.org : undefined,
-      })),
-      newLeader: newLeaderId,
-      status: "pending",
-    });
-
-    await group.save({ validateBeforeSave: false });
-
-    return res
-      .status(200)
-      .json(new ApiResponse(200, group, "Type change request submitted for faculty approval"));
   }
 
-  throw new ApiError(400, "Invalid type change request");
+  group.typeChangeRequests.push({
+    initiatedBy: userId,
+    requestedType,
+    location: requestedType === "research" ? location : "outside_bit",
+    org: validatedOrg,
+    newLeader: newLeaderId,
+    status: "pending",
+  });
+
+  await group.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, group, "Type change request submitted for faculty approval"));
 });
 
 const getSummerTypeChangeStatus = asyncHandler(async (req, res) => {
@@ -845,11 +777,7 @@ const getMemberCompanies = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Group not found");
   }
 
-  // Only the leader can fetch member companies (used for R→I type change)
-  if (!group.leader._id.equals(userId)) {
-    throw new ApiError(403, "Only the group leader can view member companies");
-  }
-
+  // Any member can fetch member companies (used for R→I type change)
   const memberCompanies = [];
   for (const member of group.members) {
     const memberUser = await User.findById(member._id).populate("companyInterview");
@@ -868,29 +796,29 @@ const getMemberCompanies = asyncHandler(async (req, res) => {
 });
 
 const profApproveSummerTypeChange = asyncHandler(async (req, res) => {
-  const { groupId, action } = req.body;
+  const { groupId, requestId, action } = req.body;
 
-  if (!groupId || !action || !["approve", "reject"].includes(action)) {
-    throw new ApiError(400, "Valid groupId and action (approve/reject) are required");
+  if (!groupId || !requestId || !action || !["approve", "reject"].includes(action)) {
+    throw new ApiError(400, "Valid groupId, requestId, and action (approve/reject) are required");
   }
 
   const group = await Group.findById(groupId).populate(
-    "members leader summerAllocatedProf typeChangeRequests.initiatedBy typeChangeRequests.memberAssignments.user typeChangeRequests.memberAssignments.org"
+    "members leader summerAllocatedProf typeChangeRequests.initiatedBy typeChangeRequests.org"
   );
 
   if (!group) {
     throw new ApiError(404, "Group not found");
   }
 
-  const pendingRequests = group.typeChangeRequests.filter(
-    (req) => req.status === "pending"
-  );
-
-  if (pendingRequests.length === 0) {
-    throw new ApiError(404, "No pending type change requests for this group");
+  const request = group.typeChangeRequests.id(requestId);
+  
+  if (!request) {
+    throw new ApiError(404, "Type change request not found");
   }
 
-  const request = pendingRequests[0]; // There should be only one pending at a time
+  if (request.status !== "pending") {
+    throw new ApiError(400, "Request is already processed");
+  }
 
   if (action === "reject") {
     request.status = "rejected";
@@ -902,33 +830,32 @@ const profApproveSummerTypeChange = asyncHandler(async (req, res) => {
   }
 
   // Approve action
+  const memberId = request.initiatedBy._id || request.initiatedBy;
+
   if (request.requestedType === "research") {
-    // Industrial → Research: simple conversion
+    // Industrial → Research: simple conversion (since industrial groups are 1 member)
     group.typeOfSummer = "research";
     group.location = request.location;
     group.org = undefined;
 
-    // Update old internship records to research
-    for (const member of group.members) {
-      await Internship.findOneAndUpdate(
-        { student: member._id, type: "industrial" },
-        {
-          $set: {
-            type: "research",
-            location: request.location,
-            mentor: group.summerAllocatedProf?._id,
-          },
-          $unset: { company: "" }
+    await Internship.findOneAndUpdate(
+      { student: memberId, type: "industrial" },
+      {
+        $set: {
+          type: "research",
+          location: request.location,
+          mentor: group.summerAllocatedProf?._id,
         },
-        { new: true }
-      );
-    }
+        $unset: { company: "" }
+      },
+      { new: true }
+    );
 
     request.status = "approved";
-    await group.save({ validateBeforeSave: false });
-
-    // Clear processed requests
-    group.typeChangeRequests = [];
+    
+    // Clear all pending requests (since group type changed)
+    group.typeChangeRequests = group.typeChangeRequests.filter(r => r.status !== "pending");
+    
     await group.save({ validateBeforeSave: false });
 
     const updatedGroup = await Group.findById(group._id)
@@ -939,72 +866,64 @@ const profApproveSummerTypeChange = asyncHandler(async (req, res) => {
       .json(new ApiResponse(200, updatedGroup, "Type change approved — group converted to research"));
   }
 
-  // Research → Industrial: complex split
+  // Research → Industrial: complex split for an individual
   if (request.requestedType === "industrial") {
-    const industrialAssignments = request.memberAssignments.filter(
-      (a) => a.action === "industrial"
-    );
-    const researchAssignments = request.memberAssignments.filter(
-      (a) => a.action === "stay_research"
-    );
+    // Check if the member is actually still in the group (they might have left via another way)
+    const isMemberStillInGroup = group.members.some(m => (m._id || m).toString() === memberId.toString());
+    
+    if (!isMemberStillInGroup) {
+      request.status = "rejected";
+      await group.save({ validateBeforeSave: false });
+      throw new ApiError(400, "User is no longer in this group, request automatically rejected");
+    }
 
     const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
-    const newGroups = [];
+    const newGroupId = nanoid();
 
-    // Create new industrial groups for each member choosing industrial
-    for (const assignment of industrialAssignments) {
-      const memberId = assignment.user._id || assignment.user;
-      const newGroupId = nanoid();
+    const newGroup = await Group.create({
+      groupId: newGroupId,
+      type: "summer",
+      typeOfSummer: "industrial",
+      org: request.org._id || request.org,
+      location: "outside_bit",
+      leader: memberId,
+      members: [memberId],
+      summerAllocatedProf: group.summerAllocatedProf?._id,
+    });
 
-      const newGroup = await Group.create({
-        groupId: newGroupId,
-        type: "summer",
-        typeOfSummer: "industrial",
-        org: assignment.org._id || assignment.org,
-        location: "outside_bit",
-        leader: memberId,
-        members: [memberId],
-        summerAllocatedProf: group.summerAllocatedProf?._id,
-      });
+    // Update user's group reference
+    const memberUser = await User.findById(memberId);
+    memberUser.group = newGroup._id;
+    await memberUser.save({ validateBeforeSave: false });
 
-      // Update user's group reference
-      const memberUser = await User.findById(memberId);
-      memberUser.group = newGroup._id;
-      await memberUser.save({ validateBeforeSave: false });
+    // Update old research internship to industrial
+    await Internship.findOneAndUpdate(
+      { student: memberId, type: "research" },
+      {
+        $set: {
+          type: "industrial",
+          location: "outside_bit",
+          company: request.org._id || request.org,
+          mentor: group.summerAllocatedProf?._id,
+        }
+      },
+      { new: true }
+    );
 
-      // Update old research internship to industrial
-      await Internship.findOneAndUpdate(
-        { student: memberId, type: "research" },
-        {
-          $set: {
-            type: "industrial",
-            location: "outside_bit",
-            company: assignment.org._id || assignment.org,
-            mentor: group.summerAllocatedProf?._id,
-          }
-        },
-        { new: true }
-      );
-
-      newGroups.push(newGroup);
-
-      // Remove member from original group
-      group.members = group.members.filter(
-        (m) => !(m._id || m).equals(memberId)
-      );
-    }
+    // Remove member from original group
+    group.members = group.members.filter(
+      (m) => !(m._id || m).equals(memberId)
+    );
 
     // Update professor's students list
     if (group.summerAllocatedProf) {
       const professor = await Professor.findById(group.summerAllocatedProf._id || group.summerAllocatedProf);
       if (professor) {
-        for (const newGroup of newGroups) {
-          if (!professor.students.summer_training.includes(newGroup._id)) {
-            professor.students.summer_training.push(newGroup._id);
-          }
+        if (!professor.students.summer_training.includes(newGroup._id)) {
+          professor.students.summer_training.push(newGroup._id);
         }
 
-        if (researchAssignments.length === 0) {
+        if (group.members.length === 0) {
           // All members left — remove original group from professor
           professor.students.summer_training = professor.students.summer_training.filter(
             (g) => !g.equals(group._id)
@@ -1015,7 +934,7 @@ const profApproveSummerTypeChange = asyncHandler(async (req, res) => {
       }
     }
 
-    if (researchAssignments.length === 0) {
+    if (group.members.length === 0) {
       // All members moved to industrial — delete original group
       await Group.findByIdAndDelete(group._id);
 
@@ -1024,8 +943,8 @@ const profApproveSummerTypeChange = asyncHandler(async (req, res) => {
         .json(
           new ApiResponse(
             200,
-            { deletedOriginalGroup: true, newGroups },
-            "Type change approved — all members moved to industrial, original group deleted"
+            { deletedOriginalGroup: true, newGroup },
+            "Type change approved — member moved to industrial, original group deleted"
           )
         );
     }
@@ -1033,16 +952,21 @@ const profApproveSummerTypeChange = asyncHandler(async (req, res) => {
     // Some members stay in research — update the original group
     // If the leader left, promote the newly chosen leader
     const remainingMemberIds = group.members.map((m) => (m._id || m).toString());
-    const leaderStillInGroup = remainingMemberIds.includes(
-      (group.leader._id || group.leader).toString()
-    );
+    const leaderLeft = !remainingMemberIds.includes((group.leader._id || group.leader).toString());
 
-    if (!leaderStillInGroup && group.members.length > 0) {
-      group.leader = request.newLeader || (group.members[0]._id || group.members[0]);
+    if (leaderLeft) {
+      const suggestedNewLeaderStr = request.newLeader?.toString();
+      if (suggestedNewLeaderStr && remainingMemberIds.includes(suggestedNewLeaderStr)) {
+        group.leader = request.newLeader;
+      } else {
+        group.leader = group.members[0]._id || group.members[0];
+      }
     }
 
     request.status = "approved";
-    group.typeChangeRequests = [];
+    // Filter out requests for the user who just left
+    group.typeChangeRequests = group.typeChangeRequests.filter(r => r.initiatedBy.toString() !== memberId.toString());
+    
     await group.save({ validateBeforeSave: false });
 
     const updatedGroup = await Group.findById(group._id)
@@ -1053,7 +977,7 @@ const profApproveSummerTypeChange = asyncHandler(async (req, res) => {
       .json(
         new ApiResponse(
           200,
-          { originalGroup: updatedGroup, newGroups },
+          { originalGroup: updatedGroup, newGroup },
           "Type change approved — group split successfully"
         )
       );
@@ -1074,7 +998,7 @@ const getSummerPendingTypeChanges = asyncHandler(async (req, res) => {
     "typeChangeRequests.status": "pending",
   })
     .populate(
-      "members leader summerAllocatedProf org typeChangeRequests.initiatedBy typeChangeRequests.memberAssignments.user typeChangeRequests.memberAssignments.org"
+      "members leader summerAllocatedProf org typeChangeRequests.initiatedBy typeChangeRequests.org"
     )
     .lean();
 

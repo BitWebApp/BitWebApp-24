@@ -55,10 +55,11 @@ const AcceptStudents = () => {
     fetchGroups();
   }, [marks]);
 
-  const handleTypeChangeApproval = async (groupId, action) => {
+  const handleTypeChangeApproval = async (groupId, requestId, action) => {
     try {
       const response = await axios.post("/api/v1/group/prof-approve-summer-type-change", {
         groupId,
+        requestId,
         action
       });
       toast.success(response.data.message);
@@ -329,63 +330,44 @@ const AcceptStudents = () => {
               <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Pending Type Change Requests</h2>
               <div className="space-y-4">
                 {typeChangeRequests.map((group) => (
-                  <div key={group._id} className="border border-amber-200 rounded-lg overflow-hidden">
-                    <div className="p-4 flex items-center justify-between bg-amber-50">
-                      <div>
-                        <h3 className="font-bold text-lg text-gray-800">
-                          Group ID: {group.groupId}
-                        </h3>
-                        <p className="text-sm font-semibold text-amber-700 mt-1">
-                          Request: Change to {group.typeChangeRequests[0].requestedType === "research" ? "Research" : "Industrial"}
-                        </p>
-                      </div>
-                      <div className="flex space-x-2">
-                         <button
-                           onClick={() => handleTypeChangeApproval(group._id, "approve")}
-                           className="flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                         >
-                           <FaCheckCircle className="mr-2" /> Approve
-                         </button>
-                         <button
-                           onClick={() => handleTypeChangeApproval(group._id, "reject")}
-                           className="flex items-center px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                         >
-                           <FaTimesCircle className="mr-2" /> Reject
-                         </button>
-                      </div>
-                    </div>
-                    {group.typeChangeRequests[0].requestedType === "industrial" && (
-                      <div className="p-4 bg-white border-t border-amber-100">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Member Assignments</h4>
-                        <div className="overflow-x-auto">
-                          <table className="min-w-full divide-y divide-gray-200 text-sm border rounded-lg">
-                            <thead className="bg-gray-50">
-                              <tr>
-                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Member</th>
-                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Company</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200 bg-white">
-                              {group.typeChangeRequests[0].memberAssignments.map(a => (
-                                <tr key={a.user?._id || a.user}>
-                                  <td className="px-4 py-2">{a.user?.fullName || a.user}</td>
-                                  <td className="px-4 py-2">
-                                    {a.action === "industrial" ? (
-                                      <span className="text-blue-600 font-medium">Move to Industrial</span>
-                                    ) : (
-                                      <span className="text-gray-600">Stay in Research</span>
-                                    )}
-                                  </td>
-                                  <td className="px-4 py-2">{a.org?.companyName || "-"}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                  <React.Fragment key={group._id}>
+                    {group.typeChangeRequests.map((request) => (
+                      <div key={request._id} className="border border-amber-200 rounded-lg overflow-hidden mb-4">
+                        <div className="p-4 flex items-center justify-between bg-amber-50">
+                          <div>
+                            <h3 className="font-bold text-lg text-gray-800">
+                              Group ID: {group.groupId}
+                            </h3>
+                            <p className="text-sm font-semibold text-amber-700 mt-1">
+                              Member: {request.initiatedBy?.fullName || "Unknown"} ({request.initiatedBy?.rollNumber || "Unknown"})
+                            </p>
+                            <p className="text-sm font-semibold text-amber-700 mt-1">
+                              Request: Change to {request.requestedType === "research" ? "Research" : "Industrial"}
+                            </p>
+                            {request.requestedType === "industrial" && request.org && (
+                              <p className="text-sm text-gray-700 mt-1">
+                                Company: {request.org.companyName}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex space-x-2">
+                             <button
+                               onClick={() => handleTypeChangeApproval(group._id, request._id, "approve")}
+                               className="flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                             >
+                               <FaCheckCircle className="mr-2" /> Approve
+                             </button>
+                             <button
+                               onClick={() => handleTypeChangeApproval(group._id, request._id, "reject")}
+                               className="flex items-center px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                             >
+                               <FaTimesCircle className="mr-2" /> Reject
+                             </button>
+                          </div>
                         </div>
                       </div>
-                    )}
-                  </div>
+                    ))}
+                  </React.Fragment>
                 ))}
               </div>
             </div>

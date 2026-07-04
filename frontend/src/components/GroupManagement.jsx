@@ -34,7 +34,10 @@ const GroupManagement = () => {
     try {
       const response = await axios.get("/api/v1/group/get-summer-type-change-status");
       const requests = response.data?.data?.typeChangeRequests || [];
-      const pending = requests.find((req) => req.status === "pending");
+      const pending = requests.find((req) => 
+        req.status === "pending" && 
+        (req.initiatedBy === currentUserId || req.initiatedBy?._id === currentUserId)
+      );
       setPendingRequest(pending || null);
     } catch (error) {
       // ignore
@@ -184,31 +187,26 @@ const GroupManagement = () => {
   };
 
   const openChangeType = async () => {
-    if (group?.typeOfSummer === "research") {
-      setLoading(true);
-      try {
-        const response = await axios.get("/api/v1/group/get-member-companies");
-        const companies = response.data?.data || [];
-        setMemberCompanies(companies);
-        // Initialize assignments
-        const initialAssignments = companies.map(c => ({
-          user: c._id,
-          action: "stay_research",
-          org: ""
-        }));
-        setMemberAssignments(initialAssignments);
+    setLoading(true);
+    try {
+      const response = await axios.get("/api/v1/group/get-member-companies");
+      const companies = response.data?.data || [];
+      setMemberCompanies(companies);
+      
+      if (group?.typeOfSummer === "research") {
         setNewType("industrial");
-        setNewLeaderId("");
-        setShowChangeType(true);
-      } catch (error) {
-        handleError(error, "Failed to load member companies");
+      } else {
+        setNewType("research");
       }
-      setLoading(false);
-    } else {
-      setNewType("research");
+      
       setNewLocation(group?.location || "");
+      setNewOrg(group?.org?._id || group?.org || "");
+      setNewLeaderId("");
       setShowChangeType(true);
+    } catch (error) {
+      handleError(error, "Failed to load member companies");
     }
+    setLoading(false);
   };
 
   const submitChangeType = async () => {
@@ -225,28 +223,19 @@ const GroupManagement = () => {
           location: newLocation
         });
       } else {
-        // Validate assignments
-        const hasIndustrial = memberAssignments.some(a => a.action === "industrial");
-        if (!hasIndustrial) {
-          toast.error("At least one member must choose industrial");
-          setLoading(false);
-          return;
-        }
-        const invalid = memberAssignments.find(a => a.action === "industrial" && !a.org);
-        if (invalid) {
-          toast.error("Please select a company for all members moving to industrial");
+        if (!newOrg) {
+          toast.error("Please select a company for your industrial internship");
           setLoading(false);
           return;
         }
 
         const leaderIdStr = group?.leader?._id || group?.leader;
-        const leaderAction = memberAssignments.find(a => a.user === leaderIdStr);
-        const someoneStaying = memberAssignments.some(a => a.action === "stay_research");
-        
         let finalNewLeaderId = undefined;
-        if (leaderAction?.action === "industrial" && someoneStaying) {
+        
+        // If the current user is the leader and there are other members in the group
+        if (currentUserId === leaderIdStr && group.members.length > 1) {
           if (!newLeaderId) {
-            toast.error("Please select a new group leader for the remaining research group");
+            toast.error("Please select a new group leader since you are leaving");
             setLoading(false);
             return;
           }
@@ -255,7 +244,7 @@ const GroupManagement = () => {
 
         await axios.post("/api/v1/group/request-summer-type-change", {
           requestedType: "industrial",
-          memberAssignments,
+          org: newOrg,
           newLeader: finalNewLeaderId
         });
       }
@@ -399,15 +388,11 @@ const GroupManagement = () => {
                       <div className="flex flex-wrap gap-2 justify-end">
                         {pendingRequest ? (
                           <span className="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg shadow-sm text-sm font-medium border border-yellow-200">
-                            Type Change Request Pending Approval
+                            Type Change Pending Approval
                           </span>
                         ) : !group?.summerAllocatedProf ? (
                           <span className="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg shadow-sm text-sm border border-gray-200">
                             Mentor Allocation Required to Change Type
-                          </span>
-                        ) : group?.typeOfSummer === "research" && group?.leader?._id !== currentUserId ? (
-                          <span className="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg shadow-sm text-sm border border-gray-200">
-                            Only Leader can Change Type
                           </span>
                         ) : (
                           <button
@@ -819,85 +804,49 @@ const GroupManagement = () => {
               {newType === "industrial" && (
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Member Company Assignments
+                    Select Company
                   </label>
-                  <div className="overflow-x-auto border rounded-lg">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Member</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Company</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {memberCompanies.map((mc, idx) => (
-                          <tr key={mc._id}>
-                            <td className="px-4 py-3 text-sm text-gray-900">{mc.fullName} ({mc.rollNumber})</td>
-                            <td className="px-4 py-3">
-                              <select
-                                value={memberAssignments.find(a => a.user === mc._id)?.action || "stay_research"}
-                                onChange={(e) => {
-                                  const action = e.target.value;
-                                  setMemberAssignments(prev => prev.map(a => 
-                                    a.user === mc._id ? { ...a, action, org: action === "stay_research" ? "" : a.org } : a
-                                  ));
-                                }}
-                                className="block w-full border border-gray-300 rounded-md text-sm shadow-sm focus:ring-blue-500 focus:border-blue-500 py-1"
-                              >
-                                <option value="stay_research">Stay in Research</option>
-                                <option value="industrial">Move to Industrial</option>
-                              </select>
-                            </td>
-                            <td className="px-4 py-3">
-                              {memberAssignments.find(a => a.user === mc._id)?.action === "industrial" ? (
-                                <select
-                                  value={memberAssignments.find(a => a.user === mc._id)?.org || ""}
-                                  onChange={(e) => {
-                                    const org = e.target.value;
-                                    setMemberAssignments(prev => prev.map(a => 
-                                      a.user === mc._id ? { ...a, org } : a
-                                    ));
-                                  }}
-                                  className="block w-full border border-gray-300 rounded-md text-sm shadow-sm focus:ring-blue-500 focus:border-blue-500 py-1"
-                                >
-                                  <option value="">Select Company</option>
-                                  {mc.companies.map(c => (
-                                    <option key={c._id} value={c._id}>{c.companyName}</option>
-                                  ))}
-                                </select>
-                              ) : (
-                                <span className="text-gray-400 text-sm italic">N/A</span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <select
+                    value={newOrg}
+                    onChange={(e) => setNewOrg(e.target.value)}
+                    className="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select Company</option>
+                    {memberCompanies
+                      .find((mc) => mc._id === currentUserId)
+                      ?.companies.map((c) => (
+                        <option key={c._id} value={c._id}>
+                          {c.companyName}
+                        </option>
+                      ))}
+                  </select>
 
                   {/* New Leader Selection */}
-                  {memberAssignments.find(a => a.user === (group?.leader?._id || group?.leader))?.action === "industrial" && 
-                   memberAssignments.some(a => a.action === "stay_research") && (
-                    <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-lg">
-                      <label className="block text-sm font-medium text-blue-800 mb-1">
-                        Select New Group Leader
-                      </label>
-                      <p className="text-xs text-blue-600 mb-2">Since you are leaving the research group, please appoint a new leader for the remaining members.</p>
-                      <select
-                        value={newLeaderId}
-                        onChange={(e) => setNewLeaderId(e.target.value)}
-                        className="block w-full border border-gray-300 rounded-md text-sm shadow-sm focus:ring-blue-500 focus:border-blue-500 py-2 px-3"
-                      >
-                        <option value="">Select new leader</option>
-                        {memberCompanies
-                          .filter(mc => memberAssignments.find(a => a.user === mc._id)?.action === "stay_research")
-                          .map(mc => (
-                            <option key={mc._id} value={mc._id}>{mc.fullName} ({mc.rollNumber})</option>
-                          ))}
-                      </select>
-                    </div>
-                  )}
+                  {currentUserId === (group?.leader?._id || group?.leader) &&
+                    group?.members?.length > 1 && (
+                      <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                        <label className="block text-sm font-medium text-blue-800 mb-1">
+                          Select New Group Leader
+                        </label>
+                        <p className="text-xs text-blue-600 mb-2">
+                          Since you are leaving the research group, please appoint a new leader for the remaining members.
+                        </p>
+                        <select
+                          value={newLeaderId}
+                          onChange={(e) => setNewLeaderId(e.target.value)}
+                          className="block w-full border border-gray-300 rounded-md text-sm shadow-sm focus:ring-blue-500 focus:border-blue-500 py-2 px-3"
+                        >
+                          <option value="">Select new leader</option>
+                          {memberCompanies
+                            .filter((mc) => mc._id !== currentUserId)
+                            .map((mc) => (
+                              <option key={mc._id} value={mc._id}>
+                                {mc.fullName} ({mc.rollNumber})
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    )}
                 </div>
               )}
             </div>

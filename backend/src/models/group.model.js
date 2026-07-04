@@ -108,24 +108,10 @@ const groupSchema = new Schema({
         type: String,
         enum: ["inside_bit", "outside_bit"],
       },
-      memberAssignments: [
-        {
-          user: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-          },
-          action: {
-            type: String,
-            enum: ["industrial", "stay_research"],
-            required: true,
-          },
-          org: {
-            type: Schema.Types.ObjectId,
-            ref: "Company",
-          },
-        },
-      ],
+      org: {
+        type: Schema.Types.ObjectId,
+        ref: "Company",
+      },
       newLeader: {
         type: Schema.Types.ObjectId,
         ref: "User",
