@@ -71,10 +71,15 @@ const createProject = asyncHandler(async (req, res) => {
 
 const ShowProject = asyncHandler(async (req, res) => {
   try {
-    const showData = await Project.find().populate(
-      "name",
-      "rollNumber fullName"
-    );
+    const showData = await Project.find().populate({
+      path: "name",
+      select: "rollNumber fullName email mobileNumber group MajorGroup MinorGroup",
+      populate: [
+        { path: "group", select: "groupId" },
+        { path: "MajorGroup", select: "groupId" },
+        { path: "MinorGroup", select: "groupId" }
+      ]
+    });
     console.log(showData);
     res
       .status(200)

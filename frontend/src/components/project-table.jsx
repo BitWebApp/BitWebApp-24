@@ -77,6 +77,11 @@ export default function ProjectTable() {
     return (
       (proj.name?.fullName?.toLowerCase().includes(query) || '') ||
       (proj.name?.rollNumber?.toLowerCase().includes(query) || '') ||
+      (proj.name?.email?.toLowerCase().includes(query) || '') ||
+      (proj.name?.mobileNumber?.toLowerCase().includes(query) || '') ||
+      (proj.name?.group?.groupId?.toLowerCase().includes(query) || '') ||
+      (proj.name?.MajorGroup?.groupId?.toLowerCase().includes(query) || '') ||
+      (proj.name?.MinorGroup?.groupId?.toLowerCase().includes(query) || '') ||
       proj.projectName.toLowerCase().includes(query) ||
       proj.domain.toLowerCase().includes(query) ||
       proj.projectLink.toLowerCase().includes(query) ||
@@ -92,6 +97,9 @@ export default function ProjectTable() {
     worksheet.columns = [
       { header: "Name", key: "fullName", width: 25 },
       { header: "Roll No", key: "rollNumber", width: 25 },
+      { header: "Email", key: "email", width: 30 },
+      { header: "Mobile Number", key: "mobileNumber", width: 20 },
+      { header: "Group ID", key: "groupId", width: 20 },
       { header: "Project Name", key: "projectName", width: 25 },
       { header: "Domain", key: "domain", width: 20 },
       { header: "Project Link", key: "projectLink", width: 25 },
@@ -104,6 +112,9 @@ export default function ProjectTable() {
       worksheet.addRow({
         fullName: record.name?.fullName,
         rollNumber: record.name?.rollNumber,
+        email: record.name?.email || "N/A",
+        mobileNumber: record.name?.mobileNumber || "N/A",
+        groupId: record.name?.group?.groupId || record.name?.MajorGroup?.groupId || record.name?.MinorGroup?.groupId || "N/A",
         projectName: record.projectName,
         domain: record.domain,
         projectLink: record.projectLink,
@@ -202,6 +213,9 @@ export default function ProjectTable() {
               >
                 Roll No.
               </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Email</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Mobile Number</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Group ID</th>
               <th
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider cursor-pointer"
@@ -235,6 +249,9 @@ export default function ProjectTable() {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{index + 1}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.name?.fullName}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.name?.rollNumber}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.name?.email || "N/A"}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.name?.mobileNumber || "N/A"}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{(project.name?.group?.groupId || project.name?.MajorGroup?.groupId || project.name?.MinorGroup?.groupId || "N/A").toUpperCase()}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.projectName}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.domain}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.projectLink}</td>
