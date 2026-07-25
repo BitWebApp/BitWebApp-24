@@ -107,6 +107,7 @@ export default function InternshipTable() {
     let maxTypeLength = "Internship Type".length;
     let maxLocationLength = "Location".length;
     let maxMentorLength = "Mentor".length;
+    let maxGroupIdLength = "Group ID".length;
     let maxMarksLength = "Summer Training Marks".length;
     let maxProjectLength = "Project Title".length;
     let maxMobileLength = "Mobile Number".length;
@@ -141,6 +142,11 @@ export default function InternshipTable() {
         (record?.group?.projectTitle || "").length,
       );
 
+      maxGroupIdLength = Math.max(
+        maxGroupIdLength,
+        (record?.group?.groupId || "").length,
+      );
+
       maxMobileLength = Math.max(
         maxMobileLength,
         (record?.student?.mobileNumber || "").length,
@@ -169,6 +175,7 @@ export default function InternshipTable() {
         key: "mobileNumber",
         width: maxMobileLength + 3,
       },
+      { header: "Group ID", key: "groupId", width: maxGroupIdLength + 3 },
       { header: "Company", key: "company", width: maxCompanyLength + 3 },
       { header: "Internship Type", key: "type", width: maxTypeLength + 3 },
       { header: "Location", key: "location", width: maxLocationLength + 3 },
@@ -205,6 +212,7 @@ export default function InternshipTable() {
         name: record?.student?.fullName.toUpperCase(),
         email: record?.student?.email,
         mobileNumber: record?.student?.mobileNumber || "N/A",
+        groupId: record?.group?.groupId?.toUpperCase() || "N/A",
         company: record?.company?.companyName.toUpperCase(),
         type: record?.type,
         location: record?.location,
@@ -333,6 +341,9 @@ export default function InternshipTable() {
               Mobile Number
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Group ID
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
               Company
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
@@ -370,6 +381,9 @@ export default function InternshipTable() {
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {record?.student?.mobileNumber || "N/A"}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.group?.groupId?.toUpperCase() || "N/A"}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {record?.company?.companyName.toUpperCase()}
