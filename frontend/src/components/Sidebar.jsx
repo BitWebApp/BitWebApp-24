@@ -161,6 +161,11 @@ export default function Sidebar() {
       icon: <HiBeaker />,
       to: "/db/report-bug",
     },
+    {
+      text: "Assign Company",
+      icon: <HiBriefcase />,
+      to: "/db/assign-company",
+    },
   ];
   const links = additionalLinks;
   const navigate = useNavigate();

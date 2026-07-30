@@ -28,7 +28,7 @@ import {
   addInterviewExp,
   getAllInterviewExps,
 } from "../controllers/interview.controller.js";
-import { getUserCompanies } from "../controllers/company.controller.js";
+import { getUserCompanies, selfAssignCompany } from "../controllers/company.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
 
@@ -97,6 +97,7 @@ router
 
 //interview exp routes
 router.route("/get-user-companies").get(verifyJWT, getUserCompanies);
+router.route("/self-assign-company").post(verifyJWT, selfAssignCompany);
 router.route("/add-interview-exp").post(verifyJWT, addInterviewExp);
 const reviewLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 25 });
 router

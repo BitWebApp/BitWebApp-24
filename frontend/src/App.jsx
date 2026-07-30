@@ -33,7 +33,7 @@ import BacklogTable from "./components/Backlogtable";
 import BookedRooms from "./components/BookedRooms";
 import ClassroomBookingCalendar from "./components/ClassroomBookingCalendar";
 import ClassroomForm from "./components/ClassroomForm";
-import CompanyAssignmentForm from "./components/CompanyAssignmentForm";
+import UserCompanyAssignmentForm from "./components/UserCompanyAssignmentForm";
 import Dashboard from "./components/Dashboard";
 import ExamForm from "./components/ExamForm";
 import ExamTable from "./components/examtable";
@@ -159,6 +159,7 @@ export default function App() {
             path="booking-calendar"
             element={<ClassroomBookingCalendar />}
           />
+          <Route path="assign-company" element={<UserCompanyAssignmentForm />} />
         </Route>
 
         <Route
@@ -191,7 +192,6 @@ export default function App() {
           <Route path="reassign-major-mentor" element={<ReassignMajorMentor />} />
           <Route path="admin-room-request" element={<AdminRoomRequests />} />
           <Route path="companies-table" element={<AdminAddCompanies />} />
-          <Route path="assign-company" element={<CompanyAssignmentForm />} />
           <Route path="add-prof" element={<AddProfessor />} />
           <Route path="review" element={<Review />} />
           <Route path="student-award-table" element={<StudentAwardTable />} />

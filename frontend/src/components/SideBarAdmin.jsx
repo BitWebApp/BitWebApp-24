@@ -132,11 +132,7 @@ export default function Sidebar() {
       icon: <HiArchive />,
       to: "/admin-db/companies-table",
     },
-    {
-      text: "Assign Company",
-      icon: <HiBriefcase />,
-      to: "/admin-db/assign-company",
-    },
+
     {
       text: "Add Project Faculty",
       icon: <HiUser />,
