@@ -157,6 +157,12 @@ export default function Sidebar() {
     //   to: "/db/student-projects-dashboard",
     // },
     {
+      text: "Project 1",
+      icon: <HiPresentationChartLine />,
+      to: "/db/apply-project1",
+      minYear: 2,
+    },
+    {
       text: "Report Issues",
       icon: <HiBeaker />,
       to: "/db/report-bug",
@@ -167,7 +173,21 @@ export default function Sidebar() {
       to: "/db/assign-company",
     },
   ];
-  const links = additionalLinks;
+
+  // Filter links based on student year (from batch)
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const studentYear = user.batch
+    ? new Date().getFullYear() - user.batch + 1
+    : null;
+  const links = additionalLinks.filter((link) => {
+    if (link.minYear) {
+      return studentYear >= link.minYear;
+    }
+    if (link.year) {
+      return link.year === studentYear;
+    }
+    return true;
+  });
   const navigate = useNavigate();
   
   const handleLogout = async () => {

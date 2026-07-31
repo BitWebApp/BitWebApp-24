@@ -95,6 +95,10 @@ import Userform from "./components/userform";
 import VerifyUsers from "./components/VerifyUsers";
 import ViewProfProjectDetails from "./components/ViewProfProjectDetails";
 import Research from "./components/Research";
+import Project1Apply from "./components/Project1Apply";
+import Project1Table from "./components/Project1Table";
+import AcceptProject1 from "./components/AcceptProject1";
+
 export default function App() {
   return (
     <Router>
@@ -142,6 +146,7 @@ export default function App() {
           <Route path="interview" element={<InterviewForm />} />
           <Route path="classroom-form" element={<ClassroomForm />} />
           <Route path="apply-summer" element={<Research />} />
+          <Route path="apply-project1" element={<Project1Apply />} />
           <Route path="apply-minor" element={<MinorProject />} />
           <Route path="apply-major" element={<MajorProject />} />
           <Route path="userform" element={<Userform />} />
@@ -189,6 +194,7 @@ export default function App() {
           <Route path="internship-table" element={<Internshiptable />} />
           <Route path="minor-project-table" element={<MinorProjectTable />} />
           <Route path="major-project-table" element={<MajorProjectTable />} />
+          <Route path="project1-table" element={<Project1Table />} />
           <Route path="reassign-major-mentor" element={<ReassignMajorMentor />} />
           <Route path="admin-room-request" element={<AdminRoomRequests />} />
           <Route path="companies-table" element={<AdminAddCompanies />} />
@@ -214,6 +220,7 @@ export default function App() {
         >
           <Route index element={<Dashboard />} />
           <Route path="accept-students" element={<AcceptStudents />} />
+          <Route path="accept-project1" element={<AcceptProject1 />} />
           <Route path="accept-minor-project" element={<AcceptMinorProject />} />
           <Route path="accept-major-project" element={<AcceptMajorProject />} />
           <Route path="major-project" element={<MajorProject />} />

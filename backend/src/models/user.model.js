@@ -294,6 +294,14 @@ const userSchema = new Schema(
         type: Number,
         default: 0,
       },
+      project1: {
+        type: Number,
+        default: 0,
+      },
+    },
+    project1: {
+      type: Schema.Types.ObjectId,
+      ref: "Project1",
     },
     batch: {
       type: Number,

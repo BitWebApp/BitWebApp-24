@@ -30,6 +30,11 @@ const facultyLinks = [
       to: "/faculty-db/adhoc-projects-dashboard",
     },
     {
+      text: "Project 1",
+      icon: <HiPresentationChartLine />,
+      to: "/faculty-db/accept-project1",
+    },
+    {
       text: "Report Issues",
       icon: <HiBeaker />,
       to: "/faculty-db/report-bug",

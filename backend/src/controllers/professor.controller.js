@@ -624,37 +624,33 @@ const getcurrentProf = asyncHandler(async (req, res) => {
 
 const incrementLimit = asyncHandler(async (req, res) => {
   const { profId, limit, type } = req.body;
-  const professor = await Professor.findById(profId);
-  if (!professor) {
-    throw new ApiError(404, "Professor not found!");
-  }
   if (limit === undefined || limit === null || !type) {
     throw new ApiError(400, "Limit and field are required!");
   }
-  if (type == "summer_training") {
-    if (limit < professor.currentCount.summer_training) {
-      throw new ApiError(400, "Limit cannot be less than current count!");
-    }
-    professor.limits.summer_training = limit;
-    await professor.save();
-  } else if (type == "minor_project") {
-    if (limit < professor.currentCount.minor_project) {
-      throw new ApiError(400, "Limit cannot be less than current count!");
-    }
-    professor.limits.minor_project = limit;
-    await professor.save();
-  } else if (type == "major_project") {
-    if (limit < professor.currentCount.major_project) {
-      throw new ApiError(400, "Limit cannot be less than current count!");
-    }
-    professor.limits.major_project = limit;
-    await professor.save();
-  } else {
+
+  const validTypes = ["summer_training", "minor_project", "major_project", "project1"];
+  if (!validTypes.includes(type)) {
     throw new ApiError(400, "Invalid type provided!");
   }
-  res
-    .status(200)
-    .json(new ApiResponse(200, "Limit updated successfully!", professor));
+
+  if (profId === "all") {
+    const updateQuery = {};
+    updateQuery[`limits.${type}`] = limit;
+    await Professor.updateMany({}, { $set: updateQuery });
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Limit updated for all professors successfully!", null));
+  } else {
+    const professor = await Professor.findById(profId);
+    if (!professor) {
+      throw new ApiError(404, "Professor not found!");
+    }
+    professor.limits[type] = limit;
+    await professor.save();
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Limit updated successfully!", professor));
+  }
 });
 
 const getAcceptedStudents = asyncHandler(async (req, res) => {

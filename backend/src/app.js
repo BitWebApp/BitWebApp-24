@@ -83,6 +83,9 @@ app.use("/api/v1/major", majorRouter);
 import bugRouter from "./routes/bugtracker.routes.js";
 app.use("/api/v1/tracker", bugRouter);
 
+import project1Router from "./routes/project1.routes.js";
+app.use("/api/v1/project1", project1Router);
+
 import chatRouter from "./routes/chat.routes.js";
 app.use("/api/v1/chat", chatRouter);
 

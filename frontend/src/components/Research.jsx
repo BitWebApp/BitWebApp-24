@@ -416,7 +416,7 @@ const Research = () => {
                           const isDisabled =
                             isApplied ||
                             allocatedProf?._id === prof._id ||
-                            seatsAvailable === 0 ||
+                            seatsAvailable <= 0 ||
                             isDenied;
 
                           const statusConfig = {
@@ -453,7 +453,7 @@ const Research = () => {
                           let status;
                           if (isDenied) status = statusConfig.denied;
                           else if (isApplied) status = statusConfig.applied;
-                          else if (seatsAvailable === 0)
+                          else if (seatsAvailable <= 0)
                             status = statusConfig.full;
                           //else if (seatsAvailable == 1)
                            // status = statusConfig.intern;
@@ -495,7 +495,7 @@ const Research = () => {
                                   <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
                                     <div
                                       className={`h-2.5 rounded-full ${
-                                        seatsAvailable === 0
+                                        seatsAvailable <= 0
                                           ? "bg-red-500"
                                           : seatsAvailable < 3
                                           ? "bg-yellow-500"

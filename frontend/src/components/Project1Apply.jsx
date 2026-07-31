@@ -2,19 +2,15 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { toast, Toaster } from "react-hot-toast";
-import ChatBox from "./ChatBox";
 
 const handleError = (error, defaultMessage) => {
-
   let message =
     error.response?.data?.message || defaultMessage || "An error occurred";
   toast.error(message);
 };
 
-const MajorProject = () => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [userLoading, setUserLoading] = useState(true);
-  const [group, setGroup] = useState(null);
+const Project1Apply = () => {
+  const [project1, setProject1] = useState(null);
   const [professors, setProfessors] = useState([]);
   const [filteredProfessors, setFilteredProfessors] = useState([]);
   const [appliedProfessors, setAppliedProfessors] = useState([]);
@@ -26,17 +22,15 @@ const MajorProject = () => {
   const [loading, setLoading] = useState(false);
   const [discussionLogs, setDiscussionLogs] = useState(null);
   const [showLogs, setShowLogs] = useState(false);
-  const [showChat, setShowChat] = useState(false);
+  const [creating, setCreating] = useState(false);
 
-  const fetchGroup = async () => {
-    setLoading(true);
+  const fetchProject1 = async () => {
     try {
-      const response = await axios.get("/api/v1/major/get-group");
-      setGroup(response.data.data.groupId);
+      const response = await axios.get("/api/v1/project1/get-project1");
+      setProject1(response.data.data);
     } catch (error) {
-      setGroup(null);
+      setProject1(null);
     }
-    setLoading(false);
   };
 
   const fetchData = async () => {
@@ -44,67 +38,65 @@ const MajorProject = () => {
       setLoading(true);
       const [allProfsResponse, appliedProfsResponse] = await Promise.all([
         axios.get("/api/v1/prof/getProf"),
-        axios.get("/api/v1/major/get-app-profs"),
+        axios.get("/api/v1/project1/get-app-profs"),
       ]);
-      const { ismajorAllocated, prof, majorAppliedProfs, denied } =
+      const { isAllocated, prof, appliedProfs, denied } =
         appliedProfsResponse?.data?.data || {};
 
       const sortedProfessors = allProfsResponse.data.message
         .filter((prof) => {
-          const availableSeats =
-            prof.limits.major_project - prof.currentCount.major_project;
-          return availableSeats >= 0;
+          const total = prof.limits?.project1 || 0;
+          const current = prof.currentCount?.project1 || 0;
+          return total - current >= 0;
         })
         .sort((a, b) => {
-          const seatsA =
-            a.limits.major_project - a.currentCount.major_project;
-          const seatsB =
-            b.limits.major_project - b.currentCount.major_project;
-          return seatsB - seatsA;
+          const totalA = a.limits?.project1 || 0;
+          const currentA = a.currentCount?.project1 || 0;
+          const totalB = b.limits?.project1 || 0;
+          const currentB = b.currentCount?.project1 || 0;
+          return totalB - currentB - (totalA - currentA);
         });
 
-      setAppliedProfessors(majorAppliedProfs || []);
+      setAppliedProfessors(appliedProfs || []);
       setDenied(denied || []);
-      if (ismajorAllocated && prof) setAllocatedProf(prof);
+      if (isAllocated && prof) setAllocatedProf(prof);
       setProfessors(sortedProfessors);
+      setFilteredProfessors(sortedProfessors);
       setLoading(false);
     } catch (error) {
       setLoading(false);
-      handleError(error);
-    }
-  };
-  const fetchUser = async () => {
-    setUserLoading(true);
-    try {
-      const response = await axios.get("/api/v1/users/get-user");
-      setCurrentUser(response.data.data);
-    } catch (error) {
-      setCurrentUser(null);
-    } finally {
-      setUserLoading(false);
+      // Only show error if project1 exists (otherwise we haven't created yet)
+      if (project1) handleError(error);
     }
   };
 
   useEffect(() => {
-    fetchUser();
-    fetchData();
-    fetchGroup();
+    fetchProject1();
   }, []);
 
   useEffect(() => {
-    if (currentUser && !currentUser.isMajorAllocated && !allocatedProf && currentUser.batch !== 22) {
-      toast.error(`Registration for Major Project is open for batch K22 only. Process not started for batch K${currentUser.batch}.`, {
-        id: "major-batch-error-toast",
-      });
+    if (project1) {
+      fetchData();
     }
-  }, [currentUser, allocatedProf]);
+  }, [project1]);
+
+  const handleCreate = async () => {
+    setCreating(true);
+    try {
+      await axios.post("/api/v1/project1/create");
+      toast.success("Project 1 record created!");
+      await fetchProject1();
+    } catch (error) {
+      handleError(error, "Failed to create Project 1 record");
+    }
+    setCreating(false);
+  };
 
   const handleViewDetails = async () => {
     if (allocatedProf) {
       try {
         setLoading(true);
-        const response = await axios.post("/api/v1/major/get-disc-student");
-
+        const response = await axios.get("/api/v1/project1/get-disc-student");
         setDiscussionLogs(response.data.data);
         setShowLogs(true);
         setLoading(false);
@@ -112,8 +104,6 @@ const MajorProject = () => {
         setLoading(false);
         handleError(error, "Failed to fetch discussion logs");
       }
-    } else {
-      window.location.reload();
     }
   };
 
@@ -130,17 +120,11 @@ const MajorProject = () => {
 
     try {
       setLoading(true);
-      const applyResponse = await axios.post("/api/v1/major/apply-faculty", {
+      await axios.post("/api/v1/project1/apply-faculty", {
         facultyId: selectedProf,
       });
-      
-      // Update applied professors immediately from the response
-      const updatedGroup = applyResponse.data.data;
-      if (updatedGroup && updatedGroup.majorAppliedProfs) {
-        setAppliedProfessors(updatedGroup.majorAppliedProfs);
-      }
-      
       setLoading(false);
+      await fetchData();
       Swal.fire({
         icon: "success",
         title: "Success",
@@ -160,55 +144,9 @@ const MajorProject = () => {
     }
   };
 
-  const handleWithdraw = async (facultyId, profName) => {
-    const result = await Swal.fire({
-      icon: "warning",
-      title: "Confirm Withdrawal",
-      text: `Are you sure you want to withdraw your application to ${profName}?`,
-      showCancelButton: true,
-      confirmButtonColor: "#ef4444",
-      cancelButtonColor: "#6b7280",
-      confirmButtonText: "Yes, withdraw",
-      cancelButtonText: "Cancel",
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      setLoading(true);
-      const withdrawResponse = await axios.post("/api/v1/major/withdraw-faculty", {
-        facultyId,
-      });
-
-      // Update applied professors immediately from the response
-      const updatedGroup = withdrawResponse.data.data;
-      if (updatedGroup && updatedGroup.majorAppliedProfs) {
-        setAppliedProfessors(updatedGroup.majorAppliedProfs);
-      }
-
-      setLoading(false);
-      Swal.fire({
-        icon: "success",
-        title: "Withdrawn",
-        text: "Application withdrawn successfully",
-        confirmButtonColor: "#10b981",
-      });
-    } catch (error) {
-      setLoading(false);
-      let errorMessage = error.response?.data?.message;
-      Swal.fire({
-        icon: "error",
-        title: "Withdrawal Failed",
-        text: errorMessage || "Failed to withdraw application. Try again.",
-        confirmButtonColor: "#ef4444",
-      });
-    }
-  };
-
   const handleSearchAndFilter = () => {
     let filtered = professors;
 
-    // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -218,23 +156,19 @@ const MajorProject = () => {
       );
     }
 
-    // Apply availability filter
     if (filterOption === "available") {
       filtered = filtered.filter((prof) => {
         const availableSeats =
-          prof.limits.major_project - prof.currentCount.major_project;
+          (prof.limits?.project1 || 0) - (prof.currentCount?.project1 || 0);
         return availableSeats > 0;
       });
     } else if (filterOption === "applied") {
-      filtered = filtered.filter((prof) => {
-        const isApplied = appliedProfessors.some((appliedProfId) => appliedProfId === prof._id);
-        return isApplied;
-      });
-      
-      // Sort by preference order (lowest preference number first)
+      filtered = filtered.filter((prof) =>
+        appliedProfessors.includes(prof._id)
+      );
       filtered.sort((a, b) => {
-        const prefA = appliedProfessors.findIndex((id) => id === a._id);
-        const prefB = appliedProfessors.findIndex((id) => id === b._id);
+        const prefA = appliedProfessors.indexOf(a._id);
+        const prefB = appliedProfessors.indexOf(b._id);
         return prefA - prefB;
       });
     }
@@ -246,44 +180,92 @@ const MajorProject = () => {
     handleSearchAndFilter();
   }, [searchQuery, filterOption, professors, appliedProfessors]);
 
-  if (userLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="flex flex-col items-center">
-          <svg className="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <span className="text-gray-700 font-medium">Loading User Profile...</span>
-        </div>
-      </div>
-    );
-  }
+  // No project1 record yet — show create button or blocked message based on year
+  if (!project1) {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const studentYear = user.batch
+      ? new Date().getFullYear() - user.batch + 1
+      : null;
 
-  if (currentUser && !currentUser.isMajorAllocated && !allocatedProf && currentUser.batch !== 22) {
+    const isEligible = studentYear === 2;
+
     return (
       <>
         <Toaster position="top-right" />
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8 flex items-center justify-center">
-          <div className="max-w-md w-full bg-white/85 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-8 text-center transition-all hover:shadow-2xl">
-            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6 text-red-600 animate-pulse">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-bold mb-4 text-gray-900">
-              Process Not Started
-            </h1>
-            <p className="text-gray-600 mb-6 leading-relaxed">
-              Registration for Major Project is currently open for batch <strong className="text-blue-600 font-semibold">K22</strong> only.
-            </p>
-            <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-5 mb-2 inline-block w-full border border-gray-200/60 shadow-inner">
-              <p className="text-sm text-gray-700">
-                Your Batch: <span className="font-bold text-gray-900 bg-gray-200 px-2 py-0.5 rounded">K{currentUser.batch}</span>
-              </p>
-              <p className="text-xs text-gray-500 mt-2">
-                Process has not been started for your batch yet.
-              </p>
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4 md:p-8">
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+              <div className="bg-gradient-to-r from-purple-600 to-indigo-700 p-6 text-white">
+                <h1 className="text-2xl md:text-3xl font-bold">Project 1</h1>
+                <p className="text-purple-100 mt-1">
+                  2nd Year Project Application
+                </p>
+              </div>
+              <div className="p-8 text-center">
+                <div className="mx-auto w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mb-6">
+                  {isEligible ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-10 w-10 text-purple-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-10 w-10 text-purple-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  )}
+                </div>
+                {isEligible ? (
+                  <>
+                    <h2 className="text-xl font-semibold mb-2 text-gray-900">
+                      Get Started
+                    </h2>
+                    <p className="text-gray-600 mb-6">
+                      Create your Project 1 record to start applying to professors.
+                    </p>
+                    <button
+                      onClick={handleCreate}
+                      disabled={creating}
+                      className={`px-8 py-3 rounded-lg font-medium text-white shadow-md transition-all ${
+                        creating
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800"
+                      }`}
+                    >
+                      {creating ? "Creating..." : "Create Project 1 Record"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-xl font-semibold mb-2 text-gray-900">
+                      Not Applicable
+                    </h2>
+                    <p className="text-gray-600 mb-6">
+                      You did not create a Project 1 record during your 2nd year. This feature is only available for 2nd year students.
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -294,16 +276,16 @@ const MajorProject = () => {
   return (
     <>
       <Toaster position="top-right" />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
           {allocatedProf ? (
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white">
                 <h1 className="text-2xl md:text-3xl font-bold">
-                  Major Project Allocation
+                  Project 1 Allocation
                 </h1>
                 <p className="text-green-100 mt-1">
-                  Your major project details
+                  Your Project 1 details
                 </p>
               </div>
               <div className="p-8">
@@ -328,7 +310,7 @@ const MajorProject = () => {
                     Congratulations!
                   </h1>
                   <p className="text-xl mb-6 text-gray-700">
-                    Your major project has been successfully allocated under
+                    Your Project 1 has been successfully allocated under
                   </p>
                   <div className="bg-gray-100 rounded-lg p-4 inline-block">
                     <h2 className="text-2xl font-semibold text-gray-900">
@@ -344,12 +326,6 @@ const MajorProject = () => {
                       className="px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
                     >
                       {loading ? "Loading..." : "View Discussion Logs"}
-                    </button>
-                    <button
-                      onClick={() => setShowChat(!showChat)}
-                      className="ml-4 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      {showChat ? "Hide Chat" : "Show Chat"}
                     </button>
                   </div>
                 </div>
@@ -418,25 +394,17 @@ const MajorProject = () => {
                     )}
                   </div>
                 )}
-                {showChat && (
-                  <div className="mt-6">
-                    <h3 className="text-xl font-semibold mb-4 text-gray-900">
-                      Chat
-                    </h3>
-                    <ChatBox groupId={group ? group : "research-chat"} />
-                  </div>
-                )}
               </div>
             </div>
           ) : (
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               {/* Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
+              <div className="bg-gradient-to-r from-purple-600 to-indigo-700 p-6 text-white">
                 <h1 className="text-2xl md:text-3xl font-bold">
-                  Major Project Application
+                  Project 1 Application
                 </h1>
-                <p className="text-blue-100 mt-1">
-                  Select a professor for your major project
+                <p className="text-purple-100 mt-1">
+                  Select a professor for your Project 1 mentorship
                 </p>
               </div>
 
@@ -457,7 +425,7 @@ const MajorProject = () => {
                       placeholder="Search by name or ID..."
                       onChange={(e) => setSearchQuery(e.target.value)}
                       value={searchQuery}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -471,7 +439,7 @@ const MajorProject = () => {
                       id="filter"
                       onChange={(e) => setFilterOption(e.target.value)}
                       value={filterOption}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     >
                       <option value="all">All Professors</option>
                       <option value="available">Available Seats Only</option>
@@ -514,15 +482,15 @@ const MajorProject = () => {
                             scope="col"
                             className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
-                            Action
+                            Select
                           </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {filteredProfessors.map((prof) => {
                           const seatsAvailable =
-                            prof.limits.major_project -
-                            prof.currentCount.major_project;
+                            (prof.limits?.project1 || 0) -
+                            (prof.currentCount?.project1 || 0);
                           const appliedIndex = appliedProfessors.findIndex(
                             (id) => id === prof._id
                           );
@@ -533,6 +501,7 @@ const MajorProject = () => {
                             allocatedProf?._id === prof._id ||
                             seatsAvailable <= 0 ||
                             isDenied;
+
                           const statusConfig = {
                             denied: {
                               text: "Denied",
@@ -540,7 +509,7 @@ const MajorProject = () => {
                               icon: "❌",
                             },
                             applied: {
-                              text: `Applied (Pref ${appliedIndex + 1})`, // Show preference number
+                              text: `Applied (Pref ${appliedIndex + 1})`,
                               color: "bg-green-100 text-green-800",
                               icon: "✅",
                             },
@@ -554,9 +523,6 @@ const MajorProject = () => {
                               color: "bg-yellow-100 text-yellow-800",
                               icon: "⚠️",
                             },
-                            intern: {
-                              text: "Only Industrial Interns can apply",
-                            },
                             available: {
                               text: "Available",
                               color: "bg-blue-100 text-blue-800",
@@ -569,8 +535,6 @@ const MajorProject = () => {
                           else if (isApplied) status = statusConfig.applied;
                           else if (seatsAvailable <= 0)
                             status = statusConfig.full;
-                          else if (seatsAvailable == 1)
-                            status = statusConfig.intern;
                           else if (seatsAvailable < 3)
                             status = statusConfig.limited;
                           else status = statusConfig.available;
@@ -582,8 +546,8 @@ const MajorProject = () => {
                             >
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center">
-                                  <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                                    <span className="text-indigo-600 font-medium">
+                                  <div className="flex-shrink-0 h-10 w-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <span className="text-purple-600 font-medium">
                                       {prof.fullName
                                         .split(" ")
                                         .map((n) => n[0])
@@ -594,9 +558,6 @@ const MajorProject = () => {
                                   <div className="ml-4">
                                     <div className="text-sm font-medium text-gray-900">
                                       {prof.fullName}
-                                    </div>
-                                    <div className="text-sm text-gray-500">
-                                      {prof.department}
                                     </div>
                                   </div>
                                 </div>
@@ -618,7 +579,7 @@ const MajorProject = () => {
                                       style={{
                                         width: `${
                                           (seatsAvailable /
-                                            prof.limits.major_project) *
+                                            (prof.limits?.project1 || 1)) *
                                           100
                                         }%`,
                                       }}
@@ -626,7 +587,7 @@ const MajorProject = () => {
                                   </div>
                                   <span className="text-sm font-medium">
                                     {seatsAvailable}/
-                                    {prof.limits.major_project}
+                                    {prof.limits?.project1 || 0}
                                   </span>
                                 </div>
                               </td>
@@ -638,27 +599,18 @@ const MajorProject = () => {
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                {isApplied && !allocatedProf ? (
-                                  <button
-                                    onClick={() => handleWithdraw(prof._id, prof.fullName)}
-                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
-                                  >
-                                    Withdraw
-                                  </button>
-                                ) : (
-                                  <input
-                                    type="radio"
-                                    name="professor"
-                                    disabled={isDisabled}
-                                    checked={selectedProf === prof._id}
-                                    onChange={() => setSelectedProf(prof._id)}
-                                    className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 ${
-                                      isDisabled
-                                        ? "opacity-50 cursor-not-allowed"
-                                        : "cursor-pointer"
-                                    }`}
-                                  />
-                                )}
+                                <input
+                                  type="radio"
+                                  name="professor"
+                                  disabled={isDisabled}
+                                  checked={selectedProf === prof._id}
+                                  onChange={() => setSelectedProf(prof._id)}
+                                  className={`h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 ${
+                                    isDisabled
+                                      ? "opacity-50 cursor-not-allowed"
+                                      : "cursor-pointer"
+                                  }`}
+                                />
                               </td>
                             </tr>
                           );
@@ -702,7 +654,7 @@ const MajorProject = () => {
                     className={`w-full py-3 px-4 rounded-lg font-medium text-white shadow-md transition-all ${
                       loading || !selectedProf
                         ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
+                        : "bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800"
                     }`}
                   >
                     {loading ? (
@@ -743,4 +695,4 @@ const MajorProject = () => {
   );
 };
 
-export default MajorProject;
+export default Project1Apply;
