@@ -141,11 +141,11 @@ export default function Sidebar() {
       icon: <HiSun />,
       to: "/db/apply-major",
     },
-    // {
-    //   text: "Manage Minor Group",
-    //   icon: <HiUserGroup />,
-    //   to: "/db/manage-minor-group",
-    // },
+    {
+      text: "Manage Minor Group",
+      icon: <HiUserGroup />,
+      to: "/db/manage-minor-group",
+    },
     {
       text: "Manage Major Group",
       icon: <HiUserGroup />,

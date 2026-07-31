@@ -14,6 +14,7 @@ import Hritabhash from "../assets/Hritabhash.jpg";
 import Chirag from "../assets/Chirag.jpeg";
 import Garvit from "../assets/Garvit.jpeg";
 import Suvendu from "../assets/suvendu_pic.jpg";
+import Shaurya from "../assets/shaurya23.png";
 
 const ReviewCarousel = () => {
   const data = [
@@ -25,6 +26,7 @@ const ReviewCarousel = () => {
     { name: "Hritabhash Ray", post: "Frontend Developer", roll: "BTECH/10449/22", role: "Frontend", image: Hritabhash },
     { name: "Parth Shresth", post: "Frontend Developer", roll: "BTECH/10325/22", role: "Frontend", image: Parth },
     { name: "Akshat Tambi", post: "Full Stack Developer", roll: "BTECH/10763/22", role: "Full Stack", image: Akshat },
+    { name: "Shaurya Aditya Verma", post: "Full Stack Developer", roll: "BTECH/10270/23", role: "Full Stack", image: Shaurya },
     { name: "Chirag Bhuwalka", post: "Full Stack Developer", roll: "BTECH/10701/22", role: "Full Stack", image: Chirag }
   ];
 

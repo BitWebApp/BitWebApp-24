@@ -8,6 +8,12 @@ import { Professor } from "../models/professor.model.js";
 
 const createGroup = asyncHandler(async (req, res) => {
   const leader = req?.user?._id;
+  if (req.user.batch !== 23) {
+    return res.status(403).json({
+      success: false,
+      message: `Registration for Minor Project is currently open for batch K23 only. Process not started for batch K${req.user.batch}.`,
+    });
+  }
   const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
   const members = [leader];
   const user = await User.findById(leader);
@@ -71,10 +77,10 @@ const addMember = asyncHandler(async (req, res) => {
   const loggedIn = req?.user?._id;
   const { rollNumber, groupId } = req.body;
 
-  if (req.user.batch == 23) {
+  if (req.user.batch !== 23) {
     return res.status(403).json({
       success: false,
-      message: "Students of batch 2023 are not allowed to form minor groups.",
+      message: `Registration for Minor Project is currently open for batch K23 only. Process not started for batch K${req.user.batch}.`,
     });
   }
 
@@ -216,11 +222,10 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   const { facultyId } = req.body;
   const userId = req?.user?._id;
 
-  if (req.user.batch == 23) {
+  if (req.user.batch !== 23) {
     return res.status(403).json({
       success: false,
-      message:
-        "Students of batch 2023 are not allowed to apply to faculty for minor project.",
+      message: `Registration for Minor Project is currently open for batch K23 only. Process not started for batch K${req.user.batch}.`,
     });
   }
 
