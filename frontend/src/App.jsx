@@ -26,6 +26,7 @@ import AdminBugTrackerSummary from "./components/AdminBugTrackerSummary";
 import AdminDashboard from "./components/AdminDashboard";
 import ProfessorTable from "./components/AdminProfessorsTable";
 import AdminRoomRequests from "./components/AdminRoomRequests";
+import AdminUserImport from "./components/AdminUserImport";
 import Alumni from "./components/Alumni";
 import Awardform from "./components/award-form";
 import AwardTable from "./components/AwardTable";
@@ -173,6 +174,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="student-table" element={<StudentTable />} />
           <Route path="verify-users" element={<VerifyUsers />} />
+          <Route path="user-onboarding" element={<AdminUserImport />} />
           <Route path="show-all-alumni" element={<ShowAllAlumni />} />
           <Route
             path="admin-academic-form"

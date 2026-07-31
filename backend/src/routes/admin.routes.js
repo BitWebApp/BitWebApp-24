@@ -32,6 +32,13 @@ import {
   assignCompany,
   getAllCompanies,
 } from "../controllers/company.controller.js";
+import {
+  downloadUserImportTemplate,
+  importUsersFromCSV,
+  previewUserImport,
+  registerUserByAdmin,
+} from "../controllers/userImport.controller.js";
+import { singleCSV } from "../middlewares/csvUpload.middleware.js";
 const router = Router();
 
 /**
@@ -66,6 +73,18 @@ router.route("/assign-company").post(verifyAdmin, assignCompany);
 router.route("/get-minor-projects").get(verifyAdmin, getAllMinorProjects);
 router.route("/get-major-projects").get(verifyAdmin, getAllMajorProjects);
 router.route("/batch-stats").get(verifyAdmin, getBatchStats);
+
+// User onboarding: CSV bulk import + single registration
+router
+  .route("/user-import/template")
+  .get(verifyAdmin, downloadUserImportTemplate);
+router
+  .route("/user-import/preview")
+  .post(verifyAdmin, singleCSV("file"), previewUserImport);
+router
+  .route("/user-import/import")
+  .post(verifyAdmin, singleCSV("file"), importUsersFromCSV);
+router.route("/user-import/register").post(verifyAdmin, registerUserByAdmin);
 
 // Master admin only routes
 router.route("/admins").get(verifyMasterAdmin, getAllAdmins);
