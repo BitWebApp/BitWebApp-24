@@ -45,6 +45,12 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 const createGroup = asyncHandler(async (req, res) => {
   const leader = req?.user?._id;
+  if (req.user.batch !== 22) {
+    return res.status(403).json({
+      success: false,
+      message: `Registration for Major Project is currently open for batch K22 only. Process not started for batch K${req.user.batch}.`,
+    });
+  }
   const { type, org } = req.body;
   // console.log(type, org);
   const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
@@ -100,10 +106,10 @@ const addMember = asyncHandler(async (req, res) => {
   const loggedIn = req?.user?._id;
   const { rollNumber, groupId } = req.body;
   // console.log(rollNumber)
-  if (req.user.batch == 23) {
+  if (req.user.batch !== 22) {
     return res.status(403).json({
       success: false,
-      message: "Students of batch 2023 are not allowed to form major groups.",
+      message: `Registration for Major Project is currently open for batch K22 only. Process not started for batch K${req.user.batch}.`,
     });
   }
 
@@ -246,11 +252,10 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   const { facultyId } = req.body;
   const userId = req?.user?._id;
 
-  if (req.user.batch == 23) {
+  if (req.user.batch !== 22) {
     return res.status(403).json({
       success: false,
-      message:
-        "Students of batch 2023 are not allowed to apply to faculty for major project.",
+      message: `Registration for Major Project is currently open for batch K22 only. Process not started for batch K${req.user.batch}.`,
     });
   }
 
