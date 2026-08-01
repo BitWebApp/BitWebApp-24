@@ -12,6 +12,16 @@ const MAX_ROWS = 500;
 /** How many welcome mails are dispatched concurrently. */
 const MAIL_CONCURRENCY = 5;
 
+/** How many accounts are written concurrently. */
+const CREATE_CONCURRENCY = 5;
+
+/**
+ * The mail provider caps how many messages we may send per rolling window.
+ * Both are configurable so ops can raise them without a code change.
+ */
+const MAIL_LIMIT = Number(process.env.ONBOARDING_MAIL_LIMIT || 100);
+const MAIL_WINDOW_HOURS = Number(process.env.ONBOARDING_MAIL_WINDOW_HOURS || 24);
+
 /** Users created here never upload an ID card, so a marker is stored instead. */
 const IMPORTED_ID_CARD = "admin-onboarded";
 
@@ -315,17 +325,51 @@ const runWithConcurrency = async (items, limit, worker) => {
 };
 
 /**
- * Create one student account and mail the credentials.
+ * How many welcome mails were sent inside the current rolling window, and how
+ * many the provider still allows. Only onboarding mails are counted - OTP and
+ * verification mails sent elsewhere are not visible here.
+ * @returns {Promise<{ limit: number, used: number, remaining: number, windowHours: number, resetsAt: Date|null }>}
+ */
+const getMailQuota = async () => {
+  const since = new Date(Date.now() - MAIL_WINDOW_HOURS * 60 * 60 * 1000);
+  const used = await User.countDocuments({
+    "onboarding.welcomeMailSentAt": { $gte: since },
+  });
+
+  // The window frees up again when the oldest send inside it ages out.
+  const oldest = await User.findOne({
+    "onboarding.welcomeMailSentAt": { $gte: since },
+  })
+    .sort({ "onboarding.welcomeMailSentAt": 1 })
+    .select("onboarding.welcomeMailSentAt");
+
+  const oldestSentAt = oldest?.onboarding?.welcomeMailSentAt || null;
+
+  return {
+    limit: MAIL_LIMIT,
+    used,
+    remaining: Math.max(0, MAIL_LIMIT - used),
+    windowHours: MAIL_WINDOW_HOURS,
+    resetsAt: oldestSentAt
+      ? new Date(oldestSentAt.getTime() + MAIL_WINDOW_HOURS * 60 * 60 * 1000)
+      : null,
+  };
+};
+
+/**
+ * Create one student account, queued for a welcome mail.
+ * No mail is sent here - see sendWelcomeMailToUser.
  * @param {Record<string, any>} data
  * @param {boolean} autoVerify
- * @param {boolean} sendEmail
+ * @param {string} [adminId]
+ * @returns {Promise<import("mongoose").Document>}
  */
-const createUserAndNotify = async (data, autoVerify, sendEmail) => {
-  const password = generatePassword();
-
-  const user = await User.create({
+const createUser = async (data, autoVerify, adminId) =>
+  User.create({
     username: data.username,
-    password,
+    // Replaced by a freshly generated one the moment the welcome mail goes
+    // out, so no password we have ever shown anybody is left sitting here.
+    password: generatePassword(),
     fullName: data.fullName,
     rollNumber: data.rollNumber,
     email: data.email,
@@ -335,20 +379,65 @@ const createUserAndNotify = async (data, autoVerify, sendEmail) => {
     batch: data.batch,
     idCard: IMPORTED_ID_CARD,
     isVerified: Boolean(autoVerify),
+    onboarding: {
+      isAdminOnboarded: true,
+      welcomeMailStatus: "pending",
+      onboardedAt: new Date(),
+      onboardedBy: adminId || null,
+    },
   });
 
-  let mail = { sent: false, error: "email sending was skipped" };
-  if (sendEmail) {
-    const { subject, html } = buildWelcomeEmail({
-      fullName: data.fullName,
-      username: data.username,
-      email: data.email,
-      password,
-    });
-    mail = await sendMail({ to: data.email, subject, html });
-  }
+/**
+ * Rotate the account's password and mail the new credentials.
+ *
+ * The password is generated at send time rather than at creation time so no
+ * plaintext password is ever stored while an account waits in the queue. The
+ * rotation is saved *before* the mail goes out, so a crash mid-send can only
+ * leave an undelivered password behind - never a delivered one that doesn't
+ * work. Retrying simply rotates again, which is safe because the account has
+ * not been used yet.
+ *
+ * @param {import("mongoose").Document} user
+ * @returns {Promise<{ sent: boolean, error?: string }>}
+ */
+const sendWelcomeMailToUser = async (user) => {
+  const password = generatePassword();
 
-  return { userId: user._id, mail };
+  user.password = password; // hashed by the schema's pre-save hook
+  user.onboarding.welcomeMailAttempts =
+    (user.onboarding.welcomeMailAttempts || 0) + 1;
+  await user.save({ validateBeforeSave: false });
+
+  const { subject, html } = buildWelcomeEmail({
+    fullName: user.fullName,
+    username: user.username,
+    email: user.email,
+    password,
+  });
+  const mail = await sendMail({ to: user.email, subject, html });
+
+  if (mail.sent) {
+    user.onboarding.welcomeMailStatus = "sent";
+    user.onboarding.welcomeMailSentAt = new Date();
+    user.onboarding.welcomeMailError = "";
+  } else {
+    user.onboarding.welcomeMailStatus = "failed";
+    user.onboarding.welcomeMailError = mail.error || "unknown error";
+  }
+  await user.save({ validateBeforeSave: false });
+
+  return mail;
+};
+
+/**
+ * Restrict a query to the batches a non-master admin may act on.
+ * @param {object} admin
+ * @param {object} filter
+ * @returns {object}
+ */
+const scopeToAdminBatches = (admin, filter) => {
+  if (!admin || admin.role === "master") return filter;
+  return { ...filter, batch: { $in: admin.assignedBatches || [] } };
 };
 
 /**
@@ -414,8 +503,13 @@ const previewUserImport = asyncHandler(async (req, res) => {
 
 /**
  * POST /api/v1/admin/user-import/import
- * Creates every valid row and mails the generated credentials.
- * Invalid rows are skipped and reported back rather than failing the request.
+ *
+ * Creates every valid row. Accounts are always created - mailing is a separate,
+ * quota-bounded step. If the admin asked to mail immediately, as many of the
+ * new accounts as the remaining quota allows are mailed now (optionally capped
+ * further by mailLimit); the rest stay queued and can be sent later from the
+ * pending list. Invalid rows are skipped and reported rather than failing the
+ * request.
  */
 const importUsersFromCSV = asyncHandler(async (req, res) => {
   if (!req.file?.buffer) {
@@ -424,6 +518,17 @@ const importUsersFromCSV = asyncHandler(async (req, res) => {
 
   const autoVerify = req.body.autoVerify !== "false";
   const sendEmail = req.body.sendEmail !== "false";
+  const requestedMailLimit =
+    req.body.mailLimit === undefined || req.body.mailLimit === ""
+      ? null
+      : Number(req.body.mailLimit);
+
+  if (
+    requestedMailLimit !== null &&
+    (Number.isNaN(requestedMailLimit) || requestedMailLimit < 0)
+  ) {
+    throw new ApiError(400, "mailLimit must be a non-negative number");
+  }
 
   const { rows } = await analyseCsv(req.file.buffer.toString("utf-8"), req.admin);
 
@@ -434,25 +539,51 @@ const importUsersFromCSV = asyncHandler(async (req, res) => {
     email: row.data.email,
     batch: row.data.batch,
     status: row.status === "ready" ? "pending" : "skipped",
+    mailStatus: row.status === "ready" ? "queued" : "not_created",
     mailSent: false,
     message: row.errors.join("; "),
   }));
 
-  const pending = results.filter((r) => r.status === "pending");
+  const toCreate = results.filter((r) => r.status === "pending");
+  const created = [];
 
-  await runWithConcurrency(pending, MAIL_CONCURRENCY, async (result) => {
+  await runWithConcurrency(toCreate, CREATE_CONCURRENCY, async (result) => {
     const row = rows.find((r) => r.rowNumber === result.rowNumber);
     try {
-      const { mail } = await createUserAndNotify(row.data, autoVerify, sendEmail);
+      const user = await createUser(row.data, autoVerify, req.admin?._id);
       result.status = "created";
-      result.mailSent = mail.sent;
-      result.message = mail.sent
-        ? "Account created and credentials emailed"
-        : `Account created, but the email failed: ${mail.error}`;
+      result.userId = user._id;
+      result.message = "Account created, welcome email queued";
+      created.push({ result, user });
     } catch (error) {
       result.status = "failed";
+      result.mailStatus = "not_created";
       result.message = error?.message || "Failed to create the account";
     }
+  });
+
+  // Mail phase: bounded by the provider quota, in CSV order so the admin can
+  // predict who gets contacted first.
+  const quotaBefore = await getMailQuota();
+  let mailBudget = 0;
+  if (sendEmail) {
+    mailBudget = Math.min(
+      quotaBefore.remaining,
+      requestedMailLimit === null ? Infinity : requestedMailLimit
+    );
+  }
+
+  const toMail = created
+    .sort((a, b) => a.result.rowNumber - b.result.rowNumber)
+    .slice(0, mailBudget);
+
+  await runWithConcurrency(toMail, MAIL_CONCURRENCY, async ({ result, user }) => {
+    const mail = await sendWelcomeMailToUser(user);
+    result.mailSent = mail.sent;
+    result.mailStatus = mail.sent ? "sent" : "failed";
+    result.message = mail.sent
+      ? "Account created and credentials emailed"
+      : `Account created, but the email failed: ${mail.error}`;
   });
 
   const summary = {
@@ -461,18 +592,227 @@ const importUsersFromCSV = asyncHandler(async (req, res) => {
     skipped: results.filter((r) => r.status === "skipped").length,
     failed: results.filter((r) => r.status === "failed").length,
     mailsSent: results.filter((r) => r.mailSent).length,
+    mailsFailed: results.filter((r) => r.mailStatus === "failed").length,
+    stillQueued: results.filter((r) => r.mailStatus === "queued").length,
   };
-  summary.mailsFailed = summary.created - summary.mailsSent;
+
+  const quota = await getMailQuota();
+
+  let message = `${summary.created} of ${summary.total} account(s) created`;
+  if (summary.stillQueued > 0) {
+    message += `; ${summary.stillQueued} welcome email(s) queued for a later batch`;
+  }
 
   return res
     .status(200)
     .json(
       new ApiResponse(
         200,
-        { fileName: req.file.originalname, summary, results },
-        `${summary.created} of ${summary.total} account(s) created`
+        { fileName: req.file.originalname, summary, results, quota },
+        message
       )
     );
+});
+
+/**
+ * GET /api/v1/admin/user-import/pending
+ *
+ * The welcome-mail queue: accounts that exist but have not been mailed yet
+ * (or whose mail failed), plus the current provider quota. Batch admins only
+ * ever see their own batches.
+ *
+ * Query: status=pending|failed|sent|all, batch, search, page, limit
+ */
+const listPendingWelcomeMails = asyncHandler(async (req, res) => {
+  const status = req.query.status || "unsent";
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(200, Math.max(1, Number(req.query.limit) || 50));
+
+  const statusFilter =
+    status === "all"
+      ? { $in: ["pending", "failed", "sent"] }
+      : status === "unsent"
+        ? { $in: ["pending", "failed"] }
+        : status;
+
+  let filter = scopeToAdminBatches(req.admin, {
+    "onboarding.welcomeMailStatus": statusFilter,
+  });
+
+  if (req.query.batch) {
+    const batch = parseBatch(req.query.batch);
+    if (batch === null) {
+      throw new ApiError(400, "batch must look like 22, K22 or 2022");
+    }
+    const permissionError = batchPermissionError(req.admin, batch);
+    if (permissionError) throw new ApiError(403, permissionError);
+    filter.batch = batch;
+  }
+
+  if (req.query.search) {
+    const term = String(req.query.search).trim();
+    // Escaped so a stray "(" in the search box can't throw a regex error.
+    const safe = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    filter.$or = [
+      { fullName: { $regex: safe, $options: "i" } },
+      { rollNumber: { $regex: safe, $options: "i" } },
+      { email: { $regex: safe, $options: "i" } },
+    ];
+  }
+
+  const [users, total, quota] = await Promise.all([
+    User.find(filter)
+      .select("fullName rollNumber email batch branch section isVerified onboarding createdAt")
+      .sort({ createdAt: 1 })
+      .skip((page - 1) * limit)
+      .limit(limit),
+    User.countDocuments(filter),
+    getMailQuota(),
+  ]);
+
+  const countsBase = scopeToAdminBatches(req.admin, {});
+  const [pendingCount, failedCount, sentCount] = await Promise.all([
+    User.countDocuments({ ...countsBase, "onboarding.welcomeMailStatus": "pending" }),
+    User.countDocuments({ ...countsBase, "onboarding.welcomeMailStatus": "failed" }),
+    User.countDocuments({ ...countsBase, "onboarding.welcomeMailStatus": "sent" }),
+  ]);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        users,
+        pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+        counts: {
+          pending: pendingCount,
+          failed: failedCount,
+          sent: sentCount,
+          unsent: pendingCount + failedCount,
+        },
+        quota,
+      },
+      "Welcome mail queue fetched"
+    )
+  );
+});
+
+/**
+ * POST /api/v1/admin/user-import/send-mails
+ *
+ * Sends welcome mails to an explicit set of users, or to the next N in the
+ * queue (oldest first). Never exceeds the provider quota - the request is
+ * trimmed to what is left in the window and the response says how many were
+ * dropped. Each successful send flips the account to "sent" so it drops out
+ * of the queue and is never mailed twice.
+ *
+ * Body: { userIds?: string[], count?: number, includeFailed?: boolean }
+ */
+const sendWelcomeMails = asyncHandler(async (req, res) => {
+  const { userIds, count, includeFailed = true } = req.body;
+
+  const eligibleStatuses = includeFailed ? ["pending", "failed"] : ["pending"];
+  const quota = await getMailQuota();
+
+  if (quota.remaining <= 0) {
+    throw new ApiError(
+      429,
+      `The ${quota.windowHours}h email quota of ${quota.limit} is used up. ${
+        quota.resetsAt
+          ? `Capacity frees up from ${quota.resetsAt.toISOString()}.`
+          : ""
+      }`
+    );
+  }
+
+  let targets;
+  if (Array.isArray(userIds) && userIds.length > 0) {
+    targets = await User.find(
+      scopeToAdminBatches(req.admin, {
+        _id: { $in: userIds },
+        "onboarding.welcomeMailStatus": { $in: eligibleStatuses },
+      })
+    ).sort({ createdAt: 1 });
+  } else {
+    const requested = Number(count);
+    if (!requested || Number.isNaN(requested) || requested < 1) {
+      throw new ApiError(
+        400,
+        "Provide either userIds or a positive count of users to mail"
+      );
+    }
+    targets = await User.find(
+      scopeToAdminBatches(req.admin, {
+        "onboarding.welcomeMailStatus": { $in: eligibleStatuses },
+      })
+    )
+      .sort({ createdAt: 1 })
+      .limit(Math.min(requested, quota.remaining));
+  }
+
+  if (targets.length === 0) {
+    throw new ApiError(
+      404,
+      "No matching accounts are waiting for a welcome email"
+    );
+  }
+
+  const selected = targets.slice(0, quota.remaining);
+  const droppedForQuota = targets.length - selected.length;
+
+  const results = selected.map((user) => ({
+    userId: user._id,
+    rollNumber: user.rollNumber,
+    fullName: user.fullName,
+    email: user.email,
+    batch: user.batch,
+    status: "pending",
+    message: "",
+  }));
+
+  await runWithConcurrency(selected, MAIL_CONCURRENCY, async (user) => {
+    const result = results.find(
+      (r) => r.userId.toString() === user._id.toString()
+    );
+    try {
+      const mail = await sendWelcomeMailToUser(user);
+      result.status = mail.sent ? "sent" : "failed";
+      result.message = mail.sent
+        ? "Credentials emailed"
+        : `Email failed: ${mail.error}`;
+    } catch (error) {
+      result.status = "failed";
+      result.message = error?.message || "Failed to send the email";
+    }
+  });
+
+  const summary = {
+    attempted: results.length,
+    sent: results.filter((r) => r.status === "sent").length,
+    failed: results.filter((r) => r.status === "failed").length,
+    droppedForQuota,
+  };
+
+  const quotaAfter = await getMailQuota();
+
+  let message = `${summary.sent} welcome email(s) sent`;
+  if (droppedForQuota > 0) {
+    message += `; ${droppedForQuota} left queued because the ${quota.windowHours}h quota of ${quota.limit} was reached`;
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { summary, results, quota: quotaAfter }, message));
+});
+
+/**
+ * GET /api/v1/admin/user-import/quota
+ * Just the current mail allowance, for polling the UI banner.
+ */
+const getMailQuotaStatus = asyncHandler(async (req, res) => {
+  const quota = await getMailQuota();
+  return res
+    .status(200)
+    .json(new ApiResponse(200, quota, "Mail quota fetched"));
 });
 
 /**
@@ -521,32 +861,54 @@ const registerUserByAdmin = asyncHandler(async (req, res) => {
   const autoVerify = req.body.autoVerify !== false && req.body.autoVerify !== "false";
   const sendEmail = req.body.sendEmail !== false && req.body.sendEmail !== "false";
 
-  const { userId, mail } = await createUserAndNotify(data, autoVerify, sendEmail);
+  const user = await createUser(data, autoVerify, req.admin?._id);
+
+  // A single account still respects the quota; if there is no room it simply
+  // stays queued instead of failing the creation.
+  const quotaBefore = await getMailQuota();
+  let mail = { sent: false, error: null };
+  let mailStatus = "queued";
+
+  if (sendEmail && quotaBefore.remaining > 0) {
+    mail = await sendWelcomeMailToUser(user);
+    mailStatus = mail.sent ? "sent" : "failed";
+  } else if (sendEmail) {
+    mail.error = `the ${quotaBefore.windowHours}h email quota of ${quotaBefore.limit} is used up`;
+  }
+
+  const messages = {
+    sent: "Account created and credentials emailed",
+    failed: `Account created, but the email failed: ${mail.error}`,
+    queued: sendEmail
+      ? `Account created and queued - ${mail.error}. Send it from the Welcome Emails tab once quota frees up.`
+      : "Account created, welcome email queued",
+  };
 
   return res.status(201).json(
     new ApiResponse(
       201,
       {
-        userId,
+        userId: user._id,
         rollNumber: data.rollNumber,
         email: data.email,
         batch: data.batch,
         isVerified: autoVerify,
+        mailStatus,
         mailSent: mail.sent,
         mailError: mail.sent ? null : mail.error,
+        quota: await getMailQuota(),
       },
-      mail.sent
-        ? "Account created and credentials emailed"
-        : sendEmail
-          ? `Account created, but the email failed: ${mail.error}`
-          : "Account created"
+      messages[mailStatus]
     )
   );
 });
 
 export {
   downloadUserImportTemplate,
+  getMailQuotaStatus,
   importUsersFromCSV,
+  listPendingWelcomeMails,
   previewUserImport,
   registerUserByAdmin,
+  sendWelcomeMails,
 };

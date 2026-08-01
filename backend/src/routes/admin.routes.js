@@ -34,9 +34,12 @@ import {
 } from "../controllers/company.controller.js";
 import {
   downloadUserImportTemplate,
+  getMailQuotaStatus,
   importUsersFromCSV,
+  listPendingWelcomeMails,
   previewUserImport,
   registerUserByAdmin,
+  sendWelcomeMails,
 } from "../controllers/userImport.controller.js";
 import { singleCSV } from "../middlewares/csvUpload.middleware.js";
 const router = Router();
@@ -85,6 +88,9 @@ router
   .route("/user-import/import")
   .post(verifyAdmin, singleCSV("file"), importUsersFromCSV);
 router.route("/user-import/register").post(verifyAdmin, registerUserByAdmin);
+router.route("/user-import/pending").get(verifyAdmin, listPendingWelcomeMails);
+router.route("/user-import/quota").get(verifyAdmin, getMailQuotaStatus);
+router.route("/user-import/send-mails").post(verifyAdmin, sendWelcomeMails);
 
 // Master admin only routes
 router.route("/admins").get(verifyMasterAdmin, getAllAdmins);

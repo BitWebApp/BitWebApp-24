@@ -1,11 +1,13 @@
 import axios from "axios";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   HiCheckCircle,
   HiCloudUpload,
   HiDocumentDownload,
   HiExclamationCircle,
   HiMail,
+  HiPaperAirplane,
+  HiRefresh,
   HiUserAdd,
   HiXCircle,
 } from "react-icons/hi";
@@ -27,9 +29,12 @@ const EMPTY_FORM = {
 const statusStyles = {
   ready: "bg-green-100 text-green-700",
   created: "bg-green-100 text-green-700",
+  done: "bg-green-100 text-green-700",
+  sent: "bg-green-100 text-green-700",
   invalid: "bg-red-100 text-red-700",
   failed: "bg-red-100 text-red-700",
   skipped: "bg-yellow-100 text-yellow-700",
+  pending: "bg-yellow-100 text-yellow-700",
 };
 
 const StatusPill = ({ status }) => (
@@ -63,6 +68,59 @@ const SummaryCard = ({ label, value, tone = "gray" }) => {
 const readApiError = (err, fallback) =>
   err?.response?.data?.message || err?.message || fallback;
 
+/**
+ * Shows how much of the provider's send allowance is left in the current
+ * window, so the admin can size a batch before starting it.
+ */
+const QuotaBanner = ({ quota, onRefresh, refreshing }) => {
+  if (!quota) return null;
+  const pct = quota.limit ? Math.min(100, (quota.used / quota.limit) * 100) : 0;
+  const exhausted = quota.remaining <= 0;
+
+  return (
+    <div
+      className={`rounded-lg border p-4 shadow-sm ${
+        exhausted ? "border-red-300 bg-red-50" : "border-blue-200 bg-blue-50"
+      }`}
+    >
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <p className="font-semibold text-gray-800">
+          Email allowance:{" "}
+          <span className={exhausted ? "text-red-700" : "text-blue-700"}>
+            {quota.remaining} of {quota.limit} left
+          </span>{" "}
+          <span className="text-sm font-normal text-gray-600">
+            (last {quota.windowHours}h)
+          </span>
+        </p>
+        {onRefresh && (
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-1 rounded border border-gray-300 bg-white px-3 py-1 text-sm text-gray-700 transition hover:bg-gray-100 disabled:opacity-50"
+          >
+            <HiRefresh className={refreshing ? "animate-spin" : ""} /> Refresh
+          </button>
+        )}
+      </div>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-white">
+        <div
+          className={`h-full ${exhausted ? "bg-red-500" : "bg-blue-500"}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      {exhausted && quota.resetsAt && (
+        <p className="mt-2 text-sm text-red-700">
+          Quota is used up. Capacity frees up from{" "}
+          {new Date(quota.resetsAt).toLocaleString()}. Accounts stay queued until
+          then — nothing is lost.
+        </p>
+      )}
+    </div>
+  );
+};
+
 const AdminUserImport = () => {
   const [tab, setTab] = useState("csv");
 
@@ -76,11 +134,141 @@ const AdminUserImport = () => {
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef(null);
 
+  const [mailLimit, setMailLimit] = useState("");
+
   // Single registration state
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
+  // Welcome-mail queue state
+  const [queue, setQueue] = useState(null);
+  const [queueStatus, setQueueStatus] = useState("unsent");
+  const [queueSearch, setQueueSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [queuePage, setQueuePage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [sendCount, setSendCount] = useState("");
+  const [loadingQueue, setLoadingQueue] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendReport, setSendReport] = useState(null);
+
+  const quota = queue?.quota ?? null;
   const readyCount = preview?.summary?.ready ?? 0;
+
+  const fetchQueue = useCallback(async () => {
+    try {
+      setLoadingQueue(true);
+      const response = await axios.get("/api/v1/admin/user-import/pending", {
+        params: {
+          status: queueStatus,
+          search: debouncedSearch || undefined,
+          page: queuePage,
+          limit: 50,
+        },
+      });
+      setQueue(response.data.data);
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Could not load the queue",
+        text: readApiError(err, "Failed to fetch pending welcome emails."),
+      });
+    } finally {
+      setLoadingQueue(false);
+    }
+  }, [queueStatus, debouncedSearch, queuePage]);
+
+  // Keep typing in the search box from firing a request per keystroke.
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(queueSearch), 350);
+    return () => clearTimeout(timer);
+  }, [queueSearch]);
+
+  useEffect(() => {
+    if (tab === "queue") fetchQueue();
+  }, [tab, fetchQueue]);
+
+  const queueUsers = queue?.users ?? [];
+  const selectableIds = useMemo(
+    () =>
+      queueUsers
+        .filter((u) => u.onboarding?.welcomeMailStatus !== "sent")
+        .map((u) => u._id),
+    [queueUsers]
+  );
+  const allSelected =
+    selectableIds.length > 0 &&
+    selectableIds.every((id) => selectedIds.includes(id));
+
+  const toggleSelectAll = () => {
+    setSelectedIds(allSelected ? [] : selectableIds);
+  };
+
+  const toggleOne = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const dispatchMails = async (payload, confirmText) => {
+    const confirmed = await Swal.fire({
+      icon: "question",
+      title: "Send welcome emails?",
+      text: confirmText,
+      showCancelButton: true,
+      confirmButtonText: "Send",
+      confirmButtonColor: "#2563eb",
+    });
+    if (!confirmed.isConfirmed) return;
+
+    try {
+      setSending(true);
+      const response = await axios.post(
+        "/api/v1/admin/user-import/send-mails",
+        payload,
+        { timeout: REQUEST_TIMEOUT }
+      );
+      const data = response.data.data;
+      setSendReport(data);
+      setSelectedIds([]);
+      await fetchQueue();
+      Swal.fire({
+        icon: data.summary.sent > 0 ? "success" : "warning",
+        title: "Done",
+        text: response.data.message,
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Sending failed",
+        text: readApiError(err, "Failed to send welcome emails."),
+      });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleSendSelected = () =>
+    dispatchMails(
+      { userIds: selectedIds },
+      `${selectedIds.length} selected student(s) will receive their login credentials.`
+    );
+
+  const handleSendNext = () => {
+    const n = Number(sendCount);
+    if (!n || n < 1) {
+      Swal.fire({
+        icon: "warning",
+        title: "Enter a number",
+        text: "How many students should be mailed in this batch?",
+      });
+      return;
+    }
+    return dispatchMails(
+      { count: n },
+      `The ${n} longest-waiting student(s) in the queue will be mailed.`
+    );
+  };
 
   const rowsToShow = useMemo(() => {
     if (importResult) return importResult.results;
@@ -176,6 +364,7 @@ const AdminUserImport = () => {
       formData.append("file", file);
       formData.append("autoVerify", String(autoVerify));
       formData.append("sendEmail", String(sendEmail));
+      if (mailLimit !== "") formData.append("mailLimit", String(mailLimit));
       const response = await axios.post(
         "/api/v1/admin/user-import/import",
         formData,
@@ -186,7 +375,11 @@ const AdminUserImport = () => {
       Swal.fire({
         icon: data.summary.created > 0 ? "success" : "warning",
         title: "Import finished",
-        text: `${data.summary.created} created, ${data.summary.skipped} skipped, ${data.summary.failed} failed, ${data.summary.mailsSent} email(s) sent.`,
+        html: `${data.summary.created} created, ${data.summary.skipped} skipped, ${data.summary.failed} failed.<br/>${data.summary.mailsSent} email(s) sent${
+          data.summary.stillQueued > 0
+            ? `, <b>${data.summary.stillQueued} still queued</b> — send them from the Welcome Emails tab.`
+            : "."
+        }`,
       });
     } catch (err) {
       Swal.fire({
@@ -284,6 +477,11 @@ const AdminUserImport = () => {
           {[
             { key: "csv", label: "CSV Import", icon: <HiCloudUpload /> },
             { key: "single", label: "Single User", icon: <HiUserAdd /> },
+            {
+              key: "queue",
+              label: "Welcome Emails",
+              icon: <HiPaperAirplane />,
+            },
           ].map((item) => (
             <button
               key={item.key}
@@ -302,28 +500,51 @@ const AdminUserImport = () => {
         </div>
 
         {/* Shared options */}
-        <div className="mb-6 flex flex-wrap gap-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-          <label className="flex items-center gap-2 text-sm text-gray-700">
-            <input
-              type="checkbox"
-              checked={sendEmail}
-              onChange={(e) => setSendEmail(e.target.checked)}
-              className="h-4 w-4"
-            />
-            <HiMail className="text-blue-600" />
-            Email login credentials to each new user
-          </label>
-          <label className="flex items-center gap-2 text-sm text-gray-700">
-            <input
-              type="checkbox"
-              checked={autoVerify}
-              onChange={(e) => setAutoVerify(e.target.checked)}
-              className="h-4 w-4"
-            />
-            <HiCheckCircle className="text-green-600" />
-            Mark accounts as verified (they can log in immediately)
-          </label>
-        </div>
+        {tab !== "queue" && (
+          <div className="mb-6 space-y-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="flex flex-wrap gap-6">
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={sendEmail}
+                  onChange={(e) => setSendEmail(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                <HiMail className="text-blue-600" />
+                Email credentials right away
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={autoVerify}
+                  onChange={(e) => setAutoVerify(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                <HiCheckCircle className="text-green-600" />
+                Mark accounts as verified (they can log in immediately)
+              </label>
+              {tab === "csv" && sendEmail && (
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  Mail only the first
+                  <input
+                    type="number"
+                    min="0"
+                    value={mailLimit}
+                    onChange={(e) => setMailLimit(e.target.value)}
+                    placeholder="all"
+                    className="w-20 rounded border border-gray-300 px-2 py-1"
+                  />
+                  student(s)
+                </label>
+              )}
+            </div>
+            <p className="text-xs text-gray-500">
+              Accounts are always created. Anyone not mailed now is queued and
+              stays in the <b>Welcome Emails</b> tab until you send them — the
+              provider&apos;s send limit is never exceeded.
+            </p>
+          </div>
+        )}
 
         {tab === "csv" && (
           <section className="space-y-6">
@@ -434,7 +655,7 @@ const AdminUserImport = () => {
                     <HiDocumentDownload /> Download report
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
                   <SummaryCard label="Rows" value={importResult.summary.total} />
                   <SummaryCard
                     label="Created"
@@ -456,7 +677,32 @@ const AdminUserImport = () => {
                     value={importResult.summary.mailsSent}
                     tone="blue"
                   />
+                  <SummaryCard
+                    label="Still queued"
+                    value={importResult.summary.stillQueued}
+                    tone="yellow"
+                  />
                 </div>
+                {importResult.summary.stillQueued > 0 && (
+                  <p className="mt-4 flex items-start gap-2 rounded border border-blue-300 bg-blue-50 p-3 text-sm text-blue-800">
+                    <HiExclamationCircle className="mt-0.5 shrink-0" />
+                    {importResult.summary.stillQueued} account(s) were created but
+                    not mailed, because of the send limit. Open the{" "}
+                    <button
+                      type="button"
+                      onClick={() => setTab("queue")}
+                      className="font-semibold underline"
+                    >
+                      Welcome Emails
+                    </button>{" "}
+                    tab to send them in batches.
+                  </p>
+                )}
+                {importResult.quota && (
+                  <div className="mt-4">
+                    <QuotaBanner quota={importResult.quota} />
+                  </div>
+                )}
               </div>
             )}
 
@@ -593,6 +839,246 @@ const AdminUserImport = () => {
                 </button>
               </div>
             </form>
+          </section>
+        )}
+
+        {tab === "queue" && (
+          <section className="space-y-6">
+            <QuotaBanner
+              quota={quota}
+              onRefresh={fetchQueue}
+              refreshing={loadingQueue}
+            />
+
+            {queue && (
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <SummaryCard
+                  label="Awaiting email"
+                  value={queue.counts.pending}
+                  tone="yellow"
+                />
+                <SummaryCard
+                  label="Previously failed"
+                  value={queue.counts.failed}
+                  tone="red"
+                />
+                <SummaryCard
+                  label="Done"
+                  value={queue.counts.sent}
+                  tone="green"
+                />
+                <SummaryCard
+                  label="Selected"
+                  value={selectedIds.length}
+                  tone="blue"
+                />
+              </div>
+            )}
+
+            {/* Controls */}
+            <div className="flex flex-wrap items-end gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+              <div>
+                <label
+                  htmlFor="queueStatus"
+                  className="mb-1 block text-xs font-semibold uppercase text-gray-500"
+                >
+                  Show
+                </label>
+                <select
+                  id="queueStatus"
+                  value={queueStatus}
+                  onChange={(e) => {
+                    setQueueStatus(e.target.value);
+                    setQueuePage(1);
+                    setSelectedIds([]);
+                  }}
+                  className="rounded-lg border border-gray-300 p-2 text-sm"
+                >
+                  <option value="unsent">Not yet emailed</option>
+                  <option value="pending">Pending only</option>
+                  <option value="failed">Failed only</option>
+                  <option value="sent">Done</option>
+                  <option value="all">All onboarded</option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="queueSearch"
+                  className="mb-1 block text-xs font-semibold uppercase text-gray-500"
+                >
+                  Search
+                </label>
+                <input
+                  id="queueSearch"
+                  value={queueSearch}
+                  onChange={(e) => {
+                    setQueueSearch(e.target.value);
+                    setQueuePage(1);
+                  }}
+                  placeholder="Name, roll number or email"
+                  className="w-64 rounded-lg border border-gray-300 p-2 text-sm"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSendSelected}
+                disabled={selectedIds.length === 0 || sending}
+                className="rounded-lg bg-blue-600 px-5 py-2 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+              >
+                {sending ? "Sending..." : `Send to selected (${selectedIds.length})`}
+              </button>
+
+              <div className="flex items-end gap-2">
+                <div>
+                  <label
+                    htmlFor="sendCount"
+                    className="mb-1 block text-xs font-semibold uppercase text-gray-500"
+                  >
+                    Or send next
+                  </label>
+                  <input
+                    id="sendCount"
+                    type="number"
+                    min="1"
+                    max={quota?.remaining || undefined}
+                    value={sendCount}
+                    onChange={(e) => setSendCount(e.target.value)}
+                    placeholder={quota ? String(quota.remaining) : "50"}
+                    className="w-24 rounded-lg border border-gray-300 p-2 text-sm"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSendNext}
+                  disabled={sending || !quota?.remaining}
+                  className="rounded-lg bg-green-600 px-5 py-2 font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                >
+                  Send batch
+                </button>
+              </div>
+            </div>
+
+            {sendReport && (
+              <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                <p className="font-semibold text-gray-800">
+                  Last batch: {sendReport.summary.sent} sent,{" "}
+                  {sendReport.summary.failed} failed
+                  {sendReport.summary.droppedForQuota > 0 &&
+                    `, ${sendReport.summary.droppedForQuota} left queued (quota reached)`}
+                </p>
+              </div>
+            )}
+
+            {/* Queue table */}
+            <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-100 text-left text-gray-700">
+                  <tr>
+                    <th className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={allSelected}
+                        onChange={toggleSelectAll}
+                        disabled={selectableIds.length === 0}
+                        className="h-4 w-4"
+                      />
+                    </th>
+                    <th className="px-4 py-3">Roll Number</th>
+                    <th className="px-4 py-3">Name</th>
+                    <th className="px-4 py-3">Email</th>
+                    <th className="px-4 py-3">Batch</th>
+                    <th className="px-4 py-3">Mail status</th>
+                    <th className="px-4 py-3">Sent at</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loadingQueue && (
+                    <tr>
+                      <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                        Loading...
+                      </td>
+                    </tr>
+                  )}
+                  {!loadingQueue && queueUsers.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                        Nothing here. Every onboarded student in view has been
+                        emailed.
+                      </td>
+                    </tr>
+                  )}
+                  {!loadingQueue &&
+                    queueUsers.map((user) => {
+                      const mailStatus =
+                        user.onboarding?.welcomeMailStatus || "pending";
+                      const isSent = mailStatus === "sent";
+                      return (
+                        <tr key={user._id} className="border-t border-gray-100">
+                          <td className="px-4 py-3">
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.includes(user._id)}
+                              onChange={() => toggleOne(user._id)}
+                              disabled={isSent}
+                              className="h-4 w-4"
+                            />
+                          </td>
+                          <td className="px-4 py-3">{user.rollNumber}</td>
+                          <td className="px-4 py-3 capitalize">{user.fullName}</td>
+                          <td className="px-4 py-3">{user.email}</td>
+                          <td className="px-4 py-3">K{user.batch}</td>
+                          <td className="px-4 py-3">
+                            <StatusPill
+                              status={isSent ? "done" : mailStatus}
+                            />
+                            {mailStatus === "failed" &&
+                              user.onboarding?.welcomeMailError && (
+                                <p className="mt-1 text-xs text-red-600">
+                                  {user.onboarding.welcomeMailError}
+                                </p>
+                              )}
+                          </td>
+                          <td className="px-4 py-3 text-gray-600">
+                            {user.onboarding?.welcomeMailSentAt
+                              ? new Date(
+                                  user.onboarding.welcomeMailSentAt
+                                ).toLocaleString()
+                              : "—"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+
+            {queue?.pagination && queue.pagination.pages > 1 && (
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setQueuePage((p) => Math.max(1, p - 1))}
+                  disabled={queuePage <= 1}
+                  className="rounded border border-gray-300 px-3 py-1 text-sm disabled:opacity-40"
+                >
+                  Previous
+                </button>
+                <span className="text-sm text-gray-600">
+                  Page {queue.pagination.page} of {queue.pagination.pages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setQueuePage((p) => Math.min(queue.pagination.pages, p + 1))
+                  }
+                  disabled={queuePage >= queue.pagination.pages}
+                  className="rounded border border-gray-300 px-3 py-1 text-sm disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </section>
         )}
       </div>
