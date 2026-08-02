@@ -372,6 +372,46 @@ const userSchema = new Schema(
     refreshToken: {
       type: String,
     },
+    /**
+     * Tracks admin-driven onboarding. Because the mail provider caps how many
+     * messages can go out at once, account creation and the welcome mail are
+     * separate steps: accounts are created as "pending" and mailed later in
+     * batches. Users who signed up themselves stay "not_required".
+     */
+    onboarding: {
+      isAdminOnboarded: {
+        type: Boolean,
+        default: false,
+      },
+      welcomeMailStatus: {
+        type: String,
+        enum: ["not_required", "pending", "sent", "failed"],
+        default: "not_required",
+        index: true,
+      },
+      welcomeMailSentAt: {
+        type: Date,
+        default: null,
+        index: true,
+      },
+      welcomeMailAttempts: {
+        type: Number,
+        default: 0,
+      },
+      welcomeMailError: {
+        type: String,
+        default: "",
+      },
+      onboardedAt: {
+        type: Date,
+        default: null,
+      },
+      onboardedBy: {
+        type: Schema.Types.ObjectId,
+        ref: "Admin",
+        default: null,
+      },
+    },
   },
   { timestamps: true }
 );
