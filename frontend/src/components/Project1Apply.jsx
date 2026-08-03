@@ -144,6 +144,36 @@ const Project1Apply = () => {
     }
   };
 
+  const handleWithdraw = async () => {
+    Swal.fire({
+      title: "Withdraw All Preferences?",
+      text: "This will remove all your applications and reset your preferences. You will need to apply again.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, Withdraw All",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          setLoading(true);
+          await axios.post("/api/v1/project1/withdraw-preferences");
+          await fetchData();
+          Swal.fire({
+            icon: "success",
+            title: "Withdrawn",
+            text: "All your preferences have been reset successfully.",
+            confirmButtonColor: "#10b981",
+          });
+        } catch (error) {
+          handleError(error, "Failed to withdraw preferences");
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
+  };
+
   const handleSearchAndFilter = () => {
     let filtered = professors;
 
@@ -646,12 +676,12 @@ const Project1Apply = () => {
                   </div>
                 )}
 
-                {/* Submit Button */}
-                <div className="mt-8">
+                {/* Submit Button & Withdraw */}
+                <div className="mt-8 flex flex-col md:flex-row gap-4">
                   <button
                     onClick={handleSubmit}
                     disabled={loading || !selectedProf}
-                    className={`w-full py-3 px-4 rounded-lg font-medium text-white shadow-md transition-all ${
+                    className={`flex-1 py-3 px-4 rounded-lg font-medium text-white shadow-md transition-all ${
                       loading || !selectedProf
                         ? "bg-gray-400 cursor-not-allowed"
                         : "bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800"
@@ -685,6 +715,19 @@ const Project1Apply = () => {
                       "Submit Application"
                     )}
                   </button>
+                  {appliedProfessors.length > 0 && (
+                    <button
+                      onClick={handleWithdraw}
+                      disabled={loading}
+                      className={`flex-1 py-3 px-4 rounded-lg font-medium text-white shadow-md transition-all ${
+                        loading
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-red-500 hover:bg-red-600"
+                      }`}
+                    >
+                      {loading ? "Processing..." : "Withdraw All Preferences"}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

@@ -7,6 +7,7 @@ import {
 import {
   createProject1,
   applyToFaculty,
+  withdrawPreferences,
   getProject1,
   getAppliedProfs,
   getDiscussionByStudent,
@@ -26,6 +27,7 @@ const router = Router();
 // Student routes (verifyJWT — 2nd year check is inside controller)
 router.route("/create").post(verifyJWT, createProject1);
 router.route("/apply-faculty").post(verifyJWT, applyToFaculty);
+router.route("/withdraw-preferences").post(verifyJWT, withdrawPreferences);
 router.route("/get-project1").get(verifyJWT, getProject1);
 router.route("/get-app-profs").get(verifyJWT, getAppliedProfs);
 router.route("/get-disc-student").get(verifyJWT, getDiscussionByStudent);

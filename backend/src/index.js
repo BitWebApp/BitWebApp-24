@@ -13,6 +13,8 @@ import "./cron-jobs/notifyProfMinor.js";
 import "./cron-jobs/autoMovePreferencesMinor.js";
 import "./cron-jobs/notifyMajorProf.js";
 import "./cron-jobs/autoMovePreferencesMajor.js";
+import "./cron-jobs/notifyProfProject1.js";
+import "./cron-jobs/autoMovePreferencesProject1.js";
 import fs from 'fs'
 
 //Creating mission public dir

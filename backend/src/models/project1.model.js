@@ -56,6 +56,9 @@ const project1Schema = new Schema(
       type: Number,
       default: 0,
     },
+    preferenceLastMovedAt: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );

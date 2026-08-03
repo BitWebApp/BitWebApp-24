@@ -117,11 +117,46 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   if (project1.appliedProfs.length === 1) {
     faculty.appliedGroups.project1.push(project1._id);
     await faculty.save();
+    project1.preferenceLastMovedAt = new Date();
+    await project1.save();
   }
 
   return res
     .status(200)
     .json(new ApiResponse(200, project1, "Applied to faculty successfully"));
+});
+
+const withdrawPreferences = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+
+  const project1 = await Project1.findOne({ student: userId });
+  if (!project1) {
+    throw new ApiError(404, "No Project 1 record found");
+  }
+
+  if (project1.allocatedProf) {
+    throw new ApiError(409, "Cannot withdraw after allocation");
+  }
+
+  if (project1.appliedProfs.length > 0) {
+    const currentProfId = project1.appliedProfs[0];
+    const prof = await Professor.findById(currentProfId);
+    if (prof) {
+      prof.appliedGroups.project1 = prof.appliedGroups.project1.filter(
+        (grpId) => grpId.toString() !== project1._id.toString()
+      );
+      await prof.save();
+    }
+  }
+
+  project1.appliedProfs = [];
+  project1.deniedProf = [];
+  project1.preferenceLastMovedAt = null;
+  await project1.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, project1, "All preferences withdrawn successfully"));
 });
 
 const getProject1 = asyncHandler(async (req, res) => {
@@ -450,6 +485,7 @@ const getAllProject1Data = asyncHandler(async (req, res) => {
 export {
   createProject1,
   applyToFaculty,
+  withdrawPreferences,
   getProject1,
   getAppliedProfs,
   getDiscussionByStudent,
