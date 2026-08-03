@@ -13,7 +13,8 @@ import {
     HiOutlineBriefcase,
     HiOutlineLogout,
     HiPresentationChartLine,
-    HiUser
+    HiUser,
+    HiUserAdd
 } from "react-icons/hi";
 import { IoIosArrowBack } from "react-icons/io";
 import { Link, useNavigate } from "react-router-dom";
@@ -47,10 +48,15 @@ export default function Sidebar() {
       icon: <HiUser />, 
       to: "/admin-db/student-table" 
     },
-    { 
-      text: "Verify Users", 
-      icon: <HiUser />, 
-      to: "/admin-db/verify-users" 
+    {
+      text: "Verify Users",
+      icon: <HiUser />,
+      to: "/admin-db/verify-users"
+    },
+    {
+      text: "User Onboarding",
+      icon: <HiUserAdd />,
+      to: "/admin-db/user-onboarding",
     },
     {
       text: "Alumni Profiles",
