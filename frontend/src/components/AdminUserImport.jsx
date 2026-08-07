@@ -18,7 +18,6 @@ const REQUEST_TIMEOUT = 5 * 60 * 1000; // bulk mailing can take a while
 const EMPTY_FORM = {
   rollNumber: "",
   fullName: "",
-  email: "",
   batch: "",
   branch: "",
   section: "",
@@ -566,13 +565,12 @@ const AdminUserImport = () => {
                 Required columns:{" "}
                 <code className="rounded bg-gray-100 px-1">rollNumber</code>,{" "}
                 <code className="rounded bg-gray-100 px-1">fullName</code>,{" "}
-                <code className="rounded bg-gray-100 px-1">email</code>,{" "}
                 <code className="rounded bg-gray-100 px-1">batch</code>. Optional:{" "}
                 <code className="rounded bg-gray-100 px-1">branch</code>,{" "}
                 <code className="rounded bg-gray-100 px-1">section</code>,{" "}
                 <code className="rounded bg-gray-100 px-1">mobileNumber</code>,{" "}
                 <code className="rounded bg-gray-100 px-1">username</code> (defaults
-                to the roll number). Up to 500 rows per file.
+                to the roll number). Institute email is auto-derived from the roll number. Up to 500 rows per file.
               </p>
 
               <div className="flex flex-wrap items-center gap-3">
@@ -787,14 +785,8 @@ const AdminUserImport = () => {
             </h2>
             <form onSubmit={handleSingleSubmit} className="grid gap-4 md:grid-cols-2">
               {[
-                { name: "rollNumber", label: "Roll Number", required: true },
+                { name: "rollNumber", label: "Roll Number (e.g. BTECH/10322/23)", required: true },
                 { name: "fullName", label: "Full Name", required: true },
-                {
-                  name: "email",
-                  label: "Email",
-                  required: true,
-                  type: "email",
-                },
                 {
                   name: "batch",
                   label: "Batch (e.g. 22, K22 or 2022)",

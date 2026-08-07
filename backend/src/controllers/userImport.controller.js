@@ -29,7 +29,6 @@ const IMPORTED_ID_CARD = "admin-onboarded";
 const TEMPLATE_HEADERS = [
   "rollNumber",
   "fullName",
-  "email",
   "batch",
   "branch",
   "section",
@@ -49,11 +48,6 @@ const HEADER_ALIASES = {
   "full name": "fullName",
   full_name: "fullName",
   studentname: "fullName",
-  email: "email",
-  emailid: "email",
-  "email id": "email",
-  email_id: "email",
-  mail: "email",
   batch: "batch",
   year: "batch",
   branch: "branch",
@@ -107,6 +101,32 @@ const parseBatch = (raw) => {
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/**
+ * Derive the institute email from a roll number.
+ * Format: <roll number without slashes, lowercase>.<2-digit batch year>@bitmesra.ac.in
+ * Example: BTECH/10322/23 → btech10322.23@bitmesra.ac.in
+ * @param {string} rollNumber
+ * @returns {string|null}
+ */
+const deriveInstituteEmail = (rollNumber) => {
+  if (!rollNumber) return null;
+  // Split by '/' to separate parts
+  const parts = rollNumber.trim().split("/");
+  if (parts.length < 2) return null;
+
+  // Last part is the batch year (2-digit)
+  const batchYear = parts[parts.length - 1].trim();
+  // Everything before the last part, joined without slashes, lowercased
+  const prefix = parts
+    .slice(0, -1)
+    .join("")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+  if (!prefix || !batchYear) return null;
+  return `${prefix}.${batchYear}@bitmesra.ac.in`;
+};
+
 const PASSWORD_ALPHABET = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
 
 /**
@@ -131,7 +151,8 @@ const validateRecord = (raw) => {
 
   const rollNumber = (raw.rollNumber || "").trim();
   const fullName = (raw.fullName || "").trim();
-  const email = (raw.email || "").trim().toLowerCase();
+  // Auto-derive institute email from roll number
+  const email = deriveInstituteEmail(rollNumber);
   const batch = parseBatch(raw.batch);
   const branch = (raw.branch || "").trim();
   const section = (raw.section || "").trim();
@@ -145,9 +166,9 @@ const validateRecord = (raw) => {
   if (!rollNumber) errors.push("rollNumber is required");
   if (!fullName) errors.push("fullName is required");
   if (!email) {
-    errors.push("email is required");
+    errors.push("could not derive institute email from rollNumber; expected format like BTECH/10322/23");
   } else if (!EMAIL_REGEX.test(email)) {
-    errors.push("email is not a valid address");
+    errors.push("derived institute email is not valid — check rollNumber format");
   }
   if (batch === null) {
     errors.push("batch is required and must look like 22, K22 or 2022");
@@ -221,7 +242,7 @@ const analyseCsv = async (csvText, admin) => {
   const recognised = headers
     .map((h) => HEADER_ALIASES[h.trim().toLowerCase()])
     .filter(Boolean);
-  const missing = ["rollNumber", "fullName", "email", "batch"].filter(
+  const missing = ["rollNumber", "fullName", "batch"].filter(
     (field) => !recognised.includes(field)
   );
   if (missing.length) {
@@ -449,7 +470,6 @@ const downloadUserImportTemplate = asyncHandler(async (req, res) => {
     {
       rollNumber: "BTECH/10001/22",
       fullName: "Asha Verma",
-      email: "asha.verma@example.com",
       batch: "22",
       branch: "CSE",
       section: "A",
@@ -459,7 +479,6 @@ const downloadUserImportTemplate = asyncHandler(async (req, res) => {
     {
       rollNumber: "BTECH/10002/22",
       fullName: "Rahul Nair",
-      email: "rahul.nair@example.com",
       batch: "K22",
       branch: "ECE",
       section: "B",
@@ -823,7 +842,6 @@ const registerUserByAdmin = asyncHandler(async (req, res) => {
   const { data, errors } = validateRecord({
     rollNumber: req.body.rollNumber,
     fullName: req.body.fullName,
-    email: req.body.email,
     batch: req.body.batch,
     branch: req.body.branch,
     section: req.body.section,
