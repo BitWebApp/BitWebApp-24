@@ -104,6 +104,12 @@ export default function Login() {
                 <h3 className="text-3xl md:text-4xl font-semibold mb-2 text-gray-800">
                   Student Login
                 </h3>
+                <div className="mb-4 p-4 border-l-4 border-blue-500 bg-blue-50 rounded-md">
+                  <h4 className="text-sm font-bold text-blue-800 mb-1">Notice for K24 Students</h4>
+                  <p className="text-xs text-blue-700">
+                    Your email has been updated to your institute email address, while your password remains unchanged. If you cannot access the password sent to your old email, please use the "Forgot Password" button.
+                  </p>
+                </div>
                 <p className="text-base md:text-lg mb-2 text-gray-600">
                   Enter your login details below.
                 </p>
