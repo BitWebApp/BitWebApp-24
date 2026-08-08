@@ -17,6 +17,7 @@ import {
   HiUserGroup,
   HiBeaker
 } from "react-icons/hi";
+import { getStudentYear } from "../utils/studentYear";
 import { FaCalendar } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
@@ -44,7 +45,7 @@ export default function Sidebar() {
     },
   };
   const [isOpen, setIsOpen] = useState(true);
-  
+
   const additionalLinks = [
     {
       text: "Dashboard",
@@ -160,13 +161,13 @@ export default function Sidebar() {
       text: "Project 1 Group",
       icon: <HiUserGroup />,
       to: "/db/project1-group",
-      minYear: 2,
+      minYear: 3,
     },
     {
       text: "Project 1",
       icon: <HiPresentationChartLine />,
       to: "/db/apply-project1",
-      minYear: 2,
+      minYear: 3,
     },
     {
       text: "Report Issues",
@@ -182,9 +183,7 @@ export default function Sidebar() {
 
   // Filter links based on student year (from batch)
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const studentYear = user.batch
-    ? new Date().getFullYear() - user.batch + 1
-    : null;
+  const studentYear = getStudentYear(user?.batch);
   const links = additionalLinks.filter((link) => {
     if (link.minYear) {
       return studentYear >= link.minYear;
@@ -195,7 +194,7 @@ export default function Sidebar() {
     return true;
   });
   const navigate = useNavigate();
-  
+
   const handleLogout = async () => {
     try {
       const response = await axios.post("/api/v1/users/logout");
@@ -228,18 +227,18 @@ export default function Sidebar() {
         <div className="flex-1 py-[1rem] text-[0.9rem] flex flex-col gap-0.5">
           {links.map((link, index) => (
             <Link
-  to={link.to}
-  key={index}
-  className={classNames(
-    "cursor-pointer border-t text-white hover:bg-orange-600 border-neutral-700",
-    linkclasses
-  )}
->
-  <span className="text-xl shrink-0">{link.icon}</span>
-<span className="flex-1 min-w-0 break-words leading-tight">
-  {link.text}
-  </span>
-</Link>
+              to={link.to}
+              key={index}
+              className={classNames(
+                "cursor-pointer border-t text-white hover:bg-orange-600 border-neutral-700",
+                linkclasses
+              )}
+            >
+              <span className="text-xl shrink-0">{link.icon}</span>
+              <span className="flex-1 min-w-0 break-words leading-tight">
+                {link.text}
+              </span>
+            </Link>
           ))}
           <div
             onClick={() => handleLogout()}

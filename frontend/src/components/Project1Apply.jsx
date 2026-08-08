@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { toast, Toaster } from "react-hot-toast";
+import { getStudentYear } from "../utils/studentYear";
 
 const handleError = (error, defaultMessage) => {
   let message =
@@ -215,11 +216,8 @@ const Project1Apply = () => {
   // No project1 record yet — show create button or blocked message based on year
   if (!project1) {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
-    const studentYear = user.batch
-      ? new Date().getFullYear() - user.batch + 1
-      : null;
-
-    const isEligible = studentYear === 2;
+    const studentYear = getStudentYear(user?.batch);
+    const isEligible = studentYear === 3;
 
     return (
       <>
@@ -230,7 +228,7 @@ const Project1Apply = () => {
               <div className="bg-gradient-to-r from-purple-600 to-indigo-700 p-6 text-white">
                 <h1 className="text-2xl md:text-3xl font-bold">Project 1</h1>
                 <p className="text-purple-100 mt-1">
-                  2nd Year Project Application
+                  3rd Year Project Application
                 </p>
               </div>
               <div className="p-8 text-center">
@@ -288,7 +286,7 @@ const Project1Apply = () => {
                       Not Applicable
                     </h2>
                     <p className="text-gray-600 mb-6">
-                      This feature is only available for 2nd year students.
+                      This feature is only available for 3rd year students.
                     </p>
                   </>
                 )}

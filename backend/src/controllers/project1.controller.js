@@ -7,13 +7,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { customAlphabet } from "nanoid";
 import mongoose from "mongoose";
 
-/**
- * Returns the academic year of the student (1 = first year, 2 = second year, etc.)
- */
-const getStudentYear = (batch) => {
-  const currentYear = new Date().getFullYear();
-  return currentYear - batch + 1;
-};
+import { getStudentYear } from "../utils/studentYear.js";
 
 // ===================== Student-facing =====================
 
@@ -23,8 +17,8 @@ const createProject1 = asyncHandler(async (req, res) => {
   if (!user) throw new ApiError(404, "User not found");
 
   const year = getStudentYear(user.batch);
-  if (year < 2) {
-    throw new ApiError(403, "Only 2nd year and above students can create a Project 1 group");
+  if (year !== 3) {
+    throw new ApiError(403, "Only 3rd year students can create a Project 1 group");
   }
 
   if (user.project1) {
@@ -73,8 +67,8 @@ const addMember = asyncHandler(async (req, res) => {
   }
 
   const year = getStudentYear(user.batch);
-  if (year < 2) {
-    throw new ApiError(403, "Only 2nd year and above students can join Project 1");
+  if (year !== 3) {
+    throw new ApiError(403, "Only 3rd year students can join Project 1");
   }
 
   user.Project1GroupReq.push(group._id);
@@ -223,8 +217,8 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   if (!user) throw new ApiError(404, "User not found");
 
   const year = getStudentYear(user.batch);
-  if (year < 2) {
-    throw new ApiError(403, "Only 2nd year and above students can apply for Project 1");
+  if (year !== 3) {
+    throw new ApiError(403, "Only 3rd year students can apply for Project 1");
   }
 
   if (!user.project1) {
