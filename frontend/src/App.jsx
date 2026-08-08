@@ -97,6 +97,7 @@ import VerifyUsers from "./components/VerifyUsers";
 import ViewProfProjectDetails from "./components/ViewProfProjectDetails";
 import Research from "./components/Research";
 import Project1Apply from "./components/Project1Apply";
+import Project1GroupManagement from "./components/Project1GroupManagement";
 import Project1Table from "./components/Project1Table";
 import AcceptProject1 from "./components/AcceptProject1";
 
@@ -157,6 +158,7 @@ export default function App() {
           <Route path="manage-group" element={<GroupManagement />} />
           <Route path="manage-minor-group" element={<MinorGroupManagement />} />
           <Route path="manage-major-group" element={<MajorGroupManagement />} />
+          <Route path="project1-group" element={<Project1GroupManagement />} />
           <Route path="room-status" element={<RoomStatus />} />
           <Route path="booked-rooms" element={<BookedRooms />} />
           <Route path="major-project" element={<MajorProject />} />

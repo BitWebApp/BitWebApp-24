@@ -22,7 +22,19 @@ const Project1Apply = () => {
   const [loading, setLoading] = useState(false);
   const [discussionLogs, setDiscussionLogs] = useState(null);
   const [showLogs, setShowLogs] = useState(false);
-  const [creating, setCreating] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await axios.get("/api/v1/users/get-user");
+        setCurrentUser(response.data.data);
+      } catch (error) {
+        // Handle silently
+      }
+    };
+    fetchUser();
+  }, []);
 
   const fetchProject1 = async () => {
     try {
@@ -80,17 +92,7 @@ const Project1Apply = () => {
     }
   }, [project1]);
 
-  const handleCreate = async () => {
-    setCreating(true);
-    try {
-      await axios.post("/api/v1/project1/create");
-      toast.success("Project 1 record created!");
-      await fetchProject1();
-    } catch (error) {
-      handleError(error, "Failed to create Project 1 record");
-    }
-    setCreating(false);
-  };
+
 
   const handleViewDetails = async () => {
     if (allocatedProf) {
@@ -268,22 +270,17 @@ const Project1Apply = () => {
                 {isEligible ? (
                   <>
                     <h2 className="text-xl font-semibold mb-2 text-gray-900">
-                      Get Started
+                      Group Required
                     </h2>
                     <p className="text-gray-600 mb-6">
-                      Create your Project 1 record to start applying to professors.
+                      You need to create or join a Project 1 group before you can apply to professors.
                     </p>
-                    <button
-                      onClick={handleCreate}
-                      disabled={creating}
-                      className={`px-8 py-3 rounded-lg font-medium text-white shadow-md transition-all ${
-                        creating
-                          ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800"
-                      }`}
+                    <a
+                      href="/db/project1-group"
+                      className="inline-block px-8 py-3 rounded-lg font-medium text-white shadow-md transition-all bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800"
                     >
-                      {creating ? "Creating..." : "Create Project 1 Record"}
-                    </button>
+                      Manage Group
+                    </a>
                   </>
                 ) : (
                   <>
@@ -291,7 +288,7 @@ const Project1Apply = () => {
                       Not Applicable
                     </h2>
                     <p className="text-gray-600 mb-6">
-                      You did not create a Project 1 record during your 2nd year. This feature is only available for 2nd year students.
+                      This feature is only available for 2nd year students.
                     </p>
                   </>
                 )}
@@ -440,6 +437,23 @@ const Project1Apply = () => {
 
               {/* Content */}
               <div className="p-6">
+                {!project1.leader || !currentUser || project1.leader._id !== currentUser._id ? (
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm text-yellow-700">
+                          Only the group leader ({project1.leader?.fullName}) can apply to faculty or withdraw preferences.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
                 {/* Search and Filter */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div>
@@ -632,11 +646,11 @@ const Project1Apply = () => {
                                 <input
                                   type="radio"
                                   name="professor"
-                                  disabled={isDisabled}
+                                  disabled={isDisabled || !project1.leader || !currentUser || project1.leader._id !== currentUser._id}
                                   checked={selectedProf === prof._id}
                                   onChange={() => setSelectedProf(prof._id)}
                                   className={`h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 ${
-                                    isDisabled
+                                    isDisabled || !project1.leader || !currentUser || project1.leader._id !== currentUser._id
                                       ? "opacity-50 cursor-not-allowed"
                                       : "cursor-pointer"
                                   }`}
@@ -677,58 +691,60 @@ const Project1Apply = () => {
                 )}
 
                 {/* Submit Button & Withdraw */}
-                <div className="mt-8 flex flex-col md:flex-row gap-4">
-                  <button
-                    onClick={handleSubmit}
-                    disabled={loading || !selectedProf}
-                    className={`flex-1 py-3 px-4 rounded-lg font-medium text-white shadow-md transition-all ${
-                      loading || !selectedProf
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800"
-                    }`}
-                  >
-                    {loading ? (
-                      <span className="flex items-center justify-center">
-                        <svg
-                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        Applying...
-                      </span>
-                    ) : (
-                      "Submit Application"
-                    )}
-                  </button>
-                  {appliedProfessors.length > 0 && (
+                {project1.leader && currentUser && project1.leader._id === currentUser._id && (
+                  <div className="mt-8 flex flex-col md:flex-row gap-4">
                     <button
-                      onClick={handleWithdraw}
-                      disabled={loading}
+                      onClick={handleSubmit}
+                      disabled={loading || !selectedProf}
                       className={`flex-1 py-3 px-4 rounded-lg font-medium text-white shadow-md transition-all ${
-                        loading
+                        loading || !selectedProf
                           ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-red-500 hover:bg-red-600"
+                          : "bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800"
                       }`}
                     >
-                      {loading ? "Processing..." : "Withdraw All Preferences"}
+                      {loading ? (
+                        <span className="flex items-center justify-center">
+                          <svg
+                            className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                          Applying...
+                        </span>
+                      ) : (
+                        "Submit Application"
+                      )}
                     </button>
-                  )}
-                </div>
+                    {appliedProfessors.length > 0 && (
+                      <button
+                        onClick={handleWithdraw}
+                        disabled={loading}
+                        className={`flex-1 py-3 px-4 rounded-lg font-medium text-white shadow-md transition-all ${
+                          loading
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-red-500 hover:bg-red-600"
+                        }`}
+                      >
+                        {loading ? "Processing..." : "Withdraw All Preferences"}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}

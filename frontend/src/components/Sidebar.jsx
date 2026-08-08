@@ -157,6 +157,12 @@ export default function Sidebar() {
     //   to: "/db/student-projects-dashboard",
     // },
     {
+      text: "Project 1 Group",
+      icon: <HiUserGroup />,
+      to: "/db/project1-group",
+      minYear: 2,
+    },
+    {
       text: "Project 1",
       icon: <HiPresentationChartLine />,
       to: "/db/apply-project1",

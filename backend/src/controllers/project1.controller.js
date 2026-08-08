@@ -4,6 +4,7 @@ import { Professor } from "../models/professor.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { customAlphabet } from "nanoid";
 import mongoose from "mongoose";
 
 /**
@@ -22,22 +23,196 @@ const createProject1 = asyncHandler(async (req, res) => {
   if (!user) throw new ApiError(404, "User not found");
 
   const year = getStudentYear(user.batch);
-  if (year !== 2) {
-    throw new ApiError(403, "Only 2nd year students can create a Project 1");
+  if (year < 2) {
+    throw new ApiError(403, "Only 2nd year and above students can create a Project 1 group");
   }
 
-  const existing = await Project1.findOne({ student: userId });
-  if (existing) {
-    throw new ApiError(409, "You already have a Project 1 record");
+  if (user.project1) {
+    throw new ApiError(409, "You are already in a Project 1 group");
   }
 
-  const project1 = await Project1.create({ student: userId });
-  user.project1 = project1._id;
+  const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
+  const members = [userId];
+
+  const newGroup = await Project1.create({
+    groupId: nanoid(),
+    leader: userId,
+    members,
+  });
+
+  await newGroup.populate("members leader");
+
+  user.project1 = newGroup._id;
   await user.save();
 
   return res
     .status(200)
-    .json(new ApiResponse(200, project1, "Project 1 created successfully"));
+    .json(new ApiResponse(200, newGroup, "Project 1 group created successfully"));
+});
+
+const addMember = asyncHandler(async (req, res) => {
+  const loggedIn = req.user._id;
+  const { rollNumber, groupId } = req.body;
+
+  const group = await Project1.findById(groupId);
+  if (!group) throw new ApiError(404, "Group not found");
+
+  if (!group.leader.equals(loggedIn)) {
+    throw new ApiError(409, "Only the leader can add members");
+  }
+
+  if (group.allocatedProf) {
+    throw new ApiError(409, "Cannot add member after faculty allocation");
+  }
+
+  const user = await User.findOne({ rollNumber });
+  if (!user) throw new ApiError(404, "User not found with this roll number");
+
+  if (user.project1) {
+    throw new ApiError(409, "This student is already in a Project 1 group");
+  }
+
+  const year = getStudentYear(user.batch);
+  if (year < 2) {
+    throw new ApiError(403, "Only 2nd year and above students can join Project 1");
+  }
+
+  user.Project1GroupReq.push(group._id);
+  await user.save();
+  return res.status(200).json(new ApiResponse(200, "Request sent"));
+});
+
+const acceptReq = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { groupId } = req.body;
+
+  const user = await User.findById(userId);
+  const group = await Project1.findById(groupId);
+  if (!group) throw new ApiError(404, "Group not found");
+
+  if (group.allocatedProf) {
+    throw new ApiError(409, "Cannot join as group has a faculty assigned");
+  }
+
+  if (user.project1) {
+    throw new ApiError(409, "You are already in a Project 1 group");
+  }
+
+  if (group.members.length >= 3) {
+    throw new ApiError(409, "Group is already full (max 3 members)");
+  }
+
+  group.members.push(userId);
+  user.project1 = group._id;
+  user.Project1GroupReq = [];
+  await user.save();
+  await group.save();
+  return res.status(200).json(new ApiResponse(200, "Joined successfully"));
+});
+
+const getReq = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const user = await User.findById(userId).populate({
+    path: "Project1GroupReq",
+    populate: {
+      path: "leader",
+    },
+  });
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user?.Project1GroupReq, "All requests fetched"));
+});
+
+const removeMember = asyncHandler(async (req, res) => {
+  const loggedIn = req.user._id;
+  const { rollNumber, groupId } = req.body;
+
+  const group = await Project1.findById(groupId);
+  if (!group) throw new ApiError(404, "Group not found");
+
+  if (!group.leader.equals(loggedIn)) {
+    throw new ApiError(409, "Only the leader can remove members");
+  }
+
+  if (group.allocatedProf) {
+    throw new ApiError(409, "Cannot remove member after faculty allocation");
+  }
+
+  const user = await User.findOne({ rollNumber });
+  if (!user) throw new ApiError(404, "User not found");
+
+  if (!user.project1 || !user.project1.equals(group._id)) {
+    throw new ApiError(409, "User is not in this group");
+  }
+
+  group.members.pull(user._id);
+  user.project1 = null;
+  await group.save();
+
+  if (group.leader.equals(user._id)) {
+    if (group.members.length > 0) {
+      group.leader = group.members[0];
+      await group.save();
+    } else {
+      // Clean up professors' queues
+      if (group.appliedProfs && group.appliedProfs.length > 0) {
+        const currentProfId = group.appliedProfs[0];
+        const prof = await Professor.findById(currentProfId);
+        if (prof) {
+          prof.appliedGroups.project1.pull(group._id);
+          await prof.save();
+        }
+      }
+      await group.deleteOne();
+    }
+  }
+  await user.save();
+  return res.status(200).json(new ApiResponse(200, "Member removed"));
+});
+
+const leaveGroup = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "User not found");
+
+  if (!user.project1) {
+    throw new ApiError(409, "You are not in a Project 1 group");
+  }
+
+  const group = await Project1.findById(user.project1);
+  if (!group) throw new ApiError(404, "Group not found");
+
+  if (group.allocatedProf) {
+    throw new ApiError(409, "Cannot leave group after faculty allocation");
+  }
+
+  group.members.pull(userId);
+  user.project1 = null;
+
+  if (group.leader.equals(userId)) {
+    if (group.members.length > 0) {
+      group.leader = group.members[0];
+      await group.save();
+    } else {
+      // Clean up professors' queues
+      if (group.appliedProfs && group.appliedProfs.length > 0) {
+        const currentProfId = group.appliedProfs[0];
+        const prof = await Professor.findById(currentProfId);
+        if (prof) {
+          prof.appliedGroups.project1.pull(group._id);
+          await prof.save();
+        }
+      }
+      await group.deleteOne();
+      await user.save();
+      return res.status(200).json(new ApiResponse(200, "Left and group deleted"));
+    }
+  } else {
+    await group.save();
+  }
+
+  await user.save();
+  return res.status(200).json(new ApiResponse(200, "Left group successfully"));
 });
 
 const applyToFaculty = asyncHandler(async (req, res) => {
@@ -48,153 +223,178 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   if (!user) throw new ApiError(404, "User not found");
 
   const year = getStudentYear(user.batch);
-  if (year !== 2) {
-    throw new ApiError(403, "Only 2nd year students can apply for Project 1");
+  if (year < 2) {
+    throw new ApiError(403, "Only 2nd year and above students can apply for Project 1");
   }
 
-  const project1 = await Project1.findOne({ student: userId });
-  if (!project1) {
-    throw new ApiError(404, "Create a Project 1 record first");
+  if (!user.project1) {
+    throw new ApiError(404, "Create a Project 1 group first");
   }
 
-  if (project1.allocatedProf) {
+  const group = await Project1.findById(user.project1).populate("members");
+  if (!group) throw new ApiError(404, "Group not found");
+
+  if (!group.leader.equals(userId)) {
+    throw new ApiError(409, "Only the leader can apply to faculty");
+  }
+
+  if (group.allocatedProf) {
     throw new ApiError(409, "You already have an allocated professor");
   }
 
-  if (project1.appliedProfs.some((id) => id.toString() === facultyId)) {
+  if (group.appliedProfs.some((id) => id.toString() === facultyId)) {
     throw new ApiError(409, "Already applied to this professor");
   }
 
-  if (project1.deniedProf.some((id) => id.toString() === facultyId)) {
+  if (group.deniedProf.some((id) => id.toString() === facultyId)) {
     throw new ApiError(409, "Denied by this professor");
   }
 
   const faculty = await Professor.findById(facultyId);
   if (!faculty) throw new ApiError(404, "Faculty not found");
 
-  // Profile completeness check
-  const missingFields = [];
-  if (!user.branch) missingFields.push("branch");
-  if (!user.section) missingFields.push("section");
-  if (!user.email) missingFields.push("email");
-  if (!user.mobileNumber || user.mobileNumber === "0000000000")
-    missingFields.push("mobileNumber");
-  if (!user.semester) missingFields.push("semester");
-  if (!user.cgpa) missingFields.push("cgpa");
-  if (!user.abcId) missingFields.push("abcId");
-  if (!user.linkedin) missingFields.push("linkedin");
-  if (!user.codingProfiles.github) missingFields.push("github profile");
-  if (!user.resume) missingFields.push("resume");
-  if (!user.image) missingFields.push("profile picture");
-  if (!user.alternateEmail) missingFields.push("alternate email");
-  if (!user.fatherName) missingFields.push("father's name");
-  if (!user.fatherMobileNumber) missingFields.push("father's mobile number");
-  if (!user.motherName) missingFields.push("mother's name");
-  if (!user.residentialAddress) missingFields.push("address");
+  // Profile completeness check for all members
+  for (const member of group.members) {
+    const missingFields = [];
+    if (!member.branch) missingFields.push("branch");
+    if (!member.section) missingFields.push("section");
+    if (!member.email) missingFields.push("email");
+    if (!member.mobileNumber || member.mobileNumber === "0000000000")
+      missingFields.push("mobileNumber");
+    if (!member.semester) missingFields.push("semester");
+    if (!member.cgpa) missingFields.push("cgpa");
+    if (!member.abcId) missingFields.push("abcId");
+    if (!member.linkedin) missingFields.push("linkedin");
+    if (!member.codingProfiles?.github) missingFields.push("github profile");
+    if (!member.resume) missingFields.push("resume");
+    if (!member.image) missingFields.push("profile picture");
+    if (!member.alternateEmail) missingFields.push("alternate email");
+    if (!member.fatherName) missingFields.push("father's name");
+    if (!member.fatherMobileNumber) missingFields.push("father's mobile number");
+    if (!member.motherName) missingFields.push("mother's name");
+    if (!member.residentialAddress) missingFields.push("address");
 
-  const hasCodingProfile =
-    user.codingProfiles.leetcode ||
-    user.codingProfiles.codeforces ||
-    user.codingProfiles.codechef ||
-    user.codingProfiles.atcoder;
-  if (!hasCodingProfile) {
-    missingFields.push(
-      "at least one coding profile (leetcode/codeforces/codechef/atcoder)"
-    );
+    const hasCodingProfile =
+      member.codingProfiles?.leetcode ||
+      member.codingProfiles?.codeforces ||
+      member.codingProfiles?.codechef ||
+      member.codingProfiles?.atcoder;
+    if (!hasCodingProfile) {
+      missingFields.push(
+        "at least one coding profile (leetcode/codeforces/codechef/atcoder)"
+      );
+    }
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Member ${member.fullName} has incomplete profile: missing ${missingFields.join(", ")}`,
+      });
+    }
   }
 
-  if (missingFields.length > 0) {
-    return res.status(400).json({
-      success: false,
-      message: `Incomplete profile: missing ${missingFields.join(", ")}`,
-    });
-  }
-
-  project1.appliedProfs.push(facultyId);
-  await project1.save();
+  group.appliedProfs.push(facultyId);
+  await group.save();
 
   // Add to first applied prof's queue immediately
-  if (project1.appliedProfs.length === 1) {
-    faculty.appliedGroups.project1.push(project1._id);
+  if (group.appliedProfs.length === 1) {
+    faculty.appliedGroups.project1.push(group._id);
     await faculty.save();
-    project1.preferenceLastMovedAt = new Date();
-    await project1.save();
+    group.preferenceLastMovedAt = new Date();
+    await group.save();
   }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, project1, "Applied to faculty successfully"));
+    .json(new ApiResponse(200, group, "Applied to faculty successfully"));
 });
 
 const withdrawPreferences = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
-  const project1 = await Project1.findOne({ student: userId });
-  if (!project1) {
-    throw new ApiError(404, "No Project 1 record found");
+  const user = await User.findById(userId);
+  if (!user || !user.project1) {
+    throw new ApiError(404, "No Project 1 group found");
   }
 
-  if (project1.allocatedProf) {
+  const group = await Project1.findById(user.project1);
+  if (!group) throw new ApiError(404, "Group not found");
+
+  if (!group.leader.equals(userId)) {
+    throw new ApiError(409, "Only the leader can withdraw preferences");
+  }
+
+  if (group.allocatedProf) {
     throw new ApiError(409, "Cannot withdraw after allocation");
   }
 
-  if (project1.appliedProfs.length > 0) {
-    const currentProfId = project1.appliedProfs[0];
+  if (group.appliedProfs.length > 0) {
+    const currentProfId = group.appliedProfs[0];
     const prof = await Professor.findById(currentProfId);
     if (prof) {
       prof.appliedGroups.project1 = prof.appliedGroups.project1.filter(
-        (grpId) => grpId.toString() !== project1._id.toString()
+        (grpId) => grpId.toString() !== group._id.toString()
       );
       await prof.save();
     }
   }
 
-  project1.appliedProfs = [];
-  project1.deniedProf = [];
-  project1.preferenceLastMovedAt = null;
-  await project1.save();
+  group.appliedProfs = [];
+  group.deniedProf = [];
+  group.preferenceLastMovedAt = null;
+  await group.save();
 
   return res
     .status(200)
-    .json(new ApiResponse(200, project1, "All preferences withdrawn successfully"));
+    .json(new ApiResponse(200, group, "All preferences withdrawn successfully"));
 });
 
 const getProject1 = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
-  const project1 = await Project1.findOne({ student: userId })
+  const user = await User.findById(userId);
+  if (!user || !user.project1) {
+    throw new ApiError(404, "No Project 1 group found");
+  }
+
+  const group = await Project1.findById(user.project1)
+    .populate("members")
+    .populate("leader")
     .populate("appliedProfs")
     .populate("allocatedProf")
     .populate("deniedProf")
     .populate("discussion.absent");
 
-  if (!project1) {
-    throw new ApiError(404, "No Project 1 record found");
+  if (!group) {
+    throw new ApiError(404, "No Project 1 group found");
   }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, project1, "Project 1 details returned"));
+    .json(new ApiResponse(200, group, "Project 1 details returned"));
 });
 
 const getAppliedProfs = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
-  const project1 = await Project1.findOne({ student: userId });
-  if (!project1) throw new ApiError(404, "No Project 1 record found");
+  const user = await User.findById(userId);
+  if (!user || !user.project1) throw new ApiError(404, "No Project 1 group found");
+
+  const group = await Project1.findById(user.project1);
+  if (!group) throw new ApiError(404, "Group not found");
 
   let prof = null;
-  if (project1.allocatedProf) {
-    prof = await Professor.findById(project1.allocatedProf);
+  if (group.allocatedProf) {
+    prof = await Professor.findById(group.allocatedProf);
   }
 
   return res.status(200).json(
     new ApiResponse(
       200,
       {
-        appliedProfs: project1.appliedProfs,
-        isAllocated: !!project1.allocatedProf,
-        denied: project1.deniedProf,
+        appliedProfs: group.appliedProfs,
+        isAllocated: !!group.allocatedProf,
+        denied: group.deniedProf,
         prof,
       },
       "Applied profs and allocation details returned"
@@ -204,14 +404,16 @@ const getAppliedProfs = asyncHandler(async (req, res) => {
 
 const getDiscussionByStudent = asyncHandler(async (req, res) => {
   const userId = req.user._id;
-  const project1 = await Project1.findOne({ student: userId }).populate(
-    "discussion.absent"
-  );
-  if (!project1) throw new ApiError(404, "Project 1 record not found");
+  const user = await User.findById(userId);
+  if (!user || !user.project1) throw new ApiError(404, "Project 1 group not found");
+
+  const group = await Project1.findById(user.project1).populate("discussion.absent");
+  if (!group) throw new ApiError(404, "Group not found");
+
   return res
     .status(200)
     .json(
-      new ApiResponse(200, project1.discussion, "Discussion fetched successfully")
+      new ApiResponse(200, group.discussion, "Discussion fetched successfully")
     );
 });
 
@@ -223,7 +425,7 @@ const getProject1AppliedStudents = asyncHandler(async (req, res) => {
   const professor = await Professor.findById(profId).populate({
     path: "appliedGroups.project1",
     populate: {
-      path: "student",
+      path: "members",
       select:
         "fullName rollNumber email linkedin codingProfiles cgpa section branch image",
     },
@@ -236,12 +438,12 @@ const getProject1AppliedStudents = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(200, records, "Applied students retrieved successfully")
+      new ApiResponse(200, records, "Applied groups retrieved successfully")
     );
 });
 
 const acceptProject1Student = asyncHandler(async (req, res) => {
-  const { _id } = req.body; // Project1 record id
+  const { _id } = req.body; // Project1 group id
   const profId = req.professor._id;
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -250,15 +452,16 @@ const acceptProject1Student = asyncHandler(async (req, res) => {
     const prof = await Professor.findById(profId).session(session);
     if (!prof) throw new ApiError(404, "Professor not found");
 
-    const project1 = await Project1.findById(_id).session(session);
-    if (!project1) throw new ApiError(404, "Project 1 record not found");
+    const group = await Project1.findById(_id).session(session);
+    if (!group) throw new ApiError(404, "Project 1 group not found");
 
-    if (project1.allocatedProf) {
-      throw new ApiError(409, "Student already has an allocated professor");
+    if (group.allocatedProf) {
+      throw new ApiError(409, "Group already has an allocated professor");
     }
 
+    const numMembers = group.members.length;
     if (
-      prof.currentCount.project1 + 1 >
+      prof.currentCount.project1 + numMembers >
       prof.limits.project1
     ) {
       throw new ApiError(
@@ -267,13 +470,13 @@ const acceptProject1Student = asyncHandler(async (req, res) => {
       );
     }
 
-    project1.allocatedProf = profId;
-    project1.appliedProfs = [];
-    await project1.save({ session });
+    group.allocatedProf = profId;
+    group.appliedProfs = [];
+    await group.save({ session });
 
-    prof.currentCount.project1 += 1;
-    prof.appliedGroups.project1.pull(project1._id);
-    prof.students.project1.push(project1._id);
+    prof.currentCount.project1 += numMembers;
+    prof.appliedGroups.project1.pull(group._id);
+    prof.students.project1.push(group._id);
     await prof.save({ session });
 
     await session.commitTransaction();
@@ -281,41 +484,41 @@ const acceptProject1Student = asyncHandler(async (req, res) => {
 
     return res
       .status(200)
-      .json(new ApiResponse(200, "Student accepted for Project 1"));
+      .json(new ApiResponse(200, "Group accepted for Project 1"));
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
     throw new ApiError(
       500,
-      error.message || "Something went wrong while accepting student"
+      error.message || "Something went wrong while accepting group"
     );
   }
 });
 
 const denyProject1Student = asyncHandler(async (req, res) => {
-  const { _id } = req.body; // Project1 record id
+  const { _id } = req.body; // Project1 group id
   const profId = req.professor._id;
 
-  const project1 = await Project1.findById(_id);
-  if (!project1) throw new ApiError(404, "Project 1 record not found");
+  const group = await Project1.findById(_id);
+  if (!group) throw new ApiError(404, "Project 1 group not found");
 
   const prof = await Professor.findById(profId);
   if (!prof) throw new ApiError(404, "Professor not found");
 
   // Remove this prof from applied list
-  project1.appliedProfs.pull(profId);
+  group.appliedProfs.pull(profId);
   prof.appliedGroups.project1.pull(_id);
-  project1.deniedProf.push(profId);
+  group.deniedProf.push(profId);
 
-  await project1.save();
+  await group.save();
   await prof.save();
 
   // Move to next professor in preference if any
-  if (project1.appliedProfs.length > 0) {
-    const nextProfId = project1.appliedProfs[0];
+  if (group.appliedProfs.length > 0) {
+    const nextProfId = group.appliedProfs[0];
     const nextProf = await Professor.findById(nextProfId);
     if (nextProf) {
-      nextProf.appliedGroups.project1.push(project1._id);
+      nextProf.appliedGroups.project1.push(group._id);
       await nextProf.save();
     }
   }
@@ -325,7 +528,7 @@ const denyProject1Student = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        "Student denied and passed to next faculty in preference"
+        "Group denied and passed to next faculty in preference"
       )
     );
 });
@@ -338,13 +541,13 @@ const getProject1AcceptedStudents = asyncHandler(async (req, res) => {
 
   const project1Ids = professor.students.project1;
   const records = await Project1.find({ _id: { $in: project1Ids } })
-    .populate("student")
+    .populate("members")
     .populate("discussion.absent");
 
   return res
     .status(200)
     .json(
-      new ApiResponse(200, records, "Accepted students retrieved successfully")
+      new ApiResponse(200, records, "Accepted groups retrieved successfully")
     );
 });
 
@@ -352,29 +555,29 @@ const addProject1Remark = asyncHandler(async (req, res) => {
   const { _id, description, remark, absent } = req.body;
 
   if (!_id || !description) {
-    throw new ApiError(400, "Project 1 ID and description are required.");
+    throw new ApiError(400, "Project 1 group ID and description are required.");
   }
 
-  const project1 = await Project1.findById(_id);
-  if (!project1) throw new ApiError(404, "Project 1 record not found");
+  const group = await Project1.findById(_id);
+  if (!group) throw new ApiError(404, "Project 1 group not found");
 
   const profId = req.professor._id;
-  if (!project1.allocatedProf || !project1.allocatedProf.equals(profId)) {
+  if (!group.allocatedProf || !group.allocatedProf.equals(profId)) {
     throw new ApiError(403, "Only allocated professor can add remarks");
   }
 
-  project1.discussion.push({
+  group.discussion.push({
     description,
     remark: remark || "",
     absent: absent || [],
     date: new Date(),
   });
 
-  await project1.save();
+  await group.save();
 
   return res
     .status(200)
-    .json(new ApiResponse(200, { _id: project1._id }, "Remark added successfully"));
+    .json(new ApiResponse(200, { _id: group._id }, "Remark added successfully"));
 });
 
 const addProject1Marks = asyncHandler(async (req, res) => {
@@ -407,26 +610,26 @@ const saveProject1Title = asyncHandler(async (req, res) => {
   const { project1Id, projectTitle } = req.body;
   const profId = req.professor._id;
 
-  const project1 = await Project1.findById(project1Id);
-  if (!project1) throw new ApiError(404, "Project 1 record not found");
+  const group = await Project1.findById(project1Id);
+  if (!group) throw new ApiError(404, "Project 1 group not found");
 
   if (
-    !project1.allocatedProf ||
-    project1.allocatedProf.toString() !== profId.toString()
+    !group.allocatedProf ||
+    group.allocatedProf.toString() !== profId.toString()
   ) {
     throw new ApiError(403, "Unauthorized");
   }
 
-  project1.projectTitle = projectTitle?.trim() || "";
-  await project1.save();
+  group.projectTitle = projectTitle?.trim() || "";
+  await group.save();
 
   return res
     .status(200)
     .json(
       new ApiResponse(
         200,
-        project1.projectTitle,
-        project1.projectTitle
+        group.projectTitle,
+        group.projectTitle
           ? "Project title updated successfully"
           : "Project title cleared successfully"
       )
@@ -460,23 +663,27 @@ const getAllProject1Data = asyncHandler(async (req, res) => {
     }
   }
 
-  const records = await Project1.find()
+  // Find all Project1 groups where at least one member is from this batch
+  const batchUsers = await User.find({ batch: batchNumber }).select("_id");
+  const batchUserIds = batchUsers.map((u) => u._id);
+
+  const records = await Project1.find({
+    members: { $in: batchUserIds },
+  })
     .populate({
-      path: "student",
+      path: "members",
       select:
         "batch fullName rollNumber email section branch mobileNumber marks",
-      match: { batch: batchNumber },
     })
-    .populate("allocatedProf");
-
-  const filteredRecords = records.filter((r) => r.student !== null);
+    .populate("allocatedProf")
+    .populate("leader");
 
   return res
     .status(200)
     .json(
       new ApiResponse(
         200,
-        { response: filteredRecords },
+        { response: records },
         "All Project 1 data fetched"
       )
     );
@@ -484,6 +691,11 @@ const getAllProject1Data = asyncHandler(async (req, res) => {
 
 export {
   createProject1,
+  addMember,
+  acceptReq,
+  getReq,
+  removeMember,
+  leaveGroup,
   applyToFaculty,
   withdrawPreferences,
   getProject1,

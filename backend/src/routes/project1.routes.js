@@ -6,6 +6,11 @@ import {
 } from "../middlewares/auth.middleware.js";
 import {
   createProject1,
+  addMember,
+  acceptReq,
+  getReq,
+  removeMember,
+  leaveGroup,
   applyToFaculty,
   withdrawPreferences,
   getProject1,
@@ -24,8 +29,15 @@ import {
 
 const router = Router();
 
-// Student routes (verifyJWT — 2nd year check is inside controller)
+// Student routes — group management
 router.route("/create").post(verifyJWT, createProject1);
+router.route("/add-member").post(verifyJWT, addMember);
+router.route("/accept-req").post(verifyJWT, acceptReq);
+router.route("/get-req").get(verifyJWT, getReq);
+router.route("/remove-member").post(verifyJWT, removeMember);
+router.route("/leave-group").post(verifyJWT, leaveGroup);
+
+// Student routes — faculty application
 router.route("/apply-faculty").post(verifyJWT, applyToFaculty);
 router.route("/withdraw-preferences").post(verifyJWT, withdrawPreferences);
 router.route("/get-project1").get(verifyJWT, getProject1);

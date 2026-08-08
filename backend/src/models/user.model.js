@@ -303,6 +303,12 @@ const userSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Project1",
     },
+    Project1GroupReq: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Project1",
+      },
+    ],
     batch: {
       type: Number,
       required: [true, "Batch is required"],

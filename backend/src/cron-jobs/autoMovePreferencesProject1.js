@@ -27,7 +27,7 @@ const preprocessProject1 = async () => {
           const availableSlots =
             (prof.limits?.project1 || 0) - (prof.currentCount?.project1 || 0);
 
-          if (1 <= availableSlots) {
+          if (record.members.length <= availableSlots) {
             newAppliedProfs.push(prof._id);
           }
         }

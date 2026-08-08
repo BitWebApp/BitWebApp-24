@@ -158,18 +158,20 @@ const AcceptProject1 = () => {
   const filteredApplied = appliedStudents.filter((rec) => {
     if (!searchTerm) return true;
     const q = searchTerm.toLowerCase();
-    return (
-      rec.student?.fullName?.toLowerCase().includes(q) ||
-      rec.student?.rollNumber?.toLowerCase().includes(q)
+    return rec.members?.some(
+      (member) =>
+        member.fullName?.toLowerCase().includes(q) ||
+        member.rollNumber?.toLowerCase().includes(q)
     );
   });
 
   const filteredAccepted = acceptedRecords.filter((rec) => {
     if (!searchTerm) return true;
     const q = searchTerm.toLowerCase();
-    return (
-      rec.student?.fullName?.toLowerCase().includes(q) ||
-      rec.student?.rollNumber?.toLowerCase().includes(q)
+    return rec.members?.some(
+      (member) =>
+        member.fullName?.toLowerCase().includes(q) ||
+        member.rollNumber?.toLowerCase().includes(q)
     );
   });
 
@@ -246,28 +248,32 @@ const AcceptProject1 = () => {
                         >
                           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <div>
-                              <h3 className="text-lg font-semibold text-gray-900">
-                                {rec.student?.fullName}
+                              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                Group ID: {rec.groupId}
                               </h3>
-                              <p className="text-sm text-gray-600">
-                                Roll: {rec.student?.rollNumber} | Branch:{" "}
-                                {rec.student?.branch} | Section:{" "}
-                                {rec.student?.section}
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                CGPA: {rec.student?.cgpa} | Email:{" "}
-                                {rec.student?.email}
-                              </p>
-                              {rec.student?.linkedin && (
-                                <a
-                                  href={rec.student.linkedin}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-sm text-blue-600 hover:underline"
-                                >
-                                  LinkedIn Profile
-                                </a>
-                              )}
+                              <div className="space-y-3">
+                                {rec.members?.map((member) => (
+                                  <div key={member._id} className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="font-semibold text-gray-800">{member.fullName}</span>
+                                      <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
+                                        {member.rollNumber}
+                                      </span>
+                                    </div>
+                                    <p className="text-xs text-gray-600 mb-1">
+                                      Branch: {member.branch} | Section: {member.section} | CGPA: {member.cgpa}
+                                    </p>
+                                    <p className="text-xs text-gray-600 flex gap-2 items-center">
+                                      Email: {member.email}
+                                      {member.linkedin && (
+                                        <a href={member.linkedin} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                                          LinkedIn
+                                        </a>
+                                      )}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                             <div className="flex gap-2">
                               <button
@@ -306,62 +312,66 @@ const AcceptProject1 = () => {
                           className="border border-gray-200 rounded-lg p-4"
                         >
                           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
-                            <div>
-                              <h3 className="text-lg font-semibold text-gray-900">
-                                {rec.student?.fullName}
+                            <div className="flex-1">
+                              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                Group ID: {rec.groupId}
                               </h3>
-                              <p className="text-sm text-gray-600">
-                                Roll: {rec.student?.rollNumber} | Branch:{" "}
-                                {rec.student?.branch}
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                Current Marks:{" "}
-                                {rec.student?.marks?.project1 || 0}
-                              </p>
+                              <div className="space-y-3">
+                                {rec.members?.map((member) => (
+                                  <div key={member._id} className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                                      <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <span className="font-semibold text-gray-800">{member.fullName}</span>
+                                          <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
+                                            {member.rollNumber}
+                                          </span>
+                                        </div>
+                                        <p className="text-xs text-gray-600">
+                                          Branch: {member.branch} | Current Marks: {member.marks?.project1 || 0}
+                                        </p>
+                                      </div>
+                                      
+                                      {/* Marks */}
+                                      <div className="flex gap-2 items-center shrink-0 mt-2 md:mt-0">
+                                        {showMarksInputFor === member._id ? (
+                                          <div className="flex gap-2">
+                                            <input
+                                              type="number"
+                                              value={marks[member._id] || ""}
+                                              onChange={(e) => setMarks({ ...marks, [member._id]: e.target.value })}
+                                              placeholder="Marks"
+                                              className="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                            />
+                                            <button
+                                              onClick={() => handleMarks(member._id)}
+                                              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium transition-colors"
+                                            >
+                                              Save
+                                            </button>
+                                            <button
+                                              onClick={() => setShowMarksInputFor(null)}
+                                              className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 text-sm font-medium transition-colors"
+                                            >
+                                              Cancel
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <button
+                                            onClick={() => setShowMarksInputFor(member._id)}
+                                            className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium transition-colors"
+                                          >
+                                            Update Marks
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
 
-                            {/* Marks */}
-                            <div className="flex gap-2 items-center">
-                              {showMarksInputFor === rec.student?._id ? (
-                                <>
-                                  <input
-                                    type="number"
-                                    value={marks[rec.student._id] || ""}
-                                    onChange={(e) =>
-                                      setMarks({
-                                        ...marks,
-                                        [rec.student._id]: e.target.value,
-                                      })
-                                    }
-                                    placeholder="Marks"
-                                    className="w-24 px-2 py-1 border border-gray-300 rounded"
-                                  />
-                                  <button
-                                    onClick={() =>
-                                      handleMarks(rec.student._id)
-                                    }
-                                    className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-                                  >
-                                    Save
-                                  </button>
-                                  <button
-                                    onClick={() => setShowMarksInputFor(null)}
-                                    className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 text-sm"
-                                  >
-                                    Cancel
-                                  </button>
-                                </>
-                              ) : (
-                                <button
-                                  onClick={() =>
-                                    setShowMarksInputFor(rec.student?._id)
-                                  }
-                                  className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm"
-                                >
-                                  Update Marks
-                                </button>
-                              )}
-                            </div>
+
                           </div>
 
                           {/* Project Title */}

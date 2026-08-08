@@ -25,14 +25,28 @@ export default function Project1Table() {
         params: { batch },
       });
       const records = response.data.data.response || [];
-      setData(records);
-      setFilteredData(records);
+      
+      // Flatten groups into individual student records for the table
+      const flattenedRecords = [];
+      for (const group of records) {
+        if (group.members && group.members.length > 0) {
+          for (const member of group.members) {
+            flattenedRecords.push({
+              ...group,
+              student: member
+            });
+          }
+        }
+      }
+      
+      setData(flattenedRecords);
+      setFilteredData(flattenedRecords);
 
       const sections = [
-        ...new Set(records.map((r) => r.student?.section).filter(Boolean)),
+        ...new Set(flattenedRecords.map((r) => r.student?.section).filter(Boolean)),
       ];
       const branches = [
-        ...new Set(records.map((r) => r.student?.branch).filter(Boolean)),
+        ...new Set(flattenedRecords.map((r) => r.student?.branch).filter(Boolean)),
       ];
       setSectionOptions(sections);
       setBranchOptions(branches);
@@ -178,7 +192,7 @@ export default function Project1Table() {
                 </tr>
               ) : (
                 filteredData.map((rec, idx) => (
-                  <tr key={rec._id} className="hover:bg-gray-50">
+                  <tr key={`${rec._id}-${rec.student?._id}`} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {idx + 1}
                     </td>

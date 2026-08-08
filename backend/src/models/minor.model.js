@@ -25,9 +25,9 @@ const minorSchema = new Schema({
     validate: [
       {
         validator: function (members) {
-          return members.length <= 2;
+          return members.length <= 3;
         },
-        message: "Minor project groups cannot have more than 2 members",
+        message: "Minor project groups cannot have more than 3 members",
       },
     ],
   },
@@ -83,10 +83,10 @@ const minorSchema = new Schema({
 
 // Pre-save middleware to validate group size before any save operation
 minorSchema.pre("save", function (next) {
-  if (this.members && this.members.length > 2) {
+  if (this.members && this.members.length > 3) {
     const error = new mongoose.Error.ValidationError(this);
     error.errors.members = new mongoose.Error.ValidatorError({
-      message: "Minor project groups cannot have more than 2 members",
+      message: "Minor project groups cannot have more than 3 members",
       path: "members",
       value: this.members,
     });
@@ -102,10 +102,10 @@ minorSchema.pre("findOneAndUpdate", function (next) {
     this.model
       .findOne(this.getQuery())
       .then((doc) => {
-        if (doc.members.length >= 2) {
+        if (doc.members.length >= 3) {
           const error = new mongoose.Error.ValidationError(this);
           error.errors.members = new mongoose.Error.ValidatorError({
-            message: "Minor project groups cannot have more than 2 members",
+            message: "Minor project groups cannot have more than 3 members",
             path: "members",
             value: doc.members,
           });
@@ -129,8 +129,8 @@ minorSchema.statics.addMemberWithValidation = async function (
     throw new Error("Group not found");
   }
 
-  if (group.members.length >= 2) {
-    throw new Error("Minor project groups cannot have more than 2 members");
+  if (group.members.length >= 3) {
+    throw new Error("Minor project groups cannot have more than 3 members");
   }
 
   group.members.push(memberId);
@@ -146,8 +146,8 @@ minorSchema.statics.updateWithSizeValidation = async function (query, update) {
       throw new Error("Group not found");
     }
 
-    if (group.members.length >= 2) {
-      throw new Error("Minor project groups cannot have more than 2 members");
+    if (group.members.length >= 3) {
+      throw new Error("Minor project groups cannot have more than 3 members");
     }
   }
 
