@@ -384,6 +384,12 @@ const getGroup = asyncHandler(async (req, res) => {
     .populate("leader")
     .populate("minorAppliedProfs")
     .populate("minorAllocatedProf");
+    
+  if (!group) {
+    await User.updateOne({ _id: user._id }, { $set: { MinorGroup: null } });
+    throw new ApiError(409, "Not in any minor group");
+  }
+
   return res
     .status(200)
     .json(new ApiResponse(200, group, "Minor group details returned"));

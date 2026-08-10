@@ -415,6 +415,12 @@ const getGroup = asyncHandler(async (req, res) => {
     .populate("majorAppliedProfs")
     .populate("majorAllocatedProf")
     .populate("org");
+    
+  if (!group) {
+    await User.updateOne({ _id: user._id }, { $set: { MajorGroup: null } });
+    throw new ApiError(409, "Not in any major group");
+  }
+
   return res
     .status(200)
     .json(new ApiResponse(200, group, "major group details returned"));

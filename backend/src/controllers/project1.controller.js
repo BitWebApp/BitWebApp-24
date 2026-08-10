@@ -360,6 +360,7 @@ const getProject1 = asyncHandler(async (req, res) => {
     .populate("discussion.absent");
 
   if (!group) {
+    await User.updateOne({ _id: user._id }, { $set: { project1: null } });
     throw new ApiError(404, "No Project 1 group found");
   }
 
