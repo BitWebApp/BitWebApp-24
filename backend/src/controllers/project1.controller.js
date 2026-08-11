@@ -600,36 +600,45 @@ const getProject1Limits = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, limitleft, "Project 1 limit returned"));
 });
+// ===================== Student-facing (extra) =====================
 
-const saveProject1Title = asyncHandler(async (req, res) => {
-  const { project1Id, projectTitle } = req.body;
-  const profId = req.professor._id;
-
-  const group = await Project1.findById(project1Id);
-  if (!group) throw new ApiError(404, "Project 1 group not found");
-
-  if (
-    !group.allocatedProf ||
-    group.allocatedProf.toString() !== profId.toString()
-  ) {
-    throw new ApiError(403, "Unauthorized");
+const setProjectTitle = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { projectTitle } = req.body;
+  if (projectTitle === undefined || typeof projectTitle !== "string") {
+    return res.status(400).json({
+      success: false,
+      message: "Project title must be a string.",
+    });
   }
-
-  group.projectTitle = projectTitle?.trim() || "";
+  const user = await User.findById(userId);
+  if (!user || !user.project1) {
+    return res.status(404).json({
+      success: false,
+      message: "User or group not found.",
+    });
+  }
+  const group = await Project1.findById(user.project1);
+  if (!group) {
+    return res.status(404).json({
+      success: false,
+      message: "Group not found.",
+    });
+  }
+  if (!group.leader.equals(userId)) {
+    return res.status(403).json({
+      success: false,
+      message: "Only the group leader can set the project title.",
+    });
+  }
+  group.projectTitle = projectTitle.trim();
   await group.save();
-
   return res
     .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        group.projectTitle,
-        group.projectTitle
-          ? "Project title updated successfully"
-          : "Project title cleared successfully"
-      )
-    );
+    .json(new ApiResponse(200, group, "Project title set successfully."));
 });
+
+
 
 // ===================== Admin-facing =====================
 
@@ -703,6 +712,6 @@ export {
   addProject1Remark,
   addProject1Marks,
   getProject1Limits,
-  saveProject1Title,
+  setProjectTitle,
   getAllProject1Data,
 };

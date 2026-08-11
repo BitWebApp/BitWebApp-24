@@ -23,7 +23,7 @@ import {
   addProject1Remark,
   addProject1Marks,
   getProject1Limits,
-  saveProject1Title,
+  setProjectTitle,
   getAllProject1Data,
 } from "../controllers/project1.controller.js";
 
@@ -36,6 +36,7 @@ router.route("/accept-req").post(verifyJWT, acceptReq);
 router.route("/get-req").get(verifyJWT, getReq);
 router.route("/remove-member").post(verifyJWT, removeMember);
 router.route("/leave-group").post(verifyJWT, leaveGroup);
+router.route("/set-project-title").post(verifyJWT, setProjectTitle);
 
 // Student routes — faculty application
 router.route("/apply-faculty").post(verifyJWT, applyToFaculty);
@@ -52,7 +53,6 @@ router.route("/get-accepted-students").get(verifyProfessor, getProject1AcceptedS
 router.route("/add-remark").post(verifyProfessor, addProject1Remark);
 router.route("/add-marks").post(verifyProfessor, addProject1Marks);
 router.route("/get-limit").get(verifyProfessor, getProject1Limits);
-router.route("/save-project-title").post(verifyProfessor, saveProject1Title);
 
 // Admin routes
 router.route("/get-all").get(verifyAdmin, getAllProject1Data);

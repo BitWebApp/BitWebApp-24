@@ -21,7 +21,6 @@ const AcceptProject1 = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [marks, setMarks] = useState({});
   const [showMarksInputFor, setShowMarksInputFor] = useState(null);
-  const [projectTitles, setProjectTitles] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [absentees, setAbsentees] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -40,12 +39,7 @@ const AcceptProject1 = () => {
         setLimits(limitsResponse.data.data);
         setAcceptedRecords(acceptedResponse.data.data || []);
 
-        // Init project titles
-        const titles = {};
-        (acceptedResponse.data.data || []).forEach((rec) => {
-          titles[rec._id] = rec.projectTitle || "";
-        });
-        setProjectTitles(titles);
+        setAcceptedRecords(acceptedResponse.data.data || []);
       } catch (err) {
         toast.error(err.response?.data?.message || "Failed to fetch data.");
       }
@@ -150,17 +144,6 @@ const AcceptProject1 = () => {
     }
   };
 
-  const handleSaveTitle = async (project1Id) => {
-    try {
-      await axios.post("/api/v1/project1/save-project-title", {
-        project1Id,
-        projectTitle: projectTitles[project1Id] || "",
-      });
-      toast.success("Project title saved!");
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to save title.");
-    }
-  };
 
   const handleGroupClick = (group) => {
     if (selectedGroup === group._id) {

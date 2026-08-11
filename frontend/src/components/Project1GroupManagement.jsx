@@ -16,6 +16,31 @@ const Project1GroupManagement = () => {
   const [rollNumber, setRollNumber] = useState("");
   const [activeTab, setActiveTab] = useState("group");
 
+  const [inputProjectTitle, setInputProjectTitle] = useState("");
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+
+  useEffect(() => {
+    if (group?.projectTitle) {
+      setInputProjectTitle(group.projectTitle);
+    }
+  }, [group]);
+
+  const submitProjectTitle = async () => {
+    setLoading(true);
+    try {
+      await axios.post("/api/v1/project1/set-project-title", {
+        projectTitle: inputProjectTitle,
+      });
+      toast.success("Project title set successfully");
+      setIsEditingTitle(false);
+      fetchGroup();
+    } catch (error) {
+      let errorMessage = error.response?.data?.message;
+      toast.error(errorMessage || "Failed to set project title");
+    }
+    setLoading(false);
+  };
+
   const fetchUser = async () => {
     setUserLoading(true);
     try {
@@ -125,9 +150,9 @@ const Project1GroupManagement = () => {
 
   if (userLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="flex flex-col items-center">
-          <svg className="animate-spin h-10 w-10 text-purple-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg className="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
@@ -142,15 +167,15 @@ const Project1GroupManagement = () => {
   return (
     <>
       <Toaster position="top-right" />
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4 md:p-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-purple-600 to-indigo-700 p-6 text-white">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
               <h1 className="text-2xl md:text-3xl font-bold">
                 Project 1 Group
               </h1>
-              <p className="text-purple-100 mt-1">
+              <p className="text-blue-100 mt-1">
                 {group
                   ? "Manage your group members"
                   : "Create your Project 1 group"}
@@ -163,7 +188,7 @@ const Project1GroupManagement = () => {
                 onClick={() => setActiveTab("group")}
                 className={`px-6 py-3 font-medium text-sm md:text-base ${
                   activeTab === "group"
-                    ? "text-purple-600 border-b-2 border-purple-600"
+                    ? "text-blue-600 border-b-2 border-blue-600"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -173,7 +198,7 @@ const Project1GroupManagement = () => {
                 onClick={() => setActiveTab("requests")}
                 className={`px-6 py-3 font-medium text-sm md:text-base relative ${
                   activeTab === "requests"
-                    ? "text-purple-600 border-b-2 border-purple-600"
+                    ? "text-blue-600 border-b-2 border-blue-600"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -198,13 +223,13 @@ const Project1GroupManagement = () => {
                       {requests.map((request) => (
                         <div
                           key={request._id}
-                          className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-purple-300 transition-all"
+                          className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-all"
                         >
                           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                             <div className="mb-3 md:mb-0">
                               <h3 className="font-semibold text-gray-800">
                                 Group ID:{" "}
-                                <span className="text-purple-600">
+                                <span className="text-blue-600">
                                   {request.groupId}
                                 </span>
                               </h3>
@@ -268,11 +293,73 @@ const Project1GroupManagement = () => {
                   {group ? (
                     <div className="space-y-6">
                       <div className="grid md:grid-cols-3 gap-4">
-                        <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
-                          <h3 className="text-sm font-medium text-purple-800">
+                        <div className="bg-green-50 rounded-lg p-4 border border-green-100 md:col-span-3">
+                          <h3 className="text-sm font-medium text-green-800">Project Title</h3>
+                          <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                            <div className="flex-grow">
+                              {group?.projectTitle && group.projectTitle.trim() !== "" && !isEditingTitle ? (
+                                <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg flex justify-between items-center">
+                                  <div>
+                                    <span className="text-gray-500 text-sm block mb-1">Current Title:</span>
+                                    <span className="text-gray-800 font-medium">
+                                      {group.projectTitle}
+                                    </span>
+                                  </div>
+                                  {isLeader && (
+                                    <button
+                                      onClick={() => {
+                                        setInputProjectTitle(group.projectTitle);
+                                        setIsEditingTitle(true);
+                                      }}
+                                      className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
+                                    >
+                                      Edit
+                                    </button>
+                                  )}
+                                </div>
+                              ) : (
+                                isLeader ? (
+                                  <div className="flex flex-col sm:flex-row gap-2">
+                                    <input
+                                      type="text"
+                                      value={inputProjectTitle}
+                                      onChange={(e) => setInputProjectTitle(e.target.value)}
+                                      placeholder="Enter Project Title"
+                                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <button
+                                      onClick={submitProjectTitle}
+                                      disabled={loading}
+                                      className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-sm disabled:opacity-50"
+                                    >
+                                      {loading ? "Saving..." : "Save Title"}
+                                    </button>
+                                    {group?.projectTitle && (
+                                      <button
+                                        onClick={() => {
+                                          setInputProjectTitle(group.projectTitle);
+                                          setIsEditingTitle(false);
+                                        }}
+                                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors shadow-sm"
+                                      >
+                                        Cancel
+                                      </button>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-500 italic">
+                                    No project title assigned yet. Only the leader can assign it.
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                          <h3 className="text-sm font-medium text-blue-800">
                             Group ID
                           </h3>
-                          <p className="text-xl font-bold text-purple-600 mt-1">
+                          <p className="text-xl font-bold text-blue-600 mt-1">
                             {group?.groupId}
                           </p>
                         </div>
@@ -309,7 +396,7 @@ const Project1GroupManagement = () => {
                                 value={rollNumber}
                                 onChange={(e) => setRollNumber(e.target.value)}
                                 placeholder="Enter Roll Number"
-                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
                               <button
                                 onClick={addMember}
@@ -317,7 +404,7 @@ const Project1GroupManagement = () => {
                                 className={`px-4 py-2 text-white rounded-lg transition-all shadow-sm ${
                                   group.members.length >= 3
                                     ? "bg-gray-400 cursor-not-allowed"
-                                    : "bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
+                                    : "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
                                 }`}
                               >
                                 Send Request
@@ -358,8 +445,8 @@ const Project1GroupManagement = () => {
                                   <tr key={member._id} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                       <div className="flex items-center">
-                                        <div className="flex-shrink-0 h-10 w-10 bg-purple-100 rounded-full flex items-center justify-center">
-                                          <span className="text-purple-600 font-medium">
+                                        <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                          <span className="text-blue-600 font-medium">
                                             {(member?.fullName || "M")
                                               .split(" ")
                                               .map((n) => n[0])
@@ -372,7 +459,7 @@ const Project1GroupManagement = () => {
                                             {member?.fullName || "Member"}
                                           </div>
                                           {group.leader?._id === member._id && (
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                                               Leader
                                             </span>
                                           )}
@@ -427,10 +514,10 @@ const Project1GroupManagement = () => {
                   ) : (
                     <div className="space-y-6">
                       <div className="text-center py-4">
-                        <div className="mx-auto w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                        <div className="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            className="h-10 w-10 text-purple-600"
+                            className="h-10 w-10 text-blue-600"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -460,7 +547,7 @@ const Project1GroupManagement = () => {
                               className={`w-full py-3 px-4 rounded-lg font-medium text-white shadow-md ${
                                 loading
                                   ? "bg-gray-400 cursor-not-allowed"
-                                  : "bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800"
+                                  : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
                               }`}
                             >
                               {loading ? (

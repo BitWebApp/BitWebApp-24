@@ -222,21 +222,21 @@ const Project1Apply = () => {
     return (
       <>
         <Toaster position="top-right" />
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4 md:p-8">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-              <div className="bg-gradient-to-r from-purple-600 to-indigo-700 p-6 text-white">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
                 <h1 className="text-2xl md:text-3xl font-bold">Apply to Project 1</h1>
-                <p className="text-purple-100 mt-1">
+                <p className="text-blue-100 mt-1">
                   3rd Year Project Application
                 </p>
               </div>
               <div className="p-8 text-center">
-                <div className="mx-auto w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mb-6">
+                <div className="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-6">
                   {isEligible ? (
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-10 w-10 text-purple-600"
+                      className="h-10 w-10 text-blue-600"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -251,7 +251,7 @@ const Project1Apply = () => {
                   ) : (
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-10 w-10 text-purple-600"
+                      className="h-10 w-10 text-blue-600"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -275,7 +275,7 @@ const Project1Apply = () => {
                     </p>
                     <a
                       href="/db/project1-group"
-                      className="inline-block px-8 py-3 rounded-lg font-medium text-white shadow-md transition-all bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800"
+                      className="inline-block px-8 py-3 rounded-lg font-medium text-white shadow-md transition-all bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
                     >
                       Manage Group
                     </a>
@@ -301,7 +301,7 @@ const Project1Apply = () => {
   return (
     <>
       <Toaster position="top-right" />
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4 md:p-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
           {allocatedProf ? (
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
@@ -424,11 +424,11 @@ const Project1Apply = () => {
           ) : (
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               {/* Header */}
-              <div className="bg-gradient-to-r from-purple-600 to-indigo-700 p-6 text-white">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
                 <h1 className="text-2xl md:text-3xl font-bold">
                   Project 1 Application
                 </h1>
-                <p className="text-purple-100 mt-1">
+                <p className="text-blue-100 mt-1">
                   Select a professor for your Project 1 mentorship
                 </p>
               </div>
@@ -467,7 +467,7 @@ const Project1Apply = () => {
                       placeholder="Search by name or ID..."
                       onChange={(e) => setSearchQuery(e.target.value)}
                       value={searchQuery}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -481,7 +481,7 @@ const Project1Apply = () => {
                       id="filter"
                       onChange={(e) => setFilterOption(e.target.value)}
                       value={filterOption}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="all">All Professors</option>
                       <option value="available">Available Seats Only</option>
@@ -588,8 +588,8 @@ const Project1Apply = () => {
                             >
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center">
-                                  <div className="flex-shrink-0 h-10 w-10 bg-purple-100 rounded-full flex items-center justify-center">
-                                    <span className="text-purple-600 font-medium">
+                                  <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <span className="text-blue-600 font-medium">
                                       {prof.fullName
                                         .split(" ")
                                         .map((n) => n[0])
@@ -647,7 +647,7 @@ const Project1Apply = () => {
                                   disabled={isDisabled || !project1.leader || !currentUser || project1.leader._id !== currentUser._id}
                                   checked={selectedProf === prof._id}
                                   onChange={() => setSelectedProf(prof._id)}
-                                  className={`h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 ${
+                                  className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 ${
                                     isDisabled || !project1.leader || !currentUser || project1.leader._id !== currentUser._id
                                       ? "opacity-50 cursor-not-allowed"
                                       : "cursor-pointer"
@@ -697,7 +697,7 @@ const Project1Apply = () => {
                       className={`flex-1 py-3 px-4 rounded-lg font-medium text-white shadow-md transition-all ${
                         loading || !selectedProf
                           ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800"
+                          : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
                       }`}
                     >
                       {loading ? (
