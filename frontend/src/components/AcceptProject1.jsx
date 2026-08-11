@@ -6,8 +6,10 @@ import {
   FaCheckCircle,
   FaTimesCircle,
   FaSearch,
+  FaEdit,
 } from "react-icons/fa";
 import Swal from "sweetalert2";
+import ChatBox from "./ChatBox";
 
 const AcceptProject1 = () => {
   const [appliedStudents, setAppliedStudents] = useState([]);
@@ -20,6 +22,7 @@ const AcceptProject1 = () => {
   const [marks, setMarks] = useState({});
   const [showMarksInputFor, setShowMarksInputFor] = useState(null);
   const [projectTitles, setProjectTitles] = useState({});
+  const [selectedGroup, setSelectedGroup] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -155,6 +158,14 @@ const AcceptProject1 = () => {
     }
   };
 
+  const handleGroupClick = (group) => {
+    if (selectedGroup === group._id) {
+      setSelectedGroup(null);
+    } else {
+      setSelectedGroup(group._id);
+    }
+  };
+
   const filteredApplied = appliedStudents.filter((rec) => {
     if (!searchTerm) return true;
     const q = searchTerm.toLowerCase();
@@ -178,15 +189,15 @@ const AcceptProject1 = () => {
   return (
     <>
       <Toaster position="top-right" />
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4 md:p-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-purple-600 to-indigo-700 p-6 text-white">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
               <h1 className="text-2xl md:text-3xl font-bold">
                 Project 1 Management
               </h1>
-              <p className="text-purple-100 mt-1">
+              <p className="text-blue-100 mt-1">
                 Remaining capacity: {limits} student(s)
               </p>
             </div>
@@ -198,7 +209,7 @@ const AcceptProject1 = () => {
                   onClick={() => setViewMode("applied")}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     viewMode === "applied"
-                      ? "bg-purple-600 text-white"
+                      ? "bg-blue-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -209,7 +220,7 @@ const AcceptProject1 = () => {
                   onClick={() => setViewMode("accepted")}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     viewMode === "accepted"
-                      ? "bg-purple-600 text-white"
+                      ? "bg-blue-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -227,254 +238,337 @@ const AcceptProject1 = () => {
                     placeholder="Search by name or roll number..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
 
-              {/* Applied Students View */}
-              {viewMode === "applied" && (
-                <div>
-                  {filteredApplied.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500">
-                      No pending applications.
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {filteredApplied.map((rec) => (
-                        <div
-                          key={rec._id}
-                          className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                        >
-                          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                            <div>
-                              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                Group ID: {rec.groupId}
-                              </h3>
-                              <div className="space-y-3">
-                                {rec.members?.map((member) => (
-                                  <div key={member._id} className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <span className="font-semibold text-gray-800">{member.fullName}</span>
-                                      <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
-                                        {member.rollNumber}
-                                      </span>
-                                    </div>
-                                    <p className="text-xs text-gray-600 mb-1">
-                                      Branch: {member.branch} | Section: {member.section} | CGPA: {member.cgpa}
-                                    </p>
-                                    <p className="text-xs text-gray-600 flex gap-2 items-center">
-                                      Email: {member.email}
-                                      {member.linkedin && (
-                                        <a href={member.linkedin} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
-                                          LinkedIn
-                                        </a>
-                                      )}
-                                    </p>
-                                  </div>
-                                ))}
-                              </div>
+              {/* Groups List */}
+              <div className="space-y-4">
+                {(viewMode === "applied" ? filteredApplied : filteredAccepted).length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    No {viewMode === "applied" ? "pending applications" : "accepted students"}.
+                  </div>
+                ) : (
+                  (viewMode === "applied" ? filteredApplied : filteredAccepted).map((group) => (
+                    <div
+                      key={group._id}
+                      className="border border-gray-200 rounded-lg overflow-hidden bg-white hover:shadow-md transition-shadow"
+                    >
+                      {/* Group Header */}
+                      <div
+                        className={`p-4 flex items-center justify-between ${selectedGroup === group._id ? "bg-blue-50" : "bg-white"} hover:bg-gray-50 cursor-pointer`}
+                      >
+                        <div className="flex items-center space-x-4">
+                          {viewMode === "accepted" && group.projectTitle && (
+                            <div className="hidden md:flex flex-col mr-4">
+                              <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Project Title</span>
+                              <span className="text-sm font-semibold text-green-700 max-w-xs truncate" title={group.projectTitle}>
+                                {group.projectTitle}
+                              </span>
                             </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleAccept(rec._id)}
-                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-1"
-                              >
-                                <FaCheckCircle /> Accept
-                              </button>
-                              <button
-                                onClick={() => handleDeny(rec._id)}
-                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-1"
-                              >
-                                <FaTimesCircle /> Deny
-                              </button>
-                            </div>
+                          )}
+                          <div>
+                            <h3 className="font-bold text-lg text-gray-800">
+                              Group ID: {group.groupId}
+                            </h3>
+                            <p className="text-gray-600">
+                              {group.members?.length || 0} members
+                            </p>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleGroupClick(group)}
+                            className="flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                          >
+                            <FaUsers className="mr-2" />
+                            {selectedGroup === group._id ? "Hide" : "View"} Members
+                          </button>
+                          {viewMode === "applied" && (
+                            <>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleAccept(group._id); }}
+                                className="flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                              >
+                                <FaCheckCircle className="mr-2" /> Accept
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleDeny(group._id); }}
+                                className="flex items-center px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                              >
+                                <FaTimesCircle className="mr-2" /> Deny
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
 
-              {/* Accepted Students View */}
-              {viewMode === "accepted" && (
-                <div>
-                  {filteredAccepted.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500">
-                      No accepted students yet.
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {filteredAccepted.map((rec) => (
-                        <div
-                          key={rec._id}
-                          className="border border-gray-200 rounded-lg p-4"
-                        >
-                          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
-                            <div className="flex-1">
-                              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                Group ID: {rec.groupId}
-                              </h3>
-                              <div className="space-y-3">
-                                {rec.members?.map((member) => (
-                                  <div key={member._id} className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
-                                      <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                          <span className="font-semibold text-gray-800">{member.fullName}</span>
-                                          <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
-                                            {member.rollNumber}
-                                          </span>
-                                        </div>
-                                        <p className="text-xs text-gray-600">
-                                          Branch: {member.branch} | Current Marks: {member.marks?.project1 || 0}
-                                        </p>
-                                      </div>
-                                      
-                                      {/* Marks */}
-                                      <div className="flex gap-2 items-center shrink-0 mt-2 md:mt-0">
-                                        {showMarksInputFor === member._id ? (
-                                          <div className="flex gap-2">
+                      {/* Expanded Members View */}
+                      {selectedGroup === group._id && (
+                        <div className="p-4 bg-gray-50 border-t border-gray-200">
+                          {/* Project Title Section */}
+                          {viewMode === "accepted" && (
+                            <div className="bg-green-50 rounded-lg p-5 border border-green-200 mb-6 shadow-sm">
+                              <h3 className="text-sm font-bold text-green-800 uppercase tracking-wider mb-2">Project Title</h3>
+                              <div className="flex flex-col md:flex-row gap-3">
+                                <input
+                                  type="text"
+                                  placeholder="Enter Project Title"
+                                  value={
+                                    projectTitles[group._id] !== undefined
+                                      ? projectTitles[group._id]
+                                      : (group.projectTitle || "")
+                                  }
+                                  onChange={(e) =>
+                                    setProjectTitles({
+                                      ...projectTitles,
+                                      [group._id]: e.target.value,
+                                    })
+                                  }
+                                  className="flex-1 px-4 py-3 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all text-gray-800"
+                                />
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSaveTitle(group._id);
+                                  }}
+                                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md font-medium whitespace-nowrap flex items-center justify-center gap-2"
+                                >
+                                  <FaCheckCircle /> Save Title
+                                </button>
+                              </div>
+                              {(!group.projectTitle || group.projectTitle.trim() === "") && (
+                                <p className="text-gray-500 text-sm mt-2 flex items-center gap-1 italic">
+                                  <span className="text-amber-500">⚠️</span> Project title is currently not set for this group.
+                                </p>
+                              )}
+                            </div>
+                          )}
+
+                          <h4 className="font-semibold text-lg text-gray-800 mb-4">
+                            Group Members
+                          </h4>
+                          <div className="overflow-x-auto bg-white rounded-lg border border-gray-200 shadow-sm mb-6">
+                            <table className="min-w-full divide-y divide-gray-200">
+                              <thead className="bg-gray-100">
+                                <tr>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marks</th>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Photo</th>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Roll No</th>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CGPA</th>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profiles</th>
+                                </tr>
+                              </thead>
+                              <tbody className="bg-white divide-y divide-gray-200">
+                                {group.members?.map((member) => (
+                                  <tr key={member._id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                      {viewMode === "accepted" ? (
+                                        showMarksInputFor === member._id ? (
+                                          <div className="flex items-center space-x-2">
                                             <input
                                               type="number"
-                                              value={marks[member._id] || ""}
+                                              min="0"
+                                              max="50"
+                                              value={marks[member._id] ?? member.marks?.project1 ?? ""}
                                               onChange={(e) => setMarks({ ...marks, [member._id]: e.target.value })}
-                                              placeholder="Marks"
-                                              className="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                              className="w-16 px-2 py-1 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-sm"
                                             />
                                             <button
                                               onClick={() => handleMarks(member._id)}
-                                              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium transition-colors"
+                                              className="text-green-600 hover:text-green-800"
+                                              title="Save Marks"
                                             >
-                                              Save
+                                              <FaCheckCircle size={18} />
                                             </button>
                                             <button
                                               onClick={() => setShowMarksInputFor(null)}
-                                              className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 text-sm font-medium transition-colors"
+                                              className="text-red-600 hover:text-red-800"
+                                              title="Cancel"
                                             >
-                                              Cancel
+                                              <FaTimesCircle size={18} />
                                             </button>
                                           </div>
                                         ) : (
-                                          <button
+                                          <div
+                                            className="flex items-center space-x-2 cursor-pointer group-hover:bg-gray-100 p-1 rounded"
                                             onClick={() => setShowMarksInputFor(member._id)}
-                                            className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-medium transition-colors"
                                           >
-                                            Update Marks
-                                          </button>
+                                            <span className="font-medium text-gray-900">
+                                              {member.marks?.project1 ?? "-"}
+                                            </span>
+                                            <span className="text-xs text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                              Edit
+                                            </span>
+                                          </div>
+                                        )
+                                      ) : (
+                                        <span className="text-gray-400">-</span>
+                                      )}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                      <div className="flex flex-col items-center">
+                                        <img
+                                          src={member.image || "/images/default-avatar.png"}
+                                          alt={member.fullName}
+                                          className="h-10 w-10 rounded-full object-cover"
+                                        />
+                                      </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                      <div className="text-sm font-medium text-gray-900">{member.fullName}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                      <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        {member.rollNumber}
+                                      </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                      {member.cgpa || "-"}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                      {member.branch} {member.section ? `(${member.section})` : ""}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap space-x-2">
+                                      {member.codingProfiles?.leetcode && (
+                                        <a
+                                          href={member.codingProfiles.leetcode}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-block px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs hover:bg-orange-200"
+                                        >
+                                          LeetCode
+                                        </a>
+                                      )}
+                                      {member.codingProfiles?.github && (
+                                        <a
+                                          href={member.codingProfiles.github}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-block px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs hover:bg-gray-200"
+                                        >
+                                          GitHub
+                                        </a>
+                                      )}
+                                      {member.linkedin && (
+                                        <a
+                                          href={member.linkedin}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs hover:bg-blue-200"
+                                        >
+                                          LinkedIn
+                                        </a>
+                                      )}
+                                      {!member.codingProfiles?.leetcode && !member.codingProfiles?.github && !member.linkedin && "-"}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+
+                          {/* Add Remark (Discussion Entry) Inline Form */}
+                          {viewMode === "accepted" && (
+                            <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-sm mb-6">
+                              <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3">
+                                Add Discussion Entry
+                              </h4>
+                              <div className="flex flex-col gap-3">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
+                                  <input
+                                    type="text"
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    placeholder="Discussion description..."
+                                    className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">Remark (Optional)</label>
+                                  <input
+                                    type="text"
+                                    value={remark}
+                                    onChange={(e) => setRemark(e.target.value)}
+                                    placeholder="E.g., Excellent, Good..."
+                                    className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                  />
+                                </div>
+                                <button
+                                  onClick={() => handleAddRemark(group._id)}
+                                  className="mt-2 self-start px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                                >
+                                  Save Entry
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Discussion Logs */}
+                          {viewMode === "accepted" && group.discussion && group.discussion.length > 0 && (
+                            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+                              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider">
+                                  Discussion Logs
+                                </h4>
+                              </div>
+                              <div className="p-4 space-y-3">
+                                {group.discussion.map((log, i) => (
+                                  <div
+                                    key={i}
+                                    className="bg-white p-4 rounded-lg shadow-sm border border-gray-200"
+                                  >
+                                    <div className="flex justify-between items-start">
+                                      <div>
+                                        <p className="text-gray-700">
+                                          <span className="font-medium">
+                                            Description:
+                                          </span>{" "}
+                                          {log.description}
+                                        </p>
+                                        {log.remark && (
+                                          <p className="text-gray-700 mt-1">
+                                            <span className="font-medium">
+                                              Remark:
+                                            </span>{" "}
+                                            <span className="capitalize">
+                                              {log.remark}
+                                            </span>
+                                          </p>
                                         )}
                                       </div>
+                                      <span className="text-xs text-gray-500">
+                                        {new Intl.DateTimeFormat("en-IN", {
+                                          timeZone: "Asia/Kolkata",
+                                          dateStyle: "medium",
+                                          timeStyle: "short",
+                                        }).format(new Date(log.date))}
+                                      </span>
                                     </div>
                                   </div>
                                 ))}
                               </div>
                             </div>
+                          )}
 
-
-                          </div>
-
-                          {/* Project Title */}
-                          <div className="mb-4 flex gap-2 items-center">
-                            <input
-                              type="text"
-                              value={projectTitles[rec._id] || ""}
-                              onChange={(e) =>
-                                setProjectTitles({
-                                  ...projectTitles,
-                                  [rec._id]: e.target.value,
-                                })
-                              }
-                              placeholder="Project Title"
-                              className="flex-1 px-3 py-1 border border-gray-300 rounded"
-                            />
-                            <button
-                              onClick={() => handleSaveTitle(rec._id)}
-                              className="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
-                            >
-                              Save Title
-                            </button>
-                          </div>
-
-                          {/* Add Remark */}
-                          <div className="bg-gray-50 rounded-lg p-3 mb-3">
-                            <h4 className="text-sm font-medium text-gray-700 mb-2">
-                              Add Discussion Entry
-                            </h4>
-                            <div className="flex flex-col gap-2">
-                              <input
-                                type="text"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Discussion description"
-                                className="px-3 py-1 border border-gray-300 rounded text-sm"
-                              />
-                              <input
-                                type="text"
-                                value={remark}
-                                onChange={(e) => setRemark(e.target.value)}
-                                placeholder="Remark (optional)"
-                                className="px-3 py-1 border border-gray-300 rounded text-sm"
-                              />
-                              <button
-                                onClick={() => handleAddRemark(rec._id)}
-                                className="self-start px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
-                              >
-                                Add Entry
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Discussion Logs */}
-                          {rec.discussion && rec.discussion.length > 0 && (
-                            <div>
-                              <h4 className="text-sm font-medium text-gray-700 mb-2">
-                                Discussion Logs
+                          {viewMode === "accepted" && (
+                            <div className="mt-6">
+                              <h4 className="font-semibold text-lg text-gray-800 mb-4">
+                                Group Chat
                               </h4>
-                              <div className="overflow-x-auto">
-                                <table className="min-w-full text-sm divide-y divide-gray-200">
-                                  <thead className="bg-gray-50">
-                                    <tr>
-                                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Date
-                                      </th>
-                                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Description
-                                      </th>
-                                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Remark
-                                      </th>
-                                    </tr>
-                                  </thead>
-                                  <tbody className="divide-y divide-gray-200">
-                                    {rec.discussion.map((log, i) => (
-                                      <tr key={i} className="hover:bg-gray-50">
-                                        <td className="px-3 py-2 whitespace-nowrap text-gray-900">
-                                          {new Intl.DateTimeFormat("en-IN", {
-                                            timeZone: "Asia/Kolkata",
-                                            dateStyle: "medium",
-                                            timeStyle: "short",
-                                          }).format(new Date(log.date))}
-                                        </td>
-                                        <td className="px-3 py-2 text-gray-900">
-                                          {log.description || "-"}
-                                        </td>
-                                        <td className="px-3 py-2 text-gray-900">
-                                          {log.remark || "-"}
-                                        </td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
+                              <ChatBox groupId={group.groupId} />
                             </div>
                           )}
                         </div>
-                      ))}
+                      )}
                     </div>
-                  )}
-                </div>
-              )}
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>
