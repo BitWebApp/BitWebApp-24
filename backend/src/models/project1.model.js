@@ -72,10 +72,6 @@ const project1Schema = new Schema(
         },
       },
     ],
-    marks: {
-      type: Number,
-      default: 0,
-    },
     preferenceLastMovedAt: {
       type: Date,
       default: Date.now,
