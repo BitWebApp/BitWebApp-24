@@ -396,7 +396,7 @@ const Project1GroupManagement = () => {
                                               Remove
                                             </button>
                                           )}
-                                          {member._id === currentUser._id && !isLeader && (
+                                          {member._id === currentUser._id && (
                                             <button
                                               onClick={leaveGroup}
                                               className="text-orange-600 hover:text-orange-900 px-3 py-1 rounded-md hover:bg-orange-50 transition-colors"

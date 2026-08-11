@@ -35,7 +35,7 @@ export const getBugs = (req, res) => {
     filter.status = status;
   }
   BugTracker.find(filter)
-    .populate({ path: "reporter.id", select: "fullName" })
+    .populate({ path: "reporter.id", select: "fullName rollNumber idNumber" })
     .then((bugs) => res.json(bugs))
     .catch((error) => res.status(500).json({ message: error.message }));
 };
@@ -44,7 +44,7 @@ export const getBugById = async (req, res) => {
   try {
     const bug = await BugTracker.findById(req.params.id).populate({
       path: "reporter.id",
-      select: "fullName",
+      select: "fullName rollNumber idNumber",
     });
     if (!bug) return res.status(404).json({ message: "Bug not found" });
     res.json(bug);
