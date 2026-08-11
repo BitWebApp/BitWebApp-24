@@ -123,7 +123,7 @@ export default function Sidebar() {
     //   to: "/db/booking-calendar",
     // },
     {
-      text: "Apply to Profs",
+      text: "Apply to Summer",
       icon: <HiSun />,
       to: "/db/apply-summer",
     },
@@ -164,7 +164,7 @@ export default function Sidebar() {
       minYear: 3,
     },
     {
-      text: "Project 1",
+      text: "Apply to Project 1",
       icon: <HiPresentationChartLine />,
       to: "/db/apply-project1",
       minYear: 3,

@@ -42,10 +42,13 @@ const MajorProject = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [allProfsResponse, appliedProfsResponse] = await Promise.all([
-        axios.get("/api/v1/prof/getProf"),
-        axios.get("/api/v1/major/get-app-profs"),
-      ]);
+      const allProfsResponse = await axios.get("/api/v1/prof/getProf");
+      let appliedProfsResponse = null;
+      try {
+        appliedProfsResponse = await axios.get("/api/v1/major/get-app-profs");
+      } catch (err) {
+        // Silently ignore if not in group
+      }
       const { ismajorAllocated, prof, majorAppliedProfs, denied } =
         appliedProfsResponse?.data?.data || {};
 
@@ -70,7 +73,9 @@ const MajorProject = () => {
       setLoading(false);
     } catch (error) {
       setLoading(false);
-      handleError(error);
+      if (error?.response?.status !== 409) {
+        handleError(error);
+      }
     }
   };
   const fetchUser = async () => {
@@ -296,7 +301,14 @@ const MajorProject = () => {
       <Toaster position="top-right" />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
-          {allocatedProf ? (
+          {loading ? (
+            <div className="text-center p-8 text-gray-500">Loading...</div>
+          ) : !group ? (
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-8 text-center">
+              <h1 className="text-2xl font-bold mb-4 text-gray-900">Group Not Created</h1>
+              <p className="text-gray-600 mb-6">You have not created a major project group yet. Please create a group first to apply to professors.</p>
+            </div>
+          ) : allocatedProf ? (
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white">
                 <h1 className="text-2xl md:text-3xl font-bold">
