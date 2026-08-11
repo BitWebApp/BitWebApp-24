@@ -226,7 +226,7 @@ const Project1Apply = () => {
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               <div className="bg-gradient-to-r from-purple-600 to-indigo-700 p-6 text-white">
-                <h1 className="text-2xl md:text-3xl font-bold">Project 1</h1>
+                <h1 className="text-2xl md:text-3xl font-bold">Apply to Project 1</h1>
                 <p className="text-purple-100 mt-1">
                   3rd Year Project Application
                 </p>
@@ -307,7 +307,7 @@ const Project1Apply = () => {
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white">
                 <h1 className="text-2xl md:text-3xl font-bold">
-                  Project 1 Allocation
+                  Apply to Project 1
                 </h1>
                 <p className="text-green-100 mt-1">
                   Your Project 1 details

@@ -329,7 +329,7 @@ const applyToFaculty = asyncHandler(async (req, res) => {
     // console.log("group not found");
     return res.status(404).json({
       success: false,
-      message: "Group not found",
+      message: "Please create or join a Major Project group before applying.",
     });
   }
 
@@ -425,7 +425,7 @@ const applyToFaculty = asyncHandler(async (req, res) => {
     // console.log("faculty not found");
     return res.status(404).json({
       success: false,
-      message: "Faculty not found",
+      message: "The selected professor could not be found.",
     });
   }
   if (

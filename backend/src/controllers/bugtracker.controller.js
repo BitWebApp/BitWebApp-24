@@ -20,7 +20,7 @@ export const createBug = asyncHandler(async (req, res) => {
     title,
     reportDescription,
     reporter: {
-      kind: req.user.role === "Faculty" ? "Professor" : "User",
+      kind: req.user.idNumber ? "Professor" : "User",
       id: req.user._id,
     },
     links,

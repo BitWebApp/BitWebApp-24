@@ -274,7 +274,7 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   const group = await Group.findById(groupId).populate("members");
   if (!group) {
     console.log("group not found");
-    throw new ApiError(404, "Group not found");
+    throw new ApiError(404, "Please create or join a Summer Training group before applying.");
   }
 
   if (!group.leader.equals(loggedIn)) {
@@ -362,7 +362,7 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   const faculty = await Professor.findById(facultyId);
   if (!faculty) {
     console.log("faculty not found");
-    throw new ApiError(404, "Faculty not found");
+    throw new ApiError(404, "The selected professor could not be found.");
   }
   if (
     group.members.length >

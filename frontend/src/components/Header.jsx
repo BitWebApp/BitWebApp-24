@@ -76,7 +76,7 @@ export default function Header() {
       to: "/db/interview",
     },
     {
-      text: "Apply to Profs",
+      text: "Apply to Summer",
       icon: <HiSun />,
       to: "/db/apply-summer",
     },

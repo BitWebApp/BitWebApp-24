@@ -22,6 +22,8 @@ const AcceptProject1 = () => {
   const [marks, setMarks] = useState({});
   const [showMarksInputFor, setShowMarksInputFor] = useState(null);
   const [projectTitles, setProjectTitles] = useState({});
+  const [showModal, setShowModal] = useState(false);
+  const [absentees, setAbsentees] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
 
   useEffect(() => {
@@ -104,21 +106,23 @@ const AcceptProject1 = () => {
     }
   };
 
-  const handleAddRemark = async (recordId) => {
+  const handleAddRemark = async () => {
     if (!description.trim()) {
       toast.error("Description is required.");
       return;
     }
     try {
       await axios.post("/api/v1/project1/add-remark", {
-        _id: recordId,
+        _id: selectedGroup,
         description,
         remark,
-        absent: [],
+        absent: absentees,
       });
       toast.success("Remark added!");
       setDescription("");
       setRemark("");
+      setAbsentees([]);
+      setShowModal(false);
       // Refresh accepted
       const res = await axios.get("/api/v1/project1/get-accepted-students");
       setAcceptedRecords(res.data.data || []);
@@ -260,14 +264,6 @@ const AcceptProject1 = () => {
                         className={`p-4 flex items-center justify-between ${selectedGroup === group._id ? "bg-blue-50" : "bg-white"} hover:bg-gray-50 cursor-pointer`}
                       >
                         <div className="flex items-center space-x-4">
-                          {viewMode === "accepted" && group.projectTitle && (
-                            <div className="hidden md:flex flex-col mr-4">
-                              <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Project Title</span>
-                              <span className="text-sm font-semibold text-green-700 max-w-xs truncate" title={group.projectTitle}>
-                                {group.projectTitle}
-                              </span>
-                            </div>
-                          )}
                           <div>
                             <h3 className="font-bold text-lg text-gray-800">
                               Group ID: {group.groupId}
@@ -307,45 +303,6 @@ const AcceptProject1 = () => {
                       {/* Expanded Members View */}
                       {selectedGroup === group._id && (
                         <div className="p-4 bg-gray-50 border-t border-gray-200">
-                          {/* Project Title Section */}
-                          {viewMode === "accepted" && (
-                            <div className="bg-green-50 rounded-lg p-5 border border-green-200 mb-6 shadow-sm">
-                              <h3 className="text-sm font-bold text-green-800 uppercase tracking-wider mb-2">Project Title</h3>
-                              <div className="flex flex-col md:flex-row gap-3">
-                                <input
-                                  type="text"
-                                  placeholder="Enter Project Title"
-                                  value={
-                                    projectTitles[group._id] !== undefined
-                                      ? projectTitles[group._id]
-                                      : (group.projectTitle || "")
-                                  }
-                                  onChange={(e) =>
-                                    setProjectTitles({
-                                      ...projectTitles,
-                                      [group._id]: e.target.value,
-                                    })
-                                  }
-                                  className="flex-1 px-4 py-3 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-all text-gray-800"
-                                />
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleSaveTitle(group._id);
-                                  }}
-                                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-md font-medium whitespace-nowrap flex items-center justify-center gap-2"
-                                >
-                                  <FaCheckCircle /> Save Title
-                                </button>
-                              </div>
-                              {(!group.projectTitle || group.projectTitle.trim() === "") && (
-                                <p className="text-gray-500 text-sm mt-2 flex items-center gap-1 italic">
-                                  <span className="text-amber-500">⚠️</span> Project title is currently not set for this group.
-                                </p>
-                              )}
-                            </div>
-                          )}
-
                           <h4 className="font-semibold text-lg text-gray-800 mb-4">
                             Group Members
                           </h4>
@@ -366,46 +323,58 @@ const AcceptProject1 = () => {
                                 {group.members?.map((member) => (
                                   <tr key={member._id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                      {viewMode === "accepted" ? (
+                                      {viewMode === "accepted" && (
                                         showMarksInputFor === member._id ? (
                                           <div className="flex items-center space-x-2">
                                             <input
                                               type="number"
                                               min="0"
                                               max="50"
+                                              step="1"
                                               value={marks[member._id] ?? member.marks?.project1 ?? ""}
-                                              onChange={(e) => setMarks({ ...marks, [member._id]: e.target.value })}
-                                              className="w-16 px-2 py-1 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                              onChange={(e) => {
+                                                const value = e.target.value;
+                                                if (value === "" || (!isNaN(value) && value >= 0 && value <= 50)) {
+                                                  setMarks({ ...marks, [member._id]: value === "" ? "" : value });
+                                                }
+                                              }}
+                                              onBlur={(e) => {
+                                                if (e.target.value === "") {
+                                                  setMarks({ ...marks, [member._id]: "0" });
+                                                }
+                                              }}
+                                              className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                              placeholder="0-50"
                                             />
+                                            <span className="text-xs text-gray-500">
+                                              /50
+                                            </span>
                                             <button
                                               onClick={() => handleMarks(member._id)}
-                                              className="text-green-600 hover:text-green-800"
-                                              title="Save Marks"
+                                              className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm"
                                             >
-                                              <FaCheckCircle size={18} />
+                                              Submit
                                             </button>
                                             <button
                                               onClick={() => setShowMarksInputFor(null)}
-                                              className="text-red-600 hover:text-red-800"
-                                              title="Cancel"
+                                              className="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors text-sm"
                                             >
-                                              <FaTimesCircle size={18} />
+                                              Cancel
                                             </button>
                                           </div>
                                         ) : (
-                                          <div
-                                            className="flex items-center space-x-2 cursor-pointer group-hover:bg-gray-100 p-1 rounded"
+                                          <button
                                             onClick={() => setShowMarksInputFor(member._id)}
+                                            className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors flex items-center"
                                           >
-                                            <span className="font-medium text-gray-900">
-                                              {member.marks?.project1 ?? "-"}
+                                            <span>
+                                              {member.marks?.project1 || 0}/50
                                             </span>
-                                            <span className="text-xs text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                                              Edit
-                                            </span>
-                                          </div>
+                                            <FaEdit className="ml-2 text-sm" />
+                                          </button>
                                         )
-                                      ) : (
+                                      )}
+                                      {viewMode === "applied" && (
                                         <span className="text-gray-400">-</span>
                                       )}
                                     </td>
@@ -471,87 +440,74 @@ const AcceptProject1 = () => {
                             </table>
                           </div>
 
-                          {/* Add Remark (Discussion Entry) Inline Form */}
+                          {/* Discussion Logs Section */}
                           {viewMode === "accepted" && (
-                            <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-sm mb-6">
-                              <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3">
-                                Add Discussion Entry
-                              </h4>
-                              <div className="flex flex-col gap-3">
-                                <div>
-                                  <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
-                                  <input
-                                    type="text"
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    placeholder="Discussion description..."
-                                    className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-xs font-medium text-gray-700 mb-1">Remark (Optional)</label>
-                                  <input
-                                    type="text"
-                                    value={remark}
-                                    onChange={(e) => setRemark(e.target.value)}
-                                    placeholder="E.g., Excellent, Good..."
-                                    className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                  />
-                                </div>
-                                <button
-                                  onClick={() => handleAddRemark(group._id)}
-                                  className="mt-2 self-start px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                                >
-                                  Save Entry
-                                </button>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Discussion Logs */}
-                          {viewMode === "accepted" && group.discussion && group.discussion.length > 0 && (
-                            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-                              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                                <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider">
+                            <div className="mt-6">
+                              <div className="flex justify-between items-center mb-4">
+                                <h4 className="font-semibold text-lg text-gray-800">
                                   Discussion Logs
                                 </h4>
+                                <button
+                                  onClick={() => setShowModal(true)}
+                                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                >
+                                  <FaEdit className="mr-2" />
+                                  Add Log
+                                </button>
                               </div>
-                              <div className="p-4 space-y-3">
-                                {group.discussion.map((log, i) => (
-                                  <div
-                                    key={i}
-                                    className="bg-white p-4 rounded-lg shadow-sm border border-gray-200"
-                                  >
-                                    <div className="flex justify-between items-start">
-                                      <div>
-                                        <p className="text-gray-700">
-                                          <span className="font-medium">
-                                            Description:
-                                          </span>{" "}
-                                          {log.description}
-                                        </p>
-                                        {log.remark && (
-                                          <p className="text-gray-700 mt-1">
+
+                              {group.discussion && group.discussion.length > 0 ? (
+                                <div className="space-y-3">
+                                  {group.discussion.map((log, index) => (
+                                    <div
+                                      key={index}
+                                      className="bg-white p-4 rounded-lg shadow-sm border border-gray-200"
+                                    >
+                                      <div className="flex justify-between items-start">
+                                        <div>
+                                          <p className="text-gray-700">
                                             <span className="font-medium">
-                                              Remark:
+                                              Description:
                                             </span>{" "}
-                                            <span className="capitalize">
-                                              {log.remark}
-                                            </span>
+                                            {log.description}
                                           </p>
-                                        )}
+                                          {log.absent?.length > 0 && (
+                                            <p className="text-gray-700 mt-1">
+                                              <span className="font-medium">
+                                                Absentees:
+                                              </span>{" "}
+                                              {log.absent
+                                                .map((a) => a.fullName || a)
+                                                .join(", ")}
+                                            </p>
+                                          )}
+                                          {log.remark && (
+                                            <p className="text-gray-700 mt-1">
+                                              <span className="font-medium">
+                                                Remark:
+                                              </span>{" "}
+                                              <span className="capitalize">
+                                                {log.remark}
+                                              </span>
+                                            </p>
+                                          )}
+                                        </div>
+                                        <span className="text-xs text-gray-500">
+                                          {new Intl.DateTimeFormat("en-IN", {
+                                            timeZone: "Asia/Kolkata",
+                                            dateStyle: "medium",
+                                            timeStyle: "short",
+                                          }).format(new Date(log.date))}
+                                        </span>
                                       </div>
-                                      <span className="text-xs text-gray-500">
-                                        {new Intl.DateTimeFormat("en-IN", {
-                                          timeZone: "Asia/Kolkata",
-                                          dateStyle: "medium",
-                                          timeStyle: "short",
-                                        }).format(new Date(log.date))}
-                                      </span>
                                     </div>
-                                  </div>
-                                ))}
-                              </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="bg-gray-50 p-4 rounded-lg text-center text-gray-500">
+                                  No discussion logs yet
+                                </div>
+                              )}
                             </div>
                           )}
 
@@ -573,6 +529,93 @@ const AcceptProject1 = () => {
           </div>
         </div>
       </div>
+      {/* Discussion Log Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">
+                Create Discussion Log
+              </h2>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Absentees
+                  </label>
+                  <div className="space-y-2">
+                    {acceptedRecords
+                      .find((g) => g._id === selectedGroup)
+                      ?.members.map((member) => (
+                        <div key={member._id} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={absentees.includes(member._id)}
+                            onChange={() =>
+                              setAbsentees((prev) =>
+                                prev.includes(member._id)
+                                  ? prev.filter((id) => id !== member._id)
+                                  : [...prev, member._id],
+                              )
+                            }
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                          <label className="ml-2 text-sm text-gray-700">
+                            {member.fullName} ({member.rollNumber})
+                          </label>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Remark
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    value={remark}
+                    onChange={(e) => setRemark(e.target.value)}
+                  >
+                    <option value="">Select remark</option>
+                    <option value="excellent">Excellent</option>
+                    <option value="good">Good</option>
+                    <option value="satisfactory">Satisfactory</option>
+                    <option value="poor">Poor</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddRemark}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Save Log
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

@@ -226,7 +226,7 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   }
 
   const group = await Project1.findById(user.project1).populate("members");
-  if (!group) throw new ApiError(404, "Group not found");
+  if (!group) throw new ApiError(404, "Please create or join a Project 1 group before applying.");
 
   if (!group.leader.equals(userId)) {
     throw new ApiError(409, "Only the leader can apply to faculty");
@@ -245,7 +245,7 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   }
 
   const faculty = await Professor.findById(facultyId);
-  if (!faculty) throw new ApiError(404, "Faculty not found");
+  if (!faculty) throw new ApiError(404, "The selected professor could not be found.");
 
   // Profile completeness check for all members
   for (const member of group.members) {
@@ -549,8 +549,8 @@ const getProject1AcceptedStudents = asyncHandler(async (req, res) => {
 const addProject1Remark = asyncHandler(async (req, res) => {
   const { _id, description, remark, absent } = req.body;
 
-  if (!_id || !description) {
-    throw new ApiError(400, "Project 1 group ID and description are required.");
+  if (!_id || !description || !remark || !absent) {
+    throw new ApiError(400, "All fields are required.");
   }
 
   const group = await Project1.findById(_id);
@@ -563,8 +563,8 @@ const addProject1Remark = asyncHandler(async (req, res) => {
 
   group.discussion.push({
     description,
-    remark: remark || "",
-    absent: absent || [],
+    remark: remark,
+    absent: absent,
     date: new Date(),
   });
 
