@@ -27,14 +27,19 @@ const MinorProject = () => {
   const [discussionLogs, setDiscussionLogs] = useState(null);
   const [showLogs, setShowLogs] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [isLeader, setIsLeader] = useState(false);
 
   const fetchGroup = async () => {
     setLoading(true);
     try {
       const response = await axios.get("/api/v1/minor/get-group");
       setGroup(response.data.data.groupId);
+      if (currentUser && response.data.data.leader) {
+        setIsLeader(response.data.data.leader._id === currentUser._id || response.data.data.leader === currentUser._id);
+      }
     } catch (error) {
       setGroup(null);
+      setIsLeader(false);
     }
     setLoading(false);
   };
@@ -95,8 +100,13 @@ const MinorProject = () => {
   useEffect(() => {
     fetchUser();
     fetchData();
-    fetchGroup();
   }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchGroup();
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     if (currentUser && !currentUser.isMinorAllocated && !allocatedProf && currentUser.batch !== 23) {
@@ -159,6 +169,36 @@ const MinorProject = () => {
         confirmButtonColor: "#ef4444",
       });
     }
+  };
+
+  const handleWithdraw = async () => {
+    Swal.fire({
+      title: "Withdraw All Preferences?",
+      text: "This will cancel all your pending applications.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, Withdraw All",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          setLoading(true);
+          await axios.post("/api/v1/minor/withdraw-preferences");
+          setLoading(false);
+          await fetchData();
+          Swal.fire({
+            icon: "success",
+            title: "Withdrawn",
+            text: "All your preferences have been successfully withdrawn.",
+            confirmButtonColor: "#10b981",
+          });
+        } catch (error) {
+          setLoading(false);
+          handleError(error, "Failed to withdraw preferences");
+        }
+      }
+    });
   };
 
   const handleSearchAndFilter = () => {
@@ -646,45 +686,29 @@ const MinorProject = () => {
                   </div>
                 )}
 
-                {/* Submit Button */}
-                <div className="mt-8">
+                {/* Submit Button & Withdraw */}
+                <div className="mt-8 flex justify-between items-center">
                   <button
                     onClick={handleSubmit}
                     disabled={loading || !selectedProf}
-                    className={`w-full py-3 px-4 rounded-lg font-medium text-white shadow-md transition-all ${
+                    className={`px-8 py-3 rounded-lg font-semibold text-white shadow-md transition-all ${
                       loading || !selectedProf
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
+                        ? "bg-gray-400 cursor-not-allowed opacity-70"
+                        : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 hover:shadow-lg"
                     }`}
                   >
-                    {loading ? (
-                      <span className="flex items-center justify-center">
-                        <svg
-                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        Applying...
-                      </span>
-                    ) : (
-                      "Submit Application"
-                    )}
+                    {loading ? "Processing..." : "Submit Application"}
                   </button>
+
+                  {appliedProfessors.length > 0 && !allocatedProf && isLeader && (
+                    <button
+                      onClick={handleWithdraw}
+                      disabled={loading}
+                      className="px-6 py-3 rounded-lg font-semibold text-orange-600 bg-orange-100 hover:bg-orange-200 border border-orange-200 transition-all ml-4"
+                    >
+                      {loading ? "Processing..." : "Withdraw All Preferences"}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

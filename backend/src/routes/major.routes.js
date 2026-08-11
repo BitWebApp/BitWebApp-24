@@ -20,6 +20,7 @@ import {
   getDiscussionByStudent,
   addMarks,
   setProjectTitle,
+  withdrawPreferences,
 } from "../controllers/major.controller.js";
 import {
   verifyAdmin,
@@ -37,6 +38,7 @@ router.route("/add-member").post(verifyJWT, addMember);
 router.route("/remove-member").post(verifyJWT, removeMember);
 router.route("/apply-faculty").post(verifyJWT, applyToFaculty);
 router.route("/withdraw-faculty").post(verifyJWT, withdrawFromFaculty);
+router.route("/withdraw-preferences").post(verifyJWT, withdrawPreferences);
 router.route("/request-type-change").post(verifyJWT, requestTypeChange);
 router.route("/get-type-change-status").get(verifyJWT, getTypeChangeStatus);
 router

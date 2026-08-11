@@ -29,6 +29,7 @@ const groupSchema = new Schema({
   location: {
     type: String,
     enum: ["inside_bit", "outside_bit"],
+    default: "inside_bit",
     required: function() {
       return this.type === "summer";
     }

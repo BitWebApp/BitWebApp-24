@@ -21,6 +21,7 @@ import {
   getMemberCompanies,
   profApproveSummerTypeChange,
   getSummerPendingTypeChanges,
+  withdrawPreferences,
 } from "../controllers/group.controller.js";
 import {
   verifyAdmin,
@@ -55,5 +56,6 @@ router.route("/get-summer-type-change-status").get(verifyJWT, getSummerTypeChang
 router.route("/get-member-companies").get(verifyJWT, getMemberCompanies);
 router.route("/prof-approve-summer-type-change").post(verifyProfessor, profApproveSummerTypeChange);
 router.route("/summer/pending-type-changes").get(verifyProfessor, getSummerPendingTypeChanges);
+router.route("/withdraw-preferences").post(verifyJWT, withdrawPreferences);
 
 export default router;

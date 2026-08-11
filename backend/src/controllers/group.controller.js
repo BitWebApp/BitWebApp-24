@@ -216,6 +216,44 @@ const removeMember = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, "member removed"));
 });
 
+const withdrawPreferences = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+
+  const user = await User.findById(userId);
+  if (!user || !user.group) {
+    throw new ApiError(404, "No summer training group found");
+  }
+
+  const group = await Group.findById(user.group);
+  if (!group) throw new ApiError(404, "Group not found");
+
+  if (!group.leader.equals(userId)) {
+    throw new ApiError(409, "Only the leader can withdraw preferences");
+  }
+
+  if (group.summerAllocatedProf) {
+    throw new ApiError(409, "Cannot withdraw after allocation");
+  }
+
+  if (group.summerAppliedProfs && group.summerAppliedProfs.length > 0) {
+    const currentProfId = group.summerAppliedProfs[0];
+    const prof = await Professor.findById(currentProfId);
+    if (prof) {
+      prof.appliedGroups.summer_training.pull(group._id);
+      await prof.save();
+    }
+  }
+
+  group.summerAppliedProfs = [];
+  group.deniedProf = [];
+  group.preferenceLastMovedAt = null;
+  await group.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, group, "All preferences withdrawn successfully"));
+});
+
 const applyToFaculty = asyncHandler(async (req, res) => {
   const loggedIn = req?.user?._id;
   const { facultyId } = req.body;
@@ -1040,6 +1078,7 @@ export {
   leaveGroup,
   joinGroupByCode,
   requestSummerTypeChange,
+  withdrawPreferences,
   getSummerTypeChangeStatus,
   getMemberCompanies,
   profApproveSummerTypeChange,

@@ -240,11 +240,57 @@ const removeMember = asyncHandler(async (req, res) => {
       group.leader = group.members[0];
       await group.save();
     } else {
+      if (group.majorAppliedProfs && group.majorAppliedProfs.length > 0) {
+        const currentProfId = group.majorAppliedProfs[0];
+        const prof = await Professor.findById(currentProfId);
+        if (prof) {
+          prof.appliedGroups.major_project.pull(group._id);
+          await prof.save();
+        }
+      }
       await group.deleteOne();
     }
   }
   await user.save();
   return res.status(200).json(new ApiResponse(200, "member removed"));
+});
+
+const withdrawPreferences = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+
+  const user = await User.findById(userId);
+  if (!user || !user.MajorGroup) {
+    throw new ApiError(404, "No major project group found");
+  }
+
+  const group = await Major.findById(user.MajorGroup);
+  if (!group) throw new ApiError(404, "Group not found");
+
+  if (!group.leader.equals(userId)) {
+    throw new ApiError(409, "Only the leader can withdraw preferences");
+  }
+
+  if (group.majorAllocatedProf) {
+    throw new ApiError(409, "Cannot withdraw after allocation");
+  }
+
+  if (group.majorAppliedProfs.length > 0) {
+    const currentProfId = group.majorAppliedProfs[0];
+    const prof = await Professor.findById(currentProfId);
+    if (prof) {
+      prof.appliedGroups.major_project.pull(group._id);
+      await prof.save();
+    }
+  }
+
+  group.majorAppliedProfs = [];
+  group.deniedProf = [];
+  group.preferenceLastMovedAt = null;
+  await group.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, group, "All preferences withdrawn successfully"));
 });
 
 const applyToFaculty = asyncHandler(async (req, res) => {
@@ -1183,4 +1229,5 @@ export {
   requestTypeChange,
   setProjectTitle,
   withdrawFromFaculty,
+  withdrawPreferences,
 };
