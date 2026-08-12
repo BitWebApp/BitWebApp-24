@@ -21,7 +21,16 @@ export default function ForgotPassword() {
       toast.success("OTP sent to your email address.");
       setOtpSent(true);
     } catch (error) {
-      toast.error("Failed to send OTP. Please check your email.");
+      if (error.response?.status === 429) {
+        toast.error(
+          "Too many OTP requests. Please wait 15 minutes before trying again."
+        );
+      } else {
+        toast.error(
+          error.response?.data?.message ||
+            "Failed to send OTP. Please check your email."
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -50,7 +59,10 @@ export default function ForgotPassword() {
         navigate("/log");
       }, 2000);
     } catch (error) {
-      toast.error("Failed to reset password. Please try again.");
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to reset password. Please try again."
+      );
     } finally {
       setLoading(false);
     }

@@ -946,9 +946,10 @@ const otpForgotPassword = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Professor does not exists");
   }
   const otp = `${Math.floor(Math.random() * 9000 + 1000)}`;
+  // Keep a single live OTP per email so every code path agrees on the current one.
+  await Otp.deleteMany({ email });
   await Otp.create({ email, otp });
 
-  const tOtp = await Otp.findOne({ email });
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -1011,7 +1012,7 @@ const otpForgotPassword = asyncHandler(async (req, res) => {
             <div class="content">
               <p>Hello,</p>
               <p>Thank you for choosing BITAcademia. To reset your password, please use the following One-Time Password (OTP):</p>
-              <p class="otp">${tOtp.otp}</p>
+              <p class="otp">${otp}</p>
               <p>If you did not request this OTP, please ignore this email or contact our support team.</p>
               <p>Best regards,</p>
               <p>TEAM BITACADEMIA</p>
@@ -1025,13 +1026,16 @@ const otpForgotPassword = asyncHandler(async (req, res) => {
       `,
   };
 
-  transporter.sendMail(mailOptions, async (error) => {
-    if (error) {
-      console.log("Error sending email to:", email, error);
-    } else {
-      console.log("Email sent to:", email);
-    }
-  });
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Email sent to:", email);
+  } catch (error) {
+    console.log("Error sending email to:", email, error.message);
+    await Otp.deleteMany({ email });
+    return res.status(502).json({
+      message: "Could not send the OTP email. Please try again in a few minutes.",
+    });
+  }
   res.status(200).send("Mail sent!");
 });
 
