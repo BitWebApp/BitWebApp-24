@@ -166,7 +166,7 @@ const validateRecord = (raw) => {
   if (!rollNumber) errors.push("rollNumber is required");
   if (!fullName) errors.push("fullName is required");
   if (!email) {
-    errors.push("could not derive institute email from rollNumber; expected format like BTECH/10322/23");
+    errors.push("could not derive institute email from rollNumber; expected format like BTECH/1XXXX/YY");
   } else if (!EMAIL_REGEX.test(email)) {
     errors.push("derived institute email is not valid — check rollNumber format");
   }

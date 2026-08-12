@@ -785,7 +785,7 @@ const AdminUserImport = () => {
             </h2>
             <form onSubmit={handleSingleSubmit} className="grid gap-4 md:grid-cols-2">
               {[
-                { name: "rollNumber", label: "Roll Number (e.g. BTECH/10322/23)", required: true },
+                { name: "rollNumber", label: "Roll Number (e.g. BTECH/1XXXX/YY)", required: true },
                 { name: "fullName", label: "Full Name", required: true },
                 {
                   name: "batch",

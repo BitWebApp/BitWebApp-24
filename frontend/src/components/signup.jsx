@@ -26,7 +26,7 @@ export default function Signup() {
   };
 
   const validateRollNumber = (rollNumber) => {
-    const rollNumberPattern = /^BTECH\/10\d{3}\/\d{2}$/;
+    const rollNumberPattern = /^BTECH\/1\d{4}\/\d{2}$/;
     return rollNumberPattern.test(rollNumber);
   };
 
@@ -56,7 +56,7 @@ export default function Signup() {
   const handleSignup = async () => {
     if (!validateRollNumber(rollnumber)) {
       setIsRollNumberValid(false);
-      toast.error("Invalid roll number format. It should be BTECH/10XXX/YY");
+      toast.error("Invalid roll number format. It should be BTECH/1XXXX/YY");
       return;
     }
     setSpin(true);
@@ -218,7 +218,7 @@ export default function Signup() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Enter Your Roll Number (e.g., BTECH/10XXX/YY)"
+                  placeholder="Enter Your Roll Number (e.g., BTECH/1XXXX/YY)"
                   className={`w-full text-gray-900 py-3 px-4 mb-4 bg-white border ${
                     isRollNumberValid ? "border-gray-300" : "border-red-500"
                   } rounded-lg focus:ring-black focus:border-black`}
