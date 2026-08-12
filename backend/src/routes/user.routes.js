@@ -46,7 +46,13 @@ router
   .route("/register")
   .post(upload.fields([{ name: "idCard", maxCount: 1 }]), registerUser);
 
-router.route("/login").post(loginUser);
+// Password login is brute-forceable once the app is reachable from the
+// internet, so cap attempts per IP.
+const loginLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+});
+router.route("/login").post(requestIpMiddleware, loginLimiter, loginUser);
 
 const googleLoginLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
