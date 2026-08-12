@@ -3,6 +3,7 @@ import { verifyProfessor } from "../middlewares/auth.middleware.js";
 import {
   registerUser,
   loginUser,
+  googleLogin,
   logoutUser,
   updateUser1,
   updatePlacementOne,
@@ -45,7 +46,21 @@ router
   .route("/register")
   .post(upload.fields([{ name: "idCard", maxCount: 1 }]), registerUser);
 
-router.route("/login").post(loginUser);
+// Password login is brute-forceable once the app is reachable from the
+// internet, so cap attempts per IP.
+const loginLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+});
+router.route("/login").post(requestIpMiddleware, loginLimiter, loginUser);
+
+const googleLoginLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+});
+router
+  .route("/google-login")
+  .post(requestIpMiddleware, googleLoginLimiter, googleLogin);
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/update").patch(
   verifyJWT,
@@ -86,7 +101,13 @@ router.route("/placementTwo").get(verifyJWT, getPlacementTwo);
 router.route("/placementThree").get(verifyJWT, getPlacementThree);
 router.route("/get-all-users").get(verifyAdmin, getAllUsers);
 router.route("/get-backlogs").get(verifyJWT, getAllBacklogSubjects);
-router.route("/get-pass-otp").post(otpForgotPass);
+const otpRequestLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 3,
+});
+router
+  .route("/get-pass-otp")
+  .post(requestIpMiddleware, otpRequestLimiter, otpForgotPass);
 const changePassLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 5,

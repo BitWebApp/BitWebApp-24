@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import NavBar from "./NavBar";
+import GoogleSignInButton from "./GoogleSignInButton";
 import { useEffect } from "react";
 
 export default function Login() {
@@ -70,6 +71,26 @@ export default function Login() {
       // }
       let errorMessage = error.response.data.message;
       toast.error(errorMessage || "Error occurred during login");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleCredential = async (credential) => {
+    setIsLoading(true);
+    try {
+      const response = await axios.post("/api/v1/users/google-login", {
+        credential,
+      });
+      localStorage.setItem("user", JSON.stringify(response.data.data.user));
+      toast.success("Login successful!");
+      setTimeout(() => {
+        navigate("/db");
+      }, 1500);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Google sign-in failed. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -189,6 +210,11 @@ export default function Login() {
                   )}
                 </button>
               </div>
+
+              <GoogleSignInButton
+                onCredential={handleGoogleCredential}
+                disabled={isLoading}
+              />
 
               <div className="w-full border-t pt-2 mt-2">
                 <p className="text-sm text-gray-600 mb-2">Helpful Resources:</p>

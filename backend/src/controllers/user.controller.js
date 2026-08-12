@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import { OAuth2Client } from "google-auth-library";
 import cron from "node-cron";
 import { Otp } from "../models/otp.model.js";
 import { Placement } from "../models/placement.model.js";
@@ -35,10 +36,17 @@ const verifyMail = asyncHandler(async (req, res) => {
     if (existedUser) {
       throw new ApiError(409, "User with email/username already exists");
     }
+    await Otp.deleteMany({ email });
     await Otp.create({ email, otp });
 
     // Send OTP email using utility function
-    await sendOTP(email, otp, "verification");
+    const sent = await sendOTP(email, otp, "verification");
+    if (!sent) {
+      await Otp.deleteMany({ email });
+      return res.status(502).json({
+        message: "Could not send the OTP email. Please try again in a few minutes.",
+      });
+    }
 
     res.status(200).send("Mail sent!");
   } catch (error) {
@@ -50,7 +58,7 @@ const verifyMail = asyncHandler(async (req, res) => {
 const registerUser = asyncHandler(async (req, res) => {
   const { username, password, fullName, rollNumber, email, usrOTP, batch } =
     req.body;
-  const otpEntry = await Otp.findOne({ email });
+  const otpEntry = await Otp.findOne({ email }).sort({ createdAt: -1 });
 
   if (!otpEntry || usrOTP.toString() !== otpEntry.otp.toString()) {
     console.log("Invalid OTP:", usrOTP, otpEntry.otp);
@@ -61,7 +69,7 @@ const registerUser = asyncHandler(async (req, res) => {
     // throw new ApiError(400, "wrong otp, validation failed");
   }
 
-  await Otp.deleteOne({ email });
+  await Otp.deleteMany({ email });
 
   // Validate required string fields
   const stringFields = [username, password, fullName, rollNumber, email];
@@ -219,6 +227,109 @@ const loginUser = asyncHandler(async (req, res) => {
     );
 });
 
+const googleClient = new OAuth2Client();
+
+/**
+ * Google accounts must belong to one of these domains to sign in.
+ * Comma separated, e.g. "bitmesra.ac.in,alumni.bitmesra.ac.in".
+ * An empty value disables the domain check.
+ */
+const allowedGoogleDomains = () =>
+  (process.env.GOOGLE_ALLOWED_DOMAINS ?? "bitmesra.ac.in")
+    .split(",")
+    .map((d) => d.trim().toLowerCase())
+    .filter(Boolean);
+
+/**
+ * Signs a user in from a Google Identity Services ID token.
+ * The account must already exist - registration still goes through /register,
+ * since we need the roll number, batch and ID card that Google can't give us.
+ */
+const googleLogin = asyncHandler(async (req, res) => {
+  const { credential } = req.body;
+  if (!credential) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Missing Google credential" });
+  }
+
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    console.log("GOOGLE_CLIENT_ID is not set - Google sign-in is disabled");
+    return res
+      .status(500)
+      .json({ success: false, message: "Google sign-in is not configured" });
+  }
+
+  // Verifies signature, issuer, audience and expiry. Throws on any mismatch.
+  let payload;
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: clientId,
+    });
+    payload = ticket.getPayload();
+  } catch (error) {
+    console.log("Google token verification failed:", error.message);
+    return res
+      .status(401)
+      .json({ success: false, message: "Google sign-in failed. Please try again." });
+  }
+
+  const email = (payload?.email || "").toLowerCase();
+  if (!email || !payload.email_verified) {
+    return res.status(401).json({
+      success: false,
+      message: "This Google account has no verified email address",
+    });
+  }
+
+  const domains = allowedGoogleDomains();
+  if (domains.length && !domains.some((d) => email.endsWith(`@${d}`))) {
+    return res.status(403).json({
+      success: false,
+      message: `Please sign in with your @${domains[0]} account.`,
+    });
+  }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    console.log("Google sign-in for unknown account:", email);
+    return res.status(404).json({
+      success: false,
+      message: "No BITAcademia account exists for this email. Please sign up first.",
+    });
+  }
+
+  if (!user.isVerified) {
+    return res
+      .status(403)
+      .json({ success: false, message: "You are not verified yet!" });
+  }
+
+  const { accessToken, refreshToken } = await generateAcessAndRefreshToken(
+    user._id
+  );
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
+  const options = {
+    httpOnly: true,
+    secure: false,
+  };
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        { user: loggedInUser, accessToken, refreshToken },
+        "User loggedIn successfully!"
+      )
+    );
+});
+
 export const otpForgotPass = asyncHandler(async (req, res) => {
   try {
     const { email } = req.body;
@@ -231,10 +342,19 @@ export const otpForgotPass = asyncHandler(async (req, res) => {
       throw new ApiError(404, "User does not exists");
     }
     const otp = `${Math.floor(Math.random() * 9000 + 1000)}`;
+    // Only ever keep one live OTP per email, so every code path agrees on
+    // which one is current.
+    await Otp.deleteMany({ email });
     await Otp.create({ email, otp });
 
     // Send OTP email using utility function
-    await sendOTP(email, otp, "forgot-password");
+    const sent = await sendOTP(email, otp, "forgot-password");
+    if (!sent) {
+      await Otp.deleteMany({ email });
+      return res.status(502).json({
+        message: "Could not send the OTP email. Please try again in a few minutes.",
+      });
+    }
 
     res.status(200).send("Mail sent!");
   } catch (error) {
@@ -254,7 +374,8 @@ const changepassword = asyncHandler(async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) throw new ApiError(404, "User not found");
 
-    const otpverify = await Otp.find({ email });
+    // sorted oldest-first so the pop() below always yields the newest OTP
+    const otpverify = await Otp.find({ email }).sort({ createdAt: 1 });
     if (otpverify.length === 0) {
       throw new ApiError(
         400,
@@ -263,10 +384,7 @@ const changepassword = asyncHandler(async (req, res) => {
     }
 
     const hashedOTP = otpverify.pop().otp;
-    console.log(otp);
-    console.log(hashedOTP);
     const validOTP = otp === hashedOTP;
-    console.log(validOTP);
 
     if (!validOTP) {
       throw new ApiError(400, "Invalid OTP. Check your inbox.");
@@ -897,6 +1015,7 @@ export {
   getPlacementThree,
   getPlacementTwo,
   getUserbyRoll,
+  googleLogin,
   loginUser,
   logoutUser,
   registerUser,
