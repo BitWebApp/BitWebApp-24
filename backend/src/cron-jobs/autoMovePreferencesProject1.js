@@ -92,9 +92,7 @@ const moveApplications = async () => {
         `Current applied professors: ${record.appliedProfs.length}`
       );
       const profToMove = record.appliedProfs.shift();
-      console.log(`Moving professor ${profToMove} from applied to denied`);
-      record.deniedProf.push(profToMove);
-      console.log(`Denied professors count: ${record.deniedProf.length}`);
+      console.log(`Timeout: moving past professor ${profToMove} to next preference`);
       const prof = await Professor.findById(profToMove);
       if (prof) {
         prof.appliedGroups.project1 = prof.appliedGroups.project1.filter(

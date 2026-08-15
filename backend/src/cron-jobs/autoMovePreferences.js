@@ -92,9 +92,7 @@ const moveApplications = async () => {
         `Current applied professors: ${group.summerAppliedProfs.length}`
       );
       const profToMove = group.summerAppliedProfs.shift();
-      console.log(`Moving professor ${profToMove} from applied to denied`);
-      group.deniedProf.push(profToMove);
-      console.log(`Denied professors count: ${group.deniedProf.length}`);
+      console.log(`Timeout: moving past professor ${profToMove} to next preference`);
       const prof = await Professor.findById(profToMove);
       prof.appliedGroups.summer_training =
         prof.appliedGroups.summer_training.filter(

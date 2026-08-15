@@ -99,9 +99,7 @@ const moveMajorApplications = async () => {
         `Current applied professors: ${group.majorAppliedProfs.length}`
       );
       const profToMove = group.majorAppliedProfs.shift();
-      console.log(`Moving professor ${profToMove} from applied to denied`);
-      group.deniedProf.push(profToMove);
-      console.log(`Denied professors count: ${group.deniedProf.length}`);
+      console.log(`Timeout: moving past professor ${profToMove} to next preference`);
       const prof = await Professor.findById(profToMove);
       prof.appliedGroups.major_project =
         prof.appliedGroups.major_project.filter(
