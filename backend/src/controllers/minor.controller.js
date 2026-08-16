@@ -5,13 +5,17 @@ import { User } from "../models/user.model.js";
 import { Minor } from "../models/minor.model.js";
 import { customAlphabet, nanoid } from "nanoid";
 import { Professor } from "../models/professor.model.js";
+import {
+  isMinorBatchAllowed,
+  MINOR_BATCHES_LABEL,
+} from "../utils/projectEligibility.js";
 
 const createGroup = asyncHandler(async (req, res) => {
   const leader = req?.user?._id;
-  if (req.user.batch !== 23) {
+  if (!isMinorBatchAllowed(req.user.batch)) {
     return res.status(403).json({
       success: false,
-      message: `Registration for Minor Project is currently open for batch K23 only. Process not started for batch K${req.user.batch}.`,
+      message: `Registration for Minor Project is currently open for batch ${MINOR_BATCHES_LABEL} only. Process not started for batch K${req.user.batch}.`,
     });
   }
   const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
@@ -75,10 +79,10 @@ const addMember = asyncHandler(async (req, res) => {
   const loggedIn = req?.user?._id;
   const { rollNumber, groupId } = req.body;
 
-  if (req.user.batch !== 23) {
+  if (!isMinorBatchAllowed(req.user.batch)) {
     return res.status(403).json({
       success: false,
-      message: `Registration for Minor Project is currently open for batch K23 only. Process not started for batch K${req.user.batch}.`,
+      message: `Registration for Minor Project is currently open for batch ${MINOR_BATCHES_LABEL} only. Process not started for batch K${req.user.batch}.`,
     });
   }
 
@@ -266,10 +270,10 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   const { facultyId } = req.body;
   const userId = req?.user?._id;
 
-  if (req.user.batch !== 23) {
+  if (!isMinorBatchAllowed(req.user.batch)) {
     return res.status(403).json({
       success: false,
-      message: `Registration for Minor Project is currently open for batch K23 only. Process not started for batch K${req.user.batch}.`,
+      message: `Registration for Minor Project is currently open for batch ${MINOR_BATCHES_LABEL} only. Process not started for batch K${req.user.batch}.`,
     });
   }
 
