@@ -1,4 +1,5 @@
 import axios from "axios";
+import ExcelJS from "exceljs";
 import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -25,7 +26,7 @@ export default function Project1Table() {
         params: { batch },
       });
       const records = response.data.data.response || [];
-      
+
       // Flatten groups into individual student records for the table
       const flattenedRecords = [];
       for (const group of records) {
@@ -33,20 +34,24 @@ export default function Project1Table() {
           for (const member of group.members) {
             flattenedRecords.push({
               ...group,
-              student: member
+              student: member,
             });
           }
         }
       }
-      
+
       setData(flattenedRecords);
       setFilteredData(flattenedRecords);
 
       const sections = [
-        ...new Set(flattenedRecords.map((r) => r.student?.section).filter(Boolean)),
+        ...new Set(
+          flattenedRecords.map((r) => r.student?.section).filter(Boolean),
+        ),
       ];
       const branches = [
-        ...new Set(flattenedRecords.map((r) => r.student?.branch).filter(Boolean)),
+        ...new Set(
+          flattenedRecords.map((r) => r.student?.branch).filter(Boolean),
+        ),
       ];
       setSectionOptions(sections);
       setBranchOptions(branches);
@@ -56,7 +61,7 @@ export default function Project1Table() {
         toast.error(
           error.response.data?.message ||
             "You don't have access to view data from this batch",
-          { toastId: "p1-batch-access-error" }
+          { toastId: "p1-batch-access-error" },
         );
         setData([]);
         setFilteredData([]);
@@ -72,162 +77,302 @@ export default function Project1Table() {
     const { name, value } = e.target;
     const newFilters = { ...filters, [name]: value };
     setFilters(newFilters);
-    applyFilters(newFilters);
+    filterData(newFilters);
   };
 
-  const applyFilters = (f) => {
+  const filterData = (f) => {
     let result = data;
     if (f.section) {
       result = result.filter((r) =>
-        r.student?.section?.toLowerCase().includes(f.section.toLowerCase())
+        r.student?.section?.toLowerCase().includes(f.section.toLowerCase()),
       );
     }
     if (f.branch) {
       result = result.filter((r) =>
-        r.student?.branch?.toLowerCase().includes(f.branch.toLowerCase())
+        r.student?.branch?.toLowerCase().includes(f.branch.toLowerCase()),
       );
     }
     if (f.mentor) {
       result = result.filter((r) =>
         r.allocatedProf?.fullName
           ?.toLowerCase()
-          .includes(f.mentor.toLowerCase())
+          .includes(f.mentor.toLowerCase()),
       );
     }
     setFilteredData(result);
   };
 
+  const exportToExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Project1");
+
+    // Initialize variables to store max lengths for each column
+    let maxIndexLength = "#".length;
+    let maxRollNumberLength = "Roll Number".length;
+    let maxNameLength = "Name".length;
+    let maxEmailLength = "Email".length;
+    let maxMobileLength = "Mobile Number".length;
+    let maxGroupIdLength = "Group ID".length;
+    let maxMentorLength = "Mentor".length;
+    let maxProjectLength = "Project Title".length;
+    let maxMarksLength = "Project 1 Marks".length;
+
+    // Iterate through filteredData to find maximum lengths
+    filteredData.forEach((record, index) => {
+      const mentor = record.allocatedProf?.fullName || "Mentor Not Alloted";
+
+      maxIndexLength = Math.max(maxIndexLength, (index + 1).toString().length);
+      maxRollNumberLength = Math.max(
+        maxRollNumberLength,
+        (record?.student?.rollNumber || "").length,
+      );
+      maxNameLength = Math.max(
+        maxNameLength,
+        (record?.student?.fullName || "").toUpperCase().length,
+      );
+      maxEmailLength = Math.max(
+        maxEmailLength,
+        (record?.student?.email || "").length,
+      );
+      maxMobileLength = Math.max(
+        maxMobileLength,
+        (record?.student?.mobileNumber || "").length,
+      );
+      maxGroupIdLength = Math.max(
+        maxGroupIdLength,
+        (record?.groupId || "").length,
+      );
+      maxProjectLength = Math.max(
+        maxProjectLength,
+        (record?.projectTitle || "").length,
+      );
+      maxMentorLength = Math.max(maxMentorLength, mentor.length);
+    });
+
+    // Define columns with dynamic widths
+    worksheet.columns = [
+      { header: "#", key: "index", width: maxIndexLength + 3 },
+      {
+        header: "Roll Number",
+        key: "rollNumber",
+        width: maxRollNumberLength + 3,
+      },
+      { header: "Name", key: "name", width: maxNameLength + 3 },
+      { header: "Email", key: "email", width: maxEmailLength + 3 },
+      {
+        header: "Mobile Number",
+        key: "mobileNumber",
+        width: maxMobileLength + 3,
+      },
+      { header: "Group ID", key: "groupId", width: maxGroupIdLength + 3 },
+      { header: "Mentor", key: "mentor", width: maxMentorLength + 3 },
+      {
+        header: "Project Title",
+        key: "projectTitle",
+        width: maxProjectLength + 3,
+      },
+      {
+        header: "Project 1 Marks",
+        key: "marks",
+        width: maxMarksLength + 3,
+      },
+    ];
+
+    // Style the header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    headerRow.alignment = { vertical: "middle", horizontal: "center" };
+    headerRow.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF000000" },
+    };
+
+    // Add data rows matching the frontend table
+    filteredData.forEach((record, index) => {
+      const mentor = record.allocatedProf?.fullName || "Mentor Not Alloted";
+
+      const row = worksheet.addRow({
+        index: index + 1,
+        rollNumber: record?.student?.rollNumber,
+        name: record?.student?.fullName?.toUpperCase(),
+        email: record?.student?.email,
+        mobileNumber: record?.student?.mobileNumber || "N/A",
+        groupId: record?.groupId?.toUpperCase() || "N/A",
+        mentor,
+        projectTitle: record?.projectTitle || "N/A",
+        marks: record?.student?.marks?.project1 || "N/A",
+      });
+
+      // Add alternating row colors for better readability
+      const fillColor = index % 2 === 0 ? "FFFAFAFA" : "FFFFFFFF";
+      row.eachCell((cell) => {
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: fillColor },
+        };
+      });
+    });
+
+    // Add borders to all cells
+    worksheet.eachRow((row) => {
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+        cell.alignment = { vertical: "middle", horizontal: "center" };
+      });
+    });
+
+    // Save the workbook
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Project1_Report.xlsx";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   return (
-    <div className="w-full min-h-screen p-4 md:p-8">
+    <div className="overflow-x-auto">
       <ToastContainer />
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Project 1 Records</h1>
+      <h1 className="text-center text-3xl font-bold mb-8">
+        PROJECT 1 RECORDS
+      </h1>
 
-        {/* Batch selector */}
-        <div className="mb-4 flex gap-4 items-center flex-wrap">
-          <label className="font-medium">Batch (K):</label>
-          <input
-            type="number"
-            value={batch}
-            onChange={(e) => setBatch(Number(e.target.value))}
-            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+      <div className="mb-4">
+        <select
+          value={batch}
+          onChange={(e) => setBatch(Number(e.target.value))}
+          className="mr-2 p-2 border border-gray-300 rounded"
+        >
+          <option value="22">Batch 22</option>
+          <option value="23">Batch 23</option>
+          <option value="24">Batch 24</option>
+          <option value="25">Batch 25</option>
+          <option value="26">Batch 26</option>
+        </select>
 
-        {/* Filters */}
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <select
-            name="section"
-            value={filters.section}
-            onChange={handleFilterChange}
-            className="px-3 py-2 border border-gray-300 rounded-lg"
-          >
-            <option value="">All Sections</option>
-            {sectionOptions.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          <select
-            name="branch"
-            value={filters.branch}
-            onChange={handleFilterChange}
-            className="px-3 py-2 border border-gray-300 rounded-lg"
-          >
-            <option value="">All Branches</option>
-            {branchOptions.map((b) => (
-              <option key={b} value={b}>
-                {b}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            name="mentor"
-            value={filters.mentor}
-            onChange={handleFilterChange}
-            placeholder="Filter by mentor name..."
-            className="px-3 py-2 border border-gray-300 rounded-lg"
-          />
-        </div>
-
-        {/* Table */}
-        <div className="overflow-x-auto border border-gray-200 rounded-lg">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  #
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Name
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Roll Number
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Branch
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Section
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Mentor
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Project Title
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Marks
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredData.length === 0 ? (
-                <tr>
-                  <td colSpan="8" className="px-4 py-8 text-center text-gray-500">
-                    No Project 1 records found for this batch.
-                  </td>
-                </tr>
-              ) : (
-                filteredData.map((rec, idx) => (
-                  <tr key={`${rec._id}-${rec.student?._id}`} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {idx + 1}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {rec.student?.fullName || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {rec.student?.rollNumber || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {rec.student?.branch || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {rec.student?.section || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {rec.allocatedProf?.fullName || "Not assigned"}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {rec.projectTitle || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {rec.student?.marks?.project1 ?? 0}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="mt-4 text-sm text-gray-500">
-          Total records: {filteredData.length}
-        </div>
+        <input
+          type="text"
+          name="mentor"
+          placeholder="Filter by Mentor"
+          value={filters.mentor}
+          onChange={handleFilterChange}
+          className="mr-2 p-2 border border-gray-300 rounded"
+        />
+        <select
+          name="section"
+          value={filters.section}
+          onChange={handleFilterChange}
+          className="mr-2 p-2 border border-gray-300 rounded"
+        >
+          <option value="">Filter by Section</option>
+          {sectionOptions.map((section, index) => (
+            <option key={index} value={section}>
+              {section}
+            </option>
+          ))}
+        </select>
+        <select
+          name="branch"
+          value={filters.branch}
+          onChange={handleFilterChange}
+          className="mr-2 p-2 border border-gray-300 rounded"
+        >
+          <option value="">Filter by Branch</option>
+          {branchOptions.map((branch, index) => (
+            <option key={index} value={branch}>
+              {branch}
+            </option>
+          ))}
+        </select>
       </div>
+
+      <button
+        onClick={exportToExcel}
+        className="mb-4 p-2 bg-blue-500 text-white rounded"
+      >
+        Export to Excel
+      </button>
+
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-black">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              #
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Roll Number
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Name
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Email
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Mobile Number
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Group ID
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Mentor
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Project Title
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Project 1 Marks
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {filteredData.map((record, index) => (
+            <tr key={`${record._id}-${record.student?._id}`} className="hover:bg-gray-50">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                {index + 1}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.student?.rollNumber}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.student?.fullName?.toUpperCase()}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.student?.email}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.student?.mobileNumber || "N/A"}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.groupId?.toUpperCase() || "N/A"}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.allocatedProf
+                  ? record?.allocatedProf?.fullName
+                  : "Mentor Not Alloted"}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.projectTitle || "N/A"}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.student?.marks?.project1 || "N/A"}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
