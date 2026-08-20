@@ -11,6 +11,7 @@ export default function MinorProjectTable() {
     groupId: "",
     section: "",
     branch: "",
+    allotment: "",
   });
   const [sectionOptions, setSectionOptions] = useState([]);
   const [branchOptions, setBranchOptions] = useState([]);
@@ -87,6 +88,11 @@ export default function MinorProjectTable() {
           .toLowerCase()
           .includes(filters.branch.toLowerCase()),
       );
+    }
+    if (filters.allotment === "alloted") {
+      data = data.filter((record) => record.mentor);
+    } else if (filters.allotment === "not_alloted") {
+      data = data.filter((record) => !record.mentor);
     }
     setFilteredData(data);
   };
@@ -297,6 +303,16 @@ export default function MinorProjectTable() {
               {branch}
             </option>
           ))}
+        </select>
+        <select
+          name="allotment"
+          value={filters.allotment}
+          onChange={handleFilterChange}
+          className="mr-2 p-2 border border-gray-300 rounded"
+        >
+          <option value="">All Allotment Status</option>
+          <option value="alloted">Alloted</option>
+          <option value="not_alloted">Not Alloted</option>
         </select>
       </div>
 

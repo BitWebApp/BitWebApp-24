@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
+import { getStudentYear } from "../utils/studentYear";
 
 const handleError = (error, defaultMessage) => {
   let message = error.response?.data?.message || defaultMessage;
@@ -58,6 +59,17 @@ const Project1GroupManagement = () => {
     fetchGroup();
     fetchRequests();
   }, []);
+
+  useEffect(() => {
+    if (currentUser && !currentUser.project1) {
+      const year = getStudentYear(currentUser.batch);
+      if (year !== 3) {
+        toast.error(`Registration for Project 1 is open for 3rd year students only. Process not started for batch K${currentUser.batch}.`, {
+          id: "project1-group-batch-error-toast",
+        });
+      }
+    }
+  }, [currentUser]);
 
   const fetchGroup = async () => {
     setLoading(true);
@@ -160,6 +172,41 @@ const Project1GroupManagement = () => {
         </div>
       </div>
     );
+  }
+
+  // Show "Process Not Started" doodle if wrong batch and no existing project1
+  if (currentUser && !currentUser.project1) {
+    const year = getStudentYear(currentUser.batch);
+    if (year !== 3) {
+      return (
+        <>
+          <Toaster position="top-right" />
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8 flex items-center justify-center">
+            <div className="max-w-md w-full bg-white/85 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-8 text-center transition-all hover:shadow-2xl">
+              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6 text-red-600 animate-pulse">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h1 className="text-2xl font-bold mb-4 text-gray-900">
+                Process Not Started
+              </h1>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Registration for Project 1 is currently open for <strong className="text-blue-600 font-semibold">3rd year</strong> students only.
+              </p>
+              <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-5 mb-2 inline-block w-full border border-gray-200/60 shadow-inner">
+                <p className="text-sm text-gray-700">
+                  Your Batch: <span className="font-bold text-gray-900 bg-gray-200 px-2 py-0.5 rounded">K{currentUser.batch}</span>
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  Process has not been started for your batch yet.
+                </p>
+              </div>
+            </div>
+          </div>
+        </>
+      );
+    }
   }
 
   const isLeader = group && currentUser && group.leader?._id === currentUser._id;

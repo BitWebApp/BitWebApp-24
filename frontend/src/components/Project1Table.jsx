@@ -11,6 +11,7 @@ export default function Project1Table() {
     section: "",
     branch: "",
     mentor: "",
+    allotment: "",
   });
   const [sectionOptions, setSectionOptions] = useState([]);
   const [branchOptions, setBranchOptions] = useState([]);
@@ -98,6 +99,11 @@ export default function Project1Table() {
           ?.toLowerCase()
           .includes(f.mentor.toLowerCase()),
       );
+    }
+    if (f.allotment === "alloted") {
+      result = result.filter((r) => r.allocatedProf);
+    } else if (f.allotment === "not_alloted") {
+      result = result.filter((r) => !r.allocatedProf);
     }
     setFilteredData(result);
   };
@@ -295,6 +301,16 @@ export default function Project1Table() {
               {branch}
             </option>
           ))}
+        </select>
+        <select
+          name="allotment"
+          value={filters.allotment}
+          onChange={handleFilterChange}
+          className="mr-2 p-2 border border-gray-300 rounded"
+        >
+          <option value="">All Allotment Status</option>
+          <option value="alloted">Alloted</option>
+          <option value="not_alloted">Not Alloted</option>
         </select>
       </div>
 
