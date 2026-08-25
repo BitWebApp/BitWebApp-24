@@ -150,11 +150,22 @@ const acceptReq = asyncHandler(async (req, res) => {
       message: "You are already in a minor group",
     });
   }
+  if (group.members.length >= 3) {
+    return res.status(409).json({
+      success: false,
+      message: "Group already has the maximum of 3 members",
+    });
+  }
+
   group.members.push(user?._id);
+  
+  // Save group first so validation catches any errors before user is modified
+  await group.save();
+
   user.MinorGroup = group._id;
   user.MinorGroupReq = [];
   await user.save();
-  await group.save();
+
   return res.status(200).json(new ApiResponse(200, "Joined successfully"));
 });
 

@@ -179,10 +179,14 @@ const acceptReq = asyncHandler(async (req, res) => {
     });
   }
   group.members.push(user?._id);
+  
+  // Save group first to trigger validation before updating user
+  await group.save();
+
   user.MajorGroup = group._id;
   user.MajorGroupReq = [];
   await user.save();
-  await group.save();
+
   return res.status(200).json(new ApiResponse(200, "Joined successfully"));
 });
 

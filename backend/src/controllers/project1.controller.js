@@ -97,10 +97,11 @@ const acceptReq = asyncHandler(async (req, res) => {
   }
 
   group.members.push(userId);
+  await group.save();
+  
   user.project1 = group._id;
   user.Project1GroupReq = [];
   await user.save();
-  await group.save();
   return res.status(200).json(new ApiResponse(200, "Joined successfully"));
 });
 
