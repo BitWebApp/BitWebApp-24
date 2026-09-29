@@ -5,6 +5,7 @@ BITAcademia is the comprehensive academic platform designed and developed for BI
 
 
 ## Tools & Technologies Used
+- **Next.js**: Builds and serves the frontend and hosts the API in a single app.
 - **React**: For building the user interface.
 - **Express.js**: For handling the server-side logic.
 - **MongoDB**: For database management.
@@ -21,6 +22,46 @@ BITAcademia is the comprehensive academic platform designed and developed for BI
 - Developed RESTful APIs for creating, updating, deleting, and editing records.
 - Implemented a cookie-based authentication system using JWT and bcrypt and facilitated data export using excel.js.
 
+
+## Getting Started
+
+The frontend and backend live in one Next.js app, so there is a single `package.json`,
+a single `.env` and a single server to deploy.
+
+```
+pages/        Next.js pages (the React app is served for every non-API route)
+src/          React frontend (components, react-router routes)
+server/       Express API: routes, controllers, models, cron jobs, Socket.IO handlers
+server.js     Entry point: Next.js + Express API (/api) + Socket.IO + cron on one port
+public/       Static assets; runtime uploads go to public/uploads
+scripts/      One-off maintenance and seed scripts
+```
+
+### Local development
+
+Requires Node.js 20.9+ and MongoDB.
+
+```bash
+cp .env.example .env      # fill in MONGODB_URI, JWT secrets, mail credentials, ...
+npm install
+npm run dev               # http://localhost:3000 (frontend + /api/v1 + Socket.IO)
+```
+
+### Production
+
+```bash
+npm run build
+npm start                 # serves everything on $PORT (default 3000)
+```
+
+Deploy it anywhere that runs a long-lived Node.js process (Render, Railway, Fly.io, a VPS,
+or `docker compose up --build`, see [docs/DOCKER_SETUP.md](docs/DOCKER_SETUP.md)).
+Use `npm run build` as the build command and `npm start` as the start command.
+Serverless-only hosts are not suitable because the app relies on Socket.IO, node-cron and
+local disk for uploads.
+
+`NEXT_PUBLIC_*` variables are inlined into the frontend at build time, so set them before
+`npm run build`.
 
 ## Features
 

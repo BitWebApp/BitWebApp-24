@@ -1,9 +1,0 @@
-node_modules
-npm-debug.log
-.git
-.gitignore
-.env
-*.log
-.DS_Store
-coverage
-.nyc_output

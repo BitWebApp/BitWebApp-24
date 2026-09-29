@@ -9,6 +9,13 @@ node_modules/
 # Build outputs
 dist/
 build/
+.next/
+out/
+next-env.d.ts
+
+# Runtime uploads written by the API
+public/temp/
+public/uploads/
 
 # IDE
 .idea/

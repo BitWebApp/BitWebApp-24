@@ -1,0 +1,11 @@
+node_modules
+.next
+.git
+.env
+.env.*
+!.env.example
+public/temp
+public/uploads
+data_analysis
+npm-debug.log
+.DS_Store
