@@ -10,7 +10,7 @@ const StudentAwardTable = () => {
     try {
       const user = localStorage.getItem('user');
       const userId = JSON.parse(user)._id;
-      console.log(userId);
+      // console.log(userId);
       const response = await axios.get(`/api/v1/awards/${userId}`);
       setAwardData(response.data.data);
     } catch (error) {

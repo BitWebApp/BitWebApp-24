@@ -17,6 +17,7 @@ import {
   HiUserGroup,
   HiBeaker
 } from "react-icons/hi";
+import { getStudentYear } from "../utils/studentYear";
 import { FaCalendar } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
@@ -44,18 +45,18 @@ export default function Sidebar() {
     },
   };
   const [isOpen, setIsOpen] = useState(true);
-  
+
   const additionalLinks = [
     {
       text: "Dashboard",
       icon: <HiHome />,
       to: "/db",
     },
-    // {
-    //   text: "Alumni Profile",
-    //   icon: <HiUser />,
-    //   to: "/db/alumni",
-    // },
+    {
+      text: "Alumni",
+      icon: <HiUser />,
+      to: "/db/alumni",
+    },
     {
       text: "Academic Records",
       icon: <HiAcademicCap />,
@@ -121,16 +122,16 @@ export default function Sidebar() {
     //   icon: <FaCalendar />,
     //   to: "/db/booking-calendar",
     // },
-    // {
-    //   text: "Apply to Profs",
-    //   icon: <HiSun />,
-    //   to: "/db/apply-summer",
-    // },
-    // {
-    //   text: "Manage Group",
-    //   icon: <HiUserGroup />,
-    //   to: "/db/manage-group",
-    // },
+    {
+      text: "Apply to Summer",
+      icon: <HiSun />,
+      to: "/db/apply-summer",
+    },
+    {
+      text: "Manage Summer Intern Group",
+      icon: <HiUserGroup />,
+      to: "/db/manage-group",
+    },
     {
       text: "Apply to Minor",
       icon: <HiSun />,
@@ -157,22 +158,51 @@ export default function Sidebar() {
     //   to: "/db/student-projects-dashboard",
     // },
     {
+      text: "Project 1 Group",
+      icon: <HiUserGroup />,
+      to: "/db/project1-group",
+      minYear: 3,
+    },
+    {
+      text: "Apply to Project 1",
+      icon: <HiPresentationChartLine />,
+      to: "/db/apply-project1",
+      minYear: 3,
+    },
+    {
       text: "Report Issues",
       icon: <HiBeaker />,
       to: "/db/report-bug",
     },
+    {
+      text: "Assign Company",
+      icon: <HiBriefcase />,
+      to: "/db/assign-company",
+    },
   ];
-  const links = additionalLinks;
+
+  // Filter links based on student year (from batch)
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const studentYear = getStudentYear(user?.batch);
+  const links = additionalLinks.filter((link) => {
+    if (link.minYear) {
+      return studentYear >= link.minYear;
+    }
+    if (link.year) {
+      return link.year === studentYear;
+    }
+    return true;
+  });
   const navigate = useNavigate();
-  
+
   const handleLogout = async () => {
     try {
       const response = await axios.post("/api/v1/users/logout");
-      console.log(response);
+      // console.log(response);
       localStorage.removeItem("user");
       navigate("/");
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     } finally {
       navigate("/");
     }
@@ -194,7 +224,7 @@ export default function Sidebar() {
           />
         </Link>
 
-        <div className="whitespace-pre flex-1 py-[1rem] text-[0.9rem] flex flex-col gap-0.5">
+        <div className="flex-1 py-[1rem] text-[0.9rem] flex flex-col gap-0.5">
           {links.map((link, index) => (
             <Link
               to={link.to}
@@ -204,8 +234,10 @@ export default function Sidebar() {
                 linkclasses
               )}
             >
-              <span className="text-xl">{link.icon}</span>
-              {link.text}
+              <span className="text-xl shrink-0">{link.icon}</span>
+              <span className="flex-1 min-w-0 break-words leading-tight">
+                {link.text}
+              </span>
             </Link>
           ))}
           <div

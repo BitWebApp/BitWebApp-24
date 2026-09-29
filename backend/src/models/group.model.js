@@ -10,6 +10,10 @@ const groupSchema = new Schema({
     type: String,
     enum: ["summer", "minor"],
   },
+  projectTitle: {
+  type: String,
+  default: "",
+},
   typeOfSummer: {
     type: String,
     enum: ["industrial", "research"],
@@ -21,6 +25,14 @@ const groupSchema = new Schema({
     required: function () {
       return this.type === "industrial";
     },
+  },
+  location: {
+    type: String,
+    enum: ["inside_bit", "outside_bit"],
+    default: "inside_bit",
+    required: function() {
+      return this.type === "summer";
+    }
   },
 
   leader: {
@@ -59,10 +71,12 @@ const groupSchema = new Schema({
         type: Date,
         default: new Date(),
       },
-      absent: [{
-        type: Schema.Types.ObjectId,
-        ref: "User",
-      }],
+      absent: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+        },
+      ],
       description: {
         type: String,
       },
@@ -78,6 +92,41 @@ const groupSchema = new Schema({
   chats: {
     type: String,
     ref: "Chat",
-  }
+  },
+  typeChangeRequests: [
+    {
+      initiatedBy: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+      requestedType: {
+        type: String,
+        enum: ["industrial", "research"],
+        required: true,
+      },
+      location: {
+        type: String,
+        enum: ["inside_bit", "outside_bit"],
+      },
+      org: {
+        type: Schema.Types.ObjectId,
+        ref: "Company",
+      },
+      newLeader: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+      status: {
+        type: String,
+        enum: ["pending", "approved", "rejected"],
+        default: "pending",
+      },
+      initiatedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
 });
 export const Group = mongoose.model("Group", groupSchema);

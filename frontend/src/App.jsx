@@ -1,97 +1,106 @@
-import { useEffect, useState, React } from "react";
-import PropTypes from "prop-types";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useNavigate,
-} from "react-router-dom";
 import axios from "axios";
-import ScrollToTop from "./components/ScrollToTop";
-import Layout from "./components/Layout";
+import PropTypes from "prop-types";
+import { useEffect, useState } from "react";
+import {
+    Route,
+    BrowserRouter as Router,
+    Routes,
+    useNavigate,
+} from "react-router-dom";
+import { HashLoader, SyncLoader } from "react-spinners";
+import Academicanalysis from "./components/Academicanalysis";
+import Academicform from "./components/academicform";
+import AcademicTable from "./components/AcademicTable";
+import AcceptMajorProject from "./components/AcceptMajorProject";
+import AcceptMinorProject from "./components/AcceptMinorProject";
+import AcceptStudents from "./components/AcceptStudents";
+import AddBacklog from "./components/AddBacklog";
+import AddProfessor from "./components/AddProfessor";
+import AddWorkExperience from "./components/AddWorkExperience";
+import AdminAcademicRecords from "./components/AdminAcademicRecords";
+import AdminAddCompanies from "./components/AdminAddCompanies";
+import AdminApplicationDetails from "./components/AdminApplicationDetails";
+import AdminApplications from "./components/AdminApplications";
+import AdminBugTrackerDetails from "./components/AdminBugTrackerDetails";
+import AdminBugTrackerSummary from "./components/AdminBugTrackerSummary";
+import AdminDashboard from "./components/AdminDashboard";
+import ProfessorTable from "./components/AdminProfessorsTable";
+import AdminRoomRequests from "./components/AdminRoomRequests";
+import AdminUserImport from "./components/AdminUserImport";
+import Alumni from "./components/Alumni";
+import Awardform from "./components/award-form";
+import AwardTable from "./components/AwardTable";
+import BacklogTable from "./components/Backlogtable";
+import BookedRooms from "./components/BookedRooms";
+import ClassroomBookingCalendar from "./components/ClassroomBookingCalendar";
+import ClassroomForm from "./components/ClassroomForm";
+import UserCompanyAssignmentForm from "./components/UserCompanyAssignmentForm";
 import Dashboard from "./components/Dashboard";
-import Sidebar from "./components/Sidebar";
-import SidebarAdmin from "./components/SideBarAdmin";
-import SidebarFaculty from "./components/SideBarFaculty";
+import ExamForm from "./components/ExamForm";
+import ExamTable from "./components/examtable";
+import FacultyAutoLogin from "./components/FacultyAutoLogin";
+import FacultyForgotPassword from "./components/FacultyForgotPassword";
+import Features from "./components/Features";
+import ForgotPassword from "./components/forgot-password";
 import Header from "./components/Header";
 import HeaderAdmin from "./components/HeaderAdmin";
 import HeaderFaculty from "./components/HeaderFaculty";
+import HigherEduTable from "./components/higher-eduTable";
+import HigherEducation from "./components/HigherEducation";
+import IncreaseLimit from "./components/IncreaseLimit";
+import InternshipForm from "./components/InternshipForm";
+import Internshiptable from "./components/internshiptable";
+import InterviewForm from "./components/Interview-Form";
+import InterviewExperiences from "./components/InterviewExperiences";
+import LandingPage from "./components/LandingPage";
+import Layout from "./components/Layout";
 import Login from "./components/Login";
 import Loginadmin from "./components/Loginadmin";
 import LoginFaculty from "./components/LoginFaculty";
-import Signup from "./components/signup";
-import Signupadmin from "./components/Signupadmin";
-import LandingPage from "./components/LandingPage";
-import ForgotPassword from "./components/forgot-password";
-import Features from "./components/Features";
-import InterviewExperiences from "./components/InterviewExperiences";
-import VerifyUsers from "./components/VerifyUsers";
-import Userform from "./components/userform";
-import Alumni from "./components/Alumni";
-import AddWorkExperience from "./components/AddWorkExperience";
-import ShowWorkExperience from "./components/ShowWorkExperience";
-import ShowAllAlumni from "./components/ShowAllAlumni";
-import AddProfessor from "./components/AddProfessor";
-import Academicform from "./components/academicform";
-import AdminAcademicRecords from "./components/AdminAcademicRecords";
-import Awardform from "./components/award-form";
-import Placement from "./components/Placement";
-import PlacementOne from "./components/PlacementOne";
-import PlacementTwo from "./components/PlacementTwo";
-import PlacementThree from "./components/PlacementThree";
-import ClassroomForm from "./components/ClassroomForm";
-import RoomStatus from "./components/RoomStatus";
-import BookedRooms from "./components/BookedRooms";
-import AdminRoomRequests from "./components/AdminRoomRequests";
-import Research from "./components/Research";
-import HigherEducation from "./components/HigherEducation";
-import ExamForm from "./components/ExamForm";
-import ProjectForm from "./components/ProjectForm";
-import InternshipForm from "./components/InternshipForm";
-import InterviewForm from "./components/Interview-Form";
-import StudentTable from "./components/StudentTable";
-import AcademicTable from "./components/AcademicTable";
-import AwardTable from "./components/AwardTable";
-import PlacementTable from "./components/Placement-Table";
-import ExamTable from "./components/examtable";
-import HigherEduTable from "./components/higher-eduTable";
-import ProjectTable from "./components/project-table";
-import Internshiptable from "./components/internshiptable";
-import StudentAwardTable from "./components/StudentAwardTable";
-import Review from "./components/Review";
-import AddBacklog from "./components/AddBacklog";
-import BacklogTable from "./components/Backlogtable";
+import GroupManagement from "./components/GroupManagement";
+import MajorGroupManagement from "./components/MajorGroupManagement";
+import MajorProject from "./components/MajorProject";
+import MajorProjectTable from "./components/MajorProjectTable";
+import ReassignMajorMentor from "./components/ReassignMajorMentor";
+import MasterAdminDashboard from "./components/MasterAdminDashboard";
+import MinorGroupManagement from "./components/MinorGroupManagement";
+import MinorProject from "./components/MinorProject";
+import MinorProjectTable from "./components/MinorProjectTable";
+import PEAdminTable from "./components/PE-admin-table";
 import PECourseForm from "./components/PECourseForm";
 import PeCoursesTable from "./components/PEtable";
-import PEAdminTable from "./components/PE-admin-table";
-import AdminAddCompanies from "./components/AdminAddCompanies";
-import CompanyAssignmentForm from "./components/CompanyAssignmentForm";
-import AdminApplications from "./components/AdminApplications";
-import AdminApplicationDetails from "./components/AdminApplicationDetails";
-import ViewProfProjectDetails from "./components/ViewProfProjectDetails";
-import StudentProjectDashboard from "./components/StudentProjectDashboard";
-import StudentViewProfProjectDetails from "./components/StudentViewProfProjectDetails";
+import Placement from "./components/Placement";
+import PlacementTable from "./components/Placement-Table";
+import PlacementOne from "./components/PlacementOne";
+import PlacementThree from "./components/PlacementThree";
+import PlacementTwo from "./components/PlacementTwo";
+import ProjectTable from "./components/project-table";
+import ProjectForm from "./components/ProjectForm";
+import Review from "./components/Review";
+import RoomStatus from "./components/RoomStatus";
+import ScrollToTop from "./components/ScrollToTop";
+import ShowAllAlumni from "./components/ShowAllAlumni";
+import ShowWorkExperience from "./components/ShowWorkExperience";
+import Sidebar from "./components/Sidebar";
+import SidebarAdmin from "./components/SideBarAdmin";
+import SidebarFaculty from "./components/SideBarFaculty";
+import Signup from "./components/signup";
+import Signupadmin from "./components/Signupadmin";
 import StudentApplyProject from "./components/StudentApplyProject";
-import AcceptStudents from "./components/AcceptStudents";
-import { HashLoader, SyncLoader } from "react-spinners";
-import IncreaseLimit from "./components/IncreaseLimit";
-import AdminDashboard from "./components/AdminDashboard"
-import ClassroomBookingCalendar from "./components/ClassroomBookingCalendar";
-import GroupManagement from "./components/GroupManagement";
-import FacultyForgotPassword from "./components/FacultyForgotPassword";
-import MajorProject from "./components/MajorProject";
+import StudentAwardTable from "./components/StudentAwardTable";
+import StudentProjectDashboard from "./components/StudentProjectDashboard";
+import StudentTable from "./components/StudentTable";
+import StudentViewProfProjectDetails from "./components/StudentViewProfProjectDetails";
 import UserBugReporter from "./components/UserBugReporter";
-import AdminBugTrackerSummary from "./components/AdminBugTrackerSummary";
-import AdminBugTrackerDetails from "./components/AdminBugTrackerDetails";
-import Academicanalysis from "./components/Academicanalysis";
-import MinorProject from "./components/MinorProject";
-import MinorGroupManagement from "./components/MinorGroupManagement";
-import AcceptMinorProject from "./components/AcceptMinorProject";
-import MinorProjectTable from "./components/MinorProjectTable";
-import ProfessorTable from "./components/AdminProfessorsTable";
-import MajorProjectTable from "./components/MajorProjectTable";
-import MajorGroupManagement from "./components/MajorGroupManagement";
-import AcceptMajorProject from "./components/AcceptMajorProject";
+import Userform from "./components/userform";
+import VerifyUsers from "./components/VerifyUsers";
+import ViewProfProjectDetails from "./components/ViewProfProjectDetails";
+import Research from "./components/Research";
+import Project1Apply from "./components/Project1Apply";
+import Project1GroupManagement from "./components/Project1GroupManagement";
+import Project1Table from "./components/Project1Table";
+import AcceptProject1 from "./components/AcceptProject1";
+
 export default function App() {
   return (
     <Router>
@@ -138,16 +147,18 @@ export default function App() {
           <Route path="internship-form" element={<InternshipForm />} />
           <Route path="interview" element={<InterviewForm />} />
           <Route path="classroom-form" element={<ClassroomForm />} />
-          {/* <Route path="apply-summer" element={<Research />} /> */}
+          <Route path="apply-summer" element={<Research />} />
+          <Route path="apply-project1" element={<Project1Apply />} />
           <Route path="apply-minor" element={<MinorProject />} />
           <Route path="apply-major" element={<MajorProject />} />
           <Route path="userform" element={<Userform />} />
           <Route path="add-work-experience" element={<AddWorkExperience />} />
           <Route path="show-work-experience" element={<ShowWorkExperience />} />
           <Route path="academic-form" element={<Academicform />} />
-          {/* <Route path="manage-group" element={<GroupManagement />} /> */}
+          <Route path="manage-group" element={<GroupManagement />} />
           <Route path="manage-minor-group" element={<MinorGroupManagement />} />
           <Route path="manage-major-group" element={<MajorGroupManagement />} />
+          <Route path="project1-group" element={<Project1GroupManagement />} />
           <Route path="room-status" element={<RoomStatus />} />
           <Route path="booked-rooms" element={<BookedRooms />} />
           <Route path="major-project" element={<MajorProject />} />
@@ -156,6 +167,7 @@ export default function App() {
             path="booking-calendar"
             element={<ClassroomBookingCalendar />}
           />
+          <Route path="assign-company" element={<UserCompanyAssignmentForm />} />
         </Route>
 
         <Route
@@ -169,6 +181,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="student-table" element={<StudentTable />} />
           <Route path="verify-users" element={<VerifyUsers />} />
+          <Route path="user-onboarding" element={<AdminUserImport />} />
           <Route path="show-all-alumni" element={<ShowAllAlumni />} />
           <Route
             path="admin-academic-form"
@@ -185,9 +198,10 @@ export default function App() {
           <Route path="internship-table" element={<Internshiptable />} />
           <Route path="minor-project-table" element={<MinorProjectTable />} />
           <Route path="major-project-table" element={<MajorProjectTable />} />
+          <Route path="project1-table" element={<Project1Table />} />
+          <Route path="reassign-major-mentor" element={<ReassignMajorMentor />} />
           <Route path="admin-room-request" element={<AdminRoomRequests />} />
           <Route path="companies-table" element={<AdminAddCompanies />} />
-          <Route path="assign-company" element={<CompanyAssignmentForm />} />
           <Route path="add-prof" element={<AddProfessor />} />
           <Route path="review" element={<Review />} />
           <Route path="student-award-table" element={<StudentAwardTable />} />
@@ -197,6 +211,7 @@ export default function App() {
           <Route path="bug-tracker" element={<AdminBugTrackerSummary />} />
           <Route path="bug-tracker/:bugId" element={<AdminBugTrackerDetails />} />
           <Route path="academicanalysis" element ={<Academicanalysis />} />
+          <Route path="manage-admins" element={<MasterAdminDashboard />} />
         </Route>
 
         <Route
@@ -209,6 +224,7 @@ export default function App() {
         >
           <Route index element={<Dashboard />} />
           <Route path="accept-students" element={<AcceptStudents />} />
+          <Route path="accept-project1" element={<AcceptProject1 />} />
           <Route path="accept-minor-project" element={<AcceptMinorProject />} />
           <Route path="accept-major-project" element={<AcceptMajorProject />} />
           <Route path="major-project" element={<MajorProject />} />
@@ -230,6 +246,7 @@ export default function App() {
         <Route path="/log.a" element={<Loginadmin />} />
         <Route path="/sg.a" element={<Signupadmin />} />
         <Route path="/faculty-login" element={<LoginFaculty />} />
+        <Route path="/faculty-auto-login" element={<FacultyAutoLogin />} />
         <Route path="/faculty-forget-password" element={<FacultyForgotPassword />} />
       </Routes>
     </Router>
@@ -249,7 +266,7 @@ export default function App() {
 //           setIsAuthenticated(true);
 //         }
 //       } catch (err) {
-//         console.log("Error fetching user!", err);
+//         // console.log("Error fetching user!", err);
 //       } finally {
 //         setLoading(false);
 //       }
@@ -261,7 +278,7 @@ export default function App() {
 //             setIsAuthenticated(true);
 //           }
 //         } catch (err) {
-//           console.log("Error fetching admin!", err);
+//           // console.log("Error fetching admin!", err);
 //         } finally {
 //           setLoading(false);
 //         }
@@ -274,7 +291,7 @@ export default function App() {
 //             setIsAuthenticated(true);
 //           }
 //         } catch (err) {
-//           console.log("Error fetching admin!", err);
+//           // console.log("Error fetching admin!", err);
 //         } finally {
 //           setLoading(false);
 //         }
@@ -317,7 +334,7 @@ function ProtectAdmin({ children }) {
           setIsAuthenticated(true);
         }
       } catch (error) {
-        console.log("Error fetching admin!", error);
+        // console.log("Error fetching admin!", error);
       } finally {
         setLoading(false);
       }
@@ -359,7 +376,7 @@ function ProtectFaculty({ children }) {
           setIsAuthenticated(true);
         }
       } catch (error) {
-        console.log("Error fetching faculty!", error);
+        // console.log("Error fetching faculty!", error);
       } finally {
         setLoading(false);
       }
@@ -400,7 +417,7 @@ function ProtectUser({ children }) {
           setIsAuthenticated(true);
         }
       } catch (error) {
-        console.log("Error fetching user!", error);
+        // console.log("Error fetching user!", error);
       } finally {
         setLoading(false);
       }

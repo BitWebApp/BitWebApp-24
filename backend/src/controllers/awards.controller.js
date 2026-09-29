@@ -1,7 +1,10 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Award } from "../models/award.model.js";
-import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/Cloudinary.js";
+import {
+  uploadOnCloudinary,
+  deleteFromCloudinary,
+} from "../utils/Cloudinary.js";
 
 const createAward = asyncHandler(async (req, res) => {
   const { title, description, date, student } = req.body;
@@ -28,7 +31,10 @@ const createAward = asyncHandler(async (req, res) => {
 });
 
 const getAwards = asyncHandler(async (req, res) => {
-  const awards = await Award.find({ student: req.user._id }).populate("student", "fullName");
+  const awards = await Award.find({ student: req.user._id }).populate(
+    "student",
+    "fullName"
+  );
 
   res.status(200).json({
     success: true,
@@ -134,4 +140,11 @@ const updateAward = asyncHandler(async (req, res) => {
   }
 });
 
-export { createAward, getAwards, getAllAwards, getAwardById, updateAward, deleteAward };
+export {
+  createAward,
+  getAwards,
+  getAllAwards,
+  getAwardById,
+  updateAward,
+  deleteAward,
+};

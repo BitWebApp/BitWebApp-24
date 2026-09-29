@@ -1,13 +1,12 @@
+import Swal from "sweetalert2";
+
+
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
 
-const handleError = (error, defaultMessage) => {
-  let message = error.response.data.message;
-  toast.error(message);
-};
-
 const MajorGroupManagement = () => {
+  const [userLoading, setUserLoading] = useState(true);
   const [group, setGroup] = useState(null);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -16,12 +15,75 @@ const MajorGroupManagement = () => {
   const [company, setCompany] = useState([]);
   const [org, setOrg] = useState("");
   const [activeTab, setActiveTab] = useState("group");
+  const [typeChangeStatus, setTypeChangeStatus] = useState(null);
+  const [requestedType, setRequestedType] = useState("");
+  const [requestedOrg, setRequestedOrg] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
+
+
+  // Project Title State
+  const [inputProjectTitle, setInputProjectTitle] = useState("");
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState(null);
+  // Effect: set input to current title if erased
+  useEffect(() => {
+    if (group?.projectTitle) {
+      setInputProjectTitle(group.projectTitle);
+    }
+  }, [group]);
+
+  const currentGroup = group || typeChangeStatus?.group;
+  const currentOrgId = currentGroup?.org?._id || currentGroup?.org || "";
+  const availableCompanies = company.filter(
+    (comp) => comp._id !== currentOrgId
+  );
+
+  // Helper function to check if current user has a pending request
+  const currentUserHasPendingRequest = () => {
+    if (!typeChangeStatus?.typeChangeRequests || !currentUser?._id) {
+      return false;
+    }
+    const currentUserId = currentUser._id.toString();
+    const hasPending = typeChangeStatus.typeChangeRequests.some(req => {
+      const reqUserId = req.user?._id?.toString();
+      const isPending = req.status === "pending";
+      const isMatch = reqUserId === currentUserId;
+      return isMatch && isPending;
+    });
+    return hasPending;
+  };
+
+  // Helper: is current user leader?
+  const isLeader = group && currentUser && group.leader && group.leader._id === currentUser._id;
 
   useEffect(() => {
     fetchCompanies();
     fetchGroup();
     fetchRequests();
+    fetchTypeChangeStatus();
+    fetchCurrentUser();
   }, []);
+
+  const fetchCurrentUser = async () => {
+    setUserLoading(true);
+    try {
+      const response = await axios.get("/api/v1/users/get-user");
+      setCurrentUser(response.data.data);
+    } catch (error) {
+      console.error("Failed to fetch current user:", error);
+    } finally {
+      setUserLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser && !currentUser.isMajorAllocated && currentUser.batch !== 22) {
+      toast.error(`Registration for Major Project is open for batch K22 only. Process not started for batch K${currentUser.batch}.`, {
+        id: "major-group-batch-error-toast",
+      });
+    }
+  }, [currentUser]);
 
   const fetchCompanies = async () => {
     try {
@@ -36,7 +98,7 @@ const MajorGroupManagement = () => {
     setLoading(true);
     try {
       const response = await axios.get("/api/v1/major/get-group");
-      console.log("hello", response.data.data);
+      // console.log("hello", response.data.data);
       setGroup(response.data.data);
     } catch (error) {
       setGroup(null);
@@ -50,6 +112,15 @@ const MajorGroupManagement = () => {
       setRequests(response.data.data || []);
     } catch (error) {
       
+    }
+  };
+
+  const fetchTypeChangeStatus = async () => {
+    try {
+      const response = await axios.get("/api/v1/major/get-type-change-status");
+      setTypeChangeStatus(response.data.data);
+    } catch (error) {
+      setTypeChangeStatus(null);
     }
   };
 
@@ -81,7 +152,7 @@ const MajorGroupManagement = () => {
   const addMember = async () => {
     if (!rollNumber) return toast.error("Please enter a roll number");
     try {
-      await axios.post("/api/v1/group/add-member", {
+      await axios.post("/api/v1/major/add-member", {
         rollNumber,
         groupId: group?._id,
       });
@@ -93,6 +164,22 @@ const MajorGroupManagement = () => {
       toast.error(errorMessage || "Failed to add member");
       // handleError(error, "Failed to add member");
     }
+  };
+
+  const submitProjectTitle = async () => {
+    setLoading(true);
+    try {
+      await axios.post("/api/v1/major/set-project-title", {
+        projectTitle: inputProjectTitle,
+      });
+      toast.success("Project title set successfully");
+      setIsEditingTitle(false);
+      fetchGroup();
+    } catch (error) {
+      let errorMessage = error.response?.data?.message;
+      toast.error(errorMessage || "Failed to set project title");
+    }
+    setLoading(false);
   };
 
   const removeMember = async (rollNumber) => {
@@ -122,6 +209,106 @@ const MajorGroupManagement = () => {
       //handleError(error, "Failed to accept request");
     }
   };
+
+  const requestTypeChange = async () => {
+    if (!requestedType) {
+      return toast.error("Please select a type");
+    }
+
+    if (requestedType === currentGroup?.type && requestedType !== "industrial") {
+      return toast.error("Group is already of this type");
+    }
+
+    if (
+      requestedType === "industrial" &&
+      currentGroup?.type === "industrial" &&
+      currentOrgId &&
+      requestedOrg === currentOrgId
+    ) {
+      return toast.error("Please select a different organization");
+    }
+
+    if (requestedType === "industrial" && !requestedOrg) {
+      return toast.error("Please select an organization for industrial type");
+    }
+
+    // Warning popup
+    const confirmed = window.confirm(
+      "WARNING: Type change requests cannot be cancelled once submitted. " +
+      (group?.majorAllocatedProf 
+        ? "This request will require professor approval. " 
+        : "This change will be applied immediately. ") +
+      "Are you sure you want to proceed?"
+    );
+
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      await axios.post("/api/v1/major/request-type-change", {
+        requestedType,
+        org: requestedType === "industrial" ? requestedOrg : undefined,
+      });
+      toast.success(
+        group?.majorAllocatedProf 
+          ? "Type change request submitted for professor approval" 
+          : "Type changed successfully"
+      );
+      setRequestedType("");
+      setRequestedOrg("");
+      fetchGroup();
+      fetchTypeChangeStatus();
+    } catch (error) {
+      let errorMessage = error.response?.data?.message;
+      toast.error(errorMessage || "Failed to submit type change request");
+    }
+    setLoading(false);
+  };
+
+  if (userLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="flex flex-col items-center">
+          <svg className="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span className="text-gray-700 font-medium">Loading User Profile...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentUser && !currentUser.isMajorAllocated && currentUser.batch !== 22) {
+    return (
+      <>
+        <Toaster position="top-right" />
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8 flex items-center justify-center">
+          <div className="max-w-md w-full bg-white/85 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-8 text-center transition-all hover:shadow-2xl">
+            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6 text-red-600 animate-pulse">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold mb-4 text-gray-900">
+              Process Not Started
+            </h1>
+            <p className="text-gray-600 mb-6 leading-relaxed">
+              Registration for Major Project is currently open for batch <strong className="text-blue-600 font-semibold">K22</strong> only.
+            </p>
+            <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-5 mb-2 inline-block w-full border border-gray-200/60 shadow-inner">
+              <p className="text-sm text-gray-700">
+                Your Batch: <span className="font-bold text-gray-900 bg-gray-200 px-2 py-0.5 rounded">K{currentUser.batch}</span>
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
+                Process has not been started for your batch yet.
+              </p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -153,21 +340,40 @@ const MajorGroupManagement = () => {
               >
                 {group ? "My Group" : "Create Group"}
               </button>
-              <button
-                onClick={() => setActiveTab("requests")}
-                className={`px-6 py-3 font-medium text-sm md:text-base relative ${
-                  activeTab === "requests"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Join Requests
-                {requests.length > 0 && (
-                  <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {requests.length}
-                  </span>
-                )}
-              </button>
+              {(!group || group.type !== "industrial") && (
+                <button
+                  onClick={() => setActiveTab("requests")}
+                  className={`px-6 py-3 font-medium text-sm md:text-base relative ${
+                    activeTab === "requests"
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Join Requests
+                  {requests.length > 0 && (
+                    <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {requests.length}
+                    </span>
+                  )}
+                </button>
+              )}
+              {group && (
+                <button
+                  onClick={() => setActiveTab("typeChange")}
+                  className={`px-6 py-3 font-medium text-sm md:text-base relative ${
+                    activeTab === "typeChange"
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Type Change
+                  {currentUserHasPendingRequest() && (
+                    <span className="absolute top-1 right-1 bg-yellow-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      !
+                    </span>
+                  )}
+                </button>
+              )}
             </div>
 
             {/* Tab Content */}
@@ -246,11 +452,263 @@ const MajorGroupManagement = () => {
                 </div>
               )}
 
+              {activeTab === "typeChange" && (
+                <div className="space-y-6">
+                  <h2 className="text-xl font-bold text-gray-800 mb-4">
+                    Group Type Change
+                  </h2>
+
+                  {/* Current Group Info */}
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-5 border border-blue-200">
+                    <h3 className="font-semibold text-gray-800 mb-3">Current Group Information</h3>
+                    <div className="grid md:grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="text-gray-600">Type: </span>
+                        <span className="font-semibold text-blue-600 capitalize">
+                          {currentGroup?.type || "N/A"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Members: </span>
+                        <span className="font-semibold">
+                          {currentGroup?.members?.length || 0}
+                        </span>
+                      </div>
+                      {currentGroup?.org?.companyName && (
+                        <div>
+                          <span className="text-gray-600">Organization: </span>
+                          <span className="font-semibold">
+                            {currentGroup?.org?.companyName}
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <span className="text-gray-600">Professor: </span>
+                        <span className="font-semibold">
+                          {currentGroup?.majorAllocatedProf?.fullName || "Not Allocated"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pending Requests Status */}
+                  {typeChangeStatus?.typeChangeRequests?.length > 0 && (
+                    <div className="bg-yellow-50 rounded-lg p-5 border border-yellow-200">
+                      <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
+                        <svg className="w-5 h-5 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        Pending Type Change Requests
+                      </h3>
+                      <div className="space-y-3">
+                        {typeChangeStatus.typeChangeRequests.map((req, idx) => (
+                          <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
+                            <div className="grid md:grid-cols-2 gap-2 text-sm">
+                              <div>
+                                <span className="text-gray-600">Requested by: </span>
+                                <span className="font-semibold">{req.user?.fullName}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Requested Type: </span>
+                                <span className="font-semibold capitalize text-blue-600">
+                                  {req.requestedType}
+                                </span>
+                              </div>
+                              {req.org && (
+                                <div>
+                                  <span className="text-gray-600">Organization: </span>
+                                  <span className="font-semibold">{req.org?.companyName}</span>
+                                </div>
+                              )}
+                              <div>
+                                <span className="text-gray-600">Status: </span>
+                                <span className={`font-semibold capitalize ${
+                                  req.status === "pending" ? "text-yellow-600" :
+                                  req.status === "approved" ? "text-green-600" :
+                                  "text-red-600"
+                                }`}>
+                                  {req.status}
+                                </span>
+                              </div>
+                              <div className="md:col-span-2">
+                                <span className="text-gray-600">Initiated: </span>
+                                <span className="font-medium text-xs">
+                                  {new Date(req.initiatedAt).toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {currentGroup?.majorAllocatedProf && (
+                        <p className="text-sm text-gray-600 mt-3">
+                          ⏳ Waiting for professor approval. You cannot submit a new request while a request is pending.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Request Type Change Form */}
+                  {!currentUserHasPendingRequest() && (
+                    <div className="bg-white rounded-lg p-5 border border-gray-200">
+                      <h3 className="font-semibold text-gray-800 mb-4">Request Type Change</h3>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            New Type
+                          </label>
+                          <select
+                            value={requestedType}
+                            onChange={(e) => setRequestedType(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="">Select Type</option>
+                            <option value="research">Research</option>
+                            <option value="industrial">Industrial</option>
+                          </select>
+                        </div>
+
+                        {requestedType === "industrial" && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              {currentGroup?.type === "industrial" ? "New Organization" : "Organization"}
+                            </label>
+                            <select
+                              value={requestedOrg}
+                              onChange={(e) => setRequestedOrg(e.target.value)}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              <option value="">Select Organization</option>
+                              {availableCompanies.map((comp) => (
+                                <option key={comp._id} value={comp._id}>
+                                  {comp.companyName}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        {currentGroup?.members?.length === 2 && requestedType === "industrial" && (
+                          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                            <p className="text-sm text-orange-800">
+                              <strong>⚠️ Note:</strong> Changing to industrial type will split your 2-member group. 
+                              {currentGroup?.majorAllocatedProf 
+                                ? " The professor will decide the outcome." 
+                                : " You will be moved to a new industrial group, and the other member will remain in the current research group."}
+                            </p>
+                          </div>
+                        )}
+
+                        <button
+                          onClick={requestTypeChange}
+                          disabled={
+                            loading ||
+                            !requestedType ||
+                            (requestedType === "industrial" && !requestedOrg) ||
+                            (requestedType === "industrial" &&
+                              currentGroup?.type === "industrial" &&
+                              currentOrgId &&
+                              requestedOrg === currentOrgId)
+                          }
+                          className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                        >
+                          {loading ? "Processing..." : "Submit Type Change Request"}
+                        </button>
+
+                        <p className="text-xs text-gray-500 text-center">
+                          ⚠️ This action cannot be cancelled once submitted
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Info Section */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-blue-900 mb-2">Type Change Rules:</h4>
+                    <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                      <li>Research groups can have up to 2 members</li>
+                      <li>Industrial groups can only have 1 member</li>
+                      <li>Changes before professor allocation are applied immediately</li>
+                      <li>Changes after professor allocation require approval</li>
+                      <li>Industrial to industrial changes require a different organization</li>
+                      <li>Type change requests cannot be cancelled</li>
+                      {typeChangeStatus?.group?.members?.length === 2 && (
+                        <li className="font-semibold">If both members request a type change, the professor will approve/reject both together</li>
+                      )}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
               {activeTab === "group" && (
                 <>
                   {group ? (
                     <div className="space-y-6">
                       <div className="grid md:grid-cols-3 gap-4">
+                                                {/* Project Title Section */}
+                                                <div className="bg-green-50 rounded-lg p-4 border border-green-100 md:col-span-3">
+                                                  <h3 className="text-sm font-medium text-green-800">Project Title</h3>
+                                              <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                                                <div className="flex-grow">
+                                                  {group?.projectTitle && group.projectTitle.trim() !== "" && !isEditingTitle ? (
+                                                    <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg flex justify-between items-center">
+                                                      <div>
+                                                        <span className="text-gray-500 text-sm block mb-1">Current Title:</span>
+                                                        <span className="text-gray-800 font-medium">
+                                                          {group.projectTitle}
+                                                        </span>
+                                                      </div>
+                                                      {isLeader && (
+                                                        <button
+                                                          onClick={() => {
+                                                            setInputProjectTitle(group.projectTitle);
+                                                            setIsEditingTitle(true);
+                                                          }}
+                                                          className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
+                                                        >
+                                                          Edit
+                                                        </button>
+                                                      )}
+                                                    </div>
+                                                  ) : (
+                                                    isLeader ? (
+                                                      <div className="flex flex-col sm:flex-row gap-2">
+                                                        <input
+                                                          type="text"
+                                                          value={inputProjectTitle}
+                                                          onChange={(e) => setInputProjectTitle(e.target.value)}
+                                                          placeholder="Enter Project Title"
+                                                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        />
+                                                        <button
+                                                          onClick={submitProjectTitle}
+                                                          disabled={loading}
+                                                          className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-sm disabled:opacity-50"
+                                                        >
+                                                          {loading ? "Saving..." : "Save Title"}
+                                                        </button>
+                                                        {group?.projectTitle && (
+                                                          <button
+                                                            onClick={() => {
+                                                              setInputProjectTitle(group.projectTitle);
+                                                              setIsEditingTitle(false);
+                                                            }}
+                                                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors shadow-sm"
+                                                          >
+                                                            Cancel
+                                                          </button>
+                                                        )}
+                                                      </div>
+                                                    ) : (
+                                                      <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-500 italic">
+                                                        No project title assigned yet. Only the leader can assign it.
+                                                      </div>
+                                                    )
+                                                  )}
+                                                </div>
+                                              </div>
+                                                </div>
                         <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
                           <h3 className="text-sm font-medium text-blue-800">
                             Group ID
@@ -272,7 +730,7 @@ const MajorGroupManagement = () => {
                             Professor
                           </h3>
                           <p className="text-xl font-bold text-purple-600 mt-1">
-                            {group?.summerAllocatedProf?.fullName ||
+                            {group?.majorAllocatedProf?.fullName ||
                               "Not Allocated"}
                           </p>
                         </div>
@@ -286,30 +744,40 @@ const MajorGroupManagement = () => {
                         </div>
                       </div>
 
-                      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                        <div className="p-4 border-b border-gray-200 bg-gray-50">
-                          <h3 className="font-medium text-gray-800">
-                            Add New Member
-                          </h3>
-                        </div>
-                        <div className="p-4">
-                          <div className="flex flex-col sm:flex-row gap-2">
-                            <input
-                              type="text"
-                              value={rollNumber}
-                              onChange={(e) => setRollNumber(e.target.value)}
-                              placeholder="Enter Roll Number"
-                              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                            <button
-                              onClick={addMember}
-                              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm"
-                            >
-                              Send Request
-                            </button>
+                      {group.type !== "industrial" && (
+                        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                          <div className="p-4 border-b border-gray-200 bg-gray-50">
+                            <h3 className="font-medium text-gray-800">
+                              Add New Member
+                            </h3>
+                          </div>
+                          <div className="p-4">
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <input
+                                type="text"
+                                value={rollNumber}
+                                onChange={(e) => setRollNumber(e.target.value)}
+                                placeholder="Enter Roll Number"
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                              <button
+                                onClick={addMember}
+                                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm"
+                              >
+                                Send Request
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
+
+                      {group.type === "industrial" && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <p className="text-sm text-yellow-800">
+                            ℹ️ Industrial groups can only have 1 member. Adding new members is not allowed.
+                          </p>
+                        </div>
+                      )}
 
                       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                         <div className="p-4 border-b border-gray-200 bg-gray-50">
@@ -358,8 +826,8 @@ const MajorGroupManagement = () => {
                                       <div className="flex items-center">
                                         <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
                                           <span className="text-blue-600 font-medium">
-                                            {member.fullName
-                                              ?.split(" ")
+                                            {(member?.fullName || "Member")
+                                              .split(" ")
                                               .map((n) => n[0])
                                               .join("")
                                               .toUpperCase()}
@@ -367,7 +835,7 @@ const MajorGroupManagement = () => {
                                         </div>
                                         <div className="ml-4">
                                           <div className="text-sm font-medium text-gray-900">
-                                            {member.fullName}
+                                            {member?.fullName || "Member"}
                                           </div>
                                         </div>
                                       </div>

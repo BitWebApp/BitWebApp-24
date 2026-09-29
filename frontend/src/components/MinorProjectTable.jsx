@@ -11,6 +11,7 @@ export default function MinorProjectTable() {
     groupId: "",
     section: "",
     branch: "",
+    allotment: "",
   });
   const [sectionOptions, setSectionOptions] = useState([]);
   const [branchOptions, setBranchOptions] = useState([]);
@@ -27,26 +28,37 @@ export default function MinorProjectTable() {
           batch,
         },
       });
-      console.log(response);
+      // console.log(response);
       setProjectData(response.data.data.response);
       setFilteredData(response.data.data.response);
-
       // Extract unique sections and branches from the fetched data
       const sections = [
         ...new Set(
-          response.data.data.response.map((record) => record.student.section)
+          response.data.data.response.map((record) => record.student.section),
         ),
       ];
       const branches = [
         ...new Set(
-          response.data.data.response.map((record) => record.student.branch)
+          response.data.data.response.map((record) => record.student.branch),
         ),
       ];
       setSectionOptions(sections);
       setBranchOptions(branches);
     } catch (error) {
       console.error("Error fetching minor project data:", error);
-      toast.error("Failed to load minor project data");
+      if (error.response?.status === 403) {
+        toast.error(
+          error.response.data?.message ||
+            `You don't have access to view data from this batch`,
+          { toastId: "minor-batch-access-error" },
+        );
+        setProjectData([]);
+        setFilteredData([]);
+      } else {
+        toast.error("Failed to load minor project data", {
+          toastId: "minor-fetch-error",
+        });
+      }
     }
   };
 
@@ -60,22 +72,27 @@ export default function MinorProjectTable() {
     let data = projectData;
     if (filters.groupId) {
       data = data.filter((record) =>
-        record.groupId.toLowerCase().includes(filters.groupId.toLowerCase())
+        record.groupId.toLowerCase().includes(filters.groupId.toLowerCase()),
       );
     }
     if (filters.section) {
       data = data.filter((record) =>
         record.student.section
           .toLowerCase()
-          .includes(filters.section.toLowerCase())
+          .includes(filters.section.toLowerCase()),
       );
     }
     if (filters.branch) {
       data = data.filter((record) =>
         record.student.branch
           .toLowerCase()
-          .includes(filters.branch.toLowerCase())
+          .includes(filters.branch.toLowerCase()),
       );
+    }
+    if (filters.allotment === "alloted") {
+      data = data.filter((record) => record.mentor);
+    } else if (filters.allotment === "not_alloted") {
+      data = data.filter((record) => !record.mentor);
     }
     setFilteredData(data);
   };
@@ -92,30 +109,43 @@ export default function MinorProjectTable() {
     let maxGroupIdLength = "Group ID".length;
     let maxMentorLength = "Mentor".length;
     let maxMarksLength = "Minor Project Marks".length;
+    let maxMobileLength = "Mobile Number".length;
+    let maxProjectTitleLength = "Project Title".length;
 
     // Iterate through filteredData to find maximum lengths
     filteredData.forEach((record, index) => {
       const mentor =
-        (record.mentor?.idNumber && record.mentor?.fullName) ?
-          //? `${record.mentor.idNumber}: ${record.mentor.fullName}`
-	`${record.mentor.fullName}` : "N/A";
+        record.mentor?.idNumber && record.mentor?.fullName
+          ? //? `${record.mentor.idNumber}: ${record.mentor.fullName}`
+            `${record.mentor.fullName}`
+          : "N/A";
+
+      maxMobileLength = Math.max(
+        maxMobileLength,
+        (record?.student?.mobileNumber || "").length,
+      );
+
+      maxProjectTitleLength = Math.max(
+        maxProjectTitleLength,
+        (record?.projectTitle || "").length,
+      );
 
       maxIndexLength = Math.max(maxIndexLength, (index + 1).toString().length);
       maxRollNumberLength = Math.max(
         maxRollNumberLength,
-        (record?.student?.rollNumber || "").length
+        (record?.student?.rollNumber || "").length,
       );
       maxNameLength = Math.max(
         maxNameLength,
-        (record?.student?.fullName || "").toUpperCase().length
+        (record?.student?.fullName || "").toUpperCase().length,
       );
       maxEmailLength = Math.max(
         maxEmailLength,
-        (record?.student?.email || "").length
+        (record?.student?.email || "").length,
       );
       maxGroupIdLength = Math.max(
         maxGroupIdLength,
-        (record?.groupId || "").toUpperCase().length
+        (record?.groupId || "").toUpperCase().length,
       );
       maxMentorLength = Math.max(maxMentorLength, mentor.length);
     });
@@ -130,8 +160,22 @@ export default function MinorProjectTable() {
       },
       { header: "Name", key: "name", width: maxNameLength + 3 },
       { header: "Email", key: "email", width: maxEmailLength + 3 },
+
+      {
+        header: "Mobile Number",
+        key: "mobileNumber",
+        width: maxMobileLength + 3,
+      },
+
       { header: "Group ID", key: "groupId", width: maxGroupIdLength + 3 },
       { header: "Mentor", key: "mentor", width: maxMentorLength + 3 },
+
+      {
+        header: "Project Title",
+        key: "projectTitle",
+        width: maxProjectTitleLength + 5,
+      },
+
       {
         header: "Minor Project Marks",
         key: "marks",
@@ -153,16 +197,18 @@ export default function MinorProjectTable() {
     filteredData.forEach((record, index) => {
       const mentor =
         record.mentor?.idNumber && record.mentor?.fullName
-          ? `${record.mentor.idNumber}: ${record.mentor.fullName}`
+          ? `${record.mentor.fullName}`
           : "N/A";
 
       const row = worksheet.addRow({
         index: index + 1,
         rollNumber: record?.student?.rollNumber,
-        name: record?.student?.fullName.toUpperCase(),
+        name: record?.student?.fullName?.toUpperCase(),
         email: record?.student?.email,
-        groupId: record?.groupId.toUpperCase(),
+        mobileNumber: record?.student?.mobileNumber || "N/A",
+        groupId: record?.groupId?.toUpperCase(),
         mentor,
+        projectTitle: record?.projectTitle?.trim() || "N/A",
         marks: record?.student?.marks?.minorProject || 0,
       });
 
@@ -258,6 +304,16 @@ export default function MinorProjectTable() {
             </option>
           ))}
         </select>
+        <select
+          name="allotment"
+          value={filters.allotment}
+          onChange={handleFilterChange}
+          className="mr-2 p-2 border border-gray-300 rounded"
+        >
+          <option value="">All Allotment Status</option>
+          <option value="alloted">Alloted</option>
+          <option value="not_alloted">Not Alloted</option>
+        </select>
       </div>
 
       <button
@@ -282,12 +338,21 @@ export default function MinorProjectTable() {
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
               Email
             </th>
+
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Mobile Number
+            </th>
+
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
               Group ID
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
               Mentor
             </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Project Title
+            </th>
+
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
               Minor Project Marks
             </th>
@@ -303,19 +368,28 @@ export default function MinorProjectTable() {
                 {record?.student?.rollNumber}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {record?.student?.fullName.toUpperCase()}
+                {record?.student?.fullName?.toUpperCase() || "N/A"}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {record?.student?.email}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {record?.student?.mobileNumber || "N/A"}
+              </td>
+
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {record?.groupId.toUpperCase()}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {record?.mentor
-                  ? record?.mentor?.idNumber + ": " + record?.mentor?.fullName
-                  : "N/A"}
+                {record?.mentor ? record?.mentor?.fullName : "N/A"}
               </td>
+              <td
+                className="px-6 py-4 text-sm text-gray-500"
+                style={{ minWidth: "250px", whiteSpace: "normal" }}
+              >
+                {record?.projectTitle?.trim() || "N/A"}
+              </td>
+
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {record?.student?.marks?.minorProject || "N/A"}
               </td>

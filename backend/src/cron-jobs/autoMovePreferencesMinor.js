@@ -5,7 +5,9 @@ import { Professor } from "../models/professor.model.js";
 
 const preprocessMinorGroups = async () => {
   try {
-    console.log("Preprocessing minor groups to clean up limit exceeded professors");
+    console.log(
+      "Preprocessing minor groups to clean up limit exceeded professors"
+    );
     const groups = await Minor.find({
       minorAppliedProfs: { $exists: true, $ne: [] },
       minorAllocatedProf: { $exists: false },
@@ -64,7 +66,10 @@ const preprocessMinorGroups = async () => {
           );
         }
       } catch (error) {
-        console.log(`Error saving minor group ${group.groupId || group._id}:`, error);
+        console.log(
+          `Error saving minor group ${group.groupId || group._id}:`,
+          error
+        );
       }
     }
   } catch (error) {
@@ -77,7 +82,9 @@ const moveMinorApplications = async () => {
     console.log("Checking and moving pending minor applications...");
     const twoDaysAgo = moment().subtract(2, "days").toDate();
     console.log(twoDaysAgo);
-    console.log(`Looking for minor groups with no movement since: ${twoDaysAgo}`);
+    console.log(
+      `Looking for minor groups with no movement since: ${twoDaysAgo}`
+    );
     const groups = await Minor.find({
       minorAppliedProfs: { $exists: true, $ne: [] },
       minorAllocatedProf: { $exists: false },
@@ -92,9 +99,7 @@ const moveMinorApplications = async () => {
         `Current applied professors: ${group.minorAppliedProfs.length}`
       );
       const profToMove = group.minorAppliedProfs.shift();
-      console.log(`Moving professor ${profToMove} from applied to denied`);
-      group.deniedProf.push(profToMove);
-      console.log(`Denied professors count: ${group.deniedProf.length}`);
+      console.log(`Timeout: moving past professor ${profToMove} to next preference`);
       const prof = await Professor.findById(profToMove);
       prof.appliedGroups.minor_project =
         prof.appliedGroups.minor_project.filter(

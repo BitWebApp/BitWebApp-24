@@ -3,6 +3,7 @@ import { verifyProfessor } from "../middlewares/auth.middleware.js";
 import {
   registerUser,
   loginUser,
+  googleLogin,
   logoutUser,
   updateUser1,
   updatePlacementOne,
@@ -20,7 +21,7 @@ import {
   otpForgotPass,
   changepassword,
   getAppliedProfs,
-  summerSorted
+  summerSorted,
 } from "../controllers/user.controller.js";
 
 import { applyToSummer, getProf } from "../controllers/professor.controller.js";
@@ -28,7 +29,7 @@ import {
   addInterviewExp,
   getAllInterviewExps,
 } from "../controllers/interview.controller.js";
-import { getUserCompanies } from "../controllers/company.controller.js";
+import { getUserCompanies, selfAssignCompany } from "../controllers/company.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
 
@@ -45,7 +46,21 @@ router
   .route("/register")
   .post(upload.fields([{ name: "idCard", maxCount: 1 }]), registerUser);
 
-router.route("/login").post(loginUser);
+// Password login is brute-forceable once the app is reachable from the
+// internet, so cap attempts per IP.
+const loginLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+});
+router.route("/login").post(requestIpMiddleware, loginLimiter, loginUser);
+
+const googleLoginLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+});
+router
+  .route("/google-login")
+  .post(requestIpMiddleware, googleLoginLimiter, googleLogin);
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/update").patch(
   verifyJWT,
@@ -87,11 +102,24 @@ router.route("/placementTwo").get(verifyJWT, getPlacementTwo);
 router.route("/placementThree").get(verifyJWT, getPlacementThree);
 router.route("/get-all-users").get(verifyAdmin, getAllUsers);
 router.route("/get-backlogs").get(verifyJWT, getAllBacklogSubjects);
-router.route("/get-pass-otp").post(otpForgotPass);
-router.route("/changepass").post(changepassword);
+const otpRequestLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 3,
+});
+router
+  .route("/get-pass-otp")
+  .post(requestIpMiddleware, otpRequestLimiter, otpForgotPass);
+const changePassLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+});
+router
+  .route("/changepass")
+  .post(requestIpMiddleware, changePassLimiter, changepassword);
 
 //interview exp routes
 router.route("/get-user-companies").get(verifyJWT, getUserCompanies);
+router.route("/self-assign-company").post(verifyJWT, selfAssignCompany);
 router.route("/add-interview-exp").post(verifyJWT, addInterviewExp);
 const reviewLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 25 });
 router
@@ -102,4 +130,5 @@ router
 router.route("/applyToSummer").post(verifyJWT, applyToSummer);
 router.route("/summer").get(verifyJWT, summerSorted);
 router.route("/get-app-profs").get(verifyJWT, getAppliedProfs);
+
 export default router;

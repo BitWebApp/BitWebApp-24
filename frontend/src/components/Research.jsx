@@ -25,41 +25,54 @@ const Research = () => {
   const [discussionLogs, setDiscussionLogs] = useState(null);
   const [showLogs, setShowLogs] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [isLeader, setIsLeader] = useState(false);
 
   const fetchGroup = async () => {
     setLoading(true);
     try {
       const response = await axios.get("/api/v1/group/get-group");
       setGroup(response.data.data.groupId);
+      if (currentUser && response.data.data.leader) {
+        setIsLeader(response.data.data.leader._id === currentUser._id || response.data.data.leader === currentUser._id);
+      }
     } catch (error) {
       setGroup(null);
+      setIsLeader(false);
     }
     setLoading(false);
   };
 
   const fetchData = async () => {
+      console.log("FETCH DATA CALLED");
     try {
       setLoading(true);
-      const [allProfsResponse, appliedProfsResponse] = await Promise.all([
-        axios.get("/api/v1/prof/getProf"),
-        axios.get("/api/v1/group/get-app-profs"),
-      ]);
+      const allProfsResponse = await axios.get("/api/v1/prof/getProf");
+      let appliedProfsResponse = null;
+      try {
+        appliedProfsResponse = await axios.get("/api/v1/group/get-app-profs");
+      } catch (err) {
+        // Silently ignore if not in group
+      }
       const { isSummerAllocated, prof, summerAppliedProfs, denied } =
         appliedProfsResponse?.data?.data || {};
 
+        console.log(allProfsResponse.data);
+
       const sortedProfessors = allProfsResponse.data.message
-        .filter((prof) => {
-          const availableSeats =
-            prof.limits.summer_training - prof.currentCount.summer_training;
-          return availableSeats >= 0;
-        })
-        .sort((a, b) => {
-          const seatsA =
-            a.limits.summer_training - a.currentCount.summer_training;
-          const seatsB =
-            b.limits.summer_training - b.currentCount.summer_training;
-          return seatsB - seatsA;
-        });
+  .filter((prof) => {
+    const total = prof.limits?.summer_training || 0;
+    const current = prof.currentCount?.summer_training || 0;
+    return total - current >= 0;
+  })
+  .sort((a, b) => {
+    const totalA = a.limits?.summer_training || 0;
+    const currentA = a.currentCount?.summer_training || 0;
+
+    const totalB = b.limits?.summer_training || 0;
+    const currentB = b.currentCount?.summer_training || 0;
+
+    return (totalB - currentB) - (totalA - currentA);
+  });
 
       setAppliedProfessors(summerAppliedProfs);
       setDenied(denied || []);
@@ -69,14 +82,30 @@ const Research = () => {
       setLoading(false);
     } catch (error) {
       setLoading(false);
-      handleError(error);
+      if (error?.response?.status !== 409) {
+        handleError(error);
+      }
     }
   };
 
+  const [currentUser, setCurrentUser] = useState(null);
+
   useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await axios.get("/api/v1/users/get-user");
+        setCurrentUser(response.data.data);
+      } catch (error) {}
+    };
+    fetchUser();
     fetchData();
-    fetchGroup();
   }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchGroup();
+    }
+  }, [currentUser]);
 
   const handleViewDetails = async () => {
     if (allocatedProf) {
@@ -133,6 +162,36 @@ const Research = () => {
     }
   };
 
+  const handleWithdraw = async () => {
+    Swal.fire({
+      title: "Withdraw All Preferences?",
+      text: "This will cancel all your pending applications.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, Withdraw All",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          setLoading(true);
+          await axios.post("/api/v1/group/withdraw-preferences");
+          setLoading(false);
+          await fetchData();
+          Swal.fire({
+            icon: "success",
+            title: "Withdrawn",
+            text: "All your preferences have been successfully withdrawn.",
+            confirmButtonColor: "#10b981",
+          });
+        } catch (error) {
+          setLoading(false);
+          handleError(error, "Failed to withdraw preferences");
+        }
+      }
+    });
+  };
+
   const handleSearchAndFilter = () => {
     let filtered = professors;
 
@@ -147,13 +206,19 @@ const Research = () => {
     }
 
     // Apply availability filter
-    if (filterOption !== "all") {
+    if (filterOption === "available") {
       filtered = filtered.filter((prof) => {
         const availableSeats =
           prof.limits.summer_training - prof.currentCount.summer_training;
-        return filterOption === "available"
-          ? availableSeats > 0
-          : availableSeats === 0;
+        return availableSeats > 0;
+      });
+    } else if (filterOption === "applied") {
+      filtered = filtered.filter((prof) => appliedProfessors.includes(prof._id));
+      // Sort by preference order
+      filtered.sort((a, b) => {
+        const prefA = appliedProfessors.indexOf(a._id);
+        const prefB = appliedProfessors.indexOf(b._id);
+        return prefA - prefB;
       });
     }
 
@@ -163,14 +228,21 @@ const Research = () => {
   // Call this function whenever the search query or filter option changes
   useEffect(() => {
     handleSearchAndFilter();
-  }, [searchQuery, filterOption, professors]);
+  }, [searchQuery, filterOption, professors, appliedProfessors]);
 
   return (
     <>
       <Toaster position="top-right" />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
-          {allocatedProf ? (
+          {loading ? (
+             <div className="text-center p-8 text-gray-500">Loading...</div>
+          ) : !group ? (
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-8 text-center">
+              <h1 className="text-2xl font-bold mb-4 text-gray-900">Group Not Created</h1>
+              <p className="text-gray-600 mb-6">You have not created a summer training group yet. Please create a group first to apply to professors.</p>
+            </div>
+          ) : allocatedProf ? (
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white">
                 <h1 className="text-2xl md:text-3xl font-bold">
@@ -405,7 +477,7 @@ const Research = () => {
                           const isDisabled =
                             isApplied ||
                             allocatedProf?._id === prof._id ||
-                            seatsAvailable === 0 ||
+                            seatsAvailable <= 0 ||
                             isDenied;
 
                           const statusConfig = {
@@ -442,7 +514,7 @@ const Research = () => {
                           let status;
                           if (isDenied) status = statusConfig.denied;
                           else if (isApplied) status = statusConfig.applied;
-                          else if (seatsAvailable === 0)
+                          else if (seatsAvailable <= 0)
                             status = statusConfig.full;
                           //else if (seatsAvailable == 1)
                            // status = statusConfig.intern;
@@ -484,7 +556,7 @@ const Research = () => {
                                   <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
                                     <div
                                       className={`h-2.5 rounded-full ${
-                                        seatsAvailable === 0
+                                        seatsAvailable <= 0
                                           ? "bg-red-500"
                                           : seatsAvailable < 3
                                           ? "bg-yellow-500"
@@ -560,45 +632,29 @@ const Research = () => {
                   </div>
                 )}
 
-                {/* Submit Button */}
-                <div className="mt-8">
+                {/* Submit Button & Withdraw */}
+                <div className="mt-8 flex justify-between items-center">
                   <button
                     onClick={handleSubmit}
                     disabled={loading || !selectedProf}
-                    className={`w-full py-3 px-4 rounded-lg font-medium text-white shadow-md transition-all ${
+                    className={`px-8 py-3 rounded-lg font-semibold text-white shadow-md transition-all ${
                       loading || !selectedProf
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
+                        ? "bg-gray-400 cursor-not-allowed opacity-70"
+                        : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 hover:shadow-lg"
                     }`}
                   >
-                    {loading ? (
-                      <span className="flex items-center justify-center">
-                        <svg
-                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        Applying...
-                      </span>
-                    ) : (
-                      "Submit Application"
-                    )}
+                    {loading ? "Processing..." : "Submit Application"}
                   </button>
+
+                  {appliedProfessors.length > 0 && !allocatedProf && isLeader && (
+                    <button
+                      onClick={handleWithdraw}
+                      disabled={loading}
+                      className="px-6 py-3 rounded-lg font-semibold text-orange-600 bg-orange-100 hover:bg-orange-200 border border-orange-200 transition-all ml-4"
+                    >
+                      {loading ? "Processing..." : "Withdraw All Preferences"}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

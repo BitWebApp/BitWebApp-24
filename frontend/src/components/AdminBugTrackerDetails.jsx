@@ -67,7 +67,11 @@ const AdminBugTrackerDetails = () => {
         
         <div className="mb-4">
           <h2 className="text-lg font-semibold">Reporter</h2>
-          <p className="text-gray-700">{bug.reporter.id?.fullName || bug.reporter.kind}</p>
+          <p className="text-gray-700">
+            {bug.reporter.id?.fullName} 
+            {bug.reporter.id?.rollNumber ? ` (${bug.reporter.id.rollNumber})` : bug.reporter.id?.idNumber ? ` (${bug.reporter.id.idNumber})` : ""}
+            {!bug.reporter.id?.fullName && bug.reporter.kind}
+          </p>
         </div>
         
         <div className="mb-4">

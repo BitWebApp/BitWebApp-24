@@ -17,13 +17,18 @@ export default function PEForm() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [userHasPeCourse, setUserHasPeCourse] = useState(false);
   const [userBatch, setUserBatch] = useState(null);
+  const [branchMissing, setBranchMissing] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchBranchFromBackend = async () => {
       try {
         const response = await axios.get('/api/v1/users/fetchBranch');
-        if (response.data.success && response.data.data) {
+        if (response.data.success) {
+          if (!response.data.data) {
+            setBranchMissing(true);
+            return;
+          }
           const userBranch = response.data.data.toLowerCase();
           
           // Fetch user batch
@@ -184,6 +189,18 @@ export default function PEForm() {
   };
 
   const isDisabled = userHasPeCourse || isSubmitted;
+
+  if (branchMissing) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="bg-white shadow-lg rounded-2xl w-full max-w-2xl p-8">
+          <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-6">Complete your profile</h2>
+          <h2 className="block text-sm font-medium text-gray-700">Add your branch name</h2>
+          <h2 className="block text-sm font-medium text-gray-700">Click on top right icon then edit</h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">

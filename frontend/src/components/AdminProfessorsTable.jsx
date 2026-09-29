@@ -10,16 +10,19 @@ export default function ProfessorTable() {
     idNumber: "",
     fullName: "",
   });
+  const [batch, setBatch] = useState("");
 
   useEffect(() => {
     fetchProfessors();
-  }, []);
+  }, [batch]);
 
   const fetchProfessors = async () => {
     try {
-      const response = await axios.get("/api/v1/prof/getProf");
+      const params = batch ? { batch } : {};
+      const response = await axios.get("/api/v1/prof/getProf", { params });
       setProfessors(response.data.message);
       setFilteredProfessors(response.data.message);
+      setFilters({ idNumber: "", fullName: "" });
     } catch (error) {
       toast.error("Failed to load professors");
     }
@@ -53,14 +56,14 @@ export default function ProfessorTable() {
       <h1 className="text-center text-3xl font-bold mb-8">
         PROFESSOR LIST
       </h1>
-      <div className="mb-4">
+      <div className="mb-4 flex flex-wrap gap-2 items-center">
         <input
           type="text"
           name="idNumber"
           placeholder="Filter by ID Number"
           value={filters.idNumber}
           onChange={handleFilterChange}
-          className="mr-2 p-2 border border-gray-300 rounded"
+          className="p-2 border border-gray-300 rounded"
         />
         <input
           type="text"
@@ -68,8 +71,20 @@ export default function ProfessorTable() {
           placeholder="Filter by Full Name"
           value={filters.fullName}
           onChange={handleFilterChange}
-          className="mr-2 p-2 border border-gray-300 rounded"
+          className="p-2 border border-gray-300 rounded"
         />
+        <select
+          value={batch}
+          onChange={(e) => setBatch(e.target.value)}
+          className="p-2 border border-gray-300 rounded"
+        >
+          <option value="">All Batches</option>
+          {[22, 23, 24, 25, 26].map((b) => (
+            <option key={b} value={b}>
+              Batch {b}
+            </option>
+          ))}
+        </select>
       </div>
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-black">
@@ -90,10 +105,16 @@ export default function ProfessorTable() {
               Email
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-              Minor Project Limit
+              Minor Project
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-              Minor Project Current Count
+              Major Project
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                SUMMER INTERNSHIP
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              Project 1
             </th>
           </tr>
         </thead>
@@ -116,10 +137,16 @@ export default function ProfessorTable() {
                 {prof.email}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {prof.limits?.minor_project}
+                {prof.currentCount?.minor_project}/{prof.limits?.minor_project}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {prof.currentCount?.minor_project}
+                {prof.currentCount?.major_project}/{prof.limits?.major_project}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {prof.currentCount?.summer_training}/{prof.limits?.summer_training}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {prof.currentCount?.project1}/{prof.limits?.project1}
               </td>
             </tr>
           ))}

@@ -1,5 +1,6 @@
 import { Internship } from "../models/internship.model.js";
 import { User } from "../models/user.model.js";
+import { Group } from "../models/group.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -63,7 +64,6 @@ const addInternship = asyncHandler(async (req, res) => {
     startDate,
     endDate,
     doc: docUrl,
-    verified: false,
   });
 
   if (!createdInternship) {
@@ -108,7 +108,8 @@ const addInternDocs = asyncHandler(async (req, res) => {
 });
 
 const getAllInternshipData = asyncHandler(async (req, res) => {
-  const { batch } = req.query; // Extract batch from request body
+  const { batch } = req.query;
+  const admin = req.admin;
 
   if (!batch) {
     return res
@@ -116,51 +117,107 @@ const getAllInternshipData = asyncHandler(async (req, res) => {
       .json(new ApiResponse(400, null, "Batch is required."));
   }
 
-  const response = await Internship.find({ verified: false }).populate({
+  const batchNumber = Number(batch);
+  if (Number.isNaN(batchNumber)) {
+    throw new ApiError(400, "Invalid batch query parameter");
+  }
+
+  // For batch admins, enforce access only to assigned batches
+  if (admin && admin.role !== "master" && admin.assignedBatches?.length > 0) {
+    if (!admin.assignedBatches.includes(batchNumber)) {
+      throw new ApiError(
+        403,
+        `Access forbidden: You don't have access to batch K${batchNumber}`
+      );
+    }
+  }
+  const response = await Internship.find().populate({
     path: "student",
-    select: "batch", // Include batch in selection
-    match: { batch }, // Filter by batch
+    select: "batch fullName rollNumber email section branch mobileNumber",
+    match: { batch: batchNumber },
   });
 
   const filteredResponse = response.filter((intern) => intern.student !== null);
+
+  const populatedResponse = await Promise.all(
+    filteredResponse.map(async (intern) => {
+      const group = await Group.findOne({ members: intern.student._id, type: "summer" });
+      const internObj = intern.toObject();
+      internObj.group = {
+        projectTitle: group?.projectTitle || "",
+        groupId: group?.groupId || "",
+      };
+      return internObj;
+    })
+  );
 
   res
     .status(200)
     .json(
       new ApiResponse(
         200,
-        { response: filteredResponse },
+        { response: populatedResponse },
         "All Intern Data fetched"
       )
     );
 });
 
 const getAllVerifiedInternshipData = asyncHandler(async (req, res) => {
-  const { batch } = req.query; // Extract batch from request body
+  const { batch } = req.query;
+  const admin = req.admin;
 
+  // Validate batch parameter
   if (!batch) {
     return res
       .status(400)
       .json(new ApiResponse(400, null, "Batch is required."));
   }
 
+  const batchNumber = Number(batch);
+  if (Number.isNaN(batchNumber)) {
+    throw new ApiError(400, "Invalid batch query parameter");
+  }
+
+  // For batch admins, enforce access only to assigned batches
+  if (admin && admin.role !== "master" && admin.assignedBatches?.length > 0) {
+    if (!admin.assignedBatches.includes(batchNumber)) {
+      throw new ApiError(
+        403,
+        `Access forbidden: You don't have access to batch K${batchNumber}`
+      );
+    }
+  }
+
   const response = await Internship.find()
     .populate({
       path: "student",
-      select: "batch", // Include batch in selection
-      match: { batch }, // Filter by batch
+      select:
+        "batch fullName rollNumber email section branch mobileNumber marks",
+      match: { batch: batchNumber },
     })
     .populate("company")
     .populate("mentor");
 
   const filteredResponse = response.filter((intern) => intern.student !== null);
 
+  const populatedResponse = await Promise.all(
+    filteredResponse.map(async (intern) => {
+      const group = await Group.findOne({ members: intern.student._id, type: "summer" });
+      const internObj = intern.toObject();
+      internObj.group = {
+        projectTitle: group?.projectTitle || "",
+        groupId: group?.groupId || "",
+      };
+      return internObj;
+    })
+  );
+
   res
     .status(200)
     .json(
       new ApiResponse(
         200,
-        { response: filteredResponse },
+        { response: populatedResponse },
         "All Verified Intern Data fetched"
       )
     );
@@ -169,8 +226,7 @@ const getAllVerifiedInternshipData = asyncHandler(async (req, res) => {
 const getInternshipDataforStudent = asyncHandler(async (req, res) => {
   const { student_id } = req.body;
   const response = await Internship.find(
-    { student: student_id },
-    { verfied: true }
+    { student: student_id }
   )
     .populate("student")
     .populate("company");
@@ -182,7 +238,6 @@ const getInternshipDataforStudent = asyncHandler(async (req, res) => {
 const verifyIntern = asyncHandler(async (req, res) => {
   const { internid } = req.body;
   const intern = await Internship.findById({ _id: internid });
-  intern.verified = true;
   await intern.save();
   res.status(200).json(new ApiResponse(200, "Verified Successfully"));
 });

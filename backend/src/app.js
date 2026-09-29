@@ -2,6 +2,11 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 const app = express();
+import { User } from "./models/user.model.js";
+import { Company } from "./models/company.model.js";
+import { Professor } from "./models/professor.model.js";
+
+
 
 app.use(
   cors({
@@ -32,10 +37,13 @@ import userRouter from "./routes/user.routes.js";
 app.use("/api/v1/users", userRouter);
 
 import peCourseRouter from "./routes/peCourse.routes.js";
-app.use("/api/v1/pe", (req, res, next) => {
-  next();
-}, peCourseRouter);
-
+app.use(
+  "/api/v1/pe",
+  (req, res, next) => {
+    next();
+  },
+  peCourseRouter
+);
 
 import adminRouter from "./routes/admin.routes.js";
 app.use("/api/v1/admin", adminRouter);
@@ -75,16 +83,23 @@ app.use("/api/v1/major", majorRouter);
 import bugRouter from "./routes/bugtracker.routes.js";
 app.use("/api/v1/tracker", bugRouter);
 
+import project1Router from "./routes/project1.routes.js";
+app.use("/api/v1/project1", project1Router);
+
 import chatRouter from "./routes/chat.routes.js";
 app.use("/api/v1/chat", chatRouter);
 
 // Import error handlers
-import { errorHandler, notFoundHandler } from "./middlewares/errorHandler.middleware.js";
+import {
+  errorHandler,
+  notFoundHandler,
+} from "./middlewares/errorHandler.middleware.js";
 
 // Handle 404 routes - must be after all other routes
 app.use(notFoundHandler);
 
 // Global error handler - must be the last middleware
-app.use(errorHandler);
+// Temporary debug test for companyInterview
+
 
 export { app };

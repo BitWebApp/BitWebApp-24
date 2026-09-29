@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
 
 const handleError = (error, defaultMessage) => {
-  let message = error.response.data.message;
+  let message = error.response?.data?.message || defaultMessage || "An error occurred";
   toast.error(message);
 };
 
@@ -15,12 +15,40 @@ const GroupManagement = () => {
   const [typeofSummer, setTypeofSummer] = useState("");
   const [company, setCompany] = useState([]);
   const [org, setOrg] = useState("");
+  const [location, setLocation] = useState(""); // new location state
   const [activeTab, setActiveTab] = useState("group");
+  const [joinCode, setJoinCode] = useState("");
+  const [showChangeType, setShowChangeType] = useState(false);
+  const [newType, setNewType] = useState("");
+  const [newLocation, setNewLocation] = useState("");
+  const [newOrg, setNewOrg] = useState("");
+  
+  const [pendingRequest, setPendingRequest] = useState(null);
+  const [memberCompanies, setMemberCompanies] = useState([]);
+  const [memberAssignments, setMemberAssignments] = useState([]);
+  const [newLeaderId, setNewLeaderId] = useState("");
+  const currentUser = JSON.parse(localStorage.getItem('user')) || {};
+  const currentUserId = currentUser._id;
+
+  const fetchTypeChangeStatus = async () => {
+    try {
+      const response = await axios.get("/api/v1/group/get-summer-type-change-status");
+      const requests = response.data?.data?.typeChangeRequests || [];
+      const pending = requests.find((req) => 
+        req.status === "pending" && 
+        (req.initiatedBy === currentUserId || req.initiatedBy?._id === currentUserId)
+      );
+      setPendingRequest(pending || null);
+    } catch (error) {
+      // ignore
+    }
+  };
 
   useEffect(() => {
     fetchCompanies();
     fetchGroup();
     fetchRequests();
+    fetchTypeChangeStatus();
   }, []);
 
   const fetchCompanies = async () => {
@@ -59,25 +87,33 @@ const GroupManagement = () => {
       return toast.error(
         "Organisation Name is required for industrial internship"
       );
+    if (typeofSummer === "research" && !location)
+      return toast.error("Please specify if the research is inside or outside BIT");
 
     setLoading(true);
     try {
       const response = await axios.post("/api/v1/group/create-group", {
         typeofSummer,
         org,
+        location: typeofSummer === "research" ? location : "outside_bit" // industrial is always outside
       });
       setGroup(response.data.data);
-      toast.success("Group created successfully");
+      if (typeofSummer === "research" && location === "outside_bit") {
+        toast.success("Outside BIT research group created. Max size is 1.");
+      } else {
+        toast.success("Group created successfully");
+      }
       fetchGroup();
     } catch (error) {
-      let errorMessage = error.response.data.message;
-      toast.error(errorMessage || "Failed to create group");
-      // handleError(error, "Failed to create group");
+      handleError(error, "Failed to create group");
     }
     setLoading(false);
   };
 
   const addMember = async () => {
+    if (group?.typeOfSummer === "research" && group?.location === "outside_bit") {
+      return toast.error("Outside BIT research groups can only have 1 member.");
+    }
     if (!rollNumber) return toast.error("Please enter a roll number");
     try {
       await axios.post("/api/v1/group/add-member", {
@@ -88,9 +124,7 @@ const GroupManagement = () => {
       setRollNumber("");
       fetchGroup();
     } catch (error) {
-      let errorMessage = error.response.data.message;
-      toast.error(errorMessage || "Failed to add member");
-      // handleError(error, "Failed to add member");
+      handleError(error, "Failed to add member");
     }
   };
 
@@ -103,9 +137,7 @@ const GroupManagement = () => {
       toast.success("Member removed successfully");
       fetchGroup();
     } catch (error) {
-      let errorMessage = error.response.data.message;
-      toast.error(errorMessage || "Failed to remove member");
-      //handleError(error, "Failed to remove member");
+      handleError(error, "Failed to remove member");
     }
   };
 
@@ -116,10 +148,114 @@ const GroupManagement = () => {
       fetchRequests();
       fetchGroup();
     } catch (error) {
-      let errorMessage = error.response.data.message;
-      toast.error(errorMessage || "Failed to accept request");
-      //handleError(error, "Failed to accept request");
+      handleError(error, "Failed to accept request");
     }
+  };
+
+  const leaveGroup = async () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to leave this group? If you are the only member, the group will be deleted."
+      )
+    )
+      return;
+    setLoading(true);
+    try {
+      await axios.post("/api/v1/group/leave-group");
+      toast.success("Left group successfully");
+      setGroup(null);
+      fetchGroup();
+    } catch (error) {
+      handleError(error, "Failed to leave group");
+    }
+    setLoading(false);
+  };
+
+  const joinByCode = async () => {
+    const code = joinCode.trim().toUpperCase();
+    if (!code) return toast.error("Please enter a group code");
+    setLoading(true);
+    try {
+      await axios.post("/api/v1/group/join-by-code", { groupId: code });
+      toast.success("Joined group successfully");
+      setJoinCode("");
+      fetchGroup();
+    } catch (error) {
+      handleError(error, "Failed to join group");
+    }
+    setLoading(false);
+  };
+
+  const openChangeType = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get("/api/v1/group/get-member-companies");
+      const companies = response.data?.data || [];
+      setMemberCompanies(companies);
+      
+      if (group?.typeOfSummer === "research") {
+        setNewType("industrial");
+      } else {
+        setNewType("industrial"); // Default to industrial to allow company change
+      }
+      
+      setNewLocation(group?.location || "");
+      setNewOrg(group?.org?._id || group?.org || "");
+      setNewLeaderId("");
+      setShowChangeType(true);
+    } catch (error) {
+      handleError(error, "Failed to load member companies");
+    }
+    setLoading(false);
+  };
+
+  const submitChangeType = async () => {
+    setLoading(true);
+    try {
+      if (newType === "research") {
+        if (!newLocation) {
+          toast.error("Select a location for research internship");
+          setLoading(false);
+          return;
+        }
+        await axios.post("/api/v1/group/request-summer-type-change", {
+          requestedType: "research",
+          location: newLocation
+        });
+      } else {
+        if (!newOrg) {
+          toast.error("Please select a company for your industrial internship");
+          setLoading(false);
+          return;
+        }
+
+        const leaderIdStr = group?.leader?._id || group?.leader;
+        let finalNewLeaderId = undefined;
+        
+        // If the current user is the leader and there are other members in the group
+        if (currentUserId === leaderIdStr && group.members.length > 1) {
+          if (!newLeaderId) {
+            toast.error("Please select a new group leader since you are leaving");
+            setLoading(false);
+            return;
+          }
+          finalNewLeaderId = newLeaderId;
+        }
+
+        await axios.post("/api/v1/group/request-summer-type-change", {
+          requestedType: "industrial",
+          org: newOrg,
+          newLeader: finalNewLeaderId
+        });
+      }
+      toast.success("Type change request submitted for approval");
+      setShowChangeType(false);
+      fetchGroup();
+      fetchTypeChangeStatus();
+    } catch (error) {
+      handleError(error, "Failed to submit type change request");
+    }
+    setLoading(false);
   };
 
   return (
@@ -249,6 +385,31 @@ const GroupManagement = () => {
                 <>
                   {group ? (
                     <div className="space-y-6">
+                      <div className="flex flex-wrap gap-2 justify-end">
+                        {pendingRequest ? (
+                          <span className="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg shadow-sm text-sm font-medium border border-yellow-200">
+                            Type Change Pending Approval
+                          </span>
+                        ) : !group?.summerAllocatedProf ? (
+                          <span className="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg shadow-sm text-sm border border-gray-200">
+                            Mentor Allocation Required to Change Type
+                          </span>
+                        ) : (
+                          <button
+                            onClick={openChangeType}
+                            className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all shadow-sm text-sm"
+                          >
+                            Change Internship Type
+                          </button>
+                        )}
+                        <button
+                          onClick={leaveGroup}
+                          disabled={loading}
+                          className="px-4 py-2 bg-gradient-to-r from-rose-500 to-rose-600 text-white rounded-lg hover:from-rose-600 hover:to-rose-700 transition-all shadow-sm text-sm disabled:opacity-60"
+                        >
+                          Leave Group
+                        </button>
+                      </div>
                       <div className="grid md:grid-cols-3 gap-4">
                         <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
                           <h3 className="text-sm font-medium text-blue-800">
@@ -285,30 +446,32 @@ const GroupManagement = () => {
                         </div>
                       </div>
 
-                      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                        <div className="p-4 border-b border-gray-200 bg-gray-50">
-                          <h3 className="font-medium text-gray-800">
-                            Add New Member
-                          </h3>
-                        </div>
-                        <div className="p-4">
-                          <div className="flex flex-col sm:flex-row gap-2">
-                            <input
-                              type="text"
-                              value={rollNumber}
-                              onChange={(e) => setRollNumber(e.target.value)}
-                              placeholder="Enter Roll Number"
-                              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                            <button
-                              onClick={addMember}
-                              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm"
-                            >
-                              Send Request
-                            </button>
+                      {(group?.typeOfSummer !== "research" || group?.location !== "outside_bit") && (
+                        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                          <div className="p-4 border-b border-gray-200 bg-gray-50">
+                            <h3 className="font-medium text-gray-800">
+                              Add New Member
+                            </h3>
+                          </div>
+                          <div className="p-4">
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <input
+                                type="text"
+                                value={rollNumber}
+                                onChange={(e) => setRollNumber(e.target.value)}
+                                placeholder="Enter Roll Number"
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                              <button
+                                onClick={addMember}
+                                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm"
+                              >
+                                Send Request
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
 
                       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                         <div className="p-4 border-b border-gray-200 bg-gray-50">
@@ -357,7 +520,7 @@ const GroupManagement = () => {
                                       <div className="flex items-center">
                                         <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
                                           <span className="text-blue-600 font-medium">
-                                            {member.fullName
+                                            {(member?.fullName || "Member")
                                               .split(" ")
                                               .map((n) => n[0])
                                               .join("")
@@ -366,7 +529,7 @@ const GroupManagement = () => {
                                         </div>
                                         <div className="ml-4">
                                           <div className="text-sm font-medium text-gray-900">
-                                            {member.fullName}
+                                            {member?.fullName || "Member"}
                                           </div>
                                         </div>
                                       </div>
@@ -469,6 +632,27 @@ const GroupManagement = () => {
                             </select>
                           </div>
 
+                          {typeofSummer === "research" && (
+                            <div>
+                              <label
+                                htmlFor="location-type"
+                                className="block text-sm font-medium text-gray-700 mb-1"
+                              >
+                                Location
+                              </label>
+                              <select
+                                id="location-type"
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                                className="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              >
+                                <option value="">Select Location</option>
+                                <option value="inside_bit">Inside BIT</option>
+                                <option value="outside_bit">Outside BIT (Max 1 Member)</option>
+                              </select>
+                            </div>
+                          )}
+
                           {typeofSummer === "industrial" && (
                             <div>
                               <label
@@ -492,18 +676,49 @@ const GroupManagement = () => {
                             </div>
                           )}
 
+                          <div className="border-t border-gray-200 pt-4">
+                            <label
+                              htmlFor="join-code"
+                              className="block text-sm font-medium text-gray-700 mb-1"
+                            >
+                              Or join an existing group by code
+                            </label>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <input
+                                id="join-code"
+                                type="text"
+                                value={joinCode}
+                                onChange={(e) =>
+                                  setJoinCode(e.target.value.toUpperCase())
+                                }
+                                placeholder="6-character Group ID"
+                                maxLength={6}
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg uppercase tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                              />
+                              <button
+                                onClick={joinByCode}
+                                disabled={loading || !joinCode.trim()}
+                                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-sm disabled:opacity-60"
+                              >
+                                Join Group
+                              </button>
+                            </div>
+                          </div>
+
                           <div className="pt-2">
                             <button
                               onClick={createGroup}
                               disabled={
                                 loading ||
                                 !typeofSummer ||
-                                (typeofSummer === "industrial" && !org)
+                                (typeofSummer === "industrial" && !org) ||
+                                (typeofSummer === "research" && !location)
                               }
                               className={`w-full py-3 px-4 rounded-lg font-medium text-white shadow-md ${
                                 loading ||
                                 !typeofSummer ||
-                                (typeofSummer === "industrial" && !org)
+                                (typeofSummer === "industrial" && !org) ||
+                                (typeofSummer === "research" && !location)
                                   ? "bg-gray-400 cursor-not-allowed"
                                   : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
                               }`}
@@ -547,6 +762,117 @@ const GroupManagement = () => {
           </div>
         </div>
       </div>
+
+      {showChangeType && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 m-auto">
+            <h2 className="text-xl font-bold text-gray-800 mb-1">
+              Request Internship Type Change
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              This request requires faculty approval.
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Requested Internship Type
+                </label>
+                <select
+                  value={newType}
+                  onChange={(e) => setNewType(e.target.value)}
+                  className="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="research">Research</option>
+                  <option value="industrial">Industrial</option>
+                </select>
+              </div>
+
+              {newType === "research" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Location
+                  </label>
+                  <select
+                    value={newLocation}
+                    onChange={(e) => setNewLocation(e.target.value)}
+                    className="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select Location</option>
+                    <option value="inside_bit">Inside BIT</option>
+                    <option value="outside_bit">
+                      Outside BIT
+                    </option>
+                  </select>
+                </div>
+              )}
+
+              {newType === "industrial" && (
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Company
+                  </label>
+                  <select
+                    value={newOrg}
+                    onChange={(e) => setNewOrg(e.target.value)}
+                    className="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select Company</option>
+                    {memberCompanies
+                      .find((mc) => mc._id === currentUserId)
+                      ?.companies.map((c) => (
+                        <option key={c._id} value={c._id}>
+                          {c.companyName}
+                        </option>
+                      ))}
+                  </select>
+
+                  {/* New Leader Selection */}
+                  {currentUserId === (group?.leader?._id || group?.leader) &&
+                    group?.members?.length > 1 && (
+                      <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                        <label className="block text-sm font-medium text-blue-800 mb-1">
+                          Select New Group Leader
+                        </label>
+                        <p className="text-xs text-blue-600 mb-2">
+                          Since you are leaving the research group, please appoint a new leader for the remaining members.
+                        </p>
+                        <select
+                          value={newLeaderId}
+                          onChange={(e) => setNewLeaderId(e.target.value)}
+                          className="block w-full border border-gray-300 rounded-md text-sm shadow-sm focus:ring-blue-500 focus:border-blue-500 py-2 px-3"
+                        >
+                          <option value="">Select new leader</option>
+                          {memberCompanies
+                            .filter((mc) => mc._id !== currentUserId)
+                            .map((mc) => (
+                              <option key={mc._id} value={mc._id}>
+                                {mc.fullName} ({mc.rollNumber})
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    )}
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={() => setShowChangeType(false)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitChangeType}
+                disabled={loading}
+                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-lg hover:from-blue-700 hover:to-indigo-800 disabled:opacity-60"
+              >
+                {loading ? "Submitting..." : "Submit Request"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

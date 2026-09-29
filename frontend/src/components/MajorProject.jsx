@@ -12,6 +12,8 @@ const handleError = (error, defaultMessage) => {
 };
 
 const MajorProject = () => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userLoading, setUserLoading] = useState(true);
   const [group, setGroup] = useState(null);
   const [professors, setProfessors] = useState([]);
   const [filteredProfessors, setFilteredProfessors] = useState([]);
@@ -25,14 +27,19 @@ const MajorProject = () => {
   const [discussionLogs, setDiscussionLogs] = useState(null);
   const [showLogs, setShowLogs] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [isLeader, setIsLeader] = useState(false);
 
   const fetchGroup = async () => {
     setLoading(true);
     try {
       const response = await axios.get("/api/v1/major/get-group");
       setGroup(response.data.data.groupId);
+      if (currentUser && response.data.data.leader) {
+        setIsLeader(response.data.data.leader._id === currentUser._id || response.data.data.leader === currentUser._id);
+      }
     } catch (error) {
       setGroup(null);
+      setIsLeader(false);
     }
     setLoading(false);
   };
@@ -40,10 +47,13 @@ const MajorProject = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [allProfsResponse, appliedProfsResponse] = await Promise.all([
-        axios.get("/api/v1/prof/getProf"),
-        axios.get("/api/v1/major/get-app-profs"),
-      ]);
+      const allProfsResponse = await axios.get("/api/v1/prof/getProf");
+      let appliedProfsResponse = null;
+      try {
+        appliedProfsResponse = await axios.get("/api/v1/major/get-app-profs");
+      } catch (err) {
+        // Silently ignore if not in group
+      }
       const { ismajorAllocated, prof, majorAppliedProfs, denied } =
         appliedProfsResponse?.data?.data || {};
 
@@ -61,22 +71,48 @@ const MajorProject = () => {
           return seatsB - seatsA;
         });
 
-      setAppliedProfessors(majorAppliedProfs);
+      setAppliedProfessors(majorAppliedProfs || []);
       setDenied(denied || []);
       if (ismajorAllocated && prof) setAllocatedProf(prof);
       setProfessors(sortedProfessors);
-      setFilteredProfessors(sortedProfessors);
       setLoading(false);
     } catch (error) {
       setLoading(false);
-      handleError(error);
+      if (error?.response?.status !== 409) {
+        handleError(error);
+      }
+    }
+  };
+  const fetchUser = async () => {
+    setUserLoading(true);
+    try {
+      const response = await axios.get("/api/v1/users/get-user");
+      setCurrentUser(response.data.data);
+    } catch (error) {
+      setCurrentUser(null);
+    } finally {
+      setUserLoading(false);
     }
   };
 
   useEffect(() => {
+    fetchUser();
     fetchData();
-    fetchGroup();
   }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchGroup();
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (currentUser && !currentUser.isMajorAllocated && !allocatedProf && currentUser.batch !== 22) {
+      toast.error(`Registration for Major Project is open for batch K22 only. Process not started for batch K${currentUser.batch}.`, {
+        id: "major-batch-error-toast",
+      });
+    }
+  }, [currentUser, allocatedProf]);
 
   const handleViewDetails = async () => {
     if (allocatedProf) {
@@ -109,11 +145,17 @@ const MajorProject = () => {
 
     try {
       setLoading(true);
-      await axios.post("/api/v1/major/apply-faculty", {
+      const applyResponse = await axios.post("/api/v1/major/apply-faculty", {
         facultyId: selectedProf,
       });
+      
+      // Update applied professors immediately from the response
+      const updatedGroup = applyResponse.data.data;
+      if (updatedGroup && updatedGroup.majorAppliedProfs) {
+        setAppliedProfessors(updatedGroup.majorAppliedProfs);
+      }
+      
       setLoading(false);
-      await fetchData();
       Swal.fire({
         icon: "success",
         title: "Success",
@@ -133,6 +175,81 @@ const MajorProject = () => {
     }
   };
 
+  const handleWithdraw = async (facultyId, profName) => {
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Confirm Withdrawal",
+      text: `Are you sure you want to withdraw your application to ${profName}?`,
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, withdraw",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      setLoading(true);
+      const withdrawResponse = await axios.post("/api/v1/major/withdraw-faculty", {
+        facultyId,
+      });
+
+      // Update applied professors immediately from the response
+      const updatedGroup = withdrawResponse.data.data;
+      if (updatedGroup && updatedGroup.majorAppliedProfs) {
+        setAppliedProfessors(updatedGroup.majorAppliedProfs);
+      }
+
+      setLoading(false);
+      Swal.fire({
+        icon: "success",
+        title: "Withdrawn",
+        text: "Application withdrawn successfully",
+        confirmButtonColor: "#10b981",
+      });
+    } catch (error) {
+      setLoading(false);
+      let errorMessage = error.response?.data?.message;
+      Swal.fire({
+        icon: "error",
+        title: "Withdrawal Failed",
+        text: errorMessage || "Failed to withdraw application. Try again.",
+        confirmButtonColor: "#ef4444",
+      });
+    }
+  };
+
+  const handleWithdrawPreferences = async () => {
+    Swal.fire({
+      title: "Withdraw All Preferences?",
+      text: "This will cancel all your pending applications.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, Withdraw All",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          setLoading(true);
+          await axios.post("/api/v1/major/withdraw-preferences");
+          setLoading(false);
+          await fetchData();
+          Swal.fire({
+            icon: "success",
+            title: "Withdrawn",
+            text: "All your preferences have been successfully withdrawn.",
+            confirmButtonColor: "#10b981",
+          });
+        } catch (error) {
+          setLoading(false);
+          handleError(error, "Failed to withdraw preferences");
+        }
+      }
+    });
+  };
+
   const handleSearchAndFilter = () => {
     let filtered = professors;
 
@@ -147,30 +264,91 @@ const MajorProject = () => {
     }
 
     // Apply availability filter
-    if (filterOption !== "all") {
+    if (filterOption === "available") {
       filtered = filtered.filter((prof) => {
         const availableSeats =
           prof.limits.major_project - prof.currentCount.major_project;
-        return filterOption === "available"
-          ? availableSeats > 0
-          : availableSeats === 0;
+        return availableSeats > 0;
+      });
+    } else if (filterOption === "applied") {
+      filtered = filtered.filter((prof) => {
+        const isApplied = appliedProfessors.some((appliedProfId) => appliedProfId === prof._id);
+        return isApplied;
+      });
+      
+      // Sort by preference order (lowest preference number first)
+      filtered.sort((a, b) => {
+        const prefA = appliedProfessors.findIndex((id) => id === a._id);
+        const prefB = appliedProfessors.findIndex((id) => id === b._id);
+        return prefA - prefB;
       });
     }
 
     setFilteredProfessors(filtered);
   };
 
-  // Call this function whenever the search query or filter option changes
   useEffect(() => {
     handleSearchAndFilter();
-  }, [searchQuery, filterOption, professors]);
+  }, [searchQuery, filterOption, professors, appliedProfessors]);
+
+  if (userLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="flex flex-col items-center">
+          <svg className="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span className="text-gray-700 font-medium">Loading User Profile...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentUser && !currentUser.isMajorAllocated && !allocatedProf && currentUser.batch !== 22) {
+    return (
+      <>
+        <Toaster position="top-right" />
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8 flex items-center justify-center">
+          <div className="max-w-md w-full bg-white/85 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-8 text-center transition-all hover:shadow-2xl">
+            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6 text-red-600 animate-pulse">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold mb-4 text-gray-900">
+              Process Not Started
+            </h1>
+            <p className="text-gray-600 mb-6 leading-relaxed">
+              Registration for Major Project is currently open for batch <strong className="text-blue-600 font-semibold">K22</strong> only.
+            </p>
+            <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-5 mb-2 inline-block w-full border border-gray-200/60 shadow-inner">
+              <p className="text-sm text-gray-700">
+                Your Batch: <span className="font-bold text-gray-900 bg-gray-200 px-2 py-0.5 rounded">K{currentUser.batch}</span>
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
+                Process has not been started for your batch yet.
+              </p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
       <Toaster position="top-right" />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
-          {allocatedProf ? (
+          {loading ? (
+            <div className="text-center p-8 text-gray-500">Loading...</div>
+          ) : !group ? (
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-8 text-center">
+              <h1 className="text-2xl font-bold mb-4 text-gray-900">Group Not Created</h1>
+              <p className="text-gray-600 mb-6">You have not created a major project group yet. Please create a group first to apply to professors.</p>
+            </div>
+          ) : allocatedProf ? (
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white">
                 <h1 className="text-2xl md:text-3xl font-bold">
@@ -388,7 +566,7 @@ const MajorProject = () => {
                             scope="col"
                             className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
-                            Select
+                            Action
                           </th>
                         </tr>
                       </thead>
@@ -401,14 +579,12 @@ const MajorProject = () => {
                             (id) => id === prof._id
                           );
                           const isApplied = appliedIndex !== -1;
-                          console.log(prof._id)
                           const isDenied = denied.includes(prof._id);
                           const isDisabled =
                             isApplied ||
                             allocatedProf?._id === prof._id ||
-                            seatsAvailable === 0 ||
+                            seatsAvailable <= 0 ||
                             isDenied;
-                          console.log(isDisabled)
                           const statusConfig = {
                             denied: {
                               text: "Denied",
@@ -443,7 +619,7 @@ const MajorProject = () => {
                           let status;
                           if (isDenied) status = statusConfig.denied;
                           else if (isApplied) status = statusConfig.applied;
-                          else if (seatsAvailable === 0)
+                          else if (seatsAvailable <= 0)
                             status = statusConfig.full;
                           else if (seatsAvailable == 1)
                             status = statusConfig.intern;
@@ -485,7 +661,7 @@ const MajorProject = () => {
                                   <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
                                     <div
                                       className={`h-2.5 rounded-full ${
-                                        seatsAvailable === 0
+                                        seatsAvailable <= 0
                                           ? "bg-red-500"
                                           : seatsAvailable < 3
                                           ? "bg-yellow-500"
@@ -514,18 +690,27 @@ const MajorProject = () => {
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <input
-                                  type="radio"
-                                  name="professor"
-                                  disabled={isDisabled}
-                                  checked={selectedProf === prof._id}
-                                  onChange={() => setSelectedProf(prof._id)}
-                                  className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 ${
-                                    isDisabled
-                                      ? "opacity-50 cursor-not-allowed"
-                                      : "cursor-pointer"
-                                  }`}
-                                />
+                                {isApplied && !allocatedProf ? (
+                                  <button
+                                    onClick={() => handleWithdraw(prof._id, prof.fullName)}
+                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                                  >
+                                    Withdraw
+                                  </button>
+                                ) : (
+                                  <input
+                                    type="radio"
+                                    name="professor"
+                                    disabled={isDisabled}
+                                    checked={selectedProf === prof._id}
+                                    onChange={() => setSelectedProf(prof._id)}
+                                    className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 ${
+                                      isDisabled
+                                        ? "opacity-50 cursor-not-allowed"
+                                        : "cursor-pointer"
+                                    }`}
+                                  />
+                                )}
                               </td>
                             </tr>
                           );
@@ -561,45 +746,29 @@ const MajorProject = () => {
                   </div>
                 )}
 
-                {/* Submit Button */}
-                <div className="mt-8">
+                {/* Submit Button & Withdraw */}
+                <div className="mt-8 flex justify-between items-center">
                   <button
                     onClick={handleSubmit}
                     disabled={loading || !selectedProf}
-                    className={`w-full py-3 px-4 rounded-lg font-medium text-white shadow-md transition-all ${
+                    className={`px-8 py-3 rounded-lg font-semibold text-white shadow-md transition-all ${
                       loading || !selectedProf
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
+                        ? "bg-gray-400 cursor-not-allowed opacity-70"
+                        : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 hover:shadow-lg"
                     }`}
                   >
-                    {loading ? (
-                      <span className="flex items-center justify-center">
-                        <svg
-                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        Applying...
-                      </span>
-                    ) : (
-                      "Submit Application"
-                    )}
+                    {loading ? "Processing..." : "Submit Application"}
                   </button>
+
+                  {appliedProfessors.length > 0 && !allocatedProf && isLeader && (
+                    <button
+                      onClick={handleWithdrawPreferences}
+                      disabled={loading}
+                      className="px-6 py-3 rounded-lg font-semibold text-orange-600 bg-orange-100 hover:bg-orange-200 border border-orange-200 transition-all ml-4"
+                    >
+                      {loading ? "Processing..." : "Withdraw All Preferences"}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

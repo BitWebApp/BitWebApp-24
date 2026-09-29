@@ -3,6 +3,32 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
+
+const selfAssignCompany = asyncHandler(async (req, res) => {
+  const { companyId } = req.body;
+  const user = req.user;
+  
+  try {
+    const company = await Company.findById(companyId);
+    if (!company) {
+      throw new ApiError(404, "Company not found");
+    }
+
+    const isAlreadyAssigned = user.companyInterview.some(
+      (id) => id.toString() === companyId
+    );
+
+    if (!isAlreadyAssigned) {
+      user.companyInterview.push(companyId);
+      await user.save();
+    }
+
+    return res.status(200).json(new ApiResponse(200, user, "Company assigned successfully"));
+  } catch (err) {
+    throw new ApiError(500, err.message || "Something went wrong");
+  }
+});
+
 const addCompany = asyncHandler(async (req, res) => {
   const { companyName } = req.body;
   if (!companyName || companyName.trim() === "") {
@@ -50,28 +76,38 @@ const getAllCompanies = asyncHandler(async (req, res) => {
 
 const assignCompany = asyncHandler(async (req, res) => {
   const { companyId, rollNumbers } = req.body;
+
   try {
     const company = await Company.findById(companyId);
     if (!company) {
       throw new ApiError(404, "Company not found");
     }
+
     const users = await User.find({ rollNumber: { $in: rollNumbers } });
-    if (!users) {
+
+    if (users.length === 0) {
       throw new ApiError(404, "Users not found");
     }
-    users.forEach(async (user) => {
-      if (!user.companyInterview.includes(companyId)) {
-        user.companyInterview.push(companyId);
-        await user.save();
-      }
-    });
+
+    await Promise.all(
+      users.map(async (user) => {
+        const isAlreadyAssigned = user.companyInterview.some(
+          (id) => id.toString() === companyId
+        );
+        if (!isAlreadyAssigned) {
+          user.companyInterview.push(companyId);
+          await user.save();
+        }
+      })
+    );
+
     return res
       .status(200)
       .json(
         new ApiResponse(200, users, "Company assigned to users successfully")
       );
   } catch (err) {
-    throw new ApiError(500, "Something went wrong");
+    throw new ApiError(500, err.message || "Something went wrong");
   }
 });
 
@@ -90,4 +126,4 @@ const getUserCompanies = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, companies, "Companies fetched successfully"));
 });
 
-export { addCompany, assignCompany, getAllCompanies, getUserCompanies };
+export { addCompany, assignCompany, getAllCompanies, getUserCompanies, selfAssignCompany };

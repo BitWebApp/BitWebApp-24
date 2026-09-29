@@ -42,6 +42,10 @@ const professorSchema = new Schema(
         type: Number,
         default: 6,
       },
+      project1: {
+        type: Number,
+        default: 6,
+      },
     },
     currentCount: {
       summer_training: {
@@ -53,6 +57,10 @@ const professorSchema = new Schema(
         default: 0,
       },
       major_project: {
+        type: Number,
+        default: 0,
+      },
+      project1: {
         type: Number,
         default: 0,
       },
@@ -76,6 +84,12 @@ const professorSchema = new Schema(
           ref: "Major",
         },
       ],
+      project1: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "Project1",
+        },
+      ],
     },
     appliedGroups: {
       summer_training: [
@@ -94,6 +108,12 @@ const professorSchema = new Schema(
         {
           type: Schema.Types.ObjectId,
           ref: "Major",
+        },
+      ],
+      project1: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "Project1",
         },
       ],
     },

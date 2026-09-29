@@ -27,7 +27,6 @@ const internshipSchema = new Schema(
     mentor: {
       type: Schema.Types.ObjectId,
       ref: "Professor",
-      required: true,
     },
   },
   { timestamps: true }

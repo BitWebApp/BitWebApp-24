@@ -40,7 +40,7 @@ const addBacklogbyUser = asyncHandler(async (req, res) => {
   const { backlogid } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(backlogid)) {
-    throw new ApiError(400, 'Invalid backlog ID');
+    throw new ApiError(400, "Invalid backlog ID");
   }
 
   // console.log('Backlog ID:', backlogid);
@@ -48,15 +48,15 @@ const addBacklogbyUser = asyncHandler(async (req, res) => {
   const user = req?.user;
   // console.log('User:', user);
 
-  if (!user) throw new ApiError(401, 'User not authenticated');
+  if (!user) throw new ApiError(401, "User not authenticated");
 
   const student = await User.findById(user._id);
   // console.log('Student:', student);
 
-  if (!student) throw new ApiError(401, 'Student not found');
+  if (!student) throw new ApiError(401, "Student not found");
   const backlogExists = student.backlogs.some((id) => id.equals(backlogid));
   if (backlogExists) {
-    throw new ApiError(400, 'Backlog already added');
+    throw new ApiError(400, "Backlog already added");
   }
 
   student.backlogs.push(backlogid);
@@ -64,21 +64,28 @@ const addBacklogbyUser = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Backlog added successfully',
+    message: "Backlog added successfully",
     data: student.backlogs,
   });
 });
 
-const getBacklogsbyUser = asyncHandler(async(req, res) =>{
+const getBacklogsbyUser = asyncHandler(async (req, res) => {
   const user = req?.user;
   // console.log('User:', user);
 
-  if (!user) throw new ApiError(401, 'User not authenticated');
+  if (!user) throw new ApiError(401, "User not authenticated");
 
-  const student = await User.findById(user._id).populate('backlogs');
+  const student = await User.findById(user._id).populate("backlogs");
   // console.log('Student:', student);
-  const backlog = student.backlogs
-  return res.status(200).json(new ApiResponse(200, backlog, "All backlogs fetched"))
-})
+  const backlog = student.backlogs;
+  return res
+    .status(200)
+    .json(new ApiResponse(200, backlog, "All backlogs fetched"));
+});
 
-export { addbacklogSubject, getAllBacklogSubjects, addBacklogbyUser, getBacklogsbyUser};
+export {
+  addbacklogSubject,
+  getAllBacklogSubjects,
+  addBacklogbyUser,
+  getBacklogsbyUser,
+};

@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { 
-  createAcademicRecord, 
+import {
+  createAcademicRecord,
   getStudentAcademicRecords,
   getAdminAcademicRecords,
 } from "../controllers/academic.controller.js";

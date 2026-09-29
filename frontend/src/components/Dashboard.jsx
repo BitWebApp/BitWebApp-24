@@ -14,8 +14,14 @@ export default function Dashboard() {
   const [isRollNumberValid, setIsRollNumberValid] = useState(true);
   const isAdmin = useUserRole();
 
+  React.useEffect(() => {
+    // Kept empty or original use effect logic not related to master admin
+  }, [isAdmin]);
+
+
+
   const validateRollNumber = (rollNumber) => {
-    const rollNumberPattern = /^BTECH\/10\d{3}\/\d{2}$/;
+    const rollNumberPattern = /^BTECH\/1\d{4}\/\d{2}$/;
     return rollNumberPattern.test(rollNumber);
   };
 
@@ -27,7 +33,7 @@ export default function Dashboard() {
 
     if (!validateRollNumber(rollNumber)) {
       setIsRollNumberValid(false);
-      setError("Invalid roll number format. It should be BTECH/10XXX/YY");
+      setError("Invalid roll number format. It should be BTECH/1XXXX/YY");
       return;
     }
 
@@ -57,6 +63,8 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-6">
       <div className="max-w-4xl mx-auto">
+
+
         <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
           Student Search Dashboard
         </h1>
@@ -67,7 +75,7 @@ export default function Dashboard() {
               className={`flex-grow p-3 border ${isRollNumberValid ? "border-gray-300" : "border-red-500"
                 } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
               type="text"
-              placeholder="Enter Roll Number (e.g., BTECH/10XXX/YY)"
+              placeholder="Enter Roll Number (e.g., BTECH/1XXXX/YY)"
               value={rollNumber}
               onChange={(e) => {
                 setRollNumber(e.target.value.toUpperCase());

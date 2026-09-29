@@ -27,7 +27,7 @@ const higherEducationSchema = new Schema(
       required: [true, "End date is required!"],
     },
     docs: {
-      type: [String], 
+      type: [String],
       required: [true, "Add supporting docs!"],
     },
   },
@@ -36,4 +36,7 @@ const higherEducationSchema = new Schema(
   }
 );
 
-export const HigherEducation = mongoose.model("HigherEducation", higherEducationSchema);
+export const HigherEducation = mongoose.model(
+  "HigherEducation",
+  higherEducationSchema
+);

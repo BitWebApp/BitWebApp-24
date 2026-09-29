@@ -7,13 +7,50 @@ import { Internship } from "../models/internship.model.js";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { nanoid, customAlphabet } from "nanoid";
 import mongoose, { mongo } from "mongoose";
 import { Group } from "../models/group.model.js";
 import { Otp } from "../models/otp.model.js";
 import { Review } from "../models/review.model.js";
 import { Minor } from "../models/minor.model.js";
-const url = "http://172.16.220.105:3000/faculty-login";
+import { Major } from "../models/major.model.js";
+const url = "http://139.167.188.221:3000/faculty-login";
+
+
+
+const saveSummerProjectTitle = asyncHandler(async (req, res) => {
+  const { groupId, projectTitle } = req.body;
+
+  const professorId = req?.professor?._id;
+
+  const group = await Group.findById(groupId);
+
+  if (!group) {
+    throw new ApiError(404, "Group not found");
+  }
+
+  // Only allocated professor can set title
+  // Only allocated professor can set title
+  if (group.summerAllocatedProf?.toString() !== professorId?.toString()) {
+    throw new ApiError(403, "Unauthorized");
+  }
+
+  // ✅ Allow empty → store as null
+  group.projectTitle = projectTitle?.trim() || null;
+
+  await group.save({ validateBeforeSave: false });
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      group.projectTitle,
+      group.projectTitle
+        ? "Project title updated successfully"
+        : "Project title cleared successfully"
+    )
+  );
+});
 
 const addProf = asyncHandler(async (req, res) => {
   const { idNumber, fullName, contact, email } = req.body;
@@ -207,7 +244,23 @@ const addProf = asyncHandler(async (req, res) => {
 // });
 
 const getProf = asyncHandler(async (req, res) => {
-  const professors = await Professor.find().select("-password");
+  const { batch } = req.query;
+
+  let professors;
+  if (batch) {
+    const batchUsers = await User.find({ batch }).select("_id");
+    const batchUserIds = batchUsers.map((u) => u._id);
+    const batchGroups = await Group.find({
+      members: { $in: batchUserIds },
+    }).select("_id");
+    const batchGroupIds = batchGroups.map((g) => g._id);
+    professors = await Professor.find({
+      "students.summer_training": { $in: batchGroupIds },
+    }).select("-password");
+  } else {
+    professors = await Professor.find().select("-password");
+  }
+
   res
     .status(200)
     .json(
@@ -276,6 +329,7 @@ const loginProf = asyncHandler(async (req, res) => {
       )
     );
 });
+
 const logoutProf = asyncHandler(async (req, res) => {
   await Professor.findByIdAndUpdate(
     req.professor._id,
@@ -291,6 +345,95 @@ const logoutProf = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, {}, "Prof logged out successfully!"));
+});
+
+const generateAutoLoginUrl = asyncHandler(async (req, res) => {
+  const { profId } = req.body;
+
+  if (!profId) {
+    throw new ApiError(400, "Professor ID is required!");
+  }
+
+  const professor = await Professor.findById(profId);
+  if (!professor) {
+    throw new ApiError(404, "Professor not found!");
+  }
+
+  // Generate access token for auto-login (valid for 30 minutes)
+  const autoLoginToken = jwt.sign(
+    { _id: professor._id },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: "12h" }
+  );
+
+  // Create the auto-login URL
+  const autoLoginUrl = `http://139.167.188.221:3000/faculty-auto-login?token=${autoLoginToken}`;
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { autoLoginUrl, autoLoginToken },
+        "Auto-login URL generated successfully!"
+      )
+    );
+});
+
+// Auto-login with token from email link
+const autoLoginProf = asyncHandler(async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    throw new ApiError(400, "Auto-login token is required!");
+  }
+
+  try {
+    // Verify the token
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    const professor = await Professor.findById(decoded._id).select(
+      "-password -refreshToken"
+    );
+
+    if (!professor) {
+      throw new ApiError(404, "Professor not found!");
+    }
+
+    // Generate new access and refresh tokens for the session
+    const { accessToken, refreshToken } = await generateAcessAndRefreshToken(
+      professor._id
+    );
+
+    const reviewLog = await Review.findOne({ user: professor._id });
+    let review = false;
+    if (reviewLog) {
+      review = true;
+    }
+
+    const options = {
+      httpOnly: true,
+      secure: false,
+    };
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          {
+            professor: professor,
+            review: review,
+            accessToken,
+            refreshToken,
+          },
+          "Professor auto-logged in successfully!"
+        )
+      );
+  } catch (error) {
+    throw new ApiError(401, "Invalid or expired auto-login token!");
+  }
 });
 
 //***************************************************/
@@ -338,6 +481,15 @@ const applyToSummer = asyncHandler(async (req, res) => {
   }
 
   await user.save();
+
+  if (appliedProfIds.length > 0 && user.summerAppliedProfs.length === appliedProfIds.length) {
+    // This is their first time applying, create a pending internship record
+    await Internship.create({
+      student: user._id,
+      type: "research",
+      location: "inside_bit",
+    });
+  }
 
   const responseMessage = {
     appliedProfessors: appliedProfIds,
@@ -423,18 +575,16 @@ const selectSummerStudents = asyncHandler(async (req, res) => {
       );
       await student.save({ session });
       // console.log("check2!");
-      const internRecord = await Internship.create(
-        [
-          {
-            student: student._id,
-            type: "research",
-            location: "inside_bit",
-            mentor: profId,
-            startDate: new Date(),
-            endDate: new Date(),
-          },
-        ],
-        { session }
+      const internRecord = await Internship.findOneAndUpdate(
+        { student: student._id, mentor: { $exists: false } },
+        {
+          type: "research",
+          location: "inside_bit",
+          mentor: profId,
+          startDate: new Date(),
+          endDate: new Date(),
+        },
+        { upsert: true, new: true, session }
       );
       // console.log("check3!");
       if (!internRecord) {
@@ -474,37 +624,33 @@ const getcurrentProf = asyncHandler(async (req, res) => {
 
 const incrementLimit = asyncHandler(async (req, res) => {
   const { profId, limit, type } = req.body;
-  const professor = await Professor.findById(profId);
-  if (!professor) {
-    throw new ApiError(404, "Professor not found!");
-  }
-  if (!limit || !type) {
+  if (limit === undefined || limit === null || !type) {
     throw new ApiError(400, "Limit and field are required!");
   }
-  if (type == "summer_training") {
-    if (limit < professor.currentCount.summer_training) {
-      throw new ApiError(400, "Limit cannot be less than current count!");
-    }
-    professor.limits.summer_training = limit;
-    await professor.save();
-  } else if (type == "minor_project") {
-    if (limit < professor.currentCount.minor_project) {
-      throw new ApiError(400, "Limit cannot be less than current count!");
-    }
-    professor.limits.minor_project = limit;
-    await professor.save();
-  } else if (type == "major_project") {
-    if (limit < professor.currentCount.major_project) {
-      throw new ApiError(400, "Limit cannot be less than current count!");
-    }
-    professor.limits.major_project = limit;
-    await professor.save();
-  } else {
+
+  const validTypes = ["summer_training", "minor_project", "major_project", "project1"];
+  if (!validTypes.includes(type)) {
     throw new ApiError(400, "Invalid type provided!");
   }
-  res
-    .status(200)
-    .json(new ApiResponse(200, "Limit updated successfully!", professor));
+
+  if (profId === "all") {
+    const updateQuery = {};
+    updateQuery[`limits.${type}`] = limit;
+    await Professor.updateMany({}, { $set: updateQuery });
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Limit updated for all professors successfully!", null));
+  } else {
+    const professor = await Professor.findById(profId);
+    if (!professor) {
+      throw new ApiError(404, "Professor not found!");
+    }
+    professor.limits[type] = limit;
+    await professor.save();
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Limit updated successfully!", professor));
+  }
 });
 
 const getAcceptedStudents = asyncHandler(async (req, res) => {
@@ -539,7 +685,7 @@ const denyGroup = asyncHandler(async (req, res) => {
   prof.appliedGroups.summer_training.pull(_id);
   group.deniedProf.push(profId);
   group.preferenceLastMovedAt = Date.now();
-  await group.save();
+  await group.save({ validateBeforeSave: false });
   await prof.save();
   if (group.summerAppliedProfs.length > 0) {
     const profToApply = group.summerAppliedProfs[0];
@@ -598,38 +744,24 @@ const acceptGroup = asyncHandler(async (req, res) => {
     }
     group.summerAllocatedProf = profId;
     group.summerAppliedProfs = [];
+    if (!group.location) group.location = "inside_bit";
     await group.save({ session });
     prof.currentCount.summer_training += numOfMem;
     prof.appliedGroups.summer_training.pull(group._id);
     prof.students.summer_training.push(group._id);
     await prof.save({ session });
-    let internships;
-    if (group.typeOfSummer === "research") {
-      internships = group.members.map((studentId) => ({
-        student: studentId,
-        type: group.typeOfSummer,
-        location: "inside_bit",
-        mentor: profId,
-      }));
-    } else {
-      internships = group.members.map((studentId) => ({
-        student: studentId,
-        type: group.typeOfSummer,
-        location: "outside_bit",
-        company: group.org,
-        mentor: profId,
-      }));
+    for (const studentId of group.members) {
+      await Internship.findOneAndUpdate(
+        { student: studentId, mentor: { $exists: false } },
+        {
+          type: group.typeOfSummer,
+          location: group.location || (group.typeOfSummer === "research" ? "inside_bit" : "outside_bit"),
+          company: group.typeOfSummer === "industrial" ? group.org : undefined,
+          mentor: profId,
+        },
+        { upsert: true, new: true, session }
+      );
     }
-
-    // const internships = group.members.map((studentId) => ({
-    //   student: studentId,
-    //   type: group.typeOfSummer,
-    //   location:
-    //     group.typeOfSummer === "research" ? "inside_bit" : "outside_bit",
-    //   company: group.typeOfSummer === "industrial" ? group.org : null,
-    //   mentor: profId,
-    // }));
-    await Internship.insertMany(internships, { session });
     await session.commitTransaction();
     session.endSession();
     return res.status(200).json(new ApiResponse(200, "Group accepted"));
@@ -664,16 +796,13 @@ const acceptedGroups = asyncHandler(async (req, res) => {
       path: "discussion.absent",
     })
     .populate({
-      path: "discussion.description",
-    })
-    .populate({
       path: "org",
     });
 
   return res
     .status(200)
     .json(
-      new ApiResponse(200, "Accepted groups retrieved successfully!", groups)
+      new ApiResponse(200, groups, "Accepted groups retrieved successfully!")
     );
 });
 
@@ -817,9 +946,10 @@ const otpForgotPassword = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Professor does not exists");
   }
   const otp = `${Math.floor(Math.random() * 9000 + 1000)}`;
+  // Keep a single live OTP per email so every code path agrees on the current one.
+  await Otp.deleteMany({ email });
   await Otp.create({ email, otp });
 
-  const tOtp = await Otp.findOne({ email });
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -882,7 +1012,7 @@ const otpForgotPassword = asyncHandler(async (req, res) => {
             <div class="content">
               <p>Hello,</p>
               <p>Thank you for choosing BITAcademia. To reset your password, please use the following One-Time Password (OTP):</p>
-              <p class="otp">${tOtp.otp}</p>
+              <p class="otp">${otp}</p>
               <p>If you did not request this OTP, please ignore this email or contact our support team.</p>
               <p>Best regards,</p>
               <p>TEAM BITACADEMIA</p>
@@ -896,13 +1026,16 @@ const otpForgotPassword = asyncHandler(async (req, res) => {
       `,
   };
 
-  transporter.sendMail(mailOptions, async (error) => {
-    if (error) {
-      console.log("Error sending email to:", email, error);
-    } else {
-      console.log("Email sent to:", email);
-    }
-  });
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Email sent to:", email);
+  } catch (error) {
+    console.log("Error sending email to:", email, error.message);
+    await Otp.deleteMany({ email });
+    return res.status(502).json({
+      message: "Could not send the OTP email. Please try again in a few minutes.",
+    });
+  }
   res.status(200).send("Mail sent!");
 });
 
@@ -1083,7 +1216,7 @@ const denyMinorGroup = asyncHandler(async (req, res) => {
   prof.appliedGroups.minor_project.pull(_id);
   group.deniedProf.push(profId);
   group.preferenceLastMovedAt = Date.now();
-  await group.save();
+  await group.save({ validateBeforeSave: false });
   await prof.save();
   if (group.minorAppliedProfs.length > 0) {
     const profToApply = group.minorAppliedProfs[0];
@@ -1161,14 +1294,11 @@ const acceptedMinorGroups = asyncHandler(async (req, res) => {
     .populate("deniedProf")
     .populate({
       path: "discussion.absent",
-    })
-    .populate({
-      path: "discussion.description",
     });
   return res
     .status(200)
     .json(
-      new ApiResponse(200, "Accepted groups retrieved successfully!", groups)
+      new ApiResponse(200, groups, "Accepted groups retrieved successfully!")
     );
 });
 
@@ -1312,11 +1442,16 @@ const getMajorAppliedGroups = asyncHandler(async (req, res) => {
     // Fetch professor and populate appliedGroups.major_project
     const professor = await Professor.findById(profId).populate({
       path: "appliedGroups.major_project",
-      populate: {
-        path: "members",
-        select:
-          "fullName rollNumber email linkedin codingProfiles cgpa section branch image companyName",
-      },
+      populate: [
+        {
+          path: "members",
+          select:
+            "fullName rollNumber email linkedin codingProfiles cgpa section branch image companyName",
+        },
+        {
+          path: "org",
+        },
+      ],
     });
 
     if (!professor) {
@@ -1425,7 +1560,7 @@ const denyMajorGroup = asyncHandler(async (req, res) => {
   prof.appliedGroups.major_project.pull(_id);
   group.deniedProf.push(profId);
   group.preferenceLastMovedAt = Date.now();
-  await group.save();
+  await group.save({ validateBeforeSave: false });
   await prof.save();
   if (group.majorAppliedProfs.length > 0) {
     const profToApply = group.majorAppliedProfs[0];
@@ -1501,16 +1636,14 @@ const acceptedMajorGroups = asyncHandler(async (req, res) => {
     .populate("majorAppliedProfs")
     .populate("majorAllocatedProf")
     .populate("deniedProf")
+    .populate("org")
     .populate({
       path: "discussion.absent",
-    })
-    .populate({
-      path: "discussion.description",
     });
   return res
     .status(200)
     .json(
-      new ApiResponse(200, "Accepted groups retrieved successfully!", groups)
+      new ApiResponse(200, groups, "Accepted groups retrieved successfully!")
     );
 });
 
@@ -1647,6 +1780,47 @@ const getMajorLimits = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, limitleft, "limit returned"));
 });
 
+const getPendingTypeChangeRequests = asyncHandler(async (req, res) => {
+  const professorId = req?.professor?._id;
+
+  if (!professorId) {
+    return res.status(401).json({
+      success: false,
+      message: "Professor not authenticated",
+    });
+  }
+
+  // Find all major groups allocated to this professor with pending type change requests
+  const groupsWithRequests = await Major.find({
+    majorAllocatedProf: professorId,
+    "typeChangeRequests.status": "pending",
+  })
+    .populate(
+      "members leader typeChangeRequests.user typeChangeRequests.org majorAllocatedProf org"
+    )
+    .lean();
+
+  // Filter to only include pending requests
+  const groupsWithPendingRequests = groupsWithRequests
+    .map((group) => ({
+      ...group,
+      typeChangeRequests: group.typeChangeRequests.filter(
+        (req) => req.status === "pending"
+      ),
+    }))
+    .filter((group) => group.typeChangeRequests.length > 0);
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        groupsWithPendingRequests,
+        "Pending type change requests fetched successfully"
+      )
+    );
+});
+
 export {
   selectMinorStudents,
   getMinorLimits,
@@ -1669,11 +1843,14 @@ export {
   acceptMajorGroup,
   mergeMajorGroups,
   acceptedMajorGroups,
+  getPendingTypeChangeRequests,
   // Other existing functions
   addProf,
   getProf,
   loginProf,
   logoutProf,
+  generateAutoLoginUrl,
+  autoLoginProf,
   getLimits,
   applyToSummer,
   getAppliedGroups,
@@ -1689,4 +1866,5 @@ export {
   mergeGroups,
   otpForgotPassword,
   changePassword,
+  saveSummerProjectTitle,
 };

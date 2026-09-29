@@ -7,7 +7,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js",
-    "seed:pe": "node scripts/seedPeCourses.js"
+    "seed:pe": "node scripts/seedPeCourses.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prod": "node -r dotenv/config --experimental-json-modules src/index.js"
   },
   "author": "",
   "license": "ISC",
@@ -19,6 +22,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "express-rate-limit": "^7.5.0",
+    "google-auth-library": "^10.9.1",
     "http": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
     "moment": "^2.30.1",

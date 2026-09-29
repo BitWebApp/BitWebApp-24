@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import NavBar from "./NavBar";
+import GoogleSignInButton from "./GoogleSignInButton";
 import { useEffect } from "react";
 
 export default function Login() {
@@ -24,7 +25,7 @@ export default function Login() {
           }, 3000);
         }
       } catch (error) {
-        console.log("User not logged in", error);
+        // console.log("User not logged in", error);
       } finally {
         setIsLoading(false);
       }
@@ -58,18 +59,38 @@ export default function Login() {
       //   if (errorElement) {
       //     const errorMessage = errorElement.textContent.trim();
       //     const errormsg = errorMessage.split("at")[0].trim();
-      //     console.log(errormsg);
+      //     // console.log(errormsg);
       //     toast.error(errormsg);
       //   } else {
-      //     console.log("Error: An unknown error occurred");
+      //     // console.log("Error: An unknown error occurred");
       //     toast.error("An unknown error occurred");
       //   }
       // } else {
-      //   console.log("Error:", error.message);
+      //   // console.log("Error:", error.message);
       //   toast.error("Error occurred during signup");
       // }
       let errorMessage = error.response.data.message;
       toast.error(errorMessage || "Error occurred during login");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleCredential = async (credential) => {
+    setIsLoading(true);
+    try {
+      const response = await axios.post("/api/v1/users/google-login", {
+        credential,
+      });
+      localStorage.setItem("user", JSON.stringify(response.data.data.user));
+      toast.success("Login successful!");
+      setTimeout(() => {
+        navigate("/db");
+      }, 1500);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Google sign-in failed. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -104,6 +125,12 @@ export default function Login() {
                 <h3 className="text-3xl md:text-4xl font-semibold mb-2 text-gray-800">
                   Student Login
                 </h3>
+                <div className="mb-4 p-4 border-l-4 border-blue-500 bg-blue-50 rounded-md">
+                  <h4 className="text-sm font-bold text-blue-800 mb-1">Notice for K24 Students</h4>
+                  <p className="text-xs text-blue-700">
+                    Your email has been updated to your institute email address, while your password remains unchanged. If you cannot access the password sent to your old email, please use the "Forgot Password" button.
+                  </p>
+                </div>
                 <p className="text-base md:text-lg mb-2 text-gray-600">
                   Enter your login details below.
                 </p>
@@ -183,6 +210,11 @@ export default function Login() {
                   )}
                 </button>
               </div>
+
+              <GoogleSignInButton
+                onCredential={handleGoogleCredential}
+                disabled={isLoading}
+              />
 
               <div className="w-full border-t pt-2 mt-2">
                 <p className="text-sm text-gray-600 mb-2">Helpful Resources:</p>

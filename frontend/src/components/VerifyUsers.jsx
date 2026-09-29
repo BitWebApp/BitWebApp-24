@@ -15,7 +15,7 @@ const UnverifiedUsers = () => {
   }, []);
   const fetchUnverifiedUsers = async () => {
     const response = await axios.get("/api/v1/admin/unverifiedUsers");
-    console.log(response);
+    // console.log(response);
     setUsers(response.data.data);
   };
   const handleCheckboxChange = (userId) => {
@@ -34,9 +34,9 @@ const UnverifiedUsers = () => {
           const response = await axios.patch("/api/v1/admin/verifyUser", {
             userId: selectedUserIds[i],
           });
-          console.log(response);
+          // console.log(response);
         } catch (err) {
-          console.log("Error verifying user", selectedUserIds[i], err);
+          // console.log("Error verifying user", selectedUserIds[i], err);
         }
       }
       setSelectedUserIds([])
@@ -45,7 +45,7 @@ const UnverifiedUsers = () => {
       );
       setUsers(updatedUsersResponse.data.data);
     } catch (err) {
-      console.log("Error verifying users", err);
+      // console.log("Error verifying users", err);
     } finally {
       setLoading(false);
     }
@@ -64,9 +64,9 @@ const UnverifiedUsers = () => {
             userId: selectedUserIds[i],
             reason: rejectReason,
           });
-          console.log(response);
+          // console.log(response);
         } catch (err) {
-          console.log("Error rejecting user", selectedUserIds[i], err);
+          // console.log("Error rejecting user", selectedUserIds[i], err);
         }
       }
       setSelectedUserIds([])
@@ -75,7 +75,7 @@ const UnverifiedUsers = () => {
       );
       setUsers(updatedUsersResponse?.data?.data);
     } catch (err) {
-      console.log("Error rejecting users", err);
+      // console.log("Error rejecting users", err);
     } finally {
       setRejectLoading(false);
       setShowRejectModal(false);

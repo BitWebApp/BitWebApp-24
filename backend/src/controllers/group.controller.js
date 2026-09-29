@@ -6,51 +6,39 @@ import { Group } from "../models/group.model.js";
 import { customAlphabet, nanoid } from "nanoid";
 import { Professor } from "../models/professor.model.js";
 import { Company } from "../models/company.model.js";
+import { Internship } from "../models/internship.model.js";
 
 const createGroup = asyncHandler(async (req, res) => {
   const leader = req?.user?._id;
-  const { typeofSummer, org } = req.body;
-  console.log(typeofSummer, org);
+  const { typeofSummer, org, location } = req.body;
+  console.log(typeofSummer, org, location);
   const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
   const members = [leader];
   const user = await User.findById(leader);
   if (user.group) {
     console.log("already in a group");
-    return res.status(409).json({
-      success: false,
-      message: "Already in a group",
-    });
-    // throw new ApiError(409, "Already in a group");
+    throw new ApiError(409, "Already in a group");
   }
   if (!typeofSummer) {
     console.log("type of summer internship is required");
-    return res.status(400).json({
-      success: false,
-      message: "Type of summer internship is required",
-    });
-    // throw new ApiError(400, "Type of summer internship is required");
+    throw new ApiError(400, "Type of summer internship is required");
   }
   if (typeofSummer === "industrial" && !org) {
     console.log("organisation name is required");
-    return res.status(400).json({
-      success: false,
-      message: "Organisation Name is required for industrial summer internship",
-    });
-    // throw new ApiError(
-    //   400,
-    //   "Organisation Name is required for industrial summer internship"
-    // );
+    throw new ApiError(
+      400,
+      "Organisation Name is required for industrial summer internship"
+    );
+  }
+  if (!location || (location !== "inside_bit" && location !== "outside_bit")) {
+    throw new ApiError(400, "Valid location (inside_bit or outside_bit) is required");
   }
   let newGroup;
   if (org) {
     const company = await Company.findById(org);
     if (!company) {
       console.log("company not found");
-      return res.status(404).json({
-        success: false,
-        message: "Company not found",
-      });
-      // throw new ApiError(404, "Company not found");
+      throw new ApiError(404, "Company not found");
     }
     newGroup = await Group.create({
       groupId: nanoid(),
@@ -59,9 +47,10 @@ const createGroup = asyncHandler(async (req, res) => {
       type: "summer",
       typeOfSummer: typeofSummer,
       org,
+      location,
     });
     user.group = newGroup._id;
-    user.save();
+    await user.save();
   } else {
     newGroup = await Group.create({
       groupId: nanoid(),
@@ -69,9 +58,10 @@ const createGroup = asyncHandler(async (req, res) => {
       members,
       type: "summer",
       typeOfSummer: typeofSummer,
+      location,
     });
     user.group = newGroup._id;
-    user.save();
+    await user.save();
   }
 
   return res
@@ -86,45 +76,29 @@ const addMember = asyncHandler(async (req, res) => {
   const group = await Group.findById({ _id: groupId });
   if (!group) {
     console.log("group not found");
-    return res.status(404).json({
-      success: false,
-      message: "Group not found",
-    });
-    //throw new ApiError(404, "Group not found");
+    throw new ApiError(404, "Group not found");
   }
   if (group.typeOfSummer === "industrial") {
     console.log("Cannot add member to industrial group");
-    return res.status(409).json({
-      success: false,
-      message: "Cannot add member to industrial group",
-    });
-    // throw new ApiError(409, "Cannot add member to industrial group");
+    throw new ApiError(409, "Cannot add member to industrial group");
+  }
+  if (group.typeOfSummer === "research" && group.location === "outside_bit") {
+    console.log("Cannot add member to outside_bit research group");
+    throw new ApiError(409, "Outside BIT research groups can only have 1 member");
   }
 
   if (!group.leader.equals(loggedIn)) {
     console.log("Only Leader can add member");
-    return res.status(409).json({
-      success: false,
-      message: "Only Leader can add member",
-    });
-    // throw new ApiError(409, "Only Leader can add");
+    throw new ApiError(409, "Only Leader can add");
   }
   if (group.summerAllocatedProf) {
     console.log("Cannot add member after faculty allocation");
-    return res.status(409).json({
-      success: false,
-      message: "Cannot add member after faculty allocation",
-    });
-    // throw new ApiError(409, "Cannot add member after faculty allocation");
+    throw new ApiError(409, "Cannot add member after faculty allocation");
   }
   const user = await User.findOne({ rollNumber });
   if (user.group) {
     console.log("Already in a group");
-    return res.status(409).json({
-      success: false,
-      message: "Already in a group",
-    });
-    // throw new ApiError(409, "Already in a group");
+    throw new ApiError(409, "Already in a group");
   }
   // group.members.push(user?._id);
   // user.group = group._id;
@@ -141,34 +115,41 @@ const acceptReq = asyncHandler(async (req, res) => {
   const group = await Group.findById({ _id: groupId });
   if (!group) {
     console.log("group not found");
-    return res.status(404).json({
-      success: false,
-      message: "Group not found",
-    });
-
-    //throw new ApiError(404, "Group not found");
+    throw new ApiError(404, "Group not found");
+  }
+  if (group.typeOfSummer === "industrial") {
+     throw new ApiError(409, "Cannot join industrial group");
+  }
+  if (group.typeOfSummer === "research" && group.location === "outside_bit") {
+     throw new ApiError(409, "Outside BIT research groups can only have 1 member");
+  }
+  if (!group) {
+    console.log("group not found");
+    throw new ApiError(404, "Group not found");
   }
   if (group.summerAllocatedProf) {
     console.log("Cannot join as group has a faculty assigned.");
-    return res.status(409).json({
-      success: false,
-      message: "Cannot join as group has a faculty assigned.",
-    });
-    //throw new ApiError(409, "Cannot join as group has a faculty assigned.");
+    throw new ApiError(409, "Cannot join as group has a faculty assigned.");
   }
   if (user.group) {
     console.log("You are already in a group");
-    return res.status(409).json({
-      success: false,
-      message: "You are already in a group",
-    });
-    // throw new ApiError(409, "You are already in a group");
+    throw new ApiError(409, "You are already in a group");
   }
   group.members.push(user?._id);
   user.group = group._id;
   user.groupReq = [];
+
+  if (group.summerAppliedProfs && group.summerAppliedProfs.length > 0) {
+    let internshipData = {
+      student: user._id,
+      type: group.typeOfSummer,
+      location: group.location || "inside_bit",
+    };
+    await Internship.create(internshipData);
+  }
+
   await user.save();
-  await group.save();
+  await group.save({ validateBeforeSave: false });
   return res.status(200).json(new ApiResponse(200, "Joined successfully"));
 });
 
@@ -190,50 +171,87 @@ const removeMember = asyncHandler(async (req, res) => {
   const group = await Group.findById({ _id: groupId });
   if (!group) {
     console.log("group not found");
-    return res.status(404).json({
-      success: false,
-      message: "Group not found",
-    });
-    //throw new ApiError(404, "Group not found");
+    throw new ApiError(404, "Group not found");
   }
   if (!group.leader.equals(loggedIn)) {
     console.log("Only Leader can remove member");
-    return res.status(409).json({
-      success: false,
-      message: "Only Leader can remove member",
-    });
-    //throw new ApiError(409, "Only Leader can remove");
+    throw new ApiError(409, "Only Leader can remove");
   }
   if (group.summerAllocatedProf) {
     console.log("Cannot remove member after faculty allocation");
-    return res.status(409).json({
-      success: false,
-      message: "Cannot remove member after faculty allocation",
-    });
-    //throw new ApiError(409, "Cannot remove member after faculty allocation");
+    throw new ApiError(409, "Cannot remove member after faculty allocation");
   }
   const user = await User.findOne({ rollNumber });
   if (!user.group) {
     console.log("Not in a group");
-    return res.status(409).json({
-      success: false,
-      message: "Not in a group",
-    });
-    //throw new ApiError(409, "Not in a group");
+    throw new ApiError(409, "Not in a group");
   }
   group.members.pull(user?._id);
   user.group = null;
-  await group.save();
+  await group.save({ validateBeforeSave: false });
+
+  if (!group.summerAllocatedProf) {
+    await Internship.deleteOne({ student: user._id, mentor: { $exists: false } });
+  }
+
   if (group?.leader.equals(user?._id)) {
     if (group.members.length > 0) {
       group.leader = group.members[0];
-      await group.save();
+      await group.save({ validateBeforeSave: false });
     } else {
+      // Clean up professors' queues to prevent ghost applications
+      if (group.summerAppliedProfs && group.summerAppliedProfs.length > 0) {
+        for (const profId of group.summerAppliedProfs) {
+          const prof = await Professor.findById(profId);
+          if (prof) {
+            prof.appliedGroups.summer_training.pull(group._id);
+            await prof.save();
+          }
+        }
+      }
       await group.deleteOne();
     }
   }
   await user.save();
   return res.status(200).json(new ApiResponse(200, "member removed"));
+});
+
+const withdrawPreferences = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+
+  const user = await User.findById(userId);
+  if (!user || !user.group) {
+    throw new ApiError(404, "No summer training group found");
+  }
+
+  const group = await Group.findById(user.group);
+  if (!group) throw new ApiError(404, "Group not found");
+
+  if (!group.leader.equals(userId)) {
+    throw new ApiError(409, "Only the leader can withdraw preferences");
+  }
+
+  if (group.summerAllocatedProf) {
+    throw new ApiError(409, "Cannot withdraw after allocation");
+  }
+
+  if (group.summerAppliedProfs && group.summerAppliedProfs.length > 0) {
+    const currentProfId = group.summerAppliedProfs[0];
+    const prof = await Professor.findById(currentProfId);
+    if (prof) {
+      prof.appliedGroups.summer_training.pull(group._id);
+      await prof.save();
+    }
+  }
+
+  group.summerAppliedProfs = [];
+  group.deniedProf = [];
+  group.preferenceLastMovedAt = null;
+  await group.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, group, "All preferences withdrawn successfully"));
 });
 
 const applyToFaculty = asyncHandler(async (req, res) => {
@@ -244,67 +262,39 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   const user = await User.findById(userId);
   if (!user) {
     console.log("user not found");
-    return res.status(404).json({
-      success: false,
-      message: "User not found",
-    });
-    //throw new ApiError(404, "User not found");
+    throw new ApiError(404, "User not found");
   }
 
   if (user.summerAppliedProfs.includes(facultyId)) {
     console.log("Already applied to this professor");
-    return res.status(409).json({
-      success: false,
-      message: "Already applied to this professor",
-    });
-    //throw new ApiError(409, "Already applied to this professor");
+    throw new ApiError(409, "Already applied to this professor");
   }
 
   const groupId = user.group;
   const group = await Group.findById(groupId).populate("members");
   if (!group) {
     console.log("group not found");
-    return res.status(404).json({
-      success: false,
-      message: "Group not found",
-    });
-    //throw new ApiError(404, "Group not found");
+    throw new ApiError(404, "Please create or join a Summer Training group before applying.");
   }
 
   if (!group.leader.equals(loggedIn)) {
     console.log("Only Leader can apply to faculty");
-    return res.status(409).json({
-      success: false,
-      message: "Only Leader can apply to faculty",
-    });
-    //throw new ApiError(409, "Only Leader can apply to faculty");
+    throw new ApiError(409, "Only Leader can apply to faculty");
   }
 
   if (group.deniedProf.includes(facultyId)) {
     console.log("Denied by this professor");
-    return res.status(409).json({
-      success: false,
-      message: "Denied by this professor",
-    });
-    //throw new ApiError(409, "Denied by this professor");
+    throw new ApiError(409, "Denied by this professor");
   }
 
   if (group.summerAllocatedProf) {
     console.log("You already have a faculty assigned");
-    return res.status(409).json({
-      success: false,
-      message: "You already have a faculty assigned",
-    });
-    //throw new ApiError(409, "You already have a faculty assigned");
+    throw new ApiError(409, "You already have a faculty assigned");
   }
 
   if (group.summerAppliedProfs.includes(facultyId)) {
     console.log("Already applied to this faculty");
-    return res.status(409).json({
-      success: false,
-      message: "Already applied to this faculty",
-    });
-    //throw new ApiError(409, "Already applied to this faculty");
+    throw new ApiError(409, "Already applied to this faculty");
   }
 
   const members = group.members;
@@ -372,13 +362,12 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   const faculty = await Professor.findById(facultyId);
   if (!faculty) {
     console.log("faculty not found");
-    return res.status(404).json({
-      success: false,
-      message: "Faculty not found",
-    });
-    //throw new ApiError(404, "Faculty not found");
+    throw new ApiError(404, "The selected professor could not be found.");
   }
-  if(group.members.length > faculty.limits.summer_training-faculty.currentCount.summer_training) {
+  if (
+    group.members.length >
+    faculty.limits.summer_training - faculty.currentCount.summer_training
+  ) {
     console.log("Your group size exceeds faculty's remaining limit");
   }
 
@@ -388,9 +377,27 @@ const applyToFaculty = asyncHandler(async (req, res) => {
     group.preferenceLastMovedAt = Date.now();
     faculty.appliedGroups.summer_training.push(group._id);
     await faculty.save();
+
+    // Create pending internship records for all members
+    let internships;
+    if (group.typeOfSummer === "research") {
+      internships = group.members.map((studentId) => ({
+        student: studentId,
+        type: group.typeOfSummer,
+        location: group.location || "inside_bit",
+      }));
+    } else {
+      internships = group.members.map((studentId) => ({
+        student: studentId,
+        type: group.typeOfSummer,
+        location: group.location || "outside_bit",
+        company: group.org,
+      }));
+    }
+    await Internship.insertMany(internships);
   }
 
-  await group.save();
+  await group.save({ validateBeforeSave: false });
 
   return res
     .status(200)
@@ -465,7 +472,7 @@ const addDiscussion = asyncHandler(async (req, res) => {
     throw new ApiError(409, "Only Leader can add discussion");
   }
   group.discussion.push({ description });
-  await group.save();
+  await group.save({ validateBeforeSave: false });
   return res
     .status(200)
     .json(new ApiResponse(200, group, "Discussion added successfully"));
@@ -493,7 +500,7 @@ const addRemarkAbsent = asyncHandler(async (req, res) => {
     date: new Date(),
   });
 
-  await group.save();
+  await group.save({ validateBeforeSave: false });
 
   return res
     .status(200)
@@ -543,6 +550,516 @@ const addMarks = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Marks added successfully"));
 });
 
+const leaveGroup = asyncHandler(async (req, res) => {
+  const userId = req?.user?._id;
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "User not found");
+  if (!user.group) throw new ApiError(409, "Not in any group");
+
+  const group = await Group.findById(user.group);
+  if (!group) {
+    user.group = null;
+    user.summerAllocatedProf = null;
+    user.isSummerAllocated = false;
+    user.summerAppliedProfs = [];
+    await user.save();
+    throw new ApiError(404, "Group not found, cleared user reference");
+  }
+
+  const allocatedProfId = group.summerAllocatedProf;
+  const wasLeader = group.leader?.equals(user._id);
+
+  group.members.pull(user._id);
+
+  const internshipFilter = { student: user._id };
+  if (allocatedProfId) internshipFilter.mentor = allocatedProfId;
+  else internshipFilter.mentor = { $exists: false };
+  await Internship.deleteMany(internshipFilter);
+
+  user.group = null;
+  user.summerAllocatedProf = null;
+  user.isSummerAllocated = false;
+  user.summerAppliedProfs = [];
+
+  if (group.members.length === 0) {
+    if (group.summerAppliedProfs && group.summerAppliedProfs.length > 0) {
+      for (const profId of group.summerAppliedProfs) {
+        const prof = await Professor.findById(profId);
+        if (prof) {
+          prof.appliedGroups.summer_training.pull(group._id);
+          await prof.save();
+        }
+      }
+    }
+    if (allocatedProfId) {
+      const prof = await Professor.findById(allocatedProfId);
+      if (prof) {
+        prof.students.summer_training.pull(group._id);
+        prof.currentCount.summer_training = Math.max(
+          0,
+          prof.currentCount.summer_training - 1
+        );
+        await prof.save();
+      }
+    }
+    await group.deleteOne();
+  } else {
+    if (wasLeader) group.leader = group.members[0];
+    if (allocatedProfId) {
+      const prof = await Professor.findById(allocatedProfId);
+      if (prof) {
+        prof.currentCount.summer_training = Math.max(
+          0,
+          prof.currentCount.summer_training - 1
+        );
+        await prof.save();
+      }
+    }
+    await group.save({ validateBeforeSave: false });
+  }
+
+  await user.save();
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Left group successfully"));
+});
+
+const joinGroupByCode = asyncHandler(async (req, res) => {
+  const userId = req?.user?._id;
+  const { groupId } = req.body;
+  if (!groupId) throw new ApiError(400, "Group code is required");
+
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "User not found");
+  if (user.group) {
+    throw new ApiError(
+      409,
+      "Already in a group. Leave your current group first."
+    );
+  }
+
+  const group = await Group.findOne({ groupId: groupId.toUpperCase() });
+  if (!group) throw new ApiError(404, "Group not found for that code");
+
+  if (group.typeOfSummer === "industrial") {
+    throw new ApiError(409, "Cannot join an industrial group");
+  }
+  if (
+    group.typeOfSummer === "research" &&
+    group.location === "outside_bit" &&
+    group.members.length >= 1
+  ) {
+    throw new ApiError(409, "Outside BIT research groups can only have 1 member");
+  }
+
+  group.members.push(user._id);
+  user.group = group._id;
+  user.groupReq = [];
+
+  const allocatedProfId = group.summerAllocatedProf;
+  if (allocatedProfId) {
+    user.summerAllocatedProf = allocatedProfId;
+    user.isSummerAllocated = true;
+    const prof = await Professor.findById(allocatedProfId);
+    if (prof) {
+      prof.currentCount.summer_training += 1;
+      await prof.save();
+    }
+  }
+
+  const internshipDoc = {
+    student: user._id,
+    type: group.typeOfSummer,
+    location:
+      group.location ||
+      (group.typeOfSummer === "research" ? "inside_bit" : "outside_bit"),
+  };
+  if (group.typeOfSummer === "industrial") internshipDoc.company = group.org;
+  if (allocatedProfId) internshipDoc.mentor = allocatedProfId;
+
+  const shouldCreateInternship =
+    allocatedProfId ||
+    (group.summerAppliedProfs && group.summerAppliedProfs.length > 0);
+  if (shouldCreateInternship) await Internship.create(internshipDoc);
+
+  await user.save();
+  await group.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, group, "Joined group successfully"));
+});
+
+const requestSummerTypeChange = asyncHandler(async (req, res) => {
+  const userId = req?.user?._id;
+  const { requestedType, location, org, newLeader } = req.body;
+
+  if (!requestedType || !["industrial", "research"].includes(requestedType)) {
+    throw new ApiError(400, "Valid internship type is required (industrial or research)");
+  }
+
+  const user = await User.findById(userId);
+  if (!user || !user.group) throw new ApiError(409, "Not in any group");
+
+  const group = await Group.findById(user.group).populate("members leader");
+  if (!group) throw new ApiError(404, "Group not found");
+
+  if (!group.summerAllocatedProf) {
+    throw new ApiError(400, "Cannot change type without an allocated faculty mentor");
+  }
+
+  // Check for existing pending request by this specific user
+  const existingPending = group.typeChangeRequests.find(
+    (req) => req.status === "pending" && req.initiatedBy.toString() === userId.toString()
+  );
+  if (existingPending) {
+    throw new ApiError(409, "You already have a pending type change request");
+  }
+
+  const currentType = group.typeOfSummer;
+  let validatedOrg;
+  let newLeaderId;
+
+  if (requestedType === "research") {
+    if (currentType === "research") {
+      throw new ApiError(400, "Group is already in research");
+    }
+    if (!location || !["inside_bit", "outside_bit"].includes(location)) {
+      throw new ApiError(400, "Valid location is required for research type");
+    }
+  } else if (requestedType === "industrial") {
+    if (!org) {
+      throw new ApiError(400, "Company is required for industrial type");
+    }
+    if (currentType === "industrial" && group.org?.toString() === org) {
+      throw new ApiError(400, "You are already assigned to this company");
+    }
+
+    const hasCompany = user.companyInterview.some((c) => c.toString() === org);
+    if (!hasCompany) {
+      throw new ApiError(400, "This company is not assigned to you");
+    }
+
+    validatedOrg = org;
+
+    // If the initiator is the leader and there are other members in the group
+    if (group.leader._id.equals(userId) && group.members.length > 1) {
+      if (!newLeader) {
+        throw new ApiError(400, "New leader must be selected since you are the current leader");
+      }
+      if (newLeader.toString() === userId.toString()) {
+        throw new ApiError(400, "You cannot appoint yourself as the new leader");
+      }
+      const isMember = group.members.some((m) => m._id.toString() === newLeader.toString());
+      if (!isMember) {
+        throw new ApiError(400, "New leader must be a current member of the group");
+      }
+      newLeaderId = newLeader;
+    }
+  }
+
+  group.typeChangeRequests.push({
+    initiatedBy: userId,
+    requestedType,
+    location: requestedType === "research" ? location : "outside_bit",
+    org: validatedOrg,
+    newLeader: newLeaderId,
+    status: "pending",
+  });
+
+  await group.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, group, "Type change request submitted for faculty approval"));
+});
+
+const getSummerTypeChangeStatus = asyncHandler(async (req, res) => {
+  const userId = req?.user?._id;
+
+  const user = await User.findById(userId);
+  if (!user || !user.group) {
+    throw new ApiError(404, "User or group not found");
+  }
+
+  const group = await Group.findById(user.group).populate(
+    "members leader typeChangeRequests.initiatedBy typeChangeRequests.memberAssignments.user typeChangeRequests.memberAssignments.org"
+  );
+
+  if (!group) {
+    throw new ApiError(404, "Group not found");
+  }
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        group,
+        typeChangeRequests: group.typeChangeRequests,
+      },
+      "Type change status fetched successfully"
+    )
+  );
+});
+
+const getMemberCompanies = asyncHandler(async (req, res) => {
+  const userId = req?.user?._id;
+
+  const user = await User.findById(userId);
+  if (!user || !user.group) {
+    throw new ApiError(404, "User or group not found");
+  }
+
+  const group = await Group.findById(user.group).populate("members leader");
+  if (!group) {
+    throw new ApiError(404, "Group not found");
+  }
+
+  // Any member can fetch member companies (used for R→I type change)
+  const memberCompanies = [];
+  for (const member of group.members) {
+    const memberUser = await User.findById(member._id).populate("companyInterview");
+    memberCompanies.push({
+      _id: member._id.toString(),
+      fullName: member.fullName,
+      rollNumber: member.rollNumber,
+      email: member.email,
+      companies: memberUser?.companyInterview || [],
+    });
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, memberCompanies, "Member companies fetched successfully"));
+});
+
+const profApproveSummerTypeChange = asyncHandler(async (req, res) => {
+  const { groupId, requestId, action } = req.body;
+
+  if (!groupId || !requestId || !action || !["approve", "reject"].includes(action)) {
+    throw new ApiError(400, "Valid groupId, requestId, and action (approve/reject) are required");
+  }
+
+  const group = await Group.findById(groupId).populate(
+    "members leader summerAllocatedProf typeChangeRequests.initiatedBy typeChangeRequests.org"
+  );
+
+  if (!group) {
+    throw new ApiError(404, "Group not found");
+  }
+
+  const request = group.typeChangeRequests.id(requestId);
+  
+  if (!request) {
+    throw new ApiError(404, "Type change request not found");
+  }
+
+  if (request.status !== "pending") {
+    throw new ApiError(400, "Request is already processed");
+  }
+
+  if (action === "reject") {
+    request.status = "rejected";
+    await group.save({ validateBeforeSave: false });
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, group, "Type change request rejected"));
+  }
+
+  // Approve action
+  const memberId = request.initiatedBy._id || request.initiatedBy;
+
+  if (request.requestedType === "research") {
+    // Industrial → Research: simple conversion (since industrial groups are 1 member)
+    group.typeOfSummer = "research";
+    group.location = request.location;
+    group.org = undefined;
+
+    await Internship.findOneAndUpdate(
+      { student: memberId, type: "industrial" },
+      {
+        $set: {
+          type: "research",
+          location: request.location,
+          mentor: group.summerAllocatedProf?._id,
+        },
+        $unset: { company: "" }
+      },
+      { new: true }
+    );
+
+    request.status = "approved";
+    
+    // Clear all pending requests (since group type changed)
+    group.typeChangeRequests = group.typeChangeRequests.filter(r => r.status !== "pending");
+    
+    await group.save({ validateBeforeSave: false });
+
+    const updatedGroup = await Group.findById(group._id)
+      .populate("members leader summerAllocatedProf org");
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, updatedGroup, "Type change approved — group converted to research"));
+  }
+
+  // Research → Industrial: complex split for an individual
+  if (request.requestedType === "industrial") {
+    // Check if the member is actually still in the group (they might have left via another way)
+    const isMemberStillInGroup = group.members.some(m => (m._id || m).toString() === memberId.toString());
+    
+    if (!isMemberStillInGroup) {
+      request.status = "rejected";
+      await group.save({ validateBeforeSave: false });
+      throw new ApiError(400, "User is no longer in this group, request automatically rejected");
+    }
+
+    const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
+    const newGroupId = nanoid();
+
+    const newGroup = await Group.create({
+      groupId: newGroupId,
+      type: "summer",
+      typeOfSummer: "industrial",
+      org: request.org._id || request.org,
+      location: "outside_bit",
+      leader: memberId,
+      members: [memberId],
+      summerAllocatedProf: group.summerAllocatedProf?._id,
+    });
+
+    // Update user's group reference
+    const memberUser = await User.findById(memberId);
+    memberUser.group = newGroup._id;
+    await memberUser.save({ validateBeforeSave: false });
+
+    // Update old research internship to industrial
+    await Internship.findOneAndUpdate(
+      { student: memberId, type: "research" },
+      {
+        $set: {
+          type: "industrial",
+          location: "outside_bit",
+          company: request.org._id || request.org,
+          mentor: group.summerAllocatedProf?._id,
+        }
+      },
+      { new: true }
+    );
+
+    // Remove member from original group
+    group.members = group.members.filter(
+      (m) => !(m._id || m).equals(memberId)
+    );
+
+    // Update professor's students list
+    if (group.summerAllocatedProf) {
+      const professor = await Professor.findById(group.summerAllocatedProf._id || group.summerAllocatedProf);
+      if (professor) {
+        if (!professor.students.summer_training.includes(newGroup._id)) {
+          professor.students.summer_training.push(newGroup._id);
+        }
+
+        if (group.members.length === 0) {
+          // All members left — remove original group from professor
+          professor.students.summer_training = professor.students.summer_training.filter(
+            (g) => !g.equals(group._id)
+          );
+        }
+
+        await professor.save({ validateBeforeSave: false });
+      }
+    }
+
+    if (group.members.length === 0) {
+      // All members moved to industrial — delete original group
+      await Group.findByIdAndDelete(group._id);
+
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            { deletedOriginalGroup: true, newGroup },
+            "Type change approved — member moved to industrial, original group deleted"
+          )
+        );
+    }
+
+    // Some members stay in research — update the original group
+    // If the leader left, promote the newly chosen leader
+    const remainingMemberIds = group.members.map((m) => (m._id || m).toString());
+    const leaderLeft = !remainingMemberIds.includes((group.leader._id || group.leader).toString());
+
+    if (leaderLeft) {
+      const suggestedNewLeaderStr = request.newLeader?.toString();
+      if (suggestedNewLeaderStr && remainingMemberIds.includes(suggestedNewLeaderStr)) {
+        group.leader = request.newLeader;
+      } else {
+        group.leader = group.members[0]._id || group.members[0];
+      }
+    }
+
+    request.status = "approved";
+    // Filter out requests for the user who just left
+    group.typeChangeRequests = group.typeChangeRequests.filter(r => r.initiatedBy.toString() !== memberId.toString());
+    
+    await group.save({ validateBeforeSave: false });
+
+    const updatedGroup = await Group.findById(group._id)
+      .populate("members leader summerAllocatedProf org");
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          { originalGroup: updatedGroup, newGroup },
+          "Type change approved — group split successfully"
+        )
+      );
+  }
+
+  throw new ApiError(400, "Invalid request state");
+});
+
+const getSummerPendingTypeChanges = asyncHandler(async (req, res) => {
+  const professorId = req?.professor?._id;
+
+  if (!professorId) {
+    throw new ApiError(401, "Professor not authenticated");
+  }
+
+  const groupsWithRequests = await Group.find({
+    summerAllocatedProf: professorId,
+    "typeChangeRequests.status": "pending",
+  })
+    .populate(
+      "members leader summerAllocatedProf org typeChangeRequests.initiatedBy typeChangeRequests.org"
+    )
+    .lean();
+
+  const groupsWithPendingRequests = groupsWithRequests
+    .map((group) => ({
+      ...group,
+      typeChangeRequests: group.typeChangeRequests.filter(
+        (req) => req.status === "pending"
+      ),
+    }))
+    .filter((group) => group.typeChangeRequests.length > 0);
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        groupsWithPendingRequests,
+        "Pending summer type change requests fetched successfully"
+      )
+    );
+});
+
 export {
   addMarks,
   createGroup,
@@ -558,4 +1075,12 @@ export {
   getReq,
   addDiscussion,
   addRemarkAbsent,
+  leaveGroup,
+  joinGroupByCode,
+  requestSummerTypeChange,
+  withdrawPreferences,
+  getSummerTypeChangeStatus,
+  getMemberCompanies,
+  profApproveSummerTypeChange,
+  getSummerPendingTypeChanges,
 };

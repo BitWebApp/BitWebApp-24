@@ -18,9 +18,9 @@ export default function BacklogForm() {
         setLoading(true);
         const response = await axios.get('/api/v1/backlogs/get-subj');
         setSubjects(response.data.data);
-        console.log("hello", response)
+        // console.log("hello", response)
       } catch (error) {
-        console.log(error)
+        // console.log(error)
       } finally {
         setLoading(false);
       }
@@ -31,7 +31,7 @@ export default function BacklogForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submit button clicked");
+    // console.log("Submit button clicked");
 
     const htmlContent = `
       <div style="text-align: left; padding: 20px;">

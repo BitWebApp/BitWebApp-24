@@ -1,23 +1,23 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const reviewSchema = new mongoose.Schema(
   {
-    user: { 
-      type: mongoose.Schema.Types.ObjectId, 
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
-      refPath: 'userModel'
+      refPath: "userModel",
     },
     userModel: {
       type: String,
       required: true,
-      enum: ['User', 'Professor']
+      enum: ["User", "Professor"],
     },
-    content: { 
-      type: String, 
-      required: true 
+    content: {
+      type: String,
+      required: true,
     },
-  }, 
+  },
   { timestamps: true }
 );
 
-export const Review = mongoose.model('Review', reviewSchema);
+export const Review = mongoose.model("Review", reviewSchema);

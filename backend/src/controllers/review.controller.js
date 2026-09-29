@@ -8,7 +8,10 @@ const addReview = asyncHandler(async (req, res) => {
   const { name, rollNumber, content } = req.body;
 
   if (!name || !rollNumber || !content) {
-    throw new ApiError(400, "Name, RollNumber, and Content are required fields.");
+    throw new ApiError(
+      400,
+      "Name, RollNumber, and Content are required fields."
+    );
   }
 
   try {
@@ -34,7 +37,9 @@ const addReview = asyncHandler(async (req, res) => {
 
     await newReview.save();
 
-    return res.status(201).json(new ApiResponse(201, newReview, "Review added successfully"));
+    return res
+      .status(201)
+      .json(new ApiResponse(201, newReview, "Review added successfully"));
   } catch (error) {
     console.error("Error adding review:", error);
     throw new ApiError(500, "Internal Server Error");
@@ -55,7 +60,9 @@ const addReviewByProfessor = asyncHandler(async (req, res) => {
   });
   try {
     await review.save();
-    return res.status(201).json(new ApiResponse(201, review, "Review added successfully"));
+    return res
+      .status(201)
+      .json(new ApiResponse(201, review, "Review added successfully"));
   } catch (error) {
     console.error("Error adding review:", error);
     throw new ApiError(500, "Internal Server Error");
@@ -77,4 +84,4 @@ const getReviews = async (req, res) => {
   }
 };
 
-export { addReview, getReviews, addReviewByProfessor};
+export { addReview, getReviews, addReviewByProfessor };

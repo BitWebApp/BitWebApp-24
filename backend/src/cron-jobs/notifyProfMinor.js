@@ -1,5 +1,6 @@
 import cron from "node-cron";
 import nodemailer from "nodemailer";
+import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.js";
 import { Professor } from "../models/professor.model.js";
 
@@ -12,6 +13,15 @@ const transporter = nodemailer.createTransport({
 });
 
 async function sendMinorNotificationEmail(professor) {
+  // Generate auto-login token (valid for 30 minutes)
+  const autoLoginToken = jwt.sign(
+    { _id: professor._id },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: "30m" }
+  );
+
+  const autoLoginUrl = `http://139.167.188.221:3000/faculty-auto-login?token=${autoLoginToken}`;
+
   const mailOptions = {
     from: process.env.AUTH_EMAIL,
     to: professor.email,
@@ -30,11 +40,13 @@ async function sendMinorNotificationEmail(professor) {
           </ul>
         </div>
 
-        <p style="margin-top: 15px; color: #555;">Please <a href="http://172.16.220.105:3000/faculty-login" style="color: #007bff; text-decoration: none; font-weight: bold;">log in</a> to the system to review these applications.</p>
+        <p style="margin-top: 15px; color: #555;">Click the button below to instantly access your dashboard:</p>
 
         <div style="text-align: center; margin-top: 20px;">
-          <a href="http://172.16.220.105:3000/faculty-login" style="background-color: #007bff; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-size: 16px;">Review Applications</a>
+          <a href="${autoLoginUrl}" style="background-color: #007bff; color: #fff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-size: 16px; font-weight: bold; display: inline-block;">Visit Dashboard</a>
         </div>
+
+        <p style="margin-top: 15px; color: #999; font-size: 12px;">This link is valid for 30 minutes. If you prefer to login manually, <a href="http://139.167.188.221:3000/faculty-login" style="color: #007bff; text-decoration: none;">click here</a>.</p>
 
         <p style="margin-top: 20px; color: #777; font-size: 12px; text-align: center;">Best regards,<br><strong>BITACADEMIA</strong></p>
       </div>
@@ -45,7 +57,10 @@ async function sendMinorNotificationEmail(professor) {
     await transporter.sendMail(mailOptions);
     console.log(`Minor project email sent successfully to ${professor.email}`);
   } catch (error) {
-    console.error(`Error sending minor project email to ${professor.email}:`, error);
+    console.error(
+      `Error sending minor project email to ${professor.email}:`,
+      error
+    );
   }
 }
 
@@ -61,9 +76,15 @@ const checkAndNotifyMinorProf = async () => {
       return hasSpace && hasPendingApplications;
     });
     console.log("eligible minor project profs:", eligibleProfs);
-    console.log(`📢 Notifying ${eligibleProfs.length} professors for minor projects...`);
-    await Promise.all(eligibleProfs.map((prof) => sendMinorNotificationEmail(prof)));
-    console.log("✅ All eligible professors have been notified for minor projects.");
+    console.log(
+      `📢 Notifying ${eligibleProfs.length} professors for minor projects...`
+    );
+    await Promise.all(
+      eligibleProfs.map((prof) => sendMinorNotificationEmail(prof))
+    );
+    console.log(
+      "✅ All eligible professors have been notified for minor projects."
+    );
   } catch (error) {
     console.log("Error in checkAndNotifyMinorProfessors:", error);
   }
@@ -72,7 +93,9 @@ const checkAndNotifyMinorProf = async () => {
 cron.schedule(
   "30 0 * * *",
   () => {
-    console.log("Running minor project notification task every day at 6:15 AM IST");
+    console.log(
+      "Running minor project notification task every day at 6:15 AM IST"
+    );
     checkAndNotifyMinorProf();
   },
   {

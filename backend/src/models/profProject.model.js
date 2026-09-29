@@ -16,7 +16,7 @@ const adhocProjectSchema = new Schema(
       required: [true, "desc is required!"],
     },
     categories: {
-      type: [String]
+      type: [String],
     },
     startDate: {
       type: Date,
@@ -27,12 +27,12 @@ const adhocProjectSchema = new Schema(
       required: [true, "End date is required!"],
     },
     relevantLinks: {
-      type: [String]
+      type: [String],
     },
     doc: {
       type: [String],
     },
-    closed: { 
+    closed: {
       type: Boolean,
       default: false,
     },

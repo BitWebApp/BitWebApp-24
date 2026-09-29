@@ -1,26 +1,23 @@
-import React from "react";
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import classNames from "classnames";
-import {
-  HiUser,
-  HiAcademicCap,
-  HiOutlineLogout,
-  HiBadgeCheck,
-  HiHome,
-  HiDocumentReport,
-  HiOutlineBriefcase,
-  HiPresentationChartLine,
-  HiBriefcase,
-  HiArchive,
-  HiBeaker
-} from "react-icons/hi";
-import { motion } from "framer-motion";
-import { useEffect } from "react";
-import { IoIosArrowBack } from "react-icons/io";
-import useLinks from "./admin/user-links";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import classNames from "classnames";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import {
+    HiAcademicCap,
+    HiArchive,
+    HiBadgeCheck,
+    HiBeaker,
+    HiBriefcase,
+    HiDocumentReport,
+    HiHome,
+    HiOutlineBriefcase,
+    HiOutlineLogout,
+    HiPresentationChartLine,
+    HiUser,
+    HiUserAdd
+} from "react-icons/hi";
+import { IoIosArrowBack } from "react-icons/io";
+import { Link, useNavigate } from "react-router-dom";
 const linkclasses =
   "flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base";
 
@@ -51,10 +48,15 @@ export default function Sidebar() {
       icon: <HiUser />, 
       to: "/admin-db/student-table" 
     },
-    { 
-      text: "Verify Users", 
-      icon: <HiUser />, 
-      to: "/admin-db/verify-users" 
+    {
+      text: "Verify Users",
+      icon: <HiUser />,
+      to: "/admin-db/verify-users"
+    },
+    {
+      text: "User Onboarding",
+      icon: <HiUserAdd />,
+      to: "/admin-db/user-onboarding",
     },
     {
       text: "Alumni Profiles",
@@ -107,7 +109,7 @@ export default function Sidebar() {
     //   to: "/admin-db/internship-form-table",
     // },
     {
-      text: "Internship Records",
+      text: "Summer Internship Records",
       icon: <HiBriefcase />,
       to: "/admin-db/internship-table",
     },
@@ -120,6 +122,11 @@ export default function Sidebar() {
       text: "Major Project Records",
       icon: <HiBriefcase />,
       to: "/admin-db/major-project-table",
+    },
+    {
+      text: "Project 1 Records",
+      icon: <HiBriefcase />,
+      to: "/admin-db/project1-table",
     },
     {
       text: "Room Allocations",
@@ -136,11 +143,7 @@ export default function Sidebar() {
       icon: <HiArchive />,
       to: "/admin-db/companies-table",
     },
-    {
-      text: "Assign Company",
-      icon: <HiBriefcase />,
-      to: "/admin-db/assign-company",
-    },
+
     {
       text: "Add Project Faculty",
       icon: <HiUser />,
@@ -162,6 +165,36 @@ export default function Sidebar() {
       to: "/admin-db/academicanalysis",
     }
   ];
+
+  // State for master admin role
+  const [isMasterAdmin, setIsMasterAdmin] = useState(false);
+  
+  useEffect(() => {
+    const checkMasterAdmin = async () => {
+      try {
+        const response = await axios.get("/api/v1/admin/get-admin");
+        if (response.data?.data?.role === "master") {
+          setIsMasterAdmin(true);
+        }
+      } catch (err) {
+        console.log("Not master admin or error checking role");
+      }
+    };
+    checkMasterAdmin();
+  }, []);
+
+  // Add Manage Admins link for master admins
+  const finalLinks = isMasterAdmin
+    ? [...adminLinks, {
+        text: "Reassign Major Mentor",
+        icon: <HiArchive />,
+        to: "/admin-db/reassign-major-mentor",
+      }, {
+        text: "Manage Admins",
+        icon: <HiUser />,
+        to: "/admin-db/manage-admins",
+      }]
+    : adminLinks;
   // const [isAdmin, setIsAdmin] = useState(true);
 
   // useEffect(() => {
@@ -170,23 +203,23 @@ export default function Sidebar() {
   // }, []);
 
   // const links = isAdmin ? adminLinks : additionalLinks;
-  const links = adminLinks;
+  const links = finalLinks;
   const navigate = useNavigate();
   const handleLogout = async () => {
     // try {
     //   const response = await axios.post("/api/v1/users/logout");
-    //   console.log(response);
+    //   // console.log(response);
     //   localStorage.removeItem("user");
     //   navigate("/");
     // } catch (error) {
-    //   console.log(error);
+    //   // console.log(error);
       try {
         const resp = await axios.post("/api/v1/admin/logout");
-        console.log(resp);
+        // console.log(resp);
         localStorage.removeItem("user");
         navigate("/");
       } catch (err) {
-        console.log(err);
+        // console.log(err);
       }
      finally {
       navigate("/");

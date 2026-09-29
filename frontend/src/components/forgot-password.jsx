@@ -21,15 +21,23 @@ export default function ForgotPassword() {
       toast.success("OTP sent to your email address.");
       setOtpSent(true);
     } catch (error) {
-      toast.error("Failed to send OTP. Please check your email.");
+      if (error.response?.status === 429) {
+        toast.error(
+          "Too many OTP requests. Please wait 15 minutes before trying again."
+        );
+      } else {
+        toast.error(
+          error.response?.data?.message ||
+            "Failed to send OTP. Please check your email."
+        );
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const isValidPassword = (password) => {
-   
-    return /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(password);
+    return password.length >= 8 && /[A-Za-z]/.test(password) && /[0-9]/.test(password);
   };
 
   const handleChangePassword = async () => {
@@ -47,11 +55,14 @@ export default function ForgotPassword() {
     try {
       const response = await axios.post("/api/v1/users/changepass", { email, otp, newpassword: newPassword });
       toast.success("Password changed successfully! Redirecting to login...");
-      // setTimeout(() => {
-      //   navigate("/log");
-      // }, 2000);
+      setTimeout(() => {
+        navigate("/log");
+      }, 2000);
     } catch (error) {
-      toast.error("Failed to reset password. Please try again.");
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to reset password. Please try again."
+      );
     } finally {
       setLoading(false);
     }

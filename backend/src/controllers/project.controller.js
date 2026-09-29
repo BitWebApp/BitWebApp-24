@@ -1,13 +1,16 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js";
 import { Project } from "../models/project.model.js";
-import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/Cloudinary.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import {
+  deleteFromCloudinary,
+  uploadOnCloudinary,
+} from "../utils/Cloudinary.js";
 
 const createProject = asyncHandler(async (req, res) => {
   const { projectName, domain, projectLink, techStack, guide } = req.body;
-  const userId  = req.user._id; // Assuming user_id is obtained from the JWT token
+  const userId = req.user._id; // Assuming user_id is obtained from the JWT token
   console.log("User ID:", userId);
 
   // Input validation
@@ -21,13 +24,15 @@ const createProject = asyncHandler(async (req, res) => {
     await Project.findByIdAndUpdate(existingProject._id, {
       $addToSet: { contributors: userId },
     });
-    return res.status(200).json(
-      new ApiResponse(
-        200,
-        existingProject,
-        "Project already exists. Your contribution has been appended."
-      )
-    );
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          existingProject,
+          "Project already exists. Your contribution has been appended."
+        )
+      );
   }
 
   // Handle file upload to Cloudinary
@@ -40,7 +45,7 @@ const createProject = asyncHandler(async (req, res) => {
 
   // Create new project
   const newProject = await Project.create({
-    name:userId,
+    name: userId,
     projectName,
     domain,
     techStack,
@@ -59,18 +64,26 @@ const createProject = asyncHandler(async (req, res) => {
     $addToSet: { projects: newProject._id },
   });
 
-  return res.status(201).json(
-    new ApiResponse(201, { newProject }, "Project created successfully")
-  );
+  return res
+    .status(201)
+    .json(new ApiResponse(201, { newProject }, "Project created successfully"));
 });
 
 const ShowProject = asyncHandler(async (req, res) => {
   try {
-    const showData = await Project.find().populate('name', 'rollNumber fullName');
+    const showData = await Project.find().populate({
+      path: "name",
+      select: "rollNumber fullName email mobileNumber group MajorGroup MinorGroup",
+      populate: [
+        { path: "group", select: "groupId" },
+        { path: "MajorGroup", select: "groupId" },
+        { path: "MinorGroup", select: "groupId" }
+      ]
+    });
     console.log(showData);
-    res.status(200).json(
-      new ApiResponse(200, showData, "Data shown successfully")
-    );
+    res
+      .status(200)
+      .json(new ApiResponse(200, showData, "Data shown successfully"));
   } catch (err) {
     console.error("Unable to fetch data", err);
     throw new ApiError(500, "Unable to fetch data");
@@ -80,14 +93,14 @@ const ShowProject = asyncHandler(async (req, res) => {
 const deleteProject = asyncHandler(async (req, res) => {
   // const { id } = req.params;
   // const id=req.user;
-  const userId  = req.admin._id;
-  const {id}=req.params
+  const userId = req.admin._id;
+  const { id } = req.params;
   try {
     const project = await Project.findById(id);
     if (!project) {
-      return res.status(404).json(
-        new ApiResponse(404, null, "Project not found")
-      );
+      return res
+        .status(404)
+        .json(new ApiResponse(404, null, "Project not found"));
     }
 
     const deletedDoc = project.doc;
@@ -98,9 +111,9 @@ const deleteProject = asyncHandler(async (req, res) => {
 
     await Project.findByIdAndDelete(id);
 
-    res.status(200).json(
-      new ApiResponse(200, null, "Project deleted successfully")
-    );
+    res
+      .status(200)
+      .json(new ApiResponse(200, null, "Project deleted successfully"));
   } catch (err) {
     console.error("Error deleting project", err);
     throw new ApiError(500, "Error deleting project");
@@ -149,35 +162,43 @@ const editProject = asyncHandler(async (req, res) => {
       { new: true }
     );
 
-    res.status(200).json(
-      new ApiResponse(200, updatedProject, "Project updated successfully")
-    );
+    res
+      .status(200)
+      .json(
+        new ApiResponse(200, updatedProject, "Project updated successfully")
+      );
   } catch (err) {
     console.error("Error updating project", err);
     throw new ApiError(500, "Error updating project");
   }
 });
 
-const showProjectById=asyncHandler(async(req,res)=>{
+const showProjectById = asyncHandler(async (req, res) => {
   // const {id}=req.params
   // const id=req.user
-  const userId  = req.admin._id;
-  try{
+  const userId = req.admin._id;
+  try {
+    const FindProj = await User.findById(userId).populate("proj");
 
-  const FindProj=await User.findById(userId).populate('proj');
+    if (!FindProj) {
+      throw new ApiError(404, "some error in fetching data");
+    }
 
-  if(!FindProj){
-    throw new ApiError(404,"some error in fetching data");
+    res
+      .status(200)
+      .json(
+        new ApiResponse(200, FindProj.proj, "Project fetched successfully")
+      );
+  } catch (err) {
+    console.log(err);
+    throw new ApiError(501, "some error in fetch project by id");
   }
-  
-  res.status(200).json(
-    new ApiResponse(200,FindProj.proj,"Project fetched successfully")
-  )
-}catch(err){
-  console.log(err);
-   throw new ApiError(501,"some error in fetch project by id");
-}
-})
+});
 
-export { createProject, ShowProject, deleteProject, editProject,showProjectById };
-
+export {
+  createProject,
+  deleteProject,
+  editProject,
+  ShowProject,
+  showProjectById,
+};

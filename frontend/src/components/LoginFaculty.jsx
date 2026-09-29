@@ -25,7 +25,7 @@ export default function LoginFaculty() {
           }, 3000);
         }
       } catch (error) {
-        console.log("User not logged in", error);
+        // console.log("User not logged in", error);
       } finally {
         setLoading(false);
       }
@@ -41,7 +41,7 @@ export default function LoginFaculty() {
         password,
       });
 
-      console.log("Login response:", response.data); // Debug log
+      // console.log("Login response:", response.data); // Debug log
 
       localStorage.setItem(
         "faculty",
@@ -55,7 +55,7 @@ export default function LoginFaculty() {
         response.data.data.review === false ||
         response.data.data.review === undefined;
 
-      console.log("Needs review:", needsReview);
+      // console.log("Needs review:", needsReview);
 
       if (needsReview) {
         setShowReviewPrompt(true);
@@ -63,7 +63,7 @@ export default function LoginFaculty() {
         navigate("/faculty-db");
       }
     } catch (error) {
-      console.log("Login error:", error);
+      // console.log("Login error:", error);
       toast.error(
         error.response?.data?.message || "Login failed. Please try again."
       );

@@ -19,7 +19,7 @@ const AdminRoomRequests = () => {
       const fetchRoomRequests = async () => {
           try {
               const response = await axios.get('/api/v1/classroom/bookings/pending');
-              console.log("API Response:", response.data); // Check the API response
+              // console.log("API Response:", response.data); // Check the API response
               
               if (response.data) {
                   const sortedData = response.data.sort((a, b) => {
@@ -27,7 +27,7 @@ const AdminRoomRequests = () => {
                       const dateB = new Date(b.bookingDate + ' ' + b.startTime);
                       return dateB - dateA; // Descending order
                   });
-                  console.log("Sorted Data:", sortedData); // Check sorted data
+                  // console.log("Sorted Data:", sortedData); // Check sorted data
                   setRoomRequests(sortedData);
               } else {
                   console.warn("Data is missing in the response!");
@@ -94,7 +94,7 @@ const fetchRejectedRooms = async () => {
 
     // Render table rows dynamically
     const renderTableRows = (data) => {
-      console.log("Data", data);
+      // console.log("Data", data);
       
         return data.map((request) => (
             <tr key={request._id} className="hover:bg-gray-100">

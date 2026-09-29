@@ -1,6 +1,14 @@
 import { Router } from "express";
-import { addReview, addReviewByProfessor, getReviews } from "../controllers/review.controller.js";
-import { verifyAdmin, verifyJWT, verifyProfessor } from "../middlewares/auth.middleware.js";
+import {
+  addReview,
+  addReviewByProfessor,
+  getReviews,
+} from "../controllers/review.controller.js";
+import {
+  verifyAdmin,
+  verifyJWT,
+  verifyProfessor,
+} from "../middlewares/auth.middleware.js";
 import {
   createRateLimiter,
   requestIpMiddleware,

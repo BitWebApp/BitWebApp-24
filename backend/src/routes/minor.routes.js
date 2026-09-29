@@ -1,12 +1,27 @@
 import { Router } from "express";
-import { 
-    createGroup, addMember, removeMember, applyToFaculty, getGroup,
-    getAppliedProfs,
-    minorSorted, acceptReq, getReq, addDiscussion, addRemarkAbsent, getDiscussion,
-    getDiscussionByStudent,
-    addMarks
+import {
+  createGroup,
+  addMember,
+  removeMember,
+  applyToFaculty,
+  getGroup,
+  getAppliedProfs,
+  minorSorted,
+  acceptReq,
+  getReq,
+  addDiscussion,
+  addRemarkAbsent,
+  getDiscussion,
+  getDiscussionByStudent,
+  addMarks,
+  setProjectTitle,
+  withdrawPreferences,
 } from "../controllers/minor.controller.js";
-import { verifyAdmin, verifyJWT, verifyProfessor } from "../middlewares/auth.middleware.js";
+import {
+  verifyAdmin,
+  verifyJWT,
+  verifyProfessor,
+} from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -25,4 +40,7 @@ router.route("/add-remark").post(verifyProfessor, addRemarkAbsent);
 router.route("/get-disc").post(verifyProfessor, getDiscussion);
 router.route("/get-disc-student").post(verifyJWT, getDiscussionByStudent);
 router.route("/give-marks").post(verifyProfessor, addMarks);
+router.route("/set-project-title").post(verifyJWT, setProjectTitle);
+router.route("/withdraw-preferences").post(verifyJWT, withdrawPreferences);
 export default router;
+

@@ -1,16 +1,14 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js";
-import { User } from "../models/user.model.js";
-import { uploadOnCloudinary } from "../utils/Cloudinary.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
-import jwt from "jsonwebtoken";
-import mongoose from "mongoose";
+import bcrypt from "bcrypt";
+import { OAuth2Client } from "google-auth-library";
+import cron from "node-cron";
 import { Otp } from "../models/otp.model.js";
 import { Placement } from "../models/placement.model.js";
-import nodemailer from "nodemailer";
-import bcrypt from "bcrypt";
-import cron from "node-cron";
 import { Professor } from "../models/professor.model.js";
+import { User } from "../models/user.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 import { sendOTP } from "../utils/sendOTP.js";
 
 const generateAcessAndRefreshToken = async (userId) => {
@@ -38,14 +36,17 @@ const verifyMail = asyncHandler(async (req, res) => {
     if (existedUser) {
       throw new ApiError(409, "User with email/username already exists");
     }
-
-    // delete all previous otp
     await Otp.deleteMany({ email });
-
     await Otp.create({ email, otp });
 
     // Send OTP email using utility function
-    await sendOTP(email, otp, "verification");
+    const sent = await sendOTP(email, otp, "verification");
+    if (!sent) {
+      await Otp.deleteMany({ email });
+      return res.status(502).json({
+        message: "Could not send the OTP email. Please try again in a few minutes.",
+      });
+    }
 
     res.status(200).send("Mail sent!");
   } catch (error) {
@@ -55,8 +56,9 @@ const verifyMail = asyncHandler(async (req, res) => {
 });
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { username, password, fullName, rollNumber, email, usrOTP, batch } = req.body;
-  const otpEntry = await Otp.findOne({ email });
+  const { username, password, fullName, rollNumber, email, usrOTP, batch } =
+    req.body;
+  const otpEntry = await Otp.findOne({ email }).sort({ createdAt: -1 });
 
   if (!otpEntry || usrOTP.toString() !== otpEntry.otp.toString()) {
     console.log("Invalid OTP:", usrOTP, otpEntry.otp);
@@ -67,7 +69,7 @@ const registerUser = asyncHandler(async (req, res) => {
     // throw new ApiError(400, "wrong otp, validation failed");
   }
 
-  await Otp.deleteOne({ email });
+  await Otp.deleteMany({ email });
 
   // Validate required string fields
   const stringFields = [username, password, fullName, rollNumber, email];
@@ -84,7 +86,12 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // Validate batch separately (accept number or numeric string)
   const batchNumber = Number(batch);
-  if (batch === undefined || batch === null || batch === "" || Number.isNaN(batchNumber)) {
+  if (
+    batch === undefined ||
+    batch === null ||
+    batch === "" ||
+    Number.isNaN(batchNumber)
+  ) {
     console.log("Batch is required and must be a valid number");
     return res.status(400).json({
       success: false,
@@ -117,7 +124,7 @@ const registerUser = asyncHandler(async (req, res) => {
     // throw new ApiError(400, "idCard file is required:");
   }
 
-  const idCard = await uploadOnCloudinary(idLocalPath,rollNumber);
+  const idCard = await uploadOnCloudinary(idLocalPath, rollNumber);
   if (!idCard) {
     console.log("id card file is cannot be uploaded");
     return res.status(500).json({
@@ -219,6 +226,110 @@ const loginUser = asyncHandler(async (req, res) => {
       )
     );
 });
+
+const googleClient = new OAuth2Client();
+
+/**
+ * Google accounts must belong to one of these domains to sign in.
+ * Comma separated, e.g. "bitmesra.ac.in,alumni.bitmesra.ac.in".
+ * An empty value disables the domain check.
+ */
+const allowedGoogleDomains = () =>
+  (process.env.GOOGLE_ALLOWED_DOMAINS ?? "bitmesra.ac.in")
+    .split(",")
+    .map((d) => d.trim().toLowerCase())
+    .filter(Boolean);
+
+/**
+ * Signs a user in from a Google Identity Services ID token.
+ * The account must already exist - registration still goes through /register,
+ * since we need the roll number, batch and ID card that Google can't give us.
+ */
+const googleLogin = asyncHandler(async (req, res) => {
+  const { credential } = req.body;
+  if (!credential) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Missing Google credential" });
+  }
+
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    console.log("GOOGLE_CLIENT_ID is not set - Google sign-in is disabled");
+    return res
+      .status(500)
+      .json({ success: false, message: "Google sign-in is not configured" });
+  }
+
+  // Verifies signature, issuer, audience and expiry. Throws on any mismatch.
+  let payload;
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: clientId,
+    });
+    payload = ticket.getPayload();
+  } catch (error) {
+    console.log("Google token verification failed:", error.message);
+    return res
+      .status(401)
+      .json({ success: false, message: "Google sign-in failed. Please try again." });
+  }
+
+  const email = (payload?.email || "").toLowerCase();
+  if (!email || !payload.email_verified) {
+    return res.status(401).json({
+      success: false,
+      message: "This Google account has no verified email address",
+    });
+  }
+
+  const domains = allowedGoogleDomains();
+  if (domains.length && !domains.some((d) => email.endsWith(`@${d}`))) {
+    return res.status(403).json({
+      success: false,
+      message: `Please sign in with your @${domains[0]} account.`,
+    });
+  }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    console.log("Google sign-in for unknown account:", email);
+    return res.status(404).json({
+      success: false,
+      message: "No BITAcademia account exists for this email. Please sign up first.",
+    });
+  }
+
+  if (!user.isVerified) {
+    return res
+      .status(403)
+      .json({ success: false, message: "You are not verified yet!" });
+  }
+
+  const { accessToken, refreshToken } = await generateAcessAndRefreshToken(
+    user._id
+  );
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
+  const options = {
+    httpOnly: true,
+    secure: false,
+  };
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        { user: loggedInUser, accessToken, refreshToken },
+        "User loggedIn successfully!"
+      )
+    );
+});
+
 export const otpForgotPass = asyncHandler(async (req, res) => {
   try {
     const { email } = req.body;
@@ -231,11 +342,20 @@ export const otpForgotPass = asyncHandler(async (req, res) => {
       throw new ApiError(404, "User does not exists");
     }
     const otp = `${Math.floor(Math.random() * 9000 + 1000)}`;
+    // Only ever keep one live OTP per email, so every code path agrees on
+    // which one is current.
+    await Otp.deleteMany({ email });
     await Otp.create({ email, otp });
 
     // Send OTP email using utility function
-    await sendOTP(email, otp, "forgot-password");
-    
+    const sent = await sendOTP(email, otp, "forgot-password");
+    if (!sent) {
+      await Otp.deleteMany({ email });
+      return res.status(502).json({
+        message: "Could not send the OTP email. Please try again in a few minutes.",
+      });
+    }
+
     res.status(200).send("Mail sent!");
   } catch (error) {
     console.error("Error in otpForgotPass:", error);
@@ -245,49 +365,55 @@ export const otpForgotPass = asyncHandler(async (req, res) => {
 
 const changepassword = asyncHandler(async (req, res) => {
   try {
-    // console.log("hello")
     const { email, otp, newpassword } = req.body;
-    if (!email || !otp || !newpassword)
-      throw new ApiError(400, "enter all fields");
+
+    if (!email || !otp || !newpassword) {
+      throw new ApiError(400, "Enter all fields");
+    }
+
     const user = await User.findOne({ email });
-    // console.log(user)
-    const otpverify = await Otp.find({
-      email,
-    });
-    // console.log(otpverify)
-    if (otpverify.length <= 0) {
+    if (!user) throw new ApiError(404, "User not found");
+
+    // sorted oldest-first so the pop() below always yields the newest OTP
+    const otpverify = await Otp.find({ email }).sort({ createdAt: 1 });
+    if (otpverify.length === 0) {
       throw new ApiError(
-        401,
-        "Account record doesn't exist or has been verified already. please login"
+        400,
+        "OTP expired or invalid. Please request a new one."
       );
     }
-    const hashedOTP = otpverify[0].otp;
-    // console.log(hashedOTP)
+
+    const hashedOTP = otpverify.pop().otp;
     const validOTP = otp === hashedOTP;
-    // console.log(validOTP)
+
     if (!validOTP) {
-      throw new ApiError("Invalid code. Check your Inbox");
-    } else {
-      const savepass = await bcrypt.hash(newpassword, 12);
-      const response = await User.updateOne(
-        { _id: user?._id },
-        { $set: { password: savepass } }
-      );
-      await Otp.deleteMany({ email });
-      return res.json({
-        status: "Verified",
-        message: "user email verified successfully",
-        response,
-      });
+      throw new ApiError(400, "Invalid OTP. Check your inbox.");
     }
+
+    const savepass = await bcrypt.hash(newpassword, 12);
+
+    const response = await User.updateOne(
+      { _id: user._id },
+      { $set: { password: savepass } }
+    );
+
+    // delete OTPs for the email
+    await Otp.deleteMany({ email });
+
+    return res.status(200).json({
+      status: "Verified",
+      message: "Password changed successfully",
+      response,
+    });
   } catch (error) {
     console.log(error);
-    res.json({
+    return res.status(error.statusCode || 500).json({
       status: "Failed",
       message: error.message,
     });
   }
 });
+
 const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
@@ -425,7 +551,7 @@ const updateUser1 = asyncHandler(async (req, res) => {
 
 const getCurrentUser = asyncHandler(async (req, res) => {
   const _id = req?.user?._id;
-  const user = await User.findById({ _id });
+  const user = await User.findById({ _id }).select("-marks");
   if (!user) throw new ApiError(404, "user not found");
   // console.log(user)
   res.status(200).json(new ApiResponse(200, user, "user fetched"));
@@ -689,10 +815,9 @@ const getUserbyRoll = asyncHandler(async (req, res) => {
 
   let query = User.findOne({ rollNumber: rollNumber });
 
-
   if (!isAdmin) {
     query = query.select(
-      "-password -username -refreshToken -fatherName -fatherMobileNumber -motherName -residentialAddress -alternateEmail -alumni -awards -backlogs -codingProfiles -companyInterview -createdAt -exams -graduationYear -group -groupReq -higherEd -idCard -isSummerAllocated -isVerified -linkedin -marks -mobileNumber -peCourses -proj -resume -summerAppliedProfs -updatedAt -workExp -__v -abcId"
+      "-password -username -refreshToken -fatherName -fatherMobileNumber -motherName -residentialAddress -alternateEmail -awards -backlogs -codingProfiles -companyInterview -createdAt -exams -graduationYear -group -groupReq -higherEd -idCard -isSummerAllocated -isVerified -linkedin -marks -mobileNumber -peCourses -proj -resume -summerAppliedProfs -updatedAt -workExp -__v -abcId"
     );
     query = query
       .populate("internShips", "company role startDate endDate")
@@ -725,10 +850,32 @@ const getUserbyRoll = asyncHandler(async (req, res) => {
 const getPlacementDetails = asyncHandler(async (req, res) => {
   try {
     const { batch } = req.query;
+    const admin = req.admin;
 
-    // Convert batch query (string) to number and validate
+    // Build filter based on admin's role and assigned batches
     const filter = {};
-    if (batch !== undefined) {
+
+    // For batch admins, enforce access only to assigned batches
+    if (admin && admin.role !== "master" && admin.assignedBatches?.length > 0) {
+      // If batch is specified, verify admin has access to it
+      if (batch !== undefined) {
+        const batchNumber = Number(batch);
+        if (Number.isNaN(batchNumber)) {
+          throw new ApiError(400, "Invalid batch query parameter");
+        }
+        if (!admin.assignedBatches.includes(batchNumber)) {
+          throw new ApiError(
+            403,
+            `Access forbidden: You don't have access to batch K${batchNumber}`
+          );
+        }
+        filter.batch = batchNumber;
+      } else {
+        // No batch specified, filter by all assigned batches
+        filter.batch = { $in: admin.assignedBatches };
+      }
+    } else if (batch !== undefined) {
+      // Master admin or no restriction, use requested batch
       const batchNumber = Number(batch);
       if (Number.isNaN(batchNumber)) {
         throw new ApiError(400, "Invalid batch query parameter");
@@ -770,10 +917,32 @@ const getPlacementDetails = asyncHandler(async (req, res) => {
 });
 const getAllUsers = asyncHandler(async (req, res) => {
   const { batch } = req.query;
+  const admin = req.admin;
 
-  // Convert batch query (string) to number and validate
+  // Build filter based on admin's role and assigned batches
   const filter = {};
-  if (batch !== undefined) {
+
+  // For batch admins, enforce access only to assigned batches
+  if (admin && admin.role !== "master" && admin.assignedBatches?.length > 0) {
+    // If batch is specified, verify admin has access to it
+    if (batch !== undefined) {
+      const batchNumber = Number(batch);
+      if (Number.isNaN(batchNumber)) {
+        throw new ApiError(400, "Invalid batch query parameter");
+      }
+      if (!admin.assignedBatches.includes(batchNumber)) {
+        throw new ApiError(
+          403,
+          `Access forbidden: You don't have access to batch K${batchNumber}`
+        );
+      }
+      filter.batch = batchNumber;
+    } else {
+      // No batch specified, filter by all assigned batches
+      filter.batch = { $in: admin.assignedBatches };
+    }
+  } else if (batch !== undefined) {
+    // Master admin or no restriction, use requested batch
     const batchNumber = Number(batch);
     if (Number.isNaN(batchNumber)) {
       throw new ApiError(400, "Invalid batch query parameter");
@@ -836,23 +1005,24 @@ const summerSorted = asyncHandler(async (req, res) => {
     );
 });
 export {
-  registerUser,
+  changepassword,
+  fetchBranch,
+  getAllUsers,
+  getAppliedProfs,
+  getCurrentUser,
+  getPlacementDetails,
+  getPlacementOne,
+  getPlacementThree,
+  getPlacementTwo,
+  getUserbyRoll,
+  googleLogin,
   loginUser,
   logoutUser,
-  updateUser1,
-  updatePlacementOne,
-  updatePlacementTwo,
-  updatePlacementThree,
-  getPlacementDetails,
-  getCurrentUser,
-  getUserbyRoll,
-  getPlacementOne,
-  getPlacementTwo,
-  getPlacementThree,
-  getAllUsers,
-  verifyMail,
-  fetchBranch,
-  changepassword,
-  getAppliedProfs,
+  registerUser,
   summerSorted,
+  updatePlacementOne,
+  updatePlacementThree,
+  updatePlacementTwo,
+  updateUser1,
+  verifyMail,
 };

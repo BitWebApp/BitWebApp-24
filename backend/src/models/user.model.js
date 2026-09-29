@@ -217,10 +217,28 @@ const userSchema = new Schema(
         ref: "Academics",
       },
     ],
-    alumni: [
+    alumniWorkExperiences: [
       {
-        type: Schema.Types.ObjectId,
-        ref: "Alumni",
+        company: {
+          type: String,
+          required: [true, "Company name is required"],
+        },
+        role: {
+          type: String,
+          required: [true, "Role is required"],
+        },
+        startDate: {
+          type: Date,
+          required: [true, "Start date is required"],
+        },
+        endDate: {
+          type: Date,
+          default: null,
+        },
+        isCurrentlyWorking: {
+          type: Boolean,
+          default: false,
+        },
       },
     ],
     cgpa: {
@@ -276,16 +294,32 @@ const userSchema = new Schema(
         type: Number,
         default: 0,
       },
+      project1: {
+        type: Number,
+        default: 0,
+      },
     },
+    project1: {
+      type: Schema.Types.ObjectId,
+      ref: "Project1",
+    },
+    Project1GroupReq: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Project1",
+      },
+    ],
     batch: {
       type: Number,
       required: [true, "Batch is required"],
       index: true,
     },
-    groupReq:[{
-      type: Schema.Types.ObjectId,
-      ref: "Group"
-    }],
+    groupReq: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Group",
+      },
+    ],
 
     minorAppliedProfs: [
       {
@@ -295,7 +329,7 @@ const userSchema = new Schema(
     ],
     MinorGroup: {
       type: Schema.Types.ObjectId,
-      ref: "Minor"
+      ref: "Minor",
     },
     minorAllocatedProf: {
       type: Schema.Types.ObjectId,
@@ -305,10 +339,12 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    MinorGroupReq:[{
-      type: Schema.Types.ObjectId,
-      ref: "Minor"
-    }],
+    MinorGroupReq: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Minor",
+      },
+    ],
     minorAppliedProfs: [
       {
         type: Schema.Types.ObjectId,
@@ -317,7 +353,7 @@ const userSchema = new Schema(
     ],
     MajorGroup: {
       type: Schema.Types.ObjectId,
-      ref: "Major"
+      ref: "Major",
     },
     majorAllocatedProf: {
       type: Schema.Types.ObjectId,
@@ -327,10 +363,12 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    MajorGroupReq:[{
-      type: Schema.Types.ObjectId,
-      ref: "Major"
-    }],
+    MajorGroupReq: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Major",
+      },
+    ],
     majorAppliedProfs: [
       {
         type: Schema.Types.ObjectId,
@@ -339,6 +377,46 @@ const userSchema = new Schema(
     ],
     refreshToken: {
       type: String,
+    },
+    /**
+     * Tracks admin-driven onboarding. Because the mail provider caps how many
+     * messages can go out at once, account creation and the welcome mail are
+     * separate steps: accounts are created as "pending" and mailed later in
+     * batches. Users who signed up themselves stay "not_required".
+     */
+    onboarding: {
+      isAdminOnboarded: {
+        type: Boolean,
+        default: false,
+      },
+      welcomeMailStatus: {
+        type: String,
+        enum: ["not_required", "pending", "sent", "failed"],
+        default: "not_required",
+        index: true,
+      },
+      welcomeMailSentAt: {
+        type: Date,
+        default: null,
+        index: true,
+      },
+      welcomeMailAttempts: {
+        type: Number,
+        default: 0,
+      },
+      welcomeMailError: {
+        type: String,
+        default: "",
+      },
+      onboardedAt: {
+        type: Date,
+        default: null,
+      },
+      onboardedBy: {
+        type: Schema.Types.ObjectId,
+        ref: "Admin",
+        default: null,
+      },
     },
   },
   { timestamps: true }

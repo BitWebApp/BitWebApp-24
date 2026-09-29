@@ -10,7 +10,7 @@ const PeCoursesTable = () => {
     const fetchPeCourses = async () => {
       try {
         const response = await axios.get('/api/v1/pe/my-pe-courses');
-        console.log('API response full:', response);
+        // console.log('API response full:', response);
 
         if (response.data.success && response.data.data && Array.isArray(response.data.data)) {
           setPeCourses(response.data.data); 

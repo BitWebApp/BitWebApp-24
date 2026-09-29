@@ -62,7 +62,7 @@ const IncreaseLimit = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedProf || !limit || !type) {
+    if (!selectedProf || limit === "" || !type) {
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -162,6 +162,16 @@ const IncreaseLimit = () => {
             </div>
             {isSearchFocused && (
               <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                <div
+                  className="p-2 hover:bg-blue-50 cursor-pointer border-b font-medium text-blue-600"
+                  onClick={() => {
+                    setSelectedProf("all");
+                    setSearch("All Professors");
+                    setIsSearchFocused(false);
+                  }}
+                >
+                  All Professors
+                </div>
                 {(search ? filteredProfessors : professors).map((prof) => (
                   <div
                     key={prof._id}
@@ -199,6 +209,9 @@ const IncreaseLimit = () => {
                 <span>
                   Major Project: {selectedProfessor.limits.major_project}
                 </span>
+                <span>
+                  Project 1: {selectedProfessor.limits.project1 || 0}
+                </span>
               </div>
             </div>
           )}
@@ -218,6 +231,7 @@ const IncreaseLimit = () => {
               <option value="summer_training">Summer Training</option>
               <option value="minor_project">Minor Project</option>
               <option value="major_project">Major Project</option>
+              <option value="project1">Project 1</option>
             </select>
           </div>
 
@@ -228,7 +242,7 @@ const IncreaseLimit = () => {
             </label>
             <input
               type="number"
-              min="1"
+              min="0"
               className="w-full p-2 border rounded-lg"
               value={limit}
               onChange={(e) => setLimit(e.target.value)}

@@ -5,9 +5,19 @@ import { User } from "../models/user.model.js";
 import { Minor } from "../models/minor.model.js";
 import { customAlphabet, nanoid } from "nanoid";
 import { Professor } from "../models/professor.model.js";
+import {
+  isMinorBatchAllowed,
+  MINOR_BATCHES_LABEL,
+} from "../utils/projectEligibility.js";
 
 const createGroup = asyncHandler(async (req, res) => {
   const leader = req?.user?._id;
+  if (!isMinorBatchAllowed(req.user.batch)) {
+    return res.status(403).json({
+      success: false,
+      message: `Registration for Minor Project is currently open for batch ${MINOR_BATCHES_LABEL} only. Process not started for batch K${req.user.batch}.`,
+    });
+  }
   const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
   const members = [leader];
   const user = await User.findById(leader);
@@ -20,24 +30,61 @@ const createGroup = asyncHandler(async (req, res) => {
   }
 
   const newGroup = await Minor.create({
-      groupId: nanoid(),
-      leader,
-      members
-    });
-    
-    await newGroup.populate('members leader');
+    groupId: nanoid(),
+    leader,
+    members,
+  });
 
-    user.MinorGroup = newGroup._id;
-    await user.save();
+  await newGroup.populate("members leader");
+
+  user.MinorGroup = newGroup._id;
+  await user.save();
 
   return res
     .status(200)
     .json(new ApiResponse(200, newGroup, "Minor group created successfully"));
 });
 
+
+const setProjectTitle = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { projectTitle } = req.body;
+
+  if (projectTitle === undefined || typeof projectTitle !== "string") {
+    throw new ApiError(400, "Project title must be a string.");
+  }
+
+  const user = await User.findById(userId);
+  if (!user || !user.MinorGroup) {
+    throw new ApiError(404, "User or Minor group not found.");
+  }
+
+  const group = await Minor.findById(user.MinorGroup);
+  if (!group) {
+    throw new ApiError(404, "Minor group not found.");
+  }
+
+  if (!group.leader.equals(userId)) {
+    throw new ApiError(403, "Only the group leader can set the project title.");
+  }
+
+  group.projectTitle = projectTitle.trim();
+  await group.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, group, "Project title set successfully."));
+});
 const addMember = asyncHandler(async (req, res) => {
   const loggedIn = req?.user?._id;
   const { rollNumber, groupId } = req.body;
+
+  if (!isMinorBatchAllowed(req.user.batch)) {
+    return res.status(403).json({
+      success: false,
+      message: `Registration for Minor Project is currently open for batch ${MINOR_BATCHES_LABEL} only. Process not started for batch K${req.user.batch}.`,
+    });
+  }
 
   console.log(groupId);
   const group = await Minor.findById({ _id: groupId });
@@ -103,11 +150,22 @@ const acceptReq = asyncHandler(async (req, res) => {
       message: "You are already in a minor group",
     });
   }
+  if (group.members.length >= 3) {
+    return res.status(409).json({
+      success: false,
+      message: "Group already has the maximum of 3 members",
+    });
+  }
+
   group.members.push(user?._id);
+  
+  // Save group first so validation catches any errors before user is modified
+  await group.save();
+
   user.MinorGroup = group._id;
   user.MinorGroupReq = [];
   await user.save();
-  await group.save();
+
   return res.status(200).json(new ApiResponse(200, "Joined successfully"));
 });
 
@@ -165,6 +223,14 @@ const removeMember = asyncHandler(async (req, res) => {
       group.leader = group.members[0];
       await group.save();
     } else {
+      if (group.minorAppliedProfs && group.minorAppliedProfs.length > 0) {
+        const currentProfId = group.minorAppliedProfs[0];
+        const prof = await Professor.findById(currentProfId);
+        if (prof) {
+          prof.appliedGroups.minor_project.pull(group._id);
+          await prof.save();
+        }
+      }
       await group.deleteOne();
     }
   }
@@ -172,10 +238,55 @@ const removeMember = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, "member removed"));
 });
 
+const withdrawPreferences = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+
+  const user = await User.findById(userId);
+  if (!user || !user.MinorGroup) {
+    throw new ApiError(404, "No minor project group found");
+  }
+
+  const group = await Minor.findById(user.MinorGroup);
+  if (!group) throw new ApiError(404, "Group not found");
+
+  if (!group.leader.equals(userId)) {
+    throw new ApiError(409, "Only the leader can withdraw preferences");
+  }
+
+  if (group.minorAllocatedProf) {
+    throw new ApiError(409, "Cannot withdraw after allocation");
+  }
+
+  if (group.minorAppliedProfs.length > 0) {
+    const currentProfId = group.minorAppliedProfs[0];
+    const prof = await Professor.findById(currentProfId);
+    if (prof) {
+      prof.appliedGroups.minor_project.pull(group._id);
+      await prof.save();
+    }
+  }
+
+  group.minorAppliedProfs = [];
+  group.deniedProf = [];
+  group.preferenceLastMovedAt = null;
+  await group.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, group, "All preferences withdrawn successfully"));
+});
+
 const applyToFaculty = asyncHandler(async (req, res) => {
   const loggedIn = req?.user?._id;
   const { facultyId } = req.body;
   const userId = req?.user?._id;
+
+  if (!isMinorBatchAllowed(req.user.batch)) {
+    return res.status(403).json({
+      success: false,
+      message: `Registration for Minor Project is currently open for batch ${MINOR_BATCHES_LABEL} only. Process not started for batch K${req.user.batch}.`,
+    });
+  }
 
   console.log("Applying to faculty", facultyId);
   const user = await User.findById(userId);
@@ -201,7 +312,7 @@ const applyToFaculty = asyncHandler(async (req, res) => {
     console.log("group not found");
     return res.status(404).json({
       success: false,
-      message: "Group not found",
+      message: "Please create or join a Minor Project group before applying.",
     });
   }
 
@@ -297,10 +408,13 @@ const applyToFaculty = asyncHandler(async (req, res) => {
     console.log("faculty not found");
     return res.status(404).json({
       success: false,
-      message: "Faculty not found",
+      message: "The selected professor could not be found.",
     });
   }
-  if(group.members.length > faculty.limits.minor_project-faculty.currentCount.minor_project) {
+  if (
+    group.members.length >
+    faculty.limits.minor_project - faculty.currentCount.minor_project
+  ) {
     console.log("Your group size exceeds faculty's remaining limit");
   }
 
@@ -328,7 +442,13 @@ const getGroup = asyncHandler(async (req, res) => {
     .populate("members")
     .populate("leader")
     .populate("minorAppliedProfs")
-    .populate("minorAllocatedProf")
+    .populate("minorAllocatedProf");
+    
+  if (!group) {
+    await User.updateOne({ _id: user._id }, { $set: { MinorGroup: null } });
+    throw new ApiError(409, "Not in any minor group");
+  }
+
   return res
     .status(200)
     .json(new ApiResponse(200, group, "Minor group details returned"));
@@ -456,11 +576,11 @@ const addMarks = asyncHandler(async (req, res) => {
   console.log(userId, marks);
   const user = await User.findById(userId).select("fullName rollNumber marks");
   if (!user) throw new ApiError(404, "User not found");
-  // 
-  if(user.marks.minorProject > 0){
+  //
+  if (user.marks.minorProject > 0) {
     throw new ApiError(400, "Marks already added");
   }
-  // 
+  //
   user.marks.minorProject = marks;
   await user.save();
   return res
@@ -483,4 +603,6 @@ export {
   getReq,
   addDiscussion,
   addRemarkAbsent,
+  setProjectTitle, 
+  withdrawPreferences,
 };

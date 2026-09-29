@@ -55,7 +55,11 @@ const AdminBugTrackerSummary = () => {
             ) : (
               bugs.map(bug => (
                 <tr key={bug._id} className="hover:bg-gray-100">
-                  <td className="px-6 py-4 whitespace-nowrap">{bug.reporter.id?.fullName || bug.reporter.kind}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {bug.reporter.id?.fullName} 
+                    {bug.reporter.id?.rollNumber ? ` (${bug.reporter.id.rollNumber})` : bug.reporter.id?.idNumber ? ` (${bug.reporter.id.idNumber})` : ""}
+                    {!bug.reporter.id?.fullName && bug.reporter.kind}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">{bug.title}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{bug.status}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
