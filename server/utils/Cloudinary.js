@@ -23,7 +23,7 @@ const uploadOnCloudinary = async (localFilePath) => {
     // Resolve to absolute path
     const absolutePath = path.isAbsolute(localFilePath)
       ? localFilePath
-      : path.resolve(process.cwd(), localFilePath);
+      : path.resolve(localFilePath);
 
     // Check if source file exists
     if (!fs.existsSync(absolutePath)) {
@@ -68,7 +68,7 @@ const uploadOnCloudinary = async (localFilePath) => {
       const abs = localFilePath
         ? path.isAbsolute(localFilePath)
           ? localFilePath
-          : path.resolve(process.cwd(), localFilePath)
+          : path.resolve(localFilePath)
         : undefined;
 
       console.error("uploadOnCloudinary() failed (local storage):", {
@@ -87,7 +87,7 @@ const uploadOnCloudinary = async (localFilePath) => {
       const abs = localFilePath
         ? path.isAbsolute(localFilePath)
           ? localFilePath
-          : path.resolve(process.cwd(), localFilePath)
+          : path.resolve(localFilePath)
         : undefined;
       if (abs && fs.existsSync(abs)) fs.unlinkSync(abs);
     } catch (e) {
