@@ -1,16 +1,10 @@
 import fs from "fs";
 import path from "path";
 import util from "util";
+import { uploadsDir } from "./storagePaths.js";
 
 // Local file storage replacement for Cloudinary.
-// Files will be moved to ./public/uploads and served by express.static("public").
-
-const uploadsDir = path.resolve(process.cwd(), "public", "uploads");
-
-// Ensure uploads directory exists
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+// Files are moved to the uploads dir (see storagePaths.js) and served at /uploads.
 
 const makePublicUrl = (filename) => {
   const base = (process.env.BASE_URL || process.env.SERVER_URL || "").replace(
@@ -29,7 +23,7 @@ const uploadOnCloudinary = async (localFilePath) => {
     // Resolve to absolute path
     const absolutePath = path.isAbsolute(localFilePath)
       ? localFilePath
-      : path.resolve(process.cwd(), localFilePath);
+      : path.resolve(localFilePath);
 
     // Check if source file exists
     if (!fs.existsSync(absolutePath)) {
@@ -74,7 +68,7 @@ const uploadOnCloudinary = async (localFilePath) => {
       const abs = localFilePath
         ? path.isAbsolute(localFilePath)
           ? localFilePath
-          : path.resolve(process.cwd(), localFilePath)
+          : path.resolve(localFilePath)
         : undefined;
 
       console.error("uploadOnCloudinary() failed (local storage):", {
@@ -93,7 +87,7 @@ const uploadOnCloudinary = async (localFilePath) => {
       const abs = localFilePath
         ? path.isAbsolute(localFilePath)
           ? localFilePath
-          : path.resolve(process.cwd(), localFilePath)
+          : path.resolve(localFilePath)
         : undefined;
       if (abs && fs.existsSync(abs)) fs.unlinkSync(abs);
     } catch (e) {

@@ -54,11 +54,15 @@ npm run build
 npm start                 # serves everything on $PORT (default 3000)
 ```
 
-Deploy it anywhere that runs a long-lived Node.js process (Render, Railway, Fly.io, a VPS,
-or `docker compose up --build`, see [docs/DOCKER_SETUP.md](docs/DOCKER_SETUP.md)).
-Use `npm run build` as the build command and `npm start` as the start command.
-Serverless-only hosts are not suitable because the app relies on Socket.IO, node-cron and
-local disk for uploads.
+**Recommended:** any host that runs a long-lived Node.js process (Render, Railway, Fly.io,
+a VPS, or `docker compose up --build`, see [docs/DOCKER_SETUP.md](docs/DOCKER_SETUP.md)).
+Use `npm run build` as the build command and `npm start` as the start command. Everything
+works there: pages, API, chat, cron jobs and uploads.
+
+**Vercel:** import the repo with the Root Directory left empty and the Next.js preset.
+Pages and the REST API (`pages/api/[...path].js`) work, but serverless functions cannot
+keep a Socket.IO connection, run node-cron or keep files on disk, so live chat, the
+scheduled emails and uploaded documents do not work there.
 
 `NEXT_PUBLIC_*` variables are inlined into the frontend at build time, so set them before
 `npm run build`.

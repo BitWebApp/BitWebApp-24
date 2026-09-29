@@ -13,8 +13,6 @@ import dns from "node:dns";
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
 import "./server/env.js";
-import fs from "node:fs";
-import path from "node:path";
 import { createServer } from "node:http";
 import express from "express";
 import next from "next";
@@ -22,6 +20,7 @@ import { Server } from "socket.io";
 import connectDB from "./server/db/index.js";
 import { app as apiApp } from "./server/app.js";
 import { initSocket } from "./server/utils/Socket.js";
+import { tempDir, uploadsDir } from "./server/utils/storagePaths.js";
 
 const dev = process.env.NODE_ENV !== "production";
 const port = Number(process.env.PORT) || 3000;
@@ -41,11 +40,6 @@ process.on("unhandledRejection", (reason, promise) => {
   console.error("Reason:", reason);
   process.exit(1);
 });
-
-// Upload directories written to by multer and the local "Cloudinary" util
-const publicDir = path.resolve(process.cwd(), "public");
-fs.mkdirSync(path.join(publicDir, "temp"), { recursive: true });
-fs.mkdirSync(path.join(publicDir, "uploads"), { recursive: true });
 
 const startCronJobs = async () => {
   if (process.env.DISABLE_CRON === "true") {
@@ -75,8 +69,8 @@ const main = async () => {
   server.disable("x-powered-by");
 
   // Files uploaded at runtime are not known to Next.js, so serve them here.
-  server.use("/uploads", express.static(path.join(publicDir, "uploads")));
-  server.use("/temp", express.static(path.join(publicDir, "temp")));
+  server.use("/uploads", express.static(uploadsDir));
+  server.use("/temp", express.static(tempDir));
 
   // REST API
   server.use((req, res, nextMiddleware) => {
