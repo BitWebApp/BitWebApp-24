@@ -8,10 +8,12 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { Admin } from "../server/models/admin.model.js";
+import { DB_NAME } from "../server/constants.js";
 
 dotenv.config();
 
-const MONGODB_URI = process.env.MONGODB_URI;
+// Same database the app uses (see server/db/index.js)
+const MONGODB_URI = `${process.env.MONGODB_URI}/${DB_NAME}`;
 
 async function migrateAdmins() {
   try {

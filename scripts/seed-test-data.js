@@ -8,11 +8,14 @@
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import { DB_NAME } from "../server/constants.js";
 
 dotenv.config();
 
-const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/bitwebapp";
+// Same database the app uses (see server/db/index.js)
+const MONGODB_URI = `${
+  process.env.MONGODB_URI || "mongodb://localhost:27017"
+}/${DB_NAME}`;
 
 // Define schemas inline to avoid import issues
 const adminSchema = new mongoose.Schema(

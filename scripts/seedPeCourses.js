@@ -1,12 +1,14 @@
 import mongoose from 'mongoose';
 import { PeCourse } from '../server/models/peCourse.model.js';
+import { DB_NAME } from '../server/constants.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    // Same database the app uses (see server/db/index.js)
+    await mongoose.connect(`${process.env.MONGODB_URI}/${DB_NAME}`);
     console.log('MongoDB connected successfully');
   } catch (error) {
     console.error('MongoDB connection error:', error);
