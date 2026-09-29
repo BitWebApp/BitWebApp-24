@@ -34,13 +34,15 @@ docker compose up --build
 This will start:
 
 - **MongoDB** on port `27017`
-- **Backend API** on port `3000`
-- **Frontend** on port `5173`
+- **App** (Next.js frontend + Express API + Socket.IO) on port `3000`
+
+> `NEXT_PUBLIC_GOOGLE_CLIENT_ID` is baked into the frontend at build time. Export it in your shell
+> (or put it in a `.env` file next to `docker-compose.yml`) before `docker compose up --build`.
 
 ### 3. Access the Application
 
-- **Frontend**: [http://localhost:5173](http://localhost:5173)
-- **Backend API**: [http://localhost:3000](http://localhost:3000)
+- **App**: [http://localhost:3000](http://localhost:3000)
+- **API**: [http://localhost:3000/api/v1](http://localhost:3000/api/v1)
 
 ## Common Commands
 
@@ -57,8 +59,7 @@ docker compose up -d --build
 docker compose logs -f
 
 # Specific service
-docker compose logs -f backend
-docker compose logs -f frontend
+docker compose logs -f app
 docker compose logs -f mongodb
 ```
 
@@ -79,33 +80,37 @@ docker compose down -v
 ### Rebuild a Specific Service
 
 ```bash
-docker compose build backend
-docker compose up -d backend
+docker compose build app
+docker compose up -d app
 ```
 
 ## Services Overview
 
-| Service  | Container Name     | Port  | Description        |
-| -------- | ------------------ | ----- | ------------------ |
-| MongoDB  | bitwebapp-mongodb  | 27017 | Database           |
-| Backend  | bitwebapp-backend  | 3000  | Node.js API server |
-| Frontend | bitwebapp-frontend | 5173  | Vite React app     |
+| Service | Container Name    | Port  | Description                                  |
+| ------- | ----------------- | ----- | -------------------------------------------- |
+| MongoDB | bitwebapp-mongodb | 27017 | Database                                     |
+| App     | bitwebapp-app     | 3000  | Next.js frontend + Express API + Socket.IO   |
+
+Uploaded files are kept in the `uploads_data` volume.
 
 ## Development Workflow
 
-The Docker setup includes volume mounts for hot-reloading:
+The Docker image runs the production build. For hot-reloading, run only MongoDB in Docker and
+the app locally:
 
-- `./backend` is mounted to `/app` in the backend container
-- `./frontend` is mounted to `/app` in the frontend container
-
-Changes to your source code will automatically trigger a reload.
+```bash
+docker compose up -d mongodb
+cp .env.example .env   # set MONGODB_URI=mongodb://localhost:27017
+npm install
+npm run dev
+```
 
 ## Seeding Test Data
 
 To populate the database with test users for development, run the seed script:
 
 ```bash
-docker compose exec backend node scripts/seed-test-data.js
+docker compose exec app node scripts/seed-test-data.js
 ```
 
 This creates the following test accounts (all with password `password123`):
@@ -133,13 +138,13 @@ lsof -i :3000
 
 ### MongoDB Connection Issues
 
-If the backend can't connect to MongoDB, ensure the MongoDB container is healthy:
+If the app can't connect to MongoDB, ensure the MongoDB container is healthy:
 
 ```bash
 docker compose ps
 ```
 
-Wait for MongoDB to show as `healthy` before the backend starts.
+Wait for MongoDB to show as `healthy` before the app starts.
 
 ### Clean Rebuild
 

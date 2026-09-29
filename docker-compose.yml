@@ -1,4 +1,4 @@
-# WARNING: Copy .env.example to .env and update with your actual values before running.
+# WARNING: Copy .env.docker to .env and update with your actual values before running.
 # DO NOT use default/example values in production!
 
 services:
@@ -15,17 +15,19 @@ services:
     networks:
       - bitwebapp-network
     healthcheck:
-      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Backend Service
-  backend:
+  # Next.js app: frontend + API + Socket.IO + cron jobs
+  app:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
-    container_name: bitwebapp-backend
+      args:
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
+    container_name: bitwebapp-app
     ports:
       - "3000:3000"
     env_file:
@@ -36,32 +38,11 @@ services:
     networks:
       - bitwebapp-network
     volumes:
-      - ./backend:/app
-      - /app/node_modules
-    command: npm run dev
-
-  # Frontend Service
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: bitwebapp-frontend
-    ports:
-      - "5173:5173"
-    env_file:
-      - .env.docker
-    depends_on:
-      - backend
-    networks:
-      - bitwebapp-network
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    command: npm run dev -- --host 0.0.0.0
+      - uploads_data:/app/public/uploads
 
 volumes:
   mongodb_data:
-
+  uploads_data:
 
 networks:
   bitwebapp-network:
