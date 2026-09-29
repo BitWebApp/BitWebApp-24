@@ -1,16 +1,10 @@
 import fs from "fs";
 import path from "path";
 import util from "util";
+import { uploadsDir } from "./storagePaths.js";
 
 // Local file storage replacement for Cloudinary.
-// Files will be moved to ./public/uploads and served by express.static("public").
-
-const uploadsDir = path.resolve(process.cwd(), "public", "uploads");
-
-// Ensure uploads directory exists
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+// Files are moved to the uploads dir (see storagePaths.js) and served at /uploads.
 
 const makePublicUrl = (filename) => {
   const base = (process.env.BASE_URL || process.env.SERVER_URL || "").replace(
