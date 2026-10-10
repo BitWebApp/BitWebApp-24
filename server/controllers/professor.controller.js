@@ -15,6 +15,13 @@ import { Otp } from "../models/otp.model.js";
 import { Review } from "../models/review.model.js";
 import { Minor } from "../models/minor.model.js";
 import { Major } from "../models/major.model.js";
+import { MINOR_PROJECT_BATCHES } from "../utils/projectEligibility.js";
+import {
+  countBatches,
+  getMinorCountsByBatch,
+  minorGroupFits,
+  minorSeatsLeft,
+} from "../utils/minorCapacity.js";
 const url = "http://139.167.188.221:3000/faculty-login";
 
 
@@ -1246,10 +1253,11 @@ const acceptMinorGroup = asyncHandler(async (req, res) => {
       throw new ApiError(404, "Group not found");
     }
     const numOfMem = group.members.length;
-    if (
-      prof.currentCount.minor_project + numOfMem >
-      prof.limits.minor_project
-    ) {
+    const accepted = (await getMinorCountsByBatch([prof], session)).get(
+      prof._id.toString()
+    );
+    const groupBatches = await countBatches(group.members, session);
+    if (!minorGroupFits(prof, accepted, groupBatches)) {
       throw new ApiError(
         409,
         "Limit will exceed, you cannot accept above the limit."
@@ -1427,12 +1435,23 @@ const getMinorLimits = asyncHandler(async (req, res) => {
   console.log(profid);
   const prof = await Professor.findById({ _id: profid });
   if (!prof) throw new ApiError(404, "Professor not found");
-  const currentCount = prof.currentCount.minor_project;
-  const totalCount = prof.limits.minor_project;
-  const limitleft = totalCount - currentCount;
+  const accepted = (await getMinorCountsByBatch([prof])).get(
+    prof._id.toString()
+  );
+  const batches = MINOR_PROJECT_BATCHES.map((batch) => ({
+    batch,
+    accepted: accepted[batch] || 0,
+    left: Math.max(minorSeatsLeft(prof, accepted, batch), 0),
+  }));
   return res
     .status(200)
-    .json(new ApiResponse(200, limitleft, "limit returned"));
+    .json(
+      new ApiResponse(
+        200,
+        { limit: prof.limits.minor_project, batches },
+        "limit returned"
+      )
+    );
 });
 
 const getMajorAppliedGroups = asyncHandler(async (req, res) => {

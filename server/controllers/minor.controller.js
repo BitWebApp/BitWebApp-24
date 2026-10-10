@@ -9,6 +9,7 @@ import {
   isMinorBatchAllowed,
   MINOR_BATCHES_LABEL,
 } from "../utils/projectEligibility.js";
+import { getMinorCountsByBatch } from "../utils/minorCapacity.js";
 
 const createGroup = asyncHandler(async (req, res) => {
   const leader = req?.user?._id;
@@ -494,6 +495,21 @@ const minorSorted = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, sorted, "Minor status returned"));
 });
 
+// Students each professor has already accepted from the logged in student's
+// batch, keyed by professor id. Seats are limited per batch.
+const getProfBatchCounts = asyncHandler(async (req, res) => {
+  const batch = req.user.batch;
+  const professors = await Professor.find().select("students.minor_project");
+  const accepted = await getMinorCountsByBatch(professors);
+  const counts = {};
+  for (const [profId, byBatch] of accepted) {
+    counts[profId] = byBatch[batch] || 0;
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, counts, "Accepted counts for batch returned"));
+});
+
 const addDiscussion = asyncHandler(async (req, res) => {
   const { groupId, description } = req.body;
   const group = await Minor.findById({
@@ -605,4 +621,5 @@ export {
   addRemarkAbsent,
   setProjectTitle, 
   withdrawPreferences,
+  getProfBatchCounts,
 };
