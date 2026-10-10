@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
-import { FaUsers, FaCheckCircle, FaTimesCircle, FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
+import { FaUsers, FaCheckCircle, FaTimesCircle, FaPlus, FaEdit, FaTrash, FaSearch, FaFileExcel } from "react-icons/fa";
 import Swal from "sweetalert2";
 import ChatBox from "./ChatBox";
+import { exportMentoredGroups } from "../utils/exportMentoredGroups";
 
 const AcceptMajorProject = () => {
   const [appliedGroups, setAppliedGroups] = useState([]);
@@ -319,6 +320,23 @@ const AcceptMajorProject = () => {
                 <option value="accepted">Accepted Groups</option>
                 <option value="typeChange">Type Change Requests</option>
               </select>
+              {viewMode === "accepted" && (
+                <button
+                  onClick={() =>
+                    exportMentoredGroups({
+                      groups: filteredGroups,
+                      title: "Major Project",
+                      marksKey: "majorProject",
+                      maxMarks: 25,
+                      typeKey: "type",
+                    })
+                  }
+                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <FaFileExcel className="mr-2" />
+                  Download Excel
+                </button>
+              )}
               {viewMode === "accepted" && selectedAcceptedGroups.length > 1 && (
                 <button
                   onClick={handleMergeGroups}

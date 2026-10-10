@@ -7,9 +7,11 @@ import {
   FaTimesCircle,
   FaSearch,
   FaEdit,
+  FaFileExcel,
 } from "react-icons/fa";
 import Swal from "sweetalert2";
 import ChatBox from "./ChatBox";
+import { exportMentoredGroups } from "../utils/exportMentoredGroups";
 
 const AcceptProject1 = () => {
   const [appliedStudents, setAppliedStudents] = useState([]);
@@ -214,6 +216,22 @@ const AcceptProject1 = () => {
                   <FaCheckCircle className="inline mr-2" />
                   Accepted ({acceptedRecords.length})
                 </button>
+                {viewMode === "accepted" && (
+                  <button
+                    onClick={() =>
+                      exportMentoredGroups({
+                        groups: filteredAccepted,
+                        title: "Project 1",
+                        marksKey: "project1",
+                        maxMarks: 50,
+                      })
+                    }
+                    className="ml-auto flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    <FaFileExcel className="mr-2" />
+                    Download Excel
+                  </button>
+                )}
               </div>
 
               {/* Search */}
