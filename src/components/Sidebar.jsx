@@ -1,30 +1,10 @@
-import React from "react";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import classNames from "classnames";
-import {
-  HiUser,
-  HiAcademicCap,
-  HiOutlineLogout,
-  HiBadgeCheck,
-  HiHome,
-  HiDocumentReport,
-  HiOutlineBriefcase,
-  HiPresentationChartLine,
-  HiBriefcase,
-  HiChat,
-  HiSun,
-  HiUserGroup,
-  HiBeaker
-} from "react-icons/hi";
-import { getStudentYear } from "../utils/studentYear";
-import { FaCalendar } from "react-icons/fa";
 import { motion } from "framer-motion";
-import { useEffect } from "react";
-import { IoIosArrowBack } from "react-icons/io";
-import useLinks from "./admin/user-links";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { LogOut, ChevronLeft } from "lucide-react";
+import { getVisibleStudentLinks } from "../student_links";
 
 const linkclasses =
   "flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base";
@@ -46,153 +26,9 @@ export default function Sidebar() {
   };
   const [isOpen, setIsOpen] = useState(true);
 
-  const additionalLinks = [
-    {
-      text: "Dashboard",
-      icon: <HiHome />,
-      to: "/db",
-    },
-    {
-      text: "Alumni",
-      icon: <HiUser />,
-      to: "/db/alumni",
-    },
-    {
-      text: "Academic Records",
-      icon: <HiAcademicCap />,
-      to: "/db/academic-table",
-    },
-    // {
-    //   text: "Backlogs",
-    //   icon: <HiDocumentReport />,
-    //   to: "/db/backlogs",
-    // },
-    {
-      text: "PE-Course",
-      icon: <HiAcademicCap />,
-      to: "/db/PE-form",
-    },
-    // {
-    //   text: "Awards & Achievements",
-    //   icon: <HiBadgeCheck />,
-    //   to: "/db/award-form",
-    // },
-    // {
-    //   text: "Examinations",
-    //   icon: <HiDocumentReport />,
-    //   to: "/db/exam-form",
-    // },
-    // {
-    //   text: "Higher Education",
-    //   icon: <HiAcademicCap />,
-    //   to: "/db/higher-education",
-    // },
-    // {
-    //   text: "Placement Records",
-    //   icon: <HiBriefcase />,
-    //   to: "/db/placement",
-    // },
-    // {
-    //   text: "Projects",
-    //   icon: <HiPresentationChartLine />,
-    //   to: "/db/project-form",
-    // },
-    {
-      text: "Interview Experience",
-      icon: <HiChat />,
-      to: "/db/interview",
-    },
-    // {
-    //   text: "Request Classroom",
-    //   icon: <HiChat />,
-    //   to: "/db/classroom-form",
-    // },
-    // {
-    //   text: "Major Project",
-    //   icon: <HiPresentationChartLine />,
-    //   to: "/db/major-project",
-    // },
-    // {
-    //   text: "Minor Project",
-    //   icon: <HiPresentationChartLine />,
-    //   to: "/db/minor-project",
-    // },
-    // {
-    //   text: "Check Classroom Bookings",
-    //   icon: <FaCalendar />,
-    //   to: "/db/booking-calendar",
-    // },
-    {
-      text: "Apply to Summer",
-      icon: <HiSun />,
-      to: "/db/apply-summer",
-    },
-    {
-      text: "Manage Summer Intern Group",
-      icon: <HiUserGroup />,
-      to: "/db/manage-group",
-    },
-    {
-      text: "Apply to Minor",
-      icon: <HiSun />,
-      to: "/db/apply-minor",
-    },
-    {
-      text: "Apply to Major",
-      icon: <HiSun />,
-      to: "/db/apply-major",
-    },
-    {
-      text: "Manage Minor Group",
-      icon: <HiUserGroup />,
-      to: "/db/manage-minor-group",
-    },
-    {
-      text: "Manage Major Group",
-      icon: <HiUserGroup />,
-      to: "/db/manage-major-group",
-    },
-    // {
-    //   text: "Professor Projects",
-    //   icon: <HiPresentationChartLine />,
-    //   to: "/db/student-projects-dashboard",
-    // },
-    {
-      text: "Project 1 Group",
-      icon: <HiUserGroup />,
-      to: "/db/project1-group",
-      minYear: 3,
-    },
-    {
-      text: "Apply to Project 1",
-      icon: <HiPresentationChartLine />,
-      to: "/db/apply-project1",
-      minYear: 3,
-    },
-    {
-      text: "Report Issues",
-      icon: <HiBeaker />,
-      to: "/db/report-bug",
-    },
-    {
-      text: "Assign Company",
-      icon: <HiBriefcase />,
-      to: "/db/assign-company",
-    },
-  ];
-
   // Filter links based on student year (from batch)
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const studentYear = getStudentYear(user?.batch);
-  const links = additionalLinks.filter((link) => {
-    if (link.minYear) {
-      return studentYear >= link.minYear;
-    }
-    if (link.year) {
-      return link.year === studentYear;
-    }
-    return true;
-  });
+  const links = getVisibleStudentLinks(user);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -248,7 +84,7 @@ export default function Sidebar() {
             )}
           >
             <span className="text-xl">
-              <HiOutlineLogout />
+              <LogOut className="w-5 h-5 shrink-0" />
             </span>
             Logout
           </div>
@@ -261,7 +97,7 @@ export default function Sidebar() {
             )}
           >
             <span className="text-xl">
-              <IoIosArrowBack />
+              <ChevronLeft className="w-5 h-5 shrink-0" />
             </span>
             Collapse
           </div>
