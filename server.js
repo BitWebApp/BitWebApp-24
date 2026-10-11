@@ -17,6 +17,7 @@ import { createServer } from "node:http";
 import express from "express";
 import next from "next";
 import { Server } from "socket.io";
+import mongoose from "mongoose";
 import connectDB from "./server/db/index.js";
 import { app as apiApp } from "./server/app.js";
 import { initSocket } from "./server/utils/Socket.js";
@@ -122,8 +123,14 @@ const main = async () => {
   });
 
   // Graceful shutdown
-  const gracefulShutdown = (signal) => {
+  const gracefulShutdown = async (signal) => {
     console.log(`\n${signal} received. Starting graceful shutdown...`);
+    try {
+      await mongoose.disconnect();
+      console.log("✅ MongoDB disconnected");
+    } catch (err) {
+      console.error("Error disconnecting MongoDB:", err);
+    }
     // Closes Socket.IO connections and the underlying HTTP server
     io.close(() => {
       console.log("✅ HTTP server closed");
