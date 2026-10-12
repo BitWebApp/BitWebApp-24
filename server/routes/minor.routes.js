@@ -16,6 +16,7 @@ import {
   addMarks,
   setProjectTitle,
   withdrawPreferences,
+  getProfBatchCounts,
 } from "../controllers/minor.controller.js";
 import {
   verifyAdmin,
@@ -31,6 +32,7 @@ router.route("/remove-member").post(verifyJWT, removeMember);
 router.route("/apply-faculty").post(verifyJWT, applyToFaculty);
 router.route("/get-group").get(verifyJWT, getGroup);
 router.route("/get-app-profs").get(verifyJWT, getAppliedProfs);
+router.route("/prof-batch-counts").get(verifyJWT, getProfBatchCounts);
 router.route("/minor").get(verifyJWT, minorSorted);
 router.route("/accept-req").post(verifyJWT, acceptReq);
 router.route("/get-req").get(verifyJWT, getReq);

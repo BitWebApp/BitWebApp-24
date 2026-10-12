@@ -2,6 +2,11 @@ import cron from "node-cron";
 import moment from "moment";
 import { Minor } from "../models/minor.model.js";
 import { Professor } from "../models/professor.model.js";
+import {
+  countBatches,
+  getMinorCountsByBatch,
+  minorGroupFits,
+} from "../utils/minorCapacity.js";
 
 const preprocessMinorGroups = async () => {
   try {
@@ -13,6 +18,9 @@ const preprocessMinorGroups = async () => {
       minorAllocatedProf: { $exists: false },
     });
     console.log(`Found ${groups.length} minor groups to preprocess`);
+    const acceptedByProf = await getMinorCountsByBatch(
+      await Professor.find().select("students.minor_project")
+    );
 
     for (const group of groups) {
       try {
@@ -21,15 +29,15 @@ const preprocessMinorGroups = async () => {
             ? group.minorAppliedProfs[0].toString()
             : null;
 
+        const groupBatches = await countBatches(group.members);
         const newAppliedProfs = [];
         for (const profId of group.minorAppliedProfs) {
           const prof = await Professor.findById(profId);
           if (!prof) continue;
 
-          const availableSlots =
-            prof.limits.minor_project - prof.currentCount.minor_project;
+          const accepted = acceptedByProf.get(prof._id.toString());
 
-          if (group.members.length <= availableSlots) {
+          if (minorGroupFits(prof, accepted, groupBatches)) {
             newAppliedProfs.push(prof._id);
           }
         }

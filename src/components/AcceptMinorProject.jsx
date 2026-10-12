@@ -20,7 +20,7 @@ const AcceptMinorProject = () => {
   const [acceptedGroups, setAcceptedGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [selectedAcceptedGroups, setSelectedAcceptedGroups] = useState([]);
-  const [limits, setLimits] = useState(0);
+  const [limits, setLimits] = useState([]);
   const [description, setDescription] = useState("");
   const [absentees, setAbsentees] = useState([]);
   const [remark, setRemark] = useState("");
@@ -42,7 +42,7 @@ const AcceptMinorProject = () => {
           ]);
 
         setAppliedGroups(appliedResponse.data.data);
-        setLimits(getLimits.data.data);
+        setLimits(getLimits.data.data.batches);
         setAcceptedGroups(acceptedResponse.data.data);
       } catch (err) {
         toast.error(err.response?.data?.message || "Failed to fetch groups.");
@@ -235,7 +235,9 @@ const AcceptMinorProject = () => {
             Minor Project Groups
           </h1>
           <p className="text-center text-blue-100 mt-2">
-            Limit Left : You are left to accept {limits} students only.
+            Limit Left : You are left to accept{" "}
+            {limits.map((b) => `${b.left} from K${b.batch}`).join(", ")}{" "}
+            students only.
           </p>
         </div>
 

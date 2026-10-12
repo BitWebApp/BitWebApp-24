@@ -3,6 +3,11 @@ import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.js";
 import { Professor } from "../models/professor.model.js";
+import { MINOR_PROJECT_BATCHES } from "../utils/projectEligibility.js";
+import {
+  getMinorCountsByBatch,
+  minorSeatsLeft,
+} from "../utils/minorCapacity.js";
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -12,7 +17,11 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-async function sendMinorNotificationEmail(professor) {
+async function sendMinorNotificationEmail(professor, accepted) {
+  const currentStudents = MINOR_PROJECT_BATCHES.map(
+    (batch) => `K${batch}: ${accepted[batch] || 0}`
+  ).join(", ");
+
   // Generate auto-login token (valid for 30 minutes)
   const autoLoginToken = jwt.sign(
     { _id: professor._id },
@@ -34,8 +43,8 @@ async function sendMinorNotificationEmail(professor) {
         <div style="background-color: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
           <h3 style="color: #444;">Current Details:</h3>
           <ul style="color: #555; line-height: 1.6;">
-            <li><strong>Current Minor Project Students:</strong> ${professor.currentCount.minor_project}</li>
-            <li><strong>Maximum Limit:</strong> ${professor.limits.minor_project}</li>
+            <li><strong>Current Minor Project Students:</strong> ${currentStudents}</li>
+            <li><strong>Maximum Limit (per batch):</strong> ${professor.limits.minor_project}</li>
             <li><strong>Pending Applications:</strong> ${professor.appliedGroups.minor_project.length}</li>
           </ul>
         </div>
@@ -69,9 +78,13 @@ const checkAndNotifyMinorProf = async () => {
     const allProfs = await Professor.find().populate(
       "appliedGroups.minor_project"
     );
+    const acceptedByProf = await getMinorCountsByBatch(allProfs);
     const eligibleProfs = allProfs.filter((prof) => {
-      const { currentCount, limits, appliedGroups } = prof;
-      const hasSpace = currentCount.minor_project < limits.minor_project;
+      const { appliedGroups } = prof;
+      const accepted = acceptedByProf.get(prof._id.toString());
+      const hasSpace = MINOR_PROJECT_BATCHES.some(
+        (batch) => minorSeatsLeft(prof, accepted, batch) > 0
+      );
       const hasPendingApplications = appliedGroups.minor_project.length > 0;
       return hasSpace && hasPendingApplications;
     });
@@ -80,7 +93,12 @@ const checkAndNotifyMinorProf = async () => {
       `📢 Notifying ${eligibleProfs.length} professors for minor projects...`
     );
     await Promise.all(
-      eligibleProfs.map((prof) => sendMinorNotificationEmail(prof))
+      eligibleProfs.map((prof) =>
+        sendMinorNotificationEmail(
+          prof,
+          acceptedByProf.get(prof._id.toString())
+        )
+      )
     );
     console.log(
       "✅ All eligible professors have been notified for minor projects."

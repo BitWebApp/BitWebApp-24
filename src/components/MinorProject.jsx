@@ -61,7 +61,19 @@ const MinorProject = () => {
       const { isMinorAllocated, prof, minorAppliedProfs, denied } =
         appliedProfsResponse?.data?.data || {};
 
+      // Seats are limited per batch, so count only the students each professor
+      // has accepted from this student's batch.
+      const batchCounts = (await axios.get("/api/v1/minor/prof-batch-counts"))
+        .data.data;
+
       const sortedProfessors = allProfsResponse.data.message
+        .map((prof) => ({
+          ...prof,
+          currentCount: {
+            ...prof.currentCount,
+            minor_project: batchCounts[prof._id] || 0,
+          },
+        }))
         .filter((prof) => {
           const availableSeats =
             prof.limits.minor_project - prof.currentCount.minor_project;
