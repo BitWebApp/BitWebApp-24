@@ -9,9 +9,11 @@ import {
   FaEdit,
   FaTrash,
   FaSearch,
+  FaFileExcel,
 } from "react-icons/fa";
 import Swal from "sweetalert2";
 import ChatBox from "./ChatBox";
+import { exportMentoredGroups } from "../utils/exportMentoredGroups";
 
 const AcceptStudents = () => {
   const [appliedGroups, setAppliedGroups] = useState([]);
@@ -310,6 +312,23 @@ const AcceptStudents = () => {
                 <option value="applied">Applied Groups</option>
                 <option value="accepted">Accepted Groups</option>
               </select>
+              {viewMode === "accepted" && (
+                <button
+                  onClick={() =>
+                    exportMentoredGroups({
+                      groups: filteredGroups,
+                      title: "Summer Training",
+                      marksKey: "summerTraining",
+                      maxMarks: 50,
+                      typeKey: "typeOfSummer",
+                    })
+                  }
+                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <FaFileExcel className="mr-2" />
+                  Download Excel
+                </button>
+              )}
               {viewMode === "accepted" && selectedAcceptedGroups.length > 1 && (
                 <button
                   onClick={handleMergeGroups}
