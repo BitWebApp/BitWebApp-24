@@ -4,6 +4,7 @@ import { Minor } from "../models/minor.model.js";
 import { Professor } from "../models/professor.model.js";
 import {
   countBatches,
+  filterMinorEligibleGroups,
   getMinorCountsByBatch,
   minorGroupFits,
 } from "../utils/minorCapacity.js";
@@ -13,10 +14,12 @@ const preprocessMinorGroups = async () => {
     console.log(
       "Preprocessing minor groups to clean up limit exceeded professors"
     );
-    const groups = await Minor.find({
-      minorAppliedProfs: { $exists: true, $ne: [] },
-      minorAllocatedProf: { $exists: false },
-    });
+    const groups = await filterMinorEligibleGroups(
+      await Minor.find({
+        minorAppliedProfs: { $exists: true, $ne: [] },
+        minorAllocatedProf: { $exists: false },
+      })
+    );
     console.log(`Found ${groups.length} minor groups to preprocess`);
     const acceptedByProf = await getMinorCountsByBatch(
       await Professor.find().select("students.minor_project")
@@ -93,11 +96,13 @@ const moveMinorApplications = async () => {
     console.log(
       `Looking for minor groups with no movement since: ${twoDaysAgo}`
     );
-    const groups = await Minor.find({
-      minorAppliedProfs: { $exists: true, $ne: [] },
-      minorAllocatedProf: { $exists: false },
-      preferenceLastMovedAt: { $lte: twoDaysAgo },
-    });
+    const groups = await filterMinorEligibleGroups(
+      await Minor.find({
+        minorAppliedProfs: { $exists: true, $ne: [] },
+        minorAllocatedProf: { $exists: false },
+        preferenceLastMovedAt: { $lte: twoDaysAgo },
+      })
+    );
     console.log(
       `Found ${groups.length} minor groups eligible for preference movement`
     );

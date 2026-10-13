@@ -1,5 +1,6 @@
 import { Minor } from "../models/minor.model.js";
 import { User } from "../models/user.model.js";
+import { isMinorBatchAllowed } from "./projectEligibility.js";
 
 // The minor project limit applies to each batch separately: a professor with a
 // limit of 7 can take 7 students from K22 and another 7 from K23.
@@ -46,6 +47,23 @@ export const getMinorCountsByBatch = async (professors, session = null) => {
     }
   }
   return result;
+};
+
+/**
+ * Groups whose members are all currently in the minor project year. Groups
+ * from older batches stay in the database but are no longer eligible.
+ */
+export const filterMinorEligibleGroups = async (groups) => {
+  const idOf = (member) => (member._id ?? member).toString();
+  const users = await User.find({
+    _id: { $in: groups.flatMap((group) => group.members.map(idOf)) },
+  }).select("batch");
+  const batchById = new Map(users.map((u) => [u._id.toString(), u.batch]));
+  return groups.filter((group) =>
+    group.members.every((member) =>
+      isMinorBatchAllowed(batchById.get(idOf(member)))
+    )
+  );
 };
 
 /** Seats a professor has left for one batch (negative when over the limit). */

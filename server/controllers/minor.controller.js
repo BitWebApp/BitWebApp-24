@@ -7,7 +7,7 @@ import { customAlphabet, nanoid } from "nanoid";
 import { Professor } from "../models/professor.model.js";
 import {
   isMinorBatchAllowed,
-  MINOR_BATCHES_LABEL,
+  getMinorBatchesLabel,
 } from "../utils/projectEligibility.js";
 import { getMinorCountsByBatch } from "../utils/minorCapacity.js";
 
@@ -16,7 +16,7 @@ const createGroup = asyncHandler(async (req, res) => {
   if (!isMinorBatchAllowed(req.user.batch)) {
     return res.status(403).json({
       success: false,
-      message: `Registration for Minor Project is currently open for batch ${MINOR_BATCHES_LABEL} only. Process not started for batch K${req.user.batch}.`,
+      message: `Registration for Minor Project is currently open for batch ${getMinorBatchesLabel()} only. Process not started for batch K${req.user.batch}.`,
     });
   }
   const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
@@ -83,7 +83,7 @@ const addMember = asyncHandler(async (req, res) => {
   if (!isMinorBatchAllowed(req.user.batch)) {
     return res.status(403).json({
       success: false,
-      message: `Registration for Minor Project is currently open for batch ${MINOR_BATCHES_LABEL} only. Process not started for batch K${req.user.batch}.`,
+      message: `Registration for Minor Project is currently open for batch ${getMinorBatchesLabel()} only. Process not started for batch K${req.user.batch}.`,
     });
   }
 
@@ -112,6 +112,12 @@ const addMember = asyncHandler(async (req, res) => {
     });
   }
   const user = await User.findOne({ rollNumber });
+  if (!isMinorBatchAllowed(user.batch)) {
+    return res.status(403).json({
+      success: false,
+      message: `Only students of batch ${getMinorBatchesLabel()} can be added to a Minor Project group.`,
+    });
+  }
   if (user.MinorGroup) {
     console.log("Already in a minor group");
     return res.status(409).json({
@@ -129,6 +135,12 @@ const acceptReq = asyncHandler(async (req, res) => {
   const { groupId } = req.body;
   console.log(groupId);
   const user = await User.findById({ _id: userId });
+  if (!isMinorBatchAllowed(user.batch)) {
+    return res.status(403).json({
+      success: false,
+      message: `Registration for Minor Project is currently open for batch ${getMinorBatchesLabel()} only. Process not started for batch K${user.batch}.`,
+    });
+  }
   const group = await Minor.findById({ _id: groupId });
   if (!group) {
     console.log("group not found");
@@ -285,7 +297,7 @@ const applyToFaculty = asyncHandler(async (req, res) => {
   if (!isMinorBatchAllowed(req.user.batch)) {
     return res.status(403).json({
       success: false,
-      message: `Registration for Minor Project is currently open for batch ${MINOR_BATCHES_LABEL} only. Process not started for batch K${req.user.batch}.`,
+      message: `Registration for Minor Project is currently open for batch ${getMinorBatchesLabel()} only. Process not started for batch K${req.user.batch}.`,
     });
   }
 
