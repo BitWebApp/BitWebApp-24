@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
 import {
   isMinorBatchAllowed,
-  MINOR_BATCHES_LABEL,
+  getMinorBatchesLabel,
 } from "../utils/projectEligibility";
 
 const handleError = (error, defaultMessage) => {
@@ -65,7 +65,7 @@ const MinorGroupManagement = () => {
 
   useEffect(() => {
     if (currentUser && !currentUser.isMinorAllocated && !isMinorBatchAllowed(currentUser.batch)) {
-      toast.error(`Registration for Minor Project is open for batch ${MINOR_BATCHES_LABEL} only. Process not started for batch K${currentUser.batch}.`, {
+      toast.error(`Registration for Minor Project is open for batch ${getMinorBatchesLabel()} only. Process not started for batch K${currentUser.batch}.`, {
         id: "group-batch-error-toast",
       });
     }
@@ -180,7 +180,7 @@ const MinorGroupManagement = () => {
               Process Not Started
             </h1>
             <p className="text-gray-600 mb-6 leading-relaxed">
-              Registration for Minor Project is currently open for batch <strong className="text-blue-600 font-semibold">{MINOR_BATCHES_LABEL}</strong> only.
+              Registration for Minor Project is currently open for batch <strong className="text-blue-600 font-semibold">{getMinorBatchesLabel()}</strong> only.
             </p>
             <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-5 mb-2 inline-block w-full border border-gray-200/60 shadow-inner">
               <p className="text-sm text-gray-700">

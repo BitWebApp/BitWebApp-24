@@ -1,6 +1,8 @@
-// Batches for which Minor Project registration is currently open.
-// Update this list at the start of a session instead of editing controllers.
-export const MINOR_PROJECT_BATCHES = [22, 23];
+import { getStudentYear } from "./studentYear.js";
+
+// Minor Project is done in this year of study. Eligibility follows the
+// student's current year, so batches roll over on their own every August.
+export const MINOR_PROJECT_YEAR = 4;
 
 export const formatBatches = (batches) => {
   const labels = batches.map((batch) => `K${batch}`);
@@ -9,6 +11,14 @@ export const formatBatches = (batches) => {
 };
 
 export const isMinorBatchAllowed = (batch) =>
-  MINOR_PROJECT_BATCHES.includes(Number(batch));
+  getStudentYear(batch) === MINOR_PROJECT_YEAR;
 
-export const MINOR_BATCHES_LABEL = formatBatches(MINOR_PROJECT_BATCHES);
+// Batches (two digit, e.g. 23 for K23) currently in the minor project year.
+export const getMinorBatches = () => {
+  const firstYearBatch = Array.from({ length: 100 }, (_, batch) => batch).find(
+    (batch) => getStudentYear(batch) === 1
+  );
+  return [firstYearBatch - (MINOR_PROJECT_YEAR - 1)];
+};
+
+export const getMinorBatchesLabel = () => formatBatches(getMinorBatches());

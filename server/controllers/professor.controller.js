@@ -15,9 +15,10 @@ import { Otp } from "../models/otp.model.js";
 import { Review } from "../models/review.model.js";
 import { Minor } from "../models/minor.model.js";
 import { Major } from "../models/major.model.js";
-import { MINOR_PROJECT_BATCHES } from "../utils/projectEligibility.js";
+import { getMinorBatches } from "../utils/projectEligibility.js";
 import {
   countBatches,
+  filterMinorEligibleGroups,
   getMinorCountsByBatch,
   minorGroupFits,
   minorSeatsLeft,
@@ -1120,7 +1121,10 @@ const getMinorAppliedGroups = asyncHandler(async (req, res) => {
       throw new ApiError(404, "Professor not found!");
     }
     // console.log(professor.appliedGroups);
-    const groups = professor.appliedGroups.minor_project || [];
+    // Requests from batches that are past the minor project year are stale
+    const groups = await filterMinorEligibleGroups(
+      professor.appliedGroups.minor_project || []
+    );
 
     res
       .status(200)
@@ -1252,6 +1256,12 @@ const acceptMinorGroup = asyncHandler(async (req, res) => {
     if (!group) {
       throw new ApiError(404, "Group not found");
     }
+    if ((await filterMinorEligibleGroups([group])).length === 0) {
+      throw new ApiError(
+        403,
+        "This group is not eligible for Minor Project anymore."
+      );
+    }
     const numOfMem = group.members.length;
     const accepted = (await getMinorCountsByBatch([prof], session)).get(
       prof._id.toString()
@@ -1303,6 +1313,10 @@ const acceptedMinorGroups = asyncHandler(async (req, res) => {
     .populate({
       path: "discussion.absent",
     });
+  // Newest batch first
+  const batchOf = (group) =>
+    Math.max(0, ...group.members.map((member) => member.batch || 0));
+  groups.sort((a, b) => batchOf(b) - batchOf(a));
   return res
     .status(200)
     .json(
@@ -1438,7 +1452,7 @@ const getMinorLimits = asyncHandler(async (req, res) => {
   const accepted = (await getMinorCountsByBatch([prof])).get(
     prof._id.toString()
   );
-  const batches = MINOR_PROJECT_BATCHES.map((batch) => ({
+  const batches = getMinorBatches().map((batch) => ({
     batch,
     accepted: accepted[batch] || 0,
     left: Math.max(minorSeatsLeft(prof, accepted, batch), 0),
