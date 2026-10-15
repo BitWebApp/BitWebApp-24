@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import {
   HiDocumentText,
@@ -9,6 +9,7 @@ import {
   HiCheckCircle,
   HiExclamationCircle,
 } from "react-icons/hi";
+import { IoIosArrowDown } from "react-icons/io";
 import ScrollToTop from "./ScrollToTop";
 
 const COURSES = [
@@ -22,7 +23,6 @@ const BATCHES = ["K22", "K23", "K24", "K25", "K26"];
 
 export default function FacultyCourseDocumentView() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
 
   const courseParam = searchParams.get("course");
   const batchParam = searchParams.get("batch");
@@ -63,11 +63,6 @@ export default function FacultyCourseDocumentView() {
     fetchDocs();
   }, []);
 
-  const handleCourseChange = (course) => {
-    setActiveCourse(course);
-    setSearchParams({ course, batch: activeBatch });
-  };
-
   const handleBatchChange = (batch) => {
     setActiveBatch(batch);
     setSearchParams({ course: activeCourse, batch });
@@ -92,7 +87,7 @@ export default function FacultyCourseDocumentView() {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
-          <HiAcademicCap className="text-3xl text-orange-600" />
+          <HiAcademicCap className="text-3xl text-blue-600" />
           <h1 className="text-3xl font-bold text-gray-900">{activeCourse}</h1>
         </div>
         <p className="text-gray-600 text-sm md:text-base">
@@ -102,62 +97,40 @@ export default function FacultyCourseDocumentView() {
         </p>
       </div>
 
-      {/* Course Switcher Tabs */}
-      <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-3">
-        {COURSES.map((course) => (
-          <button
-            key={course}
-            onClick={() => handleCourseChange(course)}
-            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all shadow-sm ${
-              activeCourse === course
-                ? "bg-orange-600 text-white shadow-orange-200"
-                : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
-            }`}
-          >
-            {course}
-          </button>
-        ))}
-      </div>
-
-      {/* Batch Selector Card */}
+      {/* Batch Selector Card with Dropdown inside the section */}
       <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h2 className="text-lg font-bold text-gray-800">Select Batch</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Choose the batch year to access the relevant guidelines and
-              documents
+              Choose the batch year to access the corresponding guidelines and documents
             </p>
           </div>
 
-          {/* Batch Pills */}
-          <div className="flex flex-wrap gap-2">
-            {BATCHES.map((b) => {
-              const hasPdf = courseDocuments.some(
-                (d) => d.course === activeCourse && d.batch === b
-              );
-              return (
-                <button
-                  key={b}
-                  onClick={() => handleBatchChange(b)}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-md font-bold text-sm transition ${
-                    activeBatch === b
-                      ? "bg-blue-600 text-white ring-2 ring-blue-400"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  <span>Batch {b}</span>
-                  {hasPdf && (
-                    <HiCheckCircle
-                      className={`text-base ${
-                        activeBatch === b ? "text-green-300" : "text-green-600"
-                      }`}
-                      title="PDF Available"
-                    />
-                  )}
-                </button>
-              );
-            })}
+          {/* Batch Dropdown inside the batch section */}
+          <div className="w-full sm:w-64">
+            <div className="relative">
+              <select
+                id="batch-select"
+                value={activeBatch}
+                onChange={(e) => handleBatchChange(e.target.value)}
+                className="w-full appearance-none bg-white border border-gray-300 rounded-lg py-2.5 pl-4 pr-10 text-sm font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm cursor-pointer"
+              >
+                {BATCHES.map((b) => {
+                  const hasPdf = courseDocuments.some(
+                    (d) => d.course === activeCourse && d.batch === b
+                  );
+                  return (
+                    <option key={b} value={b}>
+                      Batch {b} {hasPdf ? "(PDF Available)" : "(No PDF)"}
+                    </option>
+                  );
+                })}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                <IoIosArrowDown className="text-base" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -165,7 +138,7 @@ export default function FacultyCourseDocumentView() {
       {/* Main Content Area: PDF or Empty State */}
       {loading ? (
         <div className="bg-white rounded-lg shadow-md border border-gray-200 p-12 text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-4 border-orange-500 border-t-transparent mx-auto mb-3" />
+          <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent mx-auto mb-3" />
           <p className="text-gray-600 font-medium">
             Loading course documents...
           </p>
@@ -209,7 +182,7 @@ export default function FacultyCourseDocumentView() {
                 href={currentDoc.pdfUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 md:flex-initial flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition shadow-sm"
+                className="flex-1 md:flex-initial flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition shadow-sm"
               >
                 <HiExternalLink className="text-lg" /> Open PDF in New Window
               </a>
@@ -234,7 +207,7 @@ export default function FacultyCourseDocumentView() {
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-md border border-gray-200 p-12 text-center max-w-2xl mx-auto">
-          <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <HiExclamationCircle className="text-3xl" />
           </div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -261,9 +234,9 @@ export default function FacultyCourseDocumentView() {
                   <button
                     key={b}
                     onClick={() => handleBatchChange(b)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 border border-green-300 rounded-md text-xs font-bold hover:bg-green-100 transition"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-300 rounded-md text-xs font-bold hover:bg-blue-100 transition"
                   >
-                    <HiCheckCircle />
+                    <HiCheckCircle className="text-blue-600" />
                     <span>Batch {b} (Ready)</span>
                   </button>
                 );

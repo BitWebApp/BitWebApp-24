@@ -100,7 +100,7 @@ export default function Sidebar() {
                 <div key={index} className="flex flex-col border-t border-neutral-700">
                   <div
                     className={classNames(
-                      "flex items-center justify-between cursor-pointer text-white hover:bg-orange-600 rounded-sm",
+                      "flex items-center justify-between cursor-pointer text-white hover:bg-neutral-700 rounded-sm",
                       linkclasses
                     )}
                     onClick={() => toggleDropdown(link.courseName)}
@@ -141,7 +141,7 @@ export default function Sidebar() {
 
                   {/* Batch Dropdown */}
                   {isOpen && isExpanded && (
-                    <div className="bg-neutral-900/90 py-1 pl-4 pr-2 rounded my-1 flex flex-col gap-1 border-l-2 border-orange-500">
+                    <div className="bg-neutral-900/90 py-1 pl-4 pr-2 rounded my-1 flex flex-col gap-1 border-l-2 border-neutral-700">
                       <div className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider px-2 py-0.5">
                         Select Batch PDF:
                       </div>
@@ -154,7 +154,7 @@ export default function Sidebar() {
                               href={doc.pdfUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center justify-between px-2.5 py-1.5 text-xs text-neutral-200 hover:text-white hover:bg-orange-600 rounded transition font-medium"
+                              className="flex items-center justify-between px-2.5 py-1.5 text-xs text-neutral-200 hover:text-white hover:bg-neutral-800 rounded transition font-medium"
                               title={`Open ${link.courseName} Batch ${b} PDF`}
                             >
                               <span>Batch {b}</span>
@@ -191,7 +191,7 @@ export default function Sidebar() {
                 to={link.to}
                 key={index}
                 className={classNames(
-                  "cursor-pointer border-t text-white hover:bg-orange-600 border-neutral-700",
+                  "cursor-pointer border-t text-white hover:bg-neutral-700 border-neutral-700",
                   linkclasses
                 )}
               >

@@ -120,7 +120,7 @@ export default function Header() {
         return (
           <div key={index} className="flex flex-col border-t border-neutral-700">
             <div
-              className={classNames('cursor-pointer flex justify-between items-center text-white hover:bg-orange-600', linkClasses)}
+              className={classNames('cursor-pointer flex justify-between items-center text-white hover:bg-neutral-700', linkClasses)}
               onClick={() => {
                 setOpenDropdowns(prev => ({
                   ...prev,
@@ -138,7 +138,7 @@ export default function Header() {
             </div>
 
             {isExpanded && (
-              <div className="bg-neutral-900/90 py-1 pl-8 pr-4 flex flex-col gap-1 border-l-2 border-orange-500 my-1">
+              <div className="bg-neutral-900/90 py-1 pl-8 pr-4 flex flex-col gap-1 border-l-2 border-neutral-700 my-1">
                 <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider px-2 py-0.5">
                   Select Batch PDF:
                 </span>
@@ -152,7 +152,7 @@ export default function Header() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={closeNavbar}
-                        className="flex items-center justify-between px-3 py-1.5 text-xs text-neutral-200 hover:text-white hover:bg-orange-600 rounded font-medium"
+                        className="flex items-center justify-between px-3 py-1.5 text-xs text-neutral-200 hover:text-white hover:bg-neutral-800 rounded font-medium"
                       >
                         <span>Batch {b}</span>
                         <span className="bg-red-600 text-white font-bold px-1.5 py-0.5 rounded text-[10px]">
@@ -183,7 +183,7 @@ export default function Header() {
         <Link
           to={link.to}
           key={index}
-          className={classNames('cursor-pointer border-t border-neutral-700 text-white hover:bg-orange-600', linkClasses)}
+          className={classNames('cursor-pointer border-t border-neutral-700 text-white hover:bg-neutral-700', linkClasses)}
           onClick={closeNavbar}
         >
           <span className='text-xl'>{link.icon}</span>
