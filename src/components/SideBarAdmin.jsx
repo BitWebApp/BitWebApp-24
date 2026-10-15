@@ -20,7 +20,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FileText } from "lucide-react";
 const linkclasses =
-  "flex items-center gap-5 p-2.5 hover:no-underline rounded-md text-sm transition-colors";
+  "flex items-center gap-5 font-normal p-2.5 hover:bg-neutral-800 hover:no-underline active:bg-neutral-800 rounded-md text-sm transition-colors";
 
 export default function Sidebar() {
   const Sidebar_animation = {
@@ -248,26 +248,20 @@ export default function Sidebar() {
           />
         </Link>
 
-        <div className="whitespace-pre flex-1 py-[1rem] text-[0.9rem] flex flex-col gap-0.5">
-          {links.map((link, index) => {
-            const isActive = location.pathname === link.to;
-            return (
-              <Link
-                to={link.to}
-                key={index}
-                className={classNames(
-                  "cursor-pointer border-t border-neutral-800",
-                  isActive
-                    ? "bg-blue-600 text-white font-medium shadow-sm"
-                    : "text-neutral-200 hover:bg-blue-600 hover:text-white",
-                  linkclasses
-                )}
-              >
-                <span className="text-xl shrink-0">{link.icon}</span>
-                {isOpen && <span className="truncate">{link.text}</span>}
-              </Link>
-            );
-          })}
+        <div className="whitespace-pre flex-1 py-4 text-sm flex flex-col gap-1">
+          {links.map((link, index) => (
+            <Link
+              to={link.to}
+              key={index}
+              className={classNames(
+                "cursor-pointer border-t text-neutral-200 hover:text-white border-neutral-800",
+                linkclasses
+              )}
+            >
+              <span className="text-xl shrink-0">{link.icon}</span>
+              {isOpen && <span className="truncate text-sm font-medium">{link.text}</span>}
+            </Link>
+          ))}
           <div
             onClick={() => handleLogout()}
             className={classNames(
