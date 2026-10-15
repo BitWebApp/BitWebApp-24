@@ -190,6 +190,10 @@ export default function Sidebar() {
         icon: <HiArchive />,
         to: "/admin-db/reassign-major-mentor",
       }, {
+        text: "Course Documents (PDF)",
+        icon: <HiDocumentReport />,
+        to: "/admin-db/upload-course-docs",
+      }, {
         text: "Manage Admins",
         icon: <HiUser />,
         to: "/admin-db/manage-admins",
