@@ -20,12 +20,12 @@ import { IoIosArrowBack } from "react-icons/io";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FileText } from "lucide-react";
 const linkclasses =
-  "flex items-center gap-5 font-normal p-2.5 hover:bg-neutral-800 hover:no-underline active:bg-neutral-800 rounded-md text-sm transition-colors";
+  "flex items-center gap-3.5 font-normal px-3 py-2.5 hover:bg-neutral-800 hover:no-underline active:bg-neutral-800 rounded-md text-[0.85rem] transition-colors";
 
 export default function Sidebar() {
   const Sidebar_animation = {
     open: {
-      width: "15rem",
+      width: "16.75rem",
       transition: {
         damping: 40,
       },
@@ -258,8 +258,8 @@ export default function Sidebar() {
                 linkclasses
               )}
             >
-              <span className="text-xl shrink-0">{link.icon}</span>
-              {isOpen && <span className="truncate text-sm font-medium">{link.text}</span>}
+              <span className="text-lg shrink-0">{link.icon}</span>
+              {isOpen && <span className="truncate text-[0.85rem] font-medium">{link.text}</span>}
             </Link>
           ))}
           <div
