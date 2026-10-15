@@ -17,10 +17,10 @@ import {
     HiUserAdd
 } from "react-icons/hi";
 import { IoIosArrowBack } from "react-icons/io";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FileText } from "lucide-react";
 const linkclasses =
-  "flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base";
+  "flex items-center gap-5 p-2.5 hover:no-underline rounded-md text-sm transition-colors";
 
 export default function Sidebar() {
   const Sidebar_animation = {
@@ -210,6 +210,7 @@ export default function Sidebar() {
   // const links = isAdmin ? adminLinks : additionalLinks;
   const links = finalLinks;
   const navigate = useNavigate();
+  const location = useLocation();
   const handleLogout = async () => {
     // try {
     //   const response = await axios.post("/api/v1/users/logout");
@@ -248,43 +249,49 @@ export default function Sidebar() {
         </Link>
 
         <div className="whitespace-pre flex-1 py-[1rem] text-[0.9rem] flex flex-col gap-0.5">
-          {links.map((link, index) => (
-            <Link
-              to={link.to}
-              key={index}
-              className={classNames(
-                "cursor-pointer border-t text-white hover:bg-orange-600 border-neutral-700",
-                linkclasses
-              )}
-            >
-              <span className="text-xl">{link.icon}</span>
-              {link.text}
-            </Link>
-          ))}
+          {links.map((link, index) => {
+            const isActive = location.pathname === link.to;
+            return (
+              <Link
+                to={link.to}
+                key={index}
+                className={classNames(
+                  "cursor-pointer border-t border-neutral-800",
+                  isActive
+                    ? "bg-blue-600 text-white font-medium shadow-sm"
+                    : "text-neutral-200 hover:bg-blue-600 hover:text-white",
+                  linkclasses
+                )}
+              >
+                <span className="text-xl shrink-0">{link.icon}</span>
+                {isOpen && <span className="truncate">{link.text}</span>}
+              </Link>
+            );
+          })}
           <div
             onClick={() => handleLogout()}
             className={classNames(
-              "text-red-500 mt-[2rem] cursor-pointer border-t border-neutral-700",
+              "text-red-400 hover:text-red-300 hover:bg-neutral-800 mt-[2rem] cursor-pointer border-t border-neutral-800",
               linkclasses
             )}
           >
-            <span className="text-xl">
+            <span className="text-xl shrink-0">
               <HiOutlineLogout />
             </span>
-            Logout
+            {isOpen && <span>Logout</span>}
           </div>
 
           <div
             onClick={() => setIsOpen(!isOpen)}
             className={classNames(
-              "text-red-500 cursor-pointer border-t border-neutral-700",
+              "text-neutral-400 hover:text-white hover:bg-neutral-800 cursor-pointer border-t border-neutral-800",
               linkclasses
             )}
           >
-            <span className="text-xl">
-              <IoIosArrowBack />
+            <span className="text-xl shrink-0">
+              <IoIosArrowBack className={`transition-transform duration-200 ${isOpen ? "" : "rotate-180"}`} />
             </span>
-            Collapse
+            {isOpen && <span>Collapse</span>}
           </div>
         </div>
       </motion.div>
