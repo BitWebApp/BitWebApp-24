@@ -18,6 +18,7 @@ import {
 } from "react-icons/hi";
 import { IoIosArrowBack } from "react-icons/io";
 import { Link, useNavigate } from "react-router-dom";
+import { FileText } from "lucide-react";
 const linkclasses =
   "flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base";
 
@@ -191,7 +192,7 @@ export default function Sidebar() {
         to: "/admin-db/reassign-major-mentor",
       }, {
         text: "Course Documents (PDF)",
-        icon: <HiDocumentReport />,
+        icon: <FileText className="w-5 h-5" />,
         to: "/admin-db/upload-course-docs",
       }, {
         text: "Manage Admins",

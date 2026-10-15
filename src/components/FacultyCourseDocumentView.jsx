@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import {
-  HiDocumentText,
-  HiDownload,
-  HiExternalLink,
-  HiAcademicCap,
-  HiCheckCircle,
-  HiExclamationCircle,
-} from "react-icons/hi";
-import { IoIosArrowDown } from "react-icons/io";
+  FileText,
+  Download,
+  ExternalLink,
+  GraduationCap,
+  CheckCircle2,
+  AlertCircle,
+  ChevronDown,
+} from "lucide-react";
 import ScrollToTop from "./ScrollToTop";
 
 const COURSES = [
@@ -86,22 +86,20 @@ export default function FacultyCourseDocumentView() {
 
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <HiAcademicCap className="text-3xl text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-900">{activeCourse}</h1>
+        <div className="flex items-center gap-3 mb-1">
+          <GraduationCap className="w-8 h-8 text-blue-600 flex-shrink-0" />
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">{activeCourse}</h1>
         </div>
-        <p className="text-gray-600 text-sm md:text-base">
-          Official guidelines, syllabus, and evaluation document repository for
-          faculty review. Select a batch to access or preview the corresponding
-          PDF immediately.
+        <p className="text-sm text-gray-600">
+          Official guidelines, syllabus, and evaluation documents repository for faculty review.
         </p>
       </div>
 
       {/* Batch Selector Card with Dropdown inside the section */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-lg font-bold text-gray-800">Select Batch</h2>
+            <h2 className="text-base font-semibold text-gray-900">Select Batch</h2>
             <p className="text-xs text-gray-500 mt-0.5">
               Choose the batch year to access the corresponding guidelines and documents
             </p>
@@ -114,7 +112,7 @@ export default function FacultyCourseDocumentView() {
                 id="batch-select"
                 value={activeBatch}
                 onChange={(e) => handleBatchChange(e.target.value)}
-                className="w-full appearance-none bg-white border border-gray-300 rounded-lg py-2.5 pl-4 pr-10 text-sm font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm cursor-pointer"
+                className="w-full appearance-none bg-white border border-gray-300 rounded-lg py-2.5 pl-3.5 pr-10 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm cursor-pointer"
               >
                 {BATCHES.map((b) => {
                   const hasPdf = courseDocuments.some(
@@ -128,7 +126,7 @@ export default function FacultyCourseDocumentView() {
                 })}
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                <IoIosArrowDown className="text-base" />
+                <ChevronDown className="w-4 h-4" />
               </div>
             </div>
           </div>
@@ -137,25 +135,25 @@ export default function FacultyCourseDocumentView() {
 
       {/* Main Content Area: PDF or Empty State */}
       {loading ? (
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-12 text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent mx-auto mb-3" />
-          <p className="text-gray-600 font-medium">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-3 border-blue-600 border-t-transparent mx-auto mb-3" />
+          <p className="text-sm text-gray-600 font-medium">
             Loading course documents...
           </p>
         </div>
       ) : currentDoc ? (
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           {/* Document Action Bar */}
-          <div className="bg-gray-100 border-b border-gray-200 p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="bg-gray-50 border-b border-gray-200 p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-red-100 text-red-600 rounded-lg">
-                <HiDocumentText className="text-2xl" />
+              <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
+                <FileText className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">
+                <h3 className="text-base font-semibold text-gray-900">
                   {currentDoc.originalFileName || `${activeCourse} - ${activeBatch}.pdf`}
                 </h3>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mt-0.5">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-0.5">
                   <span className="font-semibold text-blue-700">
                     Batch {activeBatch}
                   </span>
@@ -182,22 +180,22 @@ export default function FacultyCourseDocumentView() {
                 href={currentDoc.pdfUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 md:flex-initial flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition shadow-sm"
+                className="flex-1 md:flex-initial flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-medium text-sm transition shadow-sm"
               >
-                <HiExternalLink className="text-lg" /> Open PDF in New Window
+                <ExternalLink className="w-4 h-4" /> Open PDF in New Window
               </a>
               <a
                 href={currentDoc.pdfUrl}
                 download={currentDoc.originalFileName || `${activeCourse}_${activeBatch}.pdf`}
-                className="flex-1 md:flex-initial flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2.5 rounded-lg font-semibold text-sm transition"
+                className="flex-1 md:flex-initial flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2.5 rounded-lg font-medium text-sm transition shadow-sm"
               >
-                <HiDownload className="text-lg" /> Download
+                <Download className="w-4 h-4" /> Download
               </a>
             </div>
           </div>
 
           {/* Embedded PDF Viewer */}
-          <div className="p-4 bg-gray-800">
+          <div className="p-3 bg-gray-900">
             <iframe
               src={currentDoc.pdfUrl}
               title={`${activeCourse} - Batch ${activeBatch}`}
@@ -206,22 +204,20 @@ export default function FacultyCourseDocumentView() {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-12 text-center max-w-2xl mx-auto">
-          <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <HiExclamationCircle className="text-3xl" />
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center max-w-xl mx-auto">
+          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+            <AlertCircle className="w-6 h-6" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">
+          <h3 className="text-base font-semibold text-gray-900 mb-1">
             No Document Uploaded for Batch {activeBatch}
           </h3>
-          <p className="text-gray-600 text-sm mb-6">
-            The reference or guideline document for <strong>{activeCourse}</strong>{" "}
-            (Batch <strong>{activeBatch}</strong>) has not been uploaded yet by
-            the Master Admin.
+          <p className="text-sm text-gray-600 mb-6">
+            The reference document for <strong>{activeCourse}</strong> (Batch <strong>{activeBatch}</strong>) has not been uploaded yet by the Master Admin.
           </p>
 
           {/* Check if other batches have this course uploaded */}
           <div className="border-t border-gray-200 pt-4">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2.5">
               Available Batches with Uploaded Documents:
             </p>
             <div className="flex justify-center flex-wrap gap-2">
@@ -234,9 +230,9 @@ export default function FacultyCourseDocumentView() {
                   <button
                     key={b}
                     onClick={() => handleBatchChange(b)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-300 rounded-md text-xs font-bold hover:bg-blue-100 transition"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md text-xs font-medium hover:bg-blue-100 transition"
                   >
-                    <HiCheckCircle className="text-blue-600" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
                     <span>Batch {b} (Ready)</span>
                   </button>
                 );

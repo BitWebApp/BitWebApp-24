@@ -2,40 +2,19 @@ import React, { Fragment, useState, useEffect } from 'react';
 import { Popover, Transition, Menu } from '@headlessui/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { IoMdMenu } from 'react-icons/io';
-import { IoIosArrowDown, IoIosArrowForward } from 'react-icons/io';
 import classNames from 'classnames';
 import axios from 'axios';
-import {
-  HiHome,
-  HiUser,
-  HiAcademicCap,
-  HiBadgeCheck,
-  HiDocumentReport,
-  HiOutlineBriefcase,
-  HiPresentationChartLine,
-  HiBriefcase,
-  HiOutlineLogout,
-  HiArchive,
-} from "react-icons/hi";
+import { LogOut } from 'lucide-react';
 import facultyLinks from '../faculty_links';
 import useLinks from './admin/user-links';
-const linkClasses = 'flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base';
-const BATCHES = ["K22", "K23", "K24", "K25", "K26"];
+const linkClasses = 'flex items-center gap-5 font-normal p-2.5 hover:bg-neutral-800 hover:no-underline active:bg-neutral-800 rounded-md text-sm transition-colors';
 
 export default function Header() {
   const [isNavbarOpen, setIsNavbarOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(true);
   const [currentTime, setCurrentTime] = useState(null);
   const [user, setUser] = useState();
-  const [openDropdowns, setOpenDropdowns] = useState({});
-  const [courseDocs, setCourseDocs] = useState([]);
   const loggedIn = JSON.parse(localStorage.getItem('faculty'));
-
-  useEffect(() => {
-    axios.get('/api/v1/course-docs')
-      .then(res => setCourseDocs(res.data.data || []))
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     axios.get('/api/v1/prof/getcurrentProf')
@@ -114,100 +93,31 @@ export default function Header() {
   className='absolute left-0 z-10 mt-2.5 w-full bg-black max-h-[70vh] overflow-y-auto'
 >
   <div className='whitespace-pre flex-1 py-[1rem] text-[0.9rem] text-red-500 flex flex-col gap-0.5'>
-    {links.map((link, index) => {
-      if (link.isCourseDoc) {
-        const isExpanded = !!openDropdowns[link.courseName];
-        return (
-          <div key={index} className="flex flex-col border-t border-neutral-700">
-            <div
-              className={classNames('cursor-pointer flex justify-between items-center text-white hover:bg-neutral-700', linkClasses)}
-              onClick={() => {
-                setOpenDropdowns(prev => ({
-                  ...prev,
-                  [link.courseName]: !prev[link.courseName]
-                }));
-              }}
-            >
-              <div className="flex items-center gap-6">
-                <span className='text-xl'>{link.icon}</span>
-                <span>{link.text}</span>
-              </div>
-              <span className="text-neutral-400 p-1">
-                {isExpanded ? <IoIosArrowDown /> : <IoIosArrowForward />}
-              </span>
-            </div>
-
-            {isExpanded && (
-              <div className="bg-neutral-900/90 py-1 pl-8 pr-4 flex flex-col gap-1 border-l-2 border-neutral-700 my-1">
-                <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider px-2 py-0.5">
-                  Select Batch PDF:
-                </span>
-                {BATCHES.map(b => {
-                  const doc = courseDocs.find(d => d.course === link.courseName && d.batch === b);
-                  if (doc && doc.pdfUrl) {
-                    return (
-                      <a
-                        key={b}
-                        href={doc.pdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={closeNavbar}
-                        className="flex items-center justify-between px-3 py-1.5 text-xs text-neutral-200 hover:text-white hover:bg-neutral-800 rounded font-medium"
-                      >
-                        <span>Batch {b}</span>
-                        <span className="bg-red-600 text-white font-bold px-1.5 py-0.5 rounded text-[10px]">
-                          PDF
-                        </span>
-                      </a>
-                    );
-                  }
-                  return (
-                    <Link
-                      key={b}
-                      to={`/faculty-db/course-document?course=${encodeURIComponent(link.courseName)}&batch=${b}`}
-                      onClick={closeNavbar}
-                      className="flex items-center justify-between px-3 py-1.5 text-xs text-neutral-400 hover:text-white hover:bg-neutral-800 rounded"
-                    >
-                      <span>Batch {b}</span>
-                      <span className="text-[10px] text-neutral-500 italic">No PDF</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        );
-      }
-
-      return (
-        <Link
-          to={link.to}
-          key={index}
-          className={classNames('cursor-pointer border-t border-neutral-700 text-white hover:bg-neutral-700', linkClasses)}
-          onClick={closeNavbar}
-        >
-          <span className='text-xl'>{link.icon}</span>
-          {link.text}
-        </Link>
-      );
-    })}
+    {links.map((link, index) => (
+      <Link
+        to={link.to}
+        key={index}
+        className={classNames('cursor-pointer border-t border-neutral-800 text-neutral-200 hover:text-white', linkClasses)}
+        onClick={closeNavbar}
+      >
+        <span className='text-lg flex-shrink-0'>{link.icon}</span>
+        <span className="text-sm font-medium">{link.text}</span>
+      </Link>
+    ))}
     <div
       onClick={() => { handleLogout(); closeNavbar(); }}
-      className={classNames('text-red-500 mt-[2rem] cursor-pointer border-t border-neutral-700', linkClasses)}
+      className={classNames('text-red-400 hover:text-red-300 mt-6 cursor-pointer border-t border-neutral-800', linkClasses)}
     >
-      <span className='text-xl'>
-        <HiOutlineLogout />
+      <span className='text-lg flex-shrink-0'>
+        <LogOut className="w-5 h-5" />
       </span>
-      Logout
+      <span className="text-sm font-medium">Logout</span>
     </div>
     <div
-      className={classNames('text-red-500 cursor-pointer border-t border-neutral-700', linkClasses)}
+      className={classNames('text-neutral-400 hover:text-white cursor-pointer border-t border-neutral-800', linkClasses)}
       onClick={closeNavbar}
     >
-      <span className='text-xl'>
-        <HiOutlineLogout />
-      </span>
-      Collapse
+      <span className="text-sm font-medium">Collapse</span>
     </div>
   </div>
 </Popover.Panel>

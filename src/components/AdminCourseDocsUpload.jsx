@@ -3,14 +3,14 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
-  HiUpload,
-  HiDocumentText,
-  HiTrash,
-  HiEye,
-  HiCheckCircle,
-  HiExclamationCircle,
-  HiRefresh,
-} from "react-icons/hi";
+  Upload,
+  FileText,
+  Trash2,
+  Eye,
+  CheckCircle2,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
 import ScrollToTop from "./ScrollToTop";
 
 const COURSES = [
@@ -160,15 +160,15 @@ export default function AdminCourseDocsUpload() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold text-gray-900">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
               PG Projects & Thesis Documents
             </h1>
-            <span className="bg-purple-100 text-purple-800 text-xs font-semibold px-2.5 py-1 rounded-full">
+            <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
               Master Admin
             </span>
           </div>
-          <p className="text-gray-600 mt-1">
+          <p className="text-sm text-gray-600 mt-1">
             Upload and manage reference & guideline PDF files for MCA Minor/Major
             Projects and MTech Thesis 1 & 2 across batches K22–K26.
           </p>
@@ -177,30 +177,30 @@ export default function AdminCourseDocsUpload() {
         <button
           onClick={fetchDocuments}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm font-medium"
+          className="flex items-center gap-2 px-3.5 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition shadow-sm text-sm font-medium"
         >
-          <HiRefresh className={`text-lg ${loading ? "animate-spin" : ""}`} />
+          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </button>
       </div>
 
       {/* Upload Form Card */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <HiUpload className="text-blue-600" /> Upload Course PDF
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+        <h2 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <Upload className="w-5 h-5 text-blue-600" /> Upload Course PDF
         </h2>
 
         <form onSubmit={handleUpload} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Course Selector */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-xs font-semibold text-gray-700 mb-2">
                 Course <span className="text-red-500">*</span>
               </label>
               <select
                 value={selectedCourse}
                 onChange={(e) => setSelectedCourse(e.target.value)}
-                className="w-full p-2.5 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-800 font-medium"
+                className="w-full p-2.5 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-800 text-sm font-medium"
               >
                 {COURSES.map((c) => (
                   <option key={c} value={c}>
@@ -212,13 +212,13 @@ export default function AdminCourseDocsUpload() {
 
             {/* Batch Selector */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-xs font-semibold text-gray-700 mb-2">
                 Batch Number <span className="text-red-500">*</span>
               </label>
               <select
                 value={selectedBatch}
                 onChange={(e) => setSelectedBatch(e.target.value)}
-                className="w-full p-2.5 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-800 font-medium"
+                className="w-full p-2.5 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-800 text-sm font-medium"
               >
                 {BATCHES.map((b) => (
                   <option key={b} value={b}>
@@ -231,29 +231,28 @@ export default function AdminCourseDocsUpload() {
 
           {/* Existing Document Alert if already uploaded */}
           {getDoc(selectedCourse, selectedBatch) && (
-            <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded text-sm text-amber-800 flex items-center justify-between">
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-xs text-blue-900 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <HiExclamationCircle className="text-lg text-amber-600 flex-shrink-0" />
+                <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0" />
                 <span>
                   A document already exists for <strong>{selectedCourse}</strong>{" "}
-                  (Batch <strong>{selectedBatch}</strong>). Uploading a new file
-                  will replace it.
+                  (Batch <strong>{selectedBatch}</strong>). Uploading a new file will replace it.
                 </span>
               </div>
               <a
                 href={getDoc(selectedCourse, selectedBatch)?.pdfUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline font-semibold flex items-center gap-1"
+                className="text-blue-700 hover:underline font-semibold flex items-center gap-1 ml-4"
               >
-                <HiEye /> Current PDF
+                <Eye className="w-3.5 h-3.5" /> Current PDF
               </a>
             </div>
           )}
 
           {/* File Picker */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-xs font-semibold text-gray-700 mb-2">
               Select PDF File <span className="text-red-500">*</span>
             </label>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
@@ -262,12 +261,12 @@ export default function AdminCourseDocsUpload() {
                 type="file"
                 accept=".pdf,application/pdf"
                 onChange={handleFileChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 rounded-md cursor-pointer"
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 rounded-md cursor-pointer"
               />
               <button
                 type="submit"
                 disabled={uploading || !selectedFile}
-                className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-white font-semibold transition shadow-md whitespace-nowrap ${
+                className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-white font-medium text-sm transition shadow-sm whitespace-nowrap ${
                   uploading || !selectedFile
                     ? "bg-blue-300 cursor-not-allowed"
                     : "bg-blue-600 hover:bg-blue-700"
@@ -280,7 +279,7 @@ export default function AdminCourseDocsUpload() {
                   </>
                 ) : (
                   <>
-                    <HiUpload className="text-lg" />
+                    <Upload className="w-4 h-4" />
                     Upload PDF
                   </>
                 )}
@@ -297,13 +296,12 @@ export default function AdminCourseDocsUpload() {
       </div>
 
       {/* Batch Availability Matrix */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+        <h2 className="text-base font-semibold text-gray-900 mb-2">
           Batch Availability Matrix
         </h2>
-        <p className="text-sm text-gray-600 mb-4">
-          Status of uploaded reference PDFs for all 4 courses across batches
-          K22–K26:
+        <p className="text-xs text-gray-500 mb-4">
+          Status of uploaded reference PDFs for all 4 courses across batches K22–K26:
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {COURSES.map((course) => (
@@ -311,7 +309,7 @@ export default function AdminCourseDocsUpload() {
               key={course}
               className="border border-gray-200 rounded-lg p-4 bg-gray-50 flex flex-col justify-between"
             >
-              <h3 className="font-bold text-gray-900 text-base mb-3 border-b border-gray-200 pb-2">
+              <h3 className="font-semibold text-gray-900 text-sm mb-3 border-b border-gray-200 pb-2">
                 {course}
               </h3>
               <div className="space-y-2">
@@ -322,7 +320,7 @@ export default function AdminCourseDocsUpload() {
                       key={b}
                       className="flex items-center justify-between text-xs p-2 rounded bg-white border border-gray-200"
                     >
-                      <span className="font-semibold text-gray-800">
+                      <span className="font-medium text-gray-800">
                         Batch {b}
                       </span>
                       {doc ? (
@@ -330,13 +328,13 @@ export default function AdminCourseDocsUpload() {
                           href={doc.pdfUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-green-700 bg-green-50 px-2 py-0.5 rounded font-bold hover:bg-green-100 border border-green-200"
+                          className="flex items-center gap-1 text-blue-700 bg-blue-50 px-2 py-0.5 rounded font-semibold hover:bg-blue-100 border border-blue-200"
                         >
-                          <HiCheckCircle className="text-green-600 text-sm" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
                           View PDF
                         </a>
                       ) : (
-                        <span className="text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
+                        <span className="text-gray-400 bg-gray-100 px-2 py-0.5 rounded text-[11px]">
                           Not uploaded
                         </span>
                       )}
@@ -350,43 +348,42 @@ export default function AdminCourseDocsUpload() {
       </div>
 
       {/* Documents Table */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-        <div className="p-4 border-b border-gray-200 bg-gray-100 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-900">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+          <h2 className="text-base font-semibold text-gray-900">
             Uploaded Documents ({courseDocuments.length})
           </h2>
         </div>
 
         {courseDocuments.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
-            <HiDocumentText className="mx-auto text-4xl text-gray-400 mb-2" />
-            <p className="text-base font-medium">No documents uploaded yet.</p>
-            <p className="text-sm mt-1">
-              Use the upload form above to add guideline PDFs for a course and
-              batch.
+            <FileText className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+            <p className="text-sm font-medium">No documents uploaded yet.</p>
+            <p className="text-xs text-gray-500 mt-1">
+              Use the upload form above to add guideline PDFs for a course and batch.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-100">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Course Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Batch
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     File Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Size
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Uploaded On
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -394,21 +391,18 @@ export default function AdminCourseDocsUpload() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {courseDocuments.map((doc) => (
                   <tr key={doc._id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {doc.course}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800">
+                      <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
                         {doc.batch}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      <div className="flex items-center gap-1.5">
-                        <HiDocumentText className="text-red-500 text-lg flex-shrink-0" />
-                        <span
-                          className="truncate max-w-xs"
-                          title={doc.originalFileName}
-                        >
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                        <span className="truncate max-w-xs font-medium" title={doc.originalFileName}>
                           {doc.originalFileName || "document.pdf"}
                         </span>
                       </div>
@@ -417,9 +411,7 @@ export default function AdminCourseDocsUpload() {
                       {formatFileSize(doc.fileSize)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {new Date(
-                        doc.updatedAt || doc.createdAt
-                      ).toLocaleDateString("en-IN", {
+                      {new Date(doc.updatedAt || doc.createdAt).toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",
@@ -431,19 +423,17 @@ export default function AdminCourseDocsUpload() {
                           href={doc.pdfUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-semibold"
+                          className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium text-xs"
                           title="Open PDF"
                         >
-                          <HiEye className="text-base" /> View
+                          <Eye className="w-3.5 h-3.5" /> View
                         </a>
                         <button
-                          onClick={() =>
-                            handleDelete(doc._id, doc.course, doc.batch)
-                          }
-                          className="inline-flex items-center gap-1 text-red-600 hover:text-red-800 font-semibold ml-2"
+                          onClick={() => handleDelete(doc._id, doc.course, doc.batch)}
+                          className="inline-flex items-center gap-1 text-red-600 hover:text-red-800 font-medium text-xs ml-2"
                           title="Delete PDF"
                         >
-                          <HiTrash className="text-base" /> Delete
+                          <Trash2 className="w-3.5 h-3.5" /> Delete
                         </button>
                       </div>
                     </td>

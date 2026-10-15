@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link } from 'react-router-dom';
-import { HiDocumentReport } from 'react-icons/hi';
+import { FileText } from 'lucide-react';
 import ScrollToTop from './ScrollToTop';
 
 const api = axios.create({
@@ -232,7 +232,7 @@ const MasterAdminDashboard = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <HiDocumentReport className="text-blue-600" />
+              <FileText className="w-5 h-5 text-blue-600" />
               PG Projects & Thesis Documents
             </h2>
             <p className="text-sm text-gray-600 mt-1">

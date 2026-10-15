@@ -2,9 +2,8 @@ import {
   HiHome,
   HiPresentationChartLine,
   HiBeaker,
-  HiDocumentText,
-  HiAcademicCap,
 } from "react-icons/hi";
+import { FileText, GraduationCap } from "lucide-react";
 
 const facultyLinks = [
   {
@@ -29,31 +28,23 @@ const facultyLinks = [
   },
   {
     text: "MCA Minor Project",
-    icon: <HiDocumentText />,
+    icon: <FileText className="w-5 h-5" />,
     to: "/faculty-db/course-document?course=MCA%20Minor%20Project",
-    isCourseDoc: true,
-    courseName: "MCA Minor Project",
   },
   {
     text: "MCA Major Project",
-    icon: <HiDocumentText />,
+    icon: <FileText className="w-5 h-5" />,
     to: "/faculty-db/course-document?course=MCA%20Major%20Project",
-    isCourseDoc: true,
-    courseName: "MCA Major Project",
   },
   {
     text: "MTech Thesis 1",
-    icon: <HiAcademicCap />,
+    icon: <GraduationCap className="w-5 h-5" />,
     to: "/faculty-db/course-document?course=MTech%20Thesis%201",
-    isCourseDoc: true,
-    courseName: "MTech Thesis 1",
   },
   {
     text: "MTech Thesis 2",
-    icon: <HiAcademicCap />,
+    icon: <GraduationCap className="w-5 h-5" />,
     to: "/faculty-db/course-document?course=MTech%20Thesis%202",
-    isCourseDoc: true,
-    courseName: "MTech Thesis 2",
   },
   {
     text: "Ad-hoc Projects",
