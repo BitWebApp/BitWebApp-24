@@ -4,21 +4,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { IoMdMenu } from 'react-icons/io';
 import classNames from 'classnames';
 import axios from 'axios';
-import {
-  HiHome,
-  HiUser,
-  HiAcademicCap,
-  HiBadgeCheck,
-  HiDocumentReport,
-  HiOutlineBriefcase,
-  HiPresentationChartLine,
-  HiBriefcase,
-  HiOutlineLogout,
-  HiArchive,
-} from "react-icons/hi";
+import { LogOut } from 'lucide-react';
 import facultyLinks from '../faculty_links';
 import useLinks from './admin/user-links';
-const linkClasses = 'flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base';
+const linkClasses = 'flex items-center gap-5 font-normal p-2.5 hover:bg-neutral-800 hover:no-underline active:bg-neutral-800 rounded-md text-sm transition-colors';
 
 export default function Header() {
   const [isNavbarOpen, setIsNavbarOpen] = useState(false);
@@ -108,30 +97,27 @@ export default function Header() {
       <Link
         to={link.to}
         key={index}
-        className={classNames('cursor-pointer border-t border-neutral-700', linkClasses)}
+        className={classNames('cursor-pointer border-t border-neutral-800 text-neutral-200 hover:text-white', linkClasses)}
         onClick={closeNavbar}
       >
-        <span className='text-xl'>{link.icon}</span>
-        {link.text}
+        <span className='text-lg flex-shrink-0'>{link.icon}</span>
+        <span className="text-sm font-medium">{link.text}</span>
       </Link>
     ))}
     <div
       onClick={() => { handleLogout(); closeNavbar(); }}
-      className={classNames('text-red-500 mt-[2rem] cursor-pointer border-t border-neutral-700', linkClasses)}
+      className={classNames('text-red-400 hover:text-red-300 mt-6 cursor-pointer border-t border-neutral-800', linkClasses)}
     >
-      <span className='text-xl'>
-        <HiOutlineLogout />
+      <span className='text-lg flex-shrink-0'>
+        <LogOut className="w-5 h-5" />
       </span>
-      Logout
+      <span className="text-sm font-medium">Logout</span>
     </div>
     <div
-      className={classNames('text-red-500 cursor-pointer border-t border-neutral-700', linkClasses)}
+      className={classNames('text-neutral-400 hover:text-white cursor-pointer border-t border-neutral-800', linkClasses)}
       onClick={closeNavbar}
     >
-      <span className='text-xl'>
-        <HiOutlineLogout />
-      </span>
-      Collapse
+      <span className="text-sm font-medium">Collapse</span>
     </div>
   </div>
 </Popover.Panel>

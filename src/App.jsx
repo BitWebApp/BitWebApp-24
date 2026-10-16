@@ -63,6 +63,8 @@ import MajorProject from "./components/MajorProject";
 import MajorProjectTable from "./components/MajorProjectTable";
 import ReassignMajorMentor from "./components/ReassignMajorMentor";
 import MasterAdminDashboard from "./components/MasterAdminDashboard";
+import AdminCourseDocsUpload from "./components/AdminCourseDocsUpload";
+import FacultyCourseDocumentView from "./components/FacultyCourseDocumentView";
 import MinorGroupManagement from "./components/MinorGroupManagement";
 import MinorProject from "./components/MinorProject";
 import MinorProjectTable from "./components/MinorProjectTable";
@@ -212,6 +214,7 @@ export default function App() {
           <Route path="bug-tracker/:bugId" element={<AdminBugTrackerDetails />} />
           <Route path="academicanalysis" element ={<Academicanalysis />} />
           <Route path="manage-admins" element={<MasterAdminDashboard />} />
+          <Route path="upload-course-docs" element={<AdminCourseDocsUpload />} />
         </Route>
 
         <Route
@@ -227,6 +230,7 @@ export default function App() {
           <Route path="accept-project1" element={<AcceptProject1 />} />
           <Route path="accept-minor-project" element={<AcceptMinorProject />} />
           <Route path="accept-major-project" element={<AcceptMajorProject />} />
+          <Route path="course-document" element={<FacultyCourseDocumentView />} />
           <Route path="major-project" element={<MajorProject />} />
           <Route path="minor-project" element={<MajorProject />} />
           <Route path="adhoc-projects-dashboard" element={<AdminDashboard />} />

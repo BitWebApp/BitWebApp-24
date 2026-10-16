@@ -2,6 +2,8 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Link } from 'react-router-dom';
+import { FileText } from 'lucide-react';
 import ScrollToTop from './ScrollToTop';
 
 const api = axios.create({
@@ -225,7 +227,26 @@ const MasterAdminDashboard = () => {
           </button>
         </div>
       </div>
-      */}
+      {/* Course Documents (PG Projects & Thesis) Section */}
+      <div className="mb-8 bg-white rounded-lg shadow-md border border-gray-200 p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <FileText className="w-5 h-5 text-blue-600" />
+              PG Projects & Thesis Documents
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Upload and manage reference / guidelines PDFs for MCA Minor Project, MCA Major Project, MTech Thesis 1, and MTech Thesis 2 across batches (K22–K26).
+            </p>
+          </div>
+          <Link
+            to="/admin-db/upload-course-docs"
+            className="w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg transition-colors font-semibold shadow-sm whitespace-nowrap"
+          >
+            Manage Course PDFs
+          </Link>
+        </div>
+      </div>
 
       {/* Admin Management Section */}
       <div className="bg-white rounded-lg shadow-md border border-gray-200">
