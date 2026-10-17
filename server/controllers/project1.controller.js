@@ -8,6 +8,7 @@ import { customAlphabet } from "nanoid";
 import mongoose from "mongoose";
 
 import { getStudentYear } from "../utils/studentYear.js";
+import { getCurrentSession } from "../utils/sessions.js";
 import { submitFinalMarks } from "../utils/marks.js";
 
 // ===================== Student-facing =====================
@@ -469,6 +470,7 @@ const acceptProject1Student = asyncHandler(async (req, res) => {
 
     group.allocatedProf = profId;
     group.appliedProfs = [];
+    group.session = getCurrentSession();
     await group.save({ session });
 
     prof.currentCount.project1 += numMembers;

@@ -67,6 +67,7 @@ import AdminCourseDocsUpload from "./components/AdminCourseDocsUpload";
 import FacultyCourseDocumentView from "./components/FacultyCourseDocumentView";
 import AdminBackPaperAllotment from "./components/AdminBackPaperAllotment";
 import FacultyAllottedStudents from "./components/FacultyAllottedStudents";
+import FacultyDashboard from "./components/FacultyDashboard";
 import MinorGroupManagement from "./components/MinorGroupManagement";
 import MinorProject from "./components/MinorProject";
 import MinorProjectTable from "./components/MinorProjectTable";
@@ -228,7 +229,7 @@ export default function App() {
             </ProtectFaculty>
           }
         >
-          <Route index element={<Dashboard />} />
+          <Route index element={<FacultyDashboard />} />
           <Route path="accept-students" element={<AcceptStudents />} />
           <Route path="accept-project1" element={<AcceptProject1 />} />
           <Route path="accept-minor-project" element={<AcceptMinorProject />} />

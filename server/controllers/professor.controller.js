@@ -16,6 +16,7 @@ import { Review } from "../models/review.model.js";
 import { Minor } from "../models/minor.model.js";
 import { Major } from "../models/major.model.js";
 import { getMinorBatches } from "../utils/projectEligibility.js";
+import { getCurrentSession } from "../utils/sessions.js";
 import {
   countBatches,
   filterMinorEligibleGroups,
@@ -752,6 +753,7 @@ const acceptGroup = asyncHandler(async (req, res) => {
     }
     group.summerAllocatedProf = profId;
     group.summerAppliedProfs = [];
+    group.session = getCurrentSession();
     if (!group.location) group.location = "inside_bit";
     await group.save({ session });
     prof.currentCount.summer_training += numOfMem;
@@ -1275,6 +1277,7 @@ const acceptMinorGroup = asyncHandler(async (req, res) => {
     }
     group.minorAllocatedProf = profId;
     group.minorAppliedProfs = [];
+    group.session = getCurrentSession();
     await group.save({ session });
     prof.currentCount.minor_project += numOfMem;
     prof.appliedGroups.minor_project.pull(group._id);
@@ -1634,6 +1637,7 @@ const acceptMajorGroup = asyncHandler(async (req, res) => {
     }
     group.majorAllocatedProf = profId;
     group.majorAppliedProfs = [];
+    group.session = getCurrentSession();
     await group.save({ session });
     prof.currentCount.major_project += numOfMem;
     prof.appliedGroups.major_project.pull(group._id);

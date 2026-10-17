@@ -79,6 +79,12 @@ const minorSchema = new Schema({
     type: String,
     ref: "Chat",
   },
+  // Session (e.g. "MO2026") in which the mentor accepted the group. Groups
+  // accepted before this field existed fall back to their creation date.
+  session: {
+    type: String,
+    default: null,
+  },
 });
 
 // Pre-save middleware to validate group size before any save operation
