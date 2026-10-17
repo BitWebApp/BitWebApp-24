@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { upload } from "../middlewares/multer.middleware.js";
+import { getMyStudents } from "../controllers/facultyDashboard.controller.js";
 import {
   createRateLimiter,
   requestIpMiddleware,
@@ -153,4 +154,7 @@ router
   .get(verifyProfessor, acceptedMajorGroups);
 router.route("/major/merge-groups").post(verifyProfessor, mergeMajorGroups);
 router.route("/major/get-limit").get(verifyProfessor, getMajorLimits);
+// Faculty dashboard: mentored students by program, batch and session
+router.route("/my-students").get(verifyProfessor, getMyStudents);
+
 export default router;
