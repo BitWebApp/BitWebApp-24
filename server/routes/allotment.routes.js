@@ -9,9 +9,19 @@ import {
   setAllotmentMarks,
 } from "../controllers/allotment.controller.js";
 import {
+  downloadBulkTemplate,
+  importBulkAllotment,
+  previewBulkAllotment,
+} from "../controllers/bulkAllotment.controller.js";
+import {
+  listEditableAllotments,
+  reassignAllotment,
+} from "../controllers/editAllotment.controller.js";
+import {
   verifyAdmin,
   verifyProfessor,
 } from "../middlewares/auth.middleware.js";
+import { singleSpreadsheet } from "../middlewares/spreadsheetUpload.middleware.js";
 
 const router = Router();
 
@@ -20,6 +30,15 @@ router.route("/admin/options").get(verifyAdmin, getAllotmentOptions);
 router.route("/admin/student").get(verifyAdmin, findStudentForAllotment);
 router.route("/admin/list").get(verifyAdmin, listAllotments);
 router.route("/admin/back-paper").post(verifyAdmin, createBackPaperAllotment);
+router.route("/admin/edit").get(verifyAdmin, listEditableAllotments);
+router.route("/admin/edit/reassign").post(verifyAdmin, reassignAllotment);
+router.route("/admin/bulk/template").get(verifyAdmin, downloadBulkTemplate);
+router
+  .route("/admin/bulk/preview")
+  .post(verifyAdmin, singleSpreadsheet("file"), previewBulkAllotment);
+router
+  .route("/admin/bulk/import")
+  .post(verifyAdmin, singleSpreadsheet("file"), importBulkAllotment);
 router.route("/admin/:id").delete(verifyAdmin, deleteAllotment);
 
 // Mentors

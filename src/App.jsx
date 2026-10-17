@@ -66,6 +66,8 @@ import MasterAdminDashboard from "./components/MasterAdminDashboard";
 import AdminCourseDocsUpload from "./components/AdminCourseDocsUpload";
 import FacultyCourseDocumentView from "./components/FacultyCourseDocumentView";
 import AdminBackPaperAllotment from "./components/AdminBackPaperAllotment";
+import AdminBulkAllotment from "./components/AdminBulkAllotment";
+import AdminEditAllotment from "./components/AdminEditAllotment";
 import FacultyAllottedStudents from "./components/FacultyAllottedStudents";
 import FacultyDashboard from "./components/FacultyDashboard";
 import MinorGroupManagement from "./components/MinorGroupManagement";
@@ -219,6 +221,8 @@ export default function App() {
           <Route path="manage-admins" element={<MasterAdminDashboard />} />
           <Route path="upload-course-docs" element={<AdminCourseDocsUpload />} />
           <Route path="back-paper-allotment" element={<AdminBackPaperAllotment />} />
+          <Route path="edit-allotment" element={<AdminEditAllotment />} />
+          <Route path="bulk-allotment" element={<AdminBulkAllotment />} />
         </Route>
 
         <Route

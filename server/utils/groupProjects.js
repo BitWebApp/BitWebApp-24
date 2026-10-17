@@ -5,24 +5,34 @@ import { getCurrentSession } from "./sessions.js";
  * The four B.Tech projects that students do in groups and that mentors
  * accept through the application flow. `course` is the Professor.limits /
  * Professor.students key and the course value used by allotments.
+ * `userMentorField` is the copy of the mentor some flows keep on the
+ * student, if any.
  */
 export const GROUP_PROJECTS = [
   {
     course: "summer_training",
     marksKey: "summerTraining",
+    userMentorField: "summerAllocatedProf",
     ...MARKS_TYPES.summerTraining,
   },
   {
     course: "minor_project",
     marksKey: "minorProject",
+    userMentorField: "minorAllocatedProf",
     ...MARKS_TYPES.minorProject,
   },
   {
     course: "major_project",
     marksKey: "majorProject",
+    userMentorField: "majorAllocatedProf",
     ...MARKS_TYPES.majorProject,
   },
-  { course: "project1", marksKey: "project1", ...MARKS_TYPES.project1 },
+  {
+    course: "project1",
+    marksKey: "project1",
+    userMentorField: null,
+    ...MARKS_TYPES.project1,
+  },
 ];
 
 export const getGroupProject = (course) =>

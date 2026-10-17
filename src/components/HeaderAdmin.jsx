@@ -133,6 +133,16 @@ export default function Header() {
         to: "/admin-db/back-paper-allotment",
       },
       {
+        text: "Edit Allotment",
+        icon: <HiUser />,
+        to: "/admin-db/edit-allotment",
+      },
+      {
+        text: "Bulk Allotment",
+        icon: <HiUser />,
+        to: "/admin-db/bulk-allotment",
+      },
+      {
         text: "Room Allocations",
         icon: <HiBriefcase />,
         to: "/admin-db/admin-room-request",
