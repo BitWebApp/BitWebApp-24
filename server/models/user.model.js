@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { DEFAULT_PROGRAM, PROGRAM_VALUES } from "../utils/programs.js";
 
 const userSchema = new Schema(
   {
@@ -312,6 +313,12 @@ const userSchema = new Schema(
     batch: {
       type: Number,
       required: [true, "Batch is required"],
+      index: true,
+    },
+    program: {
+      type: String,
+      enum: PROGRAM_VALUES,
+      default: DEFAULT_PROGRAM,
       index: true,
     },
     groupReq: [

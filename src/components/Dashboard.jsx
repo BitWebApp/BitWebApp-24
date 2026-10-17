@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useUserRole } from "./admin/user-links";
+import { PROGRAM_VALUES, programLabel } from "../utils/programs";
+
+// BTECH/1XXXX/YY, MCA/1XXXX/YY, MTECH/1XXXX/YY, ...
+const ROLL_NUMBER_PATTERN = new RegExp(
+  `^(${PROGRAM_VALUES.join("|")})\\/1\\d{4}\\/\\d{2}$`
+);
 
 const capitalizeWords = (str) => {
   return str.replace(/\b\w/g, (char) => char.toUpperCase());
@@ -21,8 +27,7 @@ export default function Dashboard() {
 
 
   const validateRollNumber = (rollNumber) => {
-    const rollNumberPattern = /^BTECH\/1\d{4}\/\d{2}$/;
-    return rollNumberPattern.test(rollNumber);
+    return ROLL_NUMBER_PATTERN.test(rollNumber);
   };
 
   const findStudent = async () => {
@@ -33,7 +38,9 @@ export default function Dashboard() {
 
     if (!validateRollNumber(rollNumber)) {
       setIsRollNumberValid(false);
-      setError("Invalid roll number format. It should be BTECH/1XXXX/YY");
+      setError(
+        "Invalid roll number format. It should look like BTECH/1XXXX/YY or MCA/1XXXX/YY"
+      );
       return;
     }
 
@@ -120,6 +127,10 @@ export default function Dashboard() {
                   <li>
                     <span className="font-medium text-gray-700">Email:</span>{" "}
                     {user.email}
+                  </li>
+                  <li>
+                    <span className="font-medium text-gray-700">Program:</span>{" "}
+                    {programLabel(user.program)}
                   </li>
                   <li>
                     <span className="font-medium text-gray-700">Branch:</span>{" "}
