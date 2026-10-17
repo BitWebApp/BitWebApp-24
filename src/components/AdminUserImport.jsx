@@ -12,12 +12,14 @@ import {
   HiXCircle,
 } from "react-icons/hi";
 import Swal from "sweetalert2";
+import { PROGRAMS, programLabel } from "../utils/programs";
 
 const REQUEST_TIMEOUT = 5 * 60 * 1000; // bulk mailing can take a while
 
 const EMPTY_FORM = {
   rollNumber: "",
   fullName: "",
+  program: "",
   batch: "",
   branch: "",
   section: "",
@@ -125,6 +127,9 @@ const AdminUserImport = () => {
 
   // CSV import state
   const [file, setFile] = useState(null);
+  // Program of the students in the uploaded file; "auto" reads each row's
+  // program column (or its roll number) instead.
+  const [uploadProgram, setUploadProgram] = useState("BTECH");
   const [preview, setPreview] = useState(null);
   const [importResult, setImportResult] = useState(null);
   const [autoVerify, setAutoVerify] = useState(true);
@@ -288,6 +293,13 @@ const AdminUserImport = () => {
     setImportResult(null);
   };
 
+  const handleUploadProgramChange = (event) => {
+    setUploadProgram(event.target.value);
+    // The preview was validated against the previous program.
+    setPreview(null);
+    setImportResult(null);
+  };
+
   const handleDownloadTemplate = async () => {
     try {
       const response = await axios.get("/api/v1/admin/user-import/template", {
@@ -324,6 +336,7 @@ const AdminUserImport = () => {
       setImportResult(null);
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("program", uploadProgram);
       const response = await axios.post(
         "/api/v1/admin/user-import/preview",
         formData,
@@ -361,6 +374,7 @@ const AdminUserImport = () => {
       setImporting(true);
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("program", uploadProgram);
       formData.append("autoVerify", String(autoVerify));
       formData.append("sendEmail", String(sendEmail));
       if (mailLimit !== "") formData.append("mailLimit", String(mailLimit));
@@ -398,6 +412,7 @@ const AdminUserImport = () => {
       "rollNumber",
       "fullName",
       "email",
+      "program",
       "batch",
       "status",
       "mailSent",
@@ -566,12 +581,39 @@ const AdminUserImport = () => {
                 <code className="rounded bg-gray-100 px-1">rollNumber</code>,{" "}
                 <code className="rounded bg-gray-100 px-1">fullName</code>,{" "}
                 <code className="rounded bg-gray-100 px-1">batch</code>. Optional:{" "}
+                <code className="rounded bg-gray-100 px-1">program</code> (only
+                needed when one file mixes programs),{" "}
                 <code className="rounded bg-gray-100 px-1">branch</code>,{" "}
                 <code className="rounded bg-gray-100 px-1">section</code>,{" "}
                 <code className="rounded bg-gray-100 px-1">mobileNumber</code>,{" "}
                 <code className="rounded bg-gray-100 px-1">username</code> (defaults
                 to the roll number). Institute email is auto-derived from the roll number. Up to 500 rows per file.
               </p>
+
+              <div className="mb-4 flex flex-wrap items-center gap-3">
+                <label
+                  htmlFor="upload-program"
+                  className="text-sm font-semibold text-gray-700"
+                >
+                  Program of these students
+                </label>
+                <select
+                  id="upload-program"
+                  value={uploadProgram}
+                  onChange={handleUploadProgramChange}
+                  className="rounded-lg border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {PROGRAMS.map((program) => (
+                    <option key={program.value} value={program.value}>
+                      {program.label}
+                    </option>
+                  ))}
+                  <option value="auto">Mixed (use the program column)</option>
+                </select>
+                <span className="text-xs text-gray-500">
+                  Rows whose roll number belongs to another program are flagged.
+                </span>
+              </div>
 
               <div className="flex flex-wrap items-center gap-3">
                 <input
@@ -713,6 +755,7 @@ const AdminUserImport = () => {
                       <th className="px-4 py-3">Roll Number</th>
                       <th className="px-4 py-3">Name</th>
                       <th className="px-4 py-3">Email</th>
+                      <th className="px-4 py-3">Program</th>
                       <th className="px-4 py-3">Batch</th>
                       <th className="px-4 py-3">Status</th>
                       {importResult && <th className="px-4 py-3">Mail</th>}
@@ -738,6 +781,9 @@ const AdminUserImport = () => {
                             {info.fullName || "—"}
                           </td>
                           <td className="px-4 py-3">{info.email || "—"}</td>
+                          <td className="px-4 py-3">
+                            {info.program ? programLabel(info.program) : "—"}
+                          </td>
                           <td className="px-4 py-3">
                             {info.batch !== null && info.batch !== undefined
                               ? `K${info.batch}`
@@ -788,6 +834,14 @@ const AdminUserImport = () => {
                 { name: "rollNumber", label: "Roll Number (e.g. BTECH/1XXXX/YY)", required: true },
                 { name: "fullName", label: "Full Name", required: true },
                 {
+                  name: "program",
+                  label: "Program",
+                  options: [
+                    { value: "", label: "Detect from roll number" },
+                    ...PROGRAMS,
+                  ],
+                },
+                {
                   name: "batch",
                   label: "Batch (e.g. 22, K22 or 2022)",
                   required: true,
@@ -808,15 +862,31 @@ const AdminUserImport = () => {
                     {field.label}
                     {field.required && <span className="text-red-500"> *</span>}
                   </label>
-                  <input
-                    id={field.name}
-                    name={field.name}
-                    type={field.type || "text"}
-                    value={form[field.name]}
-                    onChange={handleFormChange}
-                    required={field.required}
-                    className="w-full rounded-lg border border-gray-300 p-3 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  {field.options ? (
+                    <select
+                      id={field.name}
+                      name={field.name}
+                      value={form[field.name]}
+                      onChange={handleFormChange}
+                      className="w-full rounded-lg border border-gray-300 p-3 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      {field.options.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      id={field.name}
+                      name={field.name}
+                      type={field.type || "text"}
+                      value={form[field.name]}
+                      onChange={handleFormChange}
+                      required={field.required}
+                      className="w-full rounded-lg border border-gray-300 p-3 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  )}
                 </div>
               ))}
 
@@ -980,6 +1050,7 @@ const AdminUserImport = () => {
                     <th className="px-4 py-3">Roll Number</th>
                     <th className="px-4 py-3">Name</th>
                     <th className="px-4 py-3">Email</th>
+                    <th className="px-4 py-3">Program</th>
                     <th className="px-4 py-3">Batch</th>
                     <th className="px-4 py-3">Mail status</th>
                     <th className="px-4 py-3">Sent at</th>
@@ -988,14 +1059,14 @@ const AdminUserImport = () => {
                 <tbody>
                   {loadingQueue && (
                     <tr>
-                      <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                      <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
                         Loading...
                       </td>
                     </tr>
                   )}
                   {!loadingQueue && queueUsers.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                      <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
                         Nothing here. Every onboarded student in view has been
                         emailed.
                       </td>
@@ -1020,6 +1091,9 @@ const AdminUserImport = () => {
                           <td className="px-4 py-3">{user.rollNumber}</td>
                           <td className="px-4 py-3 capitalize">{user.fullName}</td>
                           <td className="px-4 py-3">{user.email}</td>
+                          <td className="px-4 py-3">
+                            {programLabel(user.program)}
+                          </td>
                           <td className="px-4 py-3">K{user.batch}</td>
                           <td className="px-4 py-3">
                             <StatusPill

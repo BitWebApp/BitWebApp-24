@@ -130,6 +130,11 @@ export default function Sidebar() {
       to: "/admin-db/project1-table",
     },
     {
+      text: "Back Paper Allotment",
+      icon: <HiUserAdd />,
+      to: "/admin-db/back-paper-allotment",
+    },
+    {
       text: "Room Allocations",
       icon: <HiBriefcase />,
       to: "/admin-db/admin-room-request",
