@@ -300,6 +300,14 @@ const userSchema = new Schema(
         default: 0,
       },
     },
+    // When the mentor's final submission froze each mark; null while the
+    // mark can still be entered.
+    marksFrozenAt: {
+      summerTraining: { type: Date, default: null },
+      minorProject: { type: Date, default: null },
+      majorProject: { type: Date, default: null },
+      project1: { type: Date, default: null },
+    },
     project1: {
       type: Schema.Types.ObjectId,
       ref: "Project1",

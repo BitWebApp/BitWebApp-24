@@ -55,6 +55,11 @@ const allotmentSchema = new Schema(
       type: Number,
       default: null,
     },
+    // Set by the mentor's final submission; marks can't change afterwards.
+    marksFrozenAt: {
+      type: Date,
+      default: null,
+    },
     remarks: {
       type: String,
       default: "",

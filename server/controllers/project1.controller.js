@@ -8,6 +8,7 @@ import { customAlphabet } from "nanoid";
 import mongoose from "mongoose";
 
 import { getStudentYear } from "../utils/studentYear.js";
+import { submitFinalMarks } from "../utils/marks.js";
 
 // ===================== Student-facing =====================
 
@@ -578,16 +579,15 @@ const addProject1Remark = asyncHandler(async (req, res) => {
 
 const addProject1Marks = asyncHandler(async (req, res) => {
   const { studentId, marks } = req.body;
-
-  const user = await User.findById(studentId);
-  if (!user) throw new ApiError(404, "User not found");
-
-  user.marks.project1 = marks;
-  await user.save();
-
+  const user = await submitFinalMarks({
+    studentId,
+    key: "project1",
+    marks,
+    professorId: req.professor._id,
+  });
   return res
     .status(200)
-    .json(new ApiResponse(200, user, "Marks added successfully"));
+    .json(new ApiResponse(200, user, "Marks submitted and frozen"));
 });
 
 const getProject1Limits = asyncHandler(async (req, res) => {

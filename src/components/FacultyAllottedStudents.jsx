@@ -3,7 +3,9 @@ import { useCallback, useEffect, useState } from "react";
 import { FaEdit } from "react-icons/fa";
 import { HiUserGroup } from "react-icons/hi";
 import { toast, Toaster } from "react-hot-toast";
+import FrozenMarksBadge from "./FrozenMarksBadge";
 import { categoryLabel, courseLabel, getCourse } from "../utils/courses";
+import { confirmFinalMarks } from "../utils/marks";
 import { programLabel } from "../utils/programs";
 import { sessionLabel, sessionLongLabel } from "../utils/sessions";
 
@@ -43,6 +45,17 @@ const FacultyAllottedStudents = () => {
   }, [load]);
 
   const handleSaveMarks = async (allotment) => {
+    if (marksInput === "" || Number.isNaN(Number(marksInput))) {
+      toast.error("Please enter valid marks");
+      return;
+    }
+    const confirmed = await confirmFinalMarks({
+      name: allotment.student?.fullName,
+      rollNumber: allotment.student?.rollNumber,
+      marks: marksInput,
+      maxMarks: getCourse(allotment.course)?.maxMarks,
+    });
+    if (!confirmed) return;
     try {
       const response = await axios.post(
         `/api/v1/allotments/${allotment._id}/marks`,
@@ -146,7 +159,12 @@ const FacultyAllottedStudents = () => {
                       </td>
                       <td className="px-4 py-3">{sessionLabel(a.session)}</td>
                       <td className="px-4 py-3">
-                        {editing === a._id ? (
+                        {a.marksFrozenAt ? (
+                          <FrozenMarksBadge
+                            marks={a.marks}
+                            maxMarks={maxMarks}
+                          />
+                        ) : editing === a._id ? (
                           <div className="flex items-center gap-2">
                             <input
                               type="number"
@@ -165,7 +183,7 @@ const FacultyAllottedStudents = () => {
                               onClick={() => handleSaveMarks(a)}
                               className="rounded bg-green-600 px-2 py-1 text-white transition hover:bg-green-700"
                             >
-                              Save
+                              Submit
                             </button>
                             <button
                               type="button"

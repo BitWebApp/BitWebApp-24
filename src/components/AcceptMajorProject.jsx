@@ -4,6 +4,8 @@ import { toast, Toaster } from "react-hot-toast";
 import { FaUsers, FaCheckCircle, FaTimesCircle, FaPlus, FaEdit, FaTrash, FaSearch, FaFileExcel } from "react-icons/fa";
 import Swal from "sweetalert2";
 import ChatBox from "./ChatBox";
+import FrozenMarksBadge from "./FrozenMarksBadge";
+import { confirmFinalMarks, isMarksFrozen, MARKS_TYPES } from "../utils/marks";
 import { exportMentoredGroups } from "../utils/exportMentoredGroups";
 
 const AcceptMajorProject = () => {
@@ -57,11 +59,19 @@ const AcceptMajorProject = () => {
     )
   );
 
-  const handleGiveMarks = async (studentId) => {
+  const handleGiveMarks = async (member) => {
+    const studentId = member._id;
     if (!marks[studentId] || isNaN(marks[studentId])) {
       toast.error("Please enter valid marks");
       return;
     }
+    const confirmed = await confirmFinalMarks({
+      name: member.fullName,
+      rollNumber: member.rollNumber,
+      marks: marks[studentId],
+      maxMarks: MARKS_TYPES.majorProject.maxMarks,
+    });
+    if (!confirmed) return;
   
     try {
       const response = await axios.post("/api/v1/major/give-marks", {
@@ -636,7 +646,9 @@ const AcceptMajorProject = () => {
                             <tr key={member._id} className="hover:bg-gray-50">
                               {(viewMode === "accepted") && (
                               <td className="px-6 py-4 whitespace-nowrap">
-                                {showMarksInputFor === member._id ? (
+                                {isMarksFrozen(member, "majorProject") ? (
+                                  <FrozenMarksBadge marks={member.marks?.majorProject} maxMarks={MARKS_TYPES.majorProject.maxMarks} />
+                                ) : showMarksInputFor === member._id ? (
                                   <div className="flex items-center space-x-2">
                                     <input
                                       type="number"
@@ -667,7 +679,7 @@ const AcceptMajorProject = () => {
                                     />
                                     <span className="text-xs text-gray-500">/25</span>
                                     <button
-                                      onClick={() => handleGiveMarks(member._id)}
+                                      onClick={() => handleGiveMarks(member)}
                                       className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm"
                                     >
                                       Submit

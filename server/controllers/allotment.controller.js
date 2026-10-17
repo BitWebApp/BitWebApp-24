@@ -12,6 +12,7 @@ import {
   getCourse,
   parseCourse,
 } from "../utils/courses.js";
+import { parseMarks } from "../utils/marks.js";
 import { DEFAULT_PROGRAM, programLabel } from "../utils/programs.js";
 import {
   getCurrentSession,
@@ -306,7 +307,8 @@ const getMyAllotments = asyncHandler(async (req, res) => {
 
 /**
  * POST /api/v1/allotments/:id/marks
- * Body: { marks }
+ * Body: { marks }. This is the mentor's final submission: the marks are
+ * frozen and can't be changed afterwards.
  */
 const setAllotmentMarks = asyncHandler(async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -318,21 +320,21 @@ const setAllotmentMarks = asyncHandler(async (req, res) => {
     throw new ApiError(403, "This student is not allotted to you");
   }
 
-  const { maxMarks } = getCourse(allotment.course);
-  const marks = Number(req.body.marks);
-  if (
-    req.body.marks === "" ||
-    req.body.marks === null ||
-    Number.isNaN(marks) ||
-    marks < 0 ||
-    marks > maxMarks
-  ) {
-    throw new ApiError(400, `Marks must be a number from 0 to ${maxMarks}`);
-  }
+  const { maxMarks, label } = getCourse(allotment.course);
+  const marks = parseMarks(req.body.marks, maxMarks);
+  const frozenMessage = `${label} marks for this student are final and can no longer be changed`;
+  if (allotment.marksFrozenAt) throw new ApiError(409, frozenMessage);
 
-  allotment.marks = marks;
-  await allotment.save();
-  return res.status(200).json(new ApiResponse(200, allotment, "Marks saved"));
+  // Final submission: save and freeze in one conditional update.
+  const updated = await Allotment.findOneAndUpdate(
+    { _id: allotment._id, marksFrozenAt: null },
+    { $set: { marks, marksFrozenAt: new Date() } },
+    { new: true }
+  );
+  if (!updated) throw new ApiError(409, frozenMessage);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updated, "Marks submitted and frozen"));
 });
 
 export {
