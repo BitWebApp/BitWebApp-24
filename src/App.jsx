@@ -65,6 +65,8 @@ import ReassignMajorMentor from "./components/ReassignMajorMentor";
 import MasterAdminDashboard from "./components/MasterAdminDashboard";
 import AdminCourseDocsUpload from "./components/AdminCourseDocsUpload";
 import FacultyCourseDocumentView from "./components/FacultyCourseDocumentView";
+import AdminBackPaperAllotment from "./components/AdminBackPaperAllotment";
+import FacultyAllottedStudents from "./components/FacultyAllottedStudents";
 import MinorGroupManagement from "./components/MinorGroupManagement";
 import MinorProject from "./components/MinorProject";
 import MinorProjectTable from "./components/MinorProjectTable";
@@ -215,6 +217,7 @@ export default function App() {
           <Route path="academicanalysis" element ={<Academicanalysis />} />
           <Route path="manage-admins" element={<MasterAdminDashboard />} />
           <Route path="upload-course-docs" element={<AdminCourseDocsUpload />} />
+          <Route path="back-paper-allotment" element={<AdminBackPaperAllotment />} />
         </Route>
 
         <Route
@@ -231,6 +234,7 @@ export default function App() {
           <Route path="accept-minor-project" element={<AcceptMinorProject />} />
           <Route path="accept-major-project" element={<AcceptMajorProject />} />
           <Route path="course-document" element={<FacultyCourseDocumentView />} />
+          <Route path="allotted-students" element={<FacultyAllottedStudents />} />
           <Route path="major-project" element={<MajorProject />} />
           <Route path="minor-project" element={<MajorProject />} />
           <Route path="adhoc-projects-dashboard" element={<AdminDashboard />} />

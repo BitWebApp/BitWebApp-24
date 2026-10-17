@@ -13,6 +13,8 @@ import {
 } from "react-icons/fa";
 import Swal from "sweetalert2";
 import ChatBox from "./ChatBox";
+import FrozenMarksBadge from "./FrozenMarksBadge";
+import { confirmFinalMarks, isMarksFrozen, MARKS_TYPES } from "../utils/marks";
 import { exportMentoredGroups } from "../utils/exportMentoredGroups";
 
 const AcceptMinorProject = () => {
@@ -64,11 +66,19 @@ const AcceptMinorProject = () => {
       ),
   );
 
-  const handleGiveMarks = async (studentId) => {
+  const handleGiveMarks = async (member) => {
+    const studentId = member._id;
     if (!marks[studentId] || isNaN(marks[studentId])) {
       toast.error("Please enter valid marks");
       return;
     }
+    const confirmed = await confirmFinalMarks({
+      name: member.fullName,
+      rollNumber: member.rollNumber,
+      marks: marks[studentId],
+      maxMarks: MARKS_TYPES.minorProject.maxMarks,
+    });
+    if (!confirmed) return;
 
     try {
       const response = await axios.post("/api/v1/minor/give-marks", {
@@ -400,7 +410,9 @@ const AcceptMinorProject = () => {
                               <tr key={member._id} className="hover:bg-gray-50">
                                 {viewMode === "accepted" && (
                                   <td className="px-6 py-4 whitespace-nowrap">
-                                    {showMarksInputFor === member._id ? (
+                                    {isMarksFrozen(member, "minorProject") ? (
+                                      <FrozenMarksBadge marks={member.marks?.minorProject} maxMarks={MARKS_TYPES.minorProject.maxMarks} />
+                                    ) : showMarksInputFor === member._id ? (
                                       <div className="flex items-center space-x-2">
                                         <input
                                           type="number"
@@ -444,7 +456,7 @@ const AcceptMinorProject = () => {
                                         </span>
                                         <button
                                           onClick={() =>
-                                            handleGiveMarks(member._id)
+                                            handleGiveMarks(member)
                                           }
                                           className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm"
                                         >

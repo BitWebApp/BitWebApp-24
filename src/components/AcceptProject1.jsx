@@ -11,6 +11,8 @@ import {
 } from "react-icons/fa";
 import Swal from "sweetalert2";
 import ChatBox from "./ChatBox";
+import FrozenMarksBadge from "./FrozenMarksBadge";
+import { confirmFinalMarks, isMarksFrozen, MARKS_TYPES } from "../utils/marks";
 import { exportMentoredGroups } from "../utils/exportMentoredGroups";
 
 const AcceptProject1 = () => {
@@ -127,18 +129,26 @@ const AcceptProject1 = () => {
     }
   };
 
-  const handleMarks = async (studentId) => {
+  const handleMarks = async (member) => {
+    const studentId = member._id;
     const marksVal = marks[studentId];
     if (marksVal === undefined || marksVal === "") {
       toast.error("Please enter marks.");
       return;
     }
+    const confirmed = await confirmFinalMarks({
+      name: member.fullName,
+      rollNumber: member.rollNumber,
+      marks: marksVal,
+      maxMarks: MARKS_TYPES.project1.maxMarks,
+    });
+    if (!confirmed) return;
     try {
       await axios.post("/api/v1/project1/add-marks", {
         studentId,
         marks: Number(marksVal),
       });
-      toast.success("Marks saved!");
+      toast.success("Marks submitted and frozen");
       setShowMarksInputFor(null);
       setMarks({ ...marks, [studentId]: "" });
     } catch (err) {
@@ -325,7 +335,9 @@ const AcceptProject1 = () => {
                                   <tr key={member._id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                       {viewMode === "accepted" && (
-                                        showMarksInputFor === member._id ? (
+                                        isMarksFrozen(member, "project1") ? (
+                                          <FrozenMarksBadge marks={member.marks?.project1} maxMarks={MARKS_TYPES.project1.maxMarks} />
+                                        ) : showMarksInputFor === member._id ? (
                                           <div className="flex items-center space-x-2">
                                             <input
                                               type="number"
@@ -351,7 +363,7 @@ const AcceptProject1 = () => {
                                               /50
                                             </span>
                                             <button
-                                              onClick={() => handleMarks(member._id)}
+                                              onClick={() => handleMarks(member)}
                                               className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm"
                                             >
                                               Submit
