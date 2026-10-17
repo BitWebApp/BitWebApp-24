@@ -42,6 +42,7 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { submitFinalMarks } from "../utils/marks.js";
 
 const createGroup = asyncHandler(async (req, res) => {
   const leader = req?.user?._id;
@@ -606,14 +607,15 @@ const addMarks = asyncHandler(async (req, res) => {
         "Project title is not set for this group. Please ask the group to submit the project title before entering marks.",
     });
   }
-  if (user.marks.majorProject > 0) {
-    throw new ApiError(400, "Marks already added");
-  }
-  user.marks.majorProject = marks;
-  await user.save();
+  const updated = await submitFinalMarks({
+    studentId: userId,
+    key: "majorProject",
+    marks,
+    professorId: req.professor._id,
+  });
   return res
     .status(200)
-    .json(new ApiResponse(200, user, "Marks added successfully"));
+    .json(new ApiResponse(200, updated, "Marks submitted and frozen"));
 });
 
 const withdrawFromFaculty = asyncHandler(async (req, res) => {

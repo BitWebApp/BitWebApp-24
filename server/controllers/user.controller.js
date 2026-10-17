@@ -9,6 +9,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/Cloudinary.js";
+import { DEFAULT_PROGRAM, programFromRollNumber } from "../utils/programs.js";
 import { sendOTP } from "../utils/sendOTP.js";
 
 const generateAcessAndRefreshToken = async (userId) => {
@@ -142,6 +143,7 @@ const registerUser = asyncHandler(async (req, res) => {
     email,
     idCard: idCard.url,
     batch,
+    program: programFromRollNumber(rollNumber) || DEFAULT_PROGRAM,
   });
 
   const createdUser = await User.findById(user._id).select(

@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { DEFAULT_PROGRAM, PROGRAM_VALUES } from "../utils/programs.js";
 
 const userSchema = new Schema(
   {
@@ -299,6 +300,14 @@ const userSchema = new Schema(
         default: 0,
       },
     },
+    // When the mentor's final submission froze each mark; null while the
+    // mark can still be entered.
+    marksFrozenAt: {
+      summerTraining: { type: Date, default: null },
+      minorProject: { type: Date, default: null },
+      majorProject: { type: Date, default: null },
+      project1: { type: Date, default: null },
+    },
     project1: {
       type: Schema.Types.ObjectId,
       ref: "Project1",
@@ -312,6 +321,12 @@ const userSchema = new Schema(
     batch: {
       type: Number,
       required: [true, "Batch is required"],
+      index: true,
+    },
+    program: {
+      type: String,
+      enum: PROGRAM_VALUES,
+      default: DEFAULT_PROGRAM,
       index: true,
     },
     groupReq: [

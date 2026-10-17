@@ -13,6 +13,8 @@ import {
     HiOutlineBriefcase,
     HiOutlineLogout,
     HiPresentationChartLine,
+    HiPencilAlt,
+    HiUpload,
     HiUser,
     HiUserAdd
 } from "react-icons/hi";
@@ -128,6 +130,21 @@ export default function Sidebar() {
       text: "Project 1 Records",
       icon: <HiBriefcase />,
       to: "/admin-db/project1-table",
+    },
+    {
+      text: "Back Paper Allotment",
+      icon: <HiUserAdd />,
+      to: "/admin-db/back-paper-allotment",
+    },
+    {
+      text: "Edit Allotment",
+      icon: <HiPencilAlt />,
+      to: "/admin-db/edit-allotment",
+    },
+    {
+      text: "Bulk Allotment",
+      icon: <HiUpload />,
+      to: "/admin-db/bulk-allotment",
     },
     {
       text: "Room Allocations",
