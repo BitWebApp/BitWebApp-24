@@ -14,7 +14,8 @@
     "lint": "eslint src pages --ext js,jsx --report-unused-disable-directives",
     "format": "prettier --write server scripts testing server.js",
     "format:check": "prettier --check server scripts testing server.js",
-    "seed:pe": "node -r dotenv/config scripts/seedPeCourses.js"
+    "seed:pe": "node -r dotenv/config scripts/seedPeCourses.js",
+    "backfill:program": "node scripts/backfill-program.js"
   },
   "dependencies": {
     "@fortawesome/free-solid-svg-icons": "^6.5.2",

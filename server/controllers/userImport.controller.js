@@ -5,6 +5,13 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { parseCSV, toCSV } from "../utils/csv.js";
 import { buildWelcomeEmail, sendMail } from "../utils/mailer.js";
+import {
+  PROGRAMS,
+  parseProgram,
+  programFromRollNumber,
+  programLabel,
+  programQuery,
+} from "../utils/programs.js";
 
 /** Hard cap so a single request can't fan out into thousands of mails. */
 const MAX_ROWS = 500;
@@ -29,6 +36,7 @@ const IMPORTED_ID_CARD = "admin-onboarded";
 const TEMPLATE_HEADERS = [
   "rollNumber",
   "fullName",
+  "program",
   "batch",
   "branch",
   "section",
@@ -50,6 +58,10 @@ const HEADER_ALIASES = {
   studentname: "fullName",
   batch: "batch",
   year: "batch",
+  program: "program",
+  programme: "program",
+  course: "program",
+  degree: "program",
   branch: "branch",
   department: "branch",
   dept: "branch",
@@ -141,12 +153,56 @@ const generatePassword = (length = 10) => {
   return password;
 };
 
+const PROGRAM_CHOICES = PROGRAMS.map((p) => p.label).join(", ");
+
+/**
+ * Work out a record's program from, in order: its own program column, the
+ * program chosen for the whole upload, and the roll number prefix. A program
+ * that contradicts the roll number (MCA/10001/24 uploaded as B.Tech) is
+ * rejected, since that is almost always the wrong file or the wrong choice.
+ * @param {string} rawProgram value of the row's program column
+ * @param {string|null} uploadProgram program chosen for the whole upload
+ * @param {string} rollNumber
+ * @param {string[]} errors collects problems
+ * @returns {string|null}
+ */
+const resolveProgram = (rawProgram, uploadProgram, rollNumber, errors) => {
+  const rowProgram = rawProgram ? parseProgram(rawProgram) : null;
+  if (rawProgram && !rowProgram) {
+    errors.push(`program "${rawProgram}" is not one of ${PROGRAM_CHOICES}`);
+    return null;
+  }
+  if (rowProgram && uploadProgram && rowProgram !== uploadProgram) {
+    errors.push(
+      `program ${programLabel(rowProgram)} does not match the selected program ${programLabel(uploadProgram)}`
+    );
+    return null;
+  }
+
+  const rollProgram = programFromRollNumber(rollNumber);
+  const program = rowProgram || uploadProgram || rollProgram;
+  if (!program) {
+    errors.push(
+      `program is required (add a program column or choose one of ${PROGRAM_CHOICES} for the upload)`
+    );
+    return null;
+  }
+  if (rollProgram && rollProgram !== program) {
+    errors.push(
+      `roll number ${rollNumber} looks like ${programLabel(rollProgram)}, not ${programLabel(program)}`
+    );
+    return null;
+  }
+  return program;
+};
+
 /**
  * Validate and clean a single candidate record.
  * @param {Record<string,string>} raw
+ * @param {string|null} [uploadProgram] program chosen for the whole upload
  * @returns {{ data: Record<string, any>, errors: string[] }}
  */
-const validateRecord = (raw) => {
+const validateRecord = (raw, uploadProgram = null) => {
   const errors = [];
 
   const rollNumber = (raw.rollNumber || "").trim();
@@ -170,6 +226,12 @@ const validateRecord = (raw) => {
   } else if (!EMAIL_REGEX.test(email)) {
     errors.push("derived institute email is not valid — check rollNumber format");
   }
+  const program = resolveProgram(
+    (raw.program || "").trim(),
+    uploadProgram,
+    rollNumber,
+    errors
+  );
   if (batch === null) {
     errors.push("batch is required and must look like 22, K22 or 2022");
   }
@@ -191,6 +253,7 @@ const validateRecord = (raw) => {
       rollNumber,
       fullName,
       email,
+      program,
       batch,
       branch,
       section,
@@ -220,13 +283,28 @@ const batchPermissionError = (admin, batch) => {
 };
 
 /**
+ * Program chosen for a whole upload, or null when rows bring their own.
+ * @param {string} raw
+ * @returns {string|null}
+ */
+const parseUploadProgram = (raw) => {
+  if (!raw || raw === "auto") return null;
+  const program = parseProgram(raw);
+  if (!program) {
+    throw new ApiError(400, `program must be one of ${PROGRAM_CHOICES}`);
+  }
+  return program;
+};
+
+/**
  * Turn CSV text into per-row records annotated with validation status and
  * conflicts against both the file itself and the database.
  * @param {string} csvText
  * @param {object} admin
+ * @param {string|null} [uploadProgram] program chosen for the whole upload
  * @returns {Promise<{ rows: Array<object>, summary: object }>}
  */
-const analyseCsv = async (csvText, admin) => {
+const analyseCsv = async (csvText, admin, uploadProgram = null) => {
   const { headers, rows: rawRows } = parseCSV(csvText);
 
   if (rawRows.length === 0) {
@@ -253,7 +331,10 @@ const analyseCsv = async (csvText, admin) => {
   }
 
   const rows = rawRows.map((row, index) => {
-    const { data, errors } = validateRecord(normalizeRow(row.values));
+    const { data, errors } = validateRecord(
+      normalizeRow(row.values),
+      uploadProgram
+    );
     return {
       rowNumber: index + 1,
       lineNumber: row.lineNumber,
@@ -394,6 +475,7 @@ const createUser = async (data, autoVerify, adminId) =>
     fullName: data.fullName,
     rollNumber: data.rollNumber,
     email: data.email,
+    program: data.program,
     branch: data.branch || "",
     section: data.section || "",
     ...(data.mobileNumber ? { mobileNumber: data.mobileNumber } : {}),
@@ -470,6 +552,7 @@ const downloadUserImportTemplate = asyncHandler(async (req, res) => {
     {
       rollNumber: "BTECH/10001/22",
       fullName: "Asha Verma",
+      program: "BTECH",
       batch: "22",
       branch: "CSE",
       section: "A",
@@ -477,9 +560,10 @@ const downloadUserImportTemplate = asyncHandler(async (req, res) => {
       username: "btech1000122",
     },
     {
-      rollNumber: "BTECH/10002/22",
+      rollNumber: "MCA/10002/24",
       fullName: "Rahul Nair",
-      batch: "K22",
+      program: "MCA",
+      batch: "K24",
       branch: "ECE",
       section: "B",
       mobileNumber: "",
@@ -506,7 +590,8 @@ const previewUserImport = asyncHandler(async (req, res) => {
 
   const { rows, summary } = await analyseCsv(
     req.file.buffer.toString("utf-8"),
-    req.admin
+    req.admin,
+    parseUploadProgram(req.body.program)
   );
 
   return res
@@ -549,13 +634,18 @@ const importUsersFromCSV = asyncHandler(async (req, res) => {
     throw new ApiError(400, "mailLimit must be a non-negative number");
   }
 
-  const { rows } = await analyseCsv(req.file.buffer.toString("utf-8"), req.admin);
+  const { rows } = await analyseCsv(
+    req.file.buffer.toString("utf-8"),
+    req.admin,
+    parseUploadProgram(req.body.program)
+  );
 
   const results = rows.map((row) => ({
     rowNumber: row.rowNumber,
     rollNumber: row.data.rollNumber,
     fullName: row.data.fullName,
     email: row.data.email,
+    program: row.data.program,
     batch: row.data.batch,
     status: row.status === "ready" ? "pending" : "skipped",
     mailStatus: row.status === "ready" ? "queued" : "not_created",
@@ -668,6 +758,11 @@ const listPendingWelcomeMails = asyncHandler(async (req, res) => {
     filter.batch = batch;
   }
 
+  const programFilter = parseUploadProgram(req.query.program);
+  if (programFilter) {
+    filter = { ...filter, ...programQuery(programFilter) };
+  }
+
   if (req.query.search) {
     const term = String(req.query.search).trim();
     // Escaped so a stray "(" in the search box can't throw a regex error.
@@ -681,7 +776,9 @@ const listPendingWelcomeMails = asyncHandler(async (req, res) => {
 
   const [users, total, quota] = await Promise.all([
     User.find(filter)
-      .select("fullName rollNumber email batch branch section isVerified onboarding createdAt")
+      .select(
+        "fullName rollNumber email program batch branch section isVerified onboarding createdAt"
+      )
       .sort({ createdAt: 1 })
       .skip((page - 1) * limit)
       .limit(limit),
@@ -843,6 +940,7 @@ const registerUserByAdmin = asyncHandler(async (req, res) => {
     rollNumber: req.body.rollNumber,
     fullName: req.body.fullName,
     batch: req.body.batch,
+    program: req.body.program,
     branch: req.body.branch,
     section: req.body.section,
     mobileNumber: req.body.mobileNumber,
@@ -909,6 +1007,7 @@ const registerUserByAdmin = asyncHandler(async (req, res) => {
         userId: user._id,
         rollNumber: data.rollNumber,
         email: data.email,
+        program: data.program,
         batch: data.batch,
         isVerified: autoVerify,
         mailStatus,
