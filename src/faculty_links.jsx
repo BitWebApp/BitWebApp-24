@@ -2,6 +2,7 @@ import {
   HiHome,
   HiPresentationChartLine,
   HiBeaker,
+  HiUserGroup,
 } from "react-icons/hi";
 import { FileText, GraduationCap } from "lucide-react";
 
@@ -55,6 +56,11 @@ const facultyLinks = [
     text: "Project 1",
     icon: <HiPresentationChartLine />,
     to: "/faculty-db/accept-project1",
+  },
+  {
+    text: "Allotted Students",
+    icon: <HiUserGroup />,
+    to: "/faculty-db/allotted-students",
   },
   {
     text: "Report Issues",

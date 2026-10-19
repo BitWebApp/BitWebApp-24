@@ -91,6 +91,9 @@ app.use("/api/v1/chat", chatRouter);
 import courseDocRouter from "./routes/courseDocument.routes.js";
 app.use("/api/v1/course-docs", courseDocRouter);
 
+import allotmentRouter from "./routes/allotment.routes.js";
+app.use("/api/v1/allotments", allotmentRouter);
+
 // Import error handlers
 import {
   errorHandler,

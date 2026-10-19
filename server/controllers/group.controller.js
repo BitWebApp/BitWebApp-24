@@ -7,6 +7,7 @@ import { customAlphabet, nanoid } from "nanoid";
 import { Professor } from "../models/professor.model.js";
 import { Company } from "../models/company.model.js";
 import { Internship } from "../models/internship.model.js";
+import { submitFinalMarks } from "../utils/marks.js";
 
 const createGroup = asyncHandler(async (req, res) => {
   const leader = req?.user?._id;
@@ -540,14 +541,15 @@ const getDiscussionByStudent = asyncHandler(async (req, res) => {
 
 const addMarks = asyncHandler(async (req, res) => {
   const { userId, marks } = req.body;
-  console.log(userId, marks);
-  const user = await User.findById(userId).select("fullName rollNumber group");
-  if (!user) throw new ApiError(404, "User not found");
-  user.marks.summerTraining = marks;
-  await user.save();
+  const user = await submitFinalMarks({
+    studentId: userId,
+    key: "summerTraining",
+    marks,
+    professorId: req.professor._id,
+  });
   return res
     .status(200)
-    .json(new ApiResponse(200, user, "Marks added successfully"));
+    .json(new ApiResponse(200, user, "Marks submitted and frozen"));
 });
 
 const leaveGroup = asyncHandler(async (req, res) => {

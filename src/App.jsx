@@ -65,6 +65,11 @@ import ReassignMajorMentor from "./components/ReassignMajorMentor";
 import MasterAdminDashboard from "./components/MasterAdminDashboard";
 import AdminCourseDocsUpload from "./components/AdminCourseDocsUpload";
 import FacultyCourseDocumentView from "./components/FacultyCourseDocumentView";
+import AdminBackPaperAllotment from "./components/AdminBackPaperAllotment";
+import AdminBulkAllotment from "./components/AdminBulkAllotment";
+import AdminEditAllotment from "./components/AdminEditAllotment";
+import FacultyAllottedStudents from "./components/FacultyAllottedStudents";
+import FacultyDashboard from "./components/FacultyDashboard";
 import MinorGroupManagement from "./components/MinorGroupManagement";
 import MinorProject from "./components/MinorProject";
 import MinorProjectTable from "./components/MinorProjectTable";
@@ -215,6 +220,9 @@ export default function App() {
           <Route path="academicanalysis" element ={<Academicanalysis />} />
           <Route path="manage-admins" element={<MasterAdminDashboard />} />
           <Route path="upload-course-docs" element={<AdminCourseDocsUpload />} />
+          <Route path="back-paper-allotment" element={<AdminBackPaperAllotment />} />
+          <Route path="edit-allotment" element={<AdminEditAllotment />} />
+          <Route path="bulk-allotment" element={<AdminBulkAllotment />} />
         </Route>
 
         <Route
@@ -225,12 +233,13 @@ export default function App() {
             </ProtectFaculty>
           }
         >
-          <Route index element={<Dashboard />} />
+          <Route index element={<FacultyDashboard />} />
           <Route path="accept-students" element={<AcceptStudents />} />
           <Route path="accept-project1" element={<AcceptProject1 />} />
           <Route path="accept-minor-project" element={<AcceptMinorProject />} />
           <Route path="accept-major-project" element={<AcceptMajorProject />} />
           <Route path="course-document" element={<FacultyCourseDocumentView />} />
+          <Route path="allotted-students" element={<FacultyAllottedStudents />} />
           <Route path="major-project" element={<MajorProject />} />
           <Route path="minor-project" element={<MajorProject />} />
           <Route path="adhoc-projects-dashboard" element={<AdminDashboard />} />
