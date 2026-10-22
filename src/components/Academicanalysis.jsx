@@ -70,7 +70,7 @@ const Academicanalysis = () => {
         <div className="text-center bg-white p-8 rounded-lg shadow-lg">
           <h1 className="text-3xl font-bold text-gray-800 mb-4">Welcome to Academic Analysis</h1>
           <p className="text-gray-600 mb-6">
-            Explore insightful academic trends and performance analytics.  
+            Explore insightful academic trends and performance analytics.
             Select an option below to begin.
           </p>
           <button
