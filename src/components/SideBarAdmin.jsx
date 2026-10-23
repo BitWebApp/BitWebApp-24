@@ -16,7 +16,8 @@ import {
     HiPencilAlt,
     HiUpload,
     HiUser,
-    HiUserAdd
+    HiUserAdd,
+    HiTrash,
 } from "react-icons/hi";
 import { IoIosArrowBack } from "react-icons/io";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -145,6 +146,11 @@ export default function Sidebar() {
       text: "Bulk Allotment",
       icon: <HiUpload />,
       to: "/admin-db/bulk-allotment",
+    },
+    {
+      text: "Removal Requests",
+      icon: <HiTrash />,
+      to: "/admin-db/group-removal-requests",
     },
     {
       text: "Room Allocations",

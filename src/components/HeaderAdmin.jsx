@@ -15,6 +15,7 @@ import {
   HiBriefcase,
   HiOutlineLogout,
   HiArchive,
+  HiTrash,
 } from "react-icons/hi";
 import useLinks from './admin/user-links';
 const linkClasses = 'flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base';
@@ -141,6 +142,11 @@ export default function Header() {
         text: "Bulk Allotment",
         icon: <HiUser />,
         to: "/admin-db/bulk-allotment",
+      },
+      {
+        text: "Removal Requests",
+        icon: <HiTrash />,
+        to: "/admin-db/group-removal-requests",
       },
       {
         text: "Room Allocations",

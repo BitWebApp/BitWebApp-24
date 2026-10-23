@@ -107,6 +107,7 @@ import Project1Apply from "./components/Project1Apply";
 import Project1GroupManagement from "./components/Project1GroupManagement";
 import Project1Table from "./components/Project1Table";
 import AcceptProject1 from "./components/AcceptProject1";
+import AdminGroupRemovalRequests from "./components/AdminGroupRemovalRequests";
 
 export default function App() {
   return (
@@ -223,6 +224,7 @@ export default function App() {
           <Route path="back-paper-allotment" element={<AdminBackPaperAllotment />} />
           <Route path="edit-allotment" element={<AdminEditAllotment />} />
           <Route path="bulk-allotment" element={<AdminBulkAllotment />} />
+          <Route path="group-removal-requests" element={<AdminGroupRemovalRequests />} />
         </Route>
 
         <Route

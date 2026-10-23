@@ -16,11 +16,13 @@ import ChatBox from "./ChatBox";
 import FrozenMarksBadge from "./FrozenMarksBadge";
 import { confirmFinalMarks, isMarksFrozen, MARKS_TYPES } from "../utils/marks";
 import { exportMentoredGroups } from "../utils/exportMentoredGroups";
+import { handleRequestGroupRemoval } from "../utils/requestGroupRemoval";
 
 const AcceptStudents = () => {
   const [appliedGroups, setAppliedGroups] = useState([]);
   const [acceptedGroups, setAcceptedGroups] = useState([]);
   const [typeChangeRequests, setTypeChangeRequests] = useState([]);
+  const [removalRequests, setRemovalRequests] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [selectedAcceptedGroups, setSelectedAcceptedGroups] = useState([]);
   const [limits, setLimits] = useState(0);
@@ -38,12 +40,13 @@ const AcceptStudents = () => {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const [appliedResponse, getLimits, acceptedResponse, typeChangeResponse] =
+        const [appliedResponse, getLimits, acceptedResponse, typeChangeResponse, removalResponse] =
           await Promise.all([
             axios.get("/api/v1/prof/getAppliedGroups"),
             axios.get("/api/v1/prof/get-limit"),
             axios.get("/api/v1/prof/accepted-groups"),
-            axios.get("/api/v1/prof/summer/pending-type-changes", { validateStatus: () => true })
+            axios.get("/api/v1/prof/summer/pending-type-changes", { validateStatus: () => true }),
+            axios.get("/api/v1/prof/group-removal-requests", { validateStatus: () => true }),
           ]);
 
         setAppliedGroups(appliedResponse.data.data);
@@ -52,12 +55,19 @@ const AcceptStudents = () => {
         if (typeChangeResponse.status === 200) {
           setTypeChangeRequests(typeChangeResponse.data.data);
         }
+        if (removalResponse.status === 200) {
+          setRemovalRequests(removalResponse.data.data || []);
+        }
       } catch (err) {
         toast.error(err.response?.data?.message || "Failed to fetch groups.");
       }
     };
     fetchGroups();
   }, [marks]);
+
+  const pendingRemovalGroupIds = (removalRequests || [])
+    .filter((r) => r.status === "pending" && r.groupType === "summer")
+    .map((r) => r.groupId);
 
   const handleTypeChangeApproval = async (groupId, requestId, action) => {
     try {
@@ -452,6 +462,31 @@ const AcceptStudents = () => {
                         <FaUsers className="mr-2" />
                         {selectedGroup === group._id ? "Hide" : "View"} Members
                       </button>
+                      {viewMode === "accepted" && (
+                        pendingRemovalGroupIds.includes(group.groupId) ? (
+                          <span className="flex items-center px-3 py-2 bg-amber-100 text-amber-800 rounded-lg text-xs font-semibold">
+                            ⏳ Removal Pending
+                          </span>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRequestGroupRemoval({
+                                groupId: group.groupId,
+                                groupType: "summer",
+                                onSuccess: () => {
+                                  window.location.reload();
+                                },
+                              });
+                            }}
+                            className="flex items-center px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                            title="Request Batch Admin to remove this group"
+                          >
+                            <FaTrash className="mr-1.5 text-xs" />
+                            Remove Group
+                          </button>
+                        )
+                      )}
                       {viewMode === "applied" && (
                         <>
                           <button
