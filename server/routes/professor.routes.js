@@ -57,12 +57,20 @@ import {
 import {
   getSummerPendingTypeChanges,
 } from "../controllers/group.controller.js";
+import {
+  requestGroupRemoval,
+  getProfessorRemovalRequests,
+} from "../controllers/groupRemoval.controller.js";
 
 const router = Router();
 router.route("/addprof").post(verifyAdmin, addProf);
 router.route("/getProf").get(getProf);
 
 router.post("/save-summer-project-title", verifyProfessor, saveSummerProjectTitle);
+
+// Group removal request routes
+router.post("/request-group-removal", verifyProfessor, requestGroupRemoval);
+router.get("/group-removal-requests", verifyProfessor, getProfessorRemovalRequests);
 
 
 router.route("/login").post(loginProf);

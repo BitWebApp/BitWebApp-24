@@ -16,7 +16,8 @@ import {
     HiPencilAlt,
     HiUpload,
     HiUser,
-    HiUserAdd
+    HiUserAdd,
+    HiTrash,
 } from "react-icons/hi";
 import { IoIosArrowBack } from "react-icons/io";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -147,6 +148,11 @@ export default function Sidebar() {
       to: "/admin-db/bulk-allotment",
     },
     {
+      text: "Removal Requests",
+      icon: <HiTrash />,
+      to: "/admin-db/group-removal-requests",
+    },
+    {
       text: "Room Allocations",
       icon: <HiBriefcase />,
       to: "/admin-db/admin-room-request",
@@ -186,7 +192,8 @@ export default function Sidebar() {
 
   // State for master admin role
   const [isMasterAdmin, setIsMasterAdmin] = useState(false);
-  
+  const [pendingRemovalCount, setPendingRemovalCount] = useState(0);
+
   useEffect(() => {
     const checkMasterAdmin = async () => {
       try {
@@ -198,7 +205,27 @@ export default function Sidebar() {
         console.log("Not master admin or error checking role");
       }
     };
+
+    const fetchPendingRemovalCount = async () => {
+      try {
+        const response = await axios.get("/api/v1/admin/group-removal-requests/pending-count");
+        setPendingRemovalCount(response.data?.data?.count || 0);
+      } catch (err) {
+        try {
+          const fallbackRes = await axios.get("/api/v1/admin/group-removal-requests");
+          const count = (fallbackRes.data?.data || []).filter((r) => r.status === "pending").length;
+          setPendingRemovalCount(count);
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+
     checkMasterAdmin();
+    fetchPendingRemovalCount();
+
+    const interval = setInterval(fetchPendingRemovalCount, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   // Add Manage Admins link for master admins
@@ -266,19 +293,43 @@ export default function Sidebar() {
         </Link>
 
         <div className="whitespace-pre flex-1 py-4 text-sm flex flex-col gap-1">
-          {links.map((link, index) => (
-            <Link
-              to={link.to}
-              key={index}
-              className={classNames(
-                "cursor-pointer border-t text-neutral-200 hover:text-white border-neutral-800",
-                linkclasses
-              )}
-            >
-              <span className="text-lg shrink-0">{link.icon}</span>
-              {isOpen && <span className="truncate text-[0.85rem] font-medium">{link.text}</span>}
-            </Link>
-          ))}
+          {links.map((link, index) => {
+            const isRemovalLink = link.to === "/admin-db/group-removal-requests";
+            const showBadge = isRemovalLink && pendingRemovalCount > 0;
+
+            return (
+              <Link
+                to={link.to}
+                key={index}
+                className={classNames(
+                  "cursor-pointer border-t text-neutral-200 hover:text-white border-neutral-800 relative",
+                  linkclasses
+                )}
+                title={showBadge ? `${pendingRemovalCount} pending removal request${pendingRemovalCount > 1 ? "s" : ""}` : undefined}
+              >
+                <div className="relative shrink-0 flex items-center">
+                  <span className="text-lg">{link.icon}</span>
+                  {!isOpen && showBadge && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600 text-[9px] text-white font-bold items-center justify-center">
+                        {pendingRemovalCount > 9 ? "!" : pendingRemovalCount}
+                      </span>
+                    </span>
+                  )}
+                </div>
+                {isOpen && <span className="truncate text-[0.85rem] font-medium flex-1">{link.text}</span>}
+                {isOpen && showBadge && (
+                  <span
+                    className="ml-auto inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full shadow-sm animate-pulse"
+                    title={`${pendingRemovalCount} pending removal request${pendingRemovalCount > 1 ? "s" : ""}`}
+                  >
+                    {pendingRemovalCount}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
           <div
             onClick={() => handleLogout()}
             className={classNames(

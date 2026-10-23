@@ -41,6 +41,11 @@ import {
   registerUserByAdmin,
   sendWelcomeMails,
 } from "../controllers/userImport.controller.js";
+import {
+  getAdminRemovalRequests,
+  getPendingRemovalCount,
+  reviewRemovalRequest,
+} from "../controllers/groupRemoval.controller.js";
 import { singleCSV } from "../middlewares/csvUpload.middleware.js";
 const router = Router();
 
@@ -76,6 +81,17 @@ router.route("/assign-company").post(verifyAdmin, assignCompany);
 router.route("/get-minor-projects").get(verifyAdmin, getAllMinorProjects);
 router.route("/get-major-projects").get(verifyAdmin, getAllMajorProjects);
 router.route("/batch-stats").get(verifyAdmin, getBatchStats);
+
+// Group removal requests (Batch Admin & Master Admin)
+router
+  .route("/group-removal-requests")
+  .get(verifyAdmin, getAdminRemovalRequests);
+router
+  .route("/group-removal-requests/pending-count")
+  .get(verifyAdmin, getPendingRemovalCount);
+router
+  .route("/review-group-removal-request")
+  .post(verifyAdmin, reviewRemovalRequest);
 
 // User onboarding: CSV bulk import + single registration
 router

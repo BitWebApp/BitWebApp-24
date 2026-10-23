@@ -15,6 +15,8 @@ import {
   HiBriefcase,
   HiOutlineLogout,
   HiArchive,
+  HiTrash,
+  HiBell,
 } from "react-icons/hi";
 import useLinks from './admin/user-links';
 const linkClasses = 'flex items-center gap-6 font-light p-2.5 hover:bg-neutral-700 hover:no-underline active:bg-neutral rounded-sm text-base';
@@ -24,6 +26,7 @@ export default function Header() {
   const [isAdmin, setIsAdmin] = useState(true);
   const [currentTime, setCurrentTime] = useState(null);
   const [user, setUser] = useState();
+  const [pendingRemovalCount, setPendingRemovalCount] = useState(0);
   const loggedIn = JSON.parse(localStorage.getItem('user'));
 
   useEffect(() => {
@@ -31,6 +34,25 @@ export default function Header() {
       .then(response => {
         setUser(response.data.data);
       });
+
+    const fetchPendingCount = async () => {
+      try {
+        const response = await axios.get('/api/v1/admin/group-removal-requests/pending-count');
+        setPendingRemovalCount(response.data?.data?.count || 0);
+      } catch (err) {
+        try {
+          const fallbackRes = await axios.get('/api/v1/admin/group-removal-requests');
+          const count = (fallbackRes.data?.data || []).filter((r) => r.status === 'pending').length;
+          setPendingRemovalCount(count);
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+
+    fetchPendingCount();
+    const countInterval = setInterval(fetchPendingCount, 30000);
+    return () => clearInterval(countInterval);
   }, []);
 
   useEffect(() => {
@@ -143,6 +165,11 @@ export default function Header() {
         to: "/admin-db/bulk-allotment",
       },
       {
+        text: "Removal Requests",
+        icon: <HiTrash />,
+        to: "/admin-db/group-removal-requests",
+      },
+      {
         text: "Room Allocations",
         icon: <HiBriefcase />,
         to: "/admin-db/admin-room-request",
@@ -230,17 +257,29 @@ export default function Header() {
   className='absolute left-0 z-10 mt-2.5 w-full bg-black max-h-[70vh] overflow-y-auto'
 >
   <div className='whitespace-pre flex-1 py-[1rem] text-[0.9rem] text-red-500 flex flex-col gap-0.5'>
-    {links.map((link, index) => (
-      <Link
-        to={link.to}
-        key={index}
-        className={classNames('cursor-pointer border-t border-neutral-700', linkClasses)}
-        onClick={closeNavbar}
-      >
-        <span className='text-xl'>{link.icon}</span>
-        {link.text}
-      </Link>
-    ))}
+    {links.map((link, index) => {
+      const isRemovalLink = link.to === "/admin-db/group-removal-requests";
+      const showBadge = isRemovalLink && pendingRemovalCount > 0;
+
+      return (
+        <Link
+          to={link.to}
+          key={index}
+          className={classNames('cursor-pointer border-t border-neutral-700 flex items-center justify-between pr-4', linkClasses)}
+          onClick={closeNavbar}
+        >
+          <div className="flex items-center gap-6">
+            <span className='text-xl'>{link.icon}</span>
+            {link.text}
+          </div>
+          {showBadge && (
+            <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">
+              {pendingRemovalCount}
+            </span>
+          )}
+        </Link>
+      );
+    })}
     <div
       onClick={() => { handleLogout(); closeNavbar(); }}
       className={classNames('text-red-500 mt-[2rem] cursor-pointer border-t border-neutral-700', linkClasses)}
@@ -270,8 +309,26 @@ export default function Header() {
           Welcome, {user?.fullName?.toUpperCase() || loggedIn?.username?.toUpperCase()}
         </div>
       </div>
-      <div className='ml-auto flex items-center gap-2 mr-2'>
-        <div className='text-gray-600 mr-4'>{currentTime}</div>
+      <div className='ml-auto flex items-center gap-3 mr-2'>
+        <div className='text-gray-600 mr-2 text-sm hidden sm:block'>{currentTime}</div>
+
+        {/* Notification Bell for Pending Removal Requests */}
+        <Link
+          to="/admin-db/group-removal-requests"
+          className="relative p-2 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors focus:outline-none"
+          title={
+            pendingRemovalCount > 0
+              ? `${pendingRemovalCount} pending group removal request${pendingRemovalCount > 1 ? 's' : ''}`
+              : "Group Removal Requests (0 pending)"
+          }
+        >
+          <HiBell className="text-2xl" />
+          {pendingRemovalCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center px-1 text-[11px] font-bold text-white bg-red-600 rounded-full shadow-sm animate-pulse">
+              {pendingRemovalCount > 99 ? "99+" : pendingRemovalCount}
+            </span>
+          )}
+        </Link>
         <Menu as='div' className='relative'>
           <div className='inline-flex'>
             <Menu.Button className='ml-2 inline-flex rounded-full bg-grey-200 focus:outline-none focus:ring-2 focus:ring-neutral-400'>

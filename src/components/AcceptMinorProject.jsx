@@ -16,10 +16,12 @@ import ChatBox from "./ChatBox";
 import FrozenMarksBadge from "./FrozenMarksBadge";
 import { confirmFinalMarks, isMarksFrozen, MARKS_TYPES } from "../utils/marks";
 import { exportMentoredGroups } from "../utils/exportMentoredGroups";
+import { handleRequestGroupRemoval } from "../utils/requestGroupRemoval";
 
 const AcceptMinorProject = () => {
   const [appliedGroups, setAppliedGroups] = useState([]);
   const [acceptedGroups, setAcceptedGroups] = useState([]);
+  const [removalRequests, setRemovalRequests] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [selectedAcceptedGroups, setSelectedAcceptedGroups] = useState([]);
   const [limits, setLimits] = useState([]);
@@ -36,22 +38,30 @@ const AcceptMinorProject = () => {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const [appliedResponse, getLimits, acceptedResponse] =
+        const [appliedResponse, getLimits, acceptedResponse, removalResponse] =
           await Promise.all([
             axios.get("/api/v1/prof/minor/getAppliedGroups"),
             axios.get("/api/v1/prof/minor/get-limit"),
             axios.get("/api/v1/prof/minor/accepted-groups"),
+            axios.get("/api/v1/prof/group-removal-requests", { validateStatus: () => true }),
           ]);
 
         setAppliedGroups(appliedResponse.data.data);
         setLimits(getLimits.data.data.batches);
         setAcceptedGroups(acceptedResponse.data.data);
+        if (removalResponse.status === 200) {
+          setRemovalRequests(removalResponse.data?.data || []);
+        }
       } catch (err) {
         toast.error(err.response?.data?.message || "Failed to fetch groups.");
       }
     };
     fetchGroups();
   }, [marks]);
+
+  const pendingRemovalGroupIds = (removalRequests || [])
+    .filter((r) => r.status === "pending" && r.groupType === "minor")
+    .map((r) => r.groupId);
 
   // Filter groups based on search term
   const filteredGroups = (
@@ -351,6 +361,31 @@ const AcceptMinorProject = () => {
                         <FaUsers className="mr-2" />
                         {selectedGroup === group._id ? "Hide" : "View"} Members
                       </button>
+                      {viewMode === "accepted" && (
+                        pendingRemovalGroupIds.includes(group.groupId) ? (
+                          <span className="flex items-center px-3 py-2 bg-amber-100 text-amber-800 rounded-lg text-xs font-semibold">
+                            ⏳ Removal Pending
+                          </span>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRequestGroupRemoval({
+                                groupId: group.groupId,
+                                groupType: "minor",
+                                onSuccess: () => {
+                                  window.location.reload();
+                                },
+                              });
+                            }}
+                            className="flex items-center px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                            title="Request Batch Admin to remove this group"
+                          >
+                            <FaTrash className="mr-1.5 text-xs" />
+                            Remove Group
+                          </button>
+                        )
+                      )}
                       {viewMode === "applied" && (
                         <>
                           <button

@@ -8,16 +8,19 @@ import {
   FaSearch,
   FaEdit,
   FaFileExcel,
+  FaTrash,
 } from "react-icons/fa";
 import Swal from "sweetalert2";
 import ChatBox from "./ChatBox";
 import FrozenMarksBadge from "./FrozenMarksBadge";
 import { confirmFinalMarks, isMarksFrozen, MARKS_TYPES } from "../utils/marks";
 import { exportMentoredGroups } from "../utils/exportMentoredGroups";
+import { handleRequestGroupRemoval } from "../utils/requestGroupRemoval";
 
 const AcceptProject1 = () => {
   const [appliedStudents, setAppliedStudents] = useState([]);
   const [acceptedRecords, setAcceptedRecords] = useState([]);
+  const [removalRequests, setRemovalRequests] = useState([]);
   const [limits, setLimits] = useState(0);
   const [description, setDescription] = useState("");
   const [remark, setRemark] = useState("");
@@ -32,24 +35,30 @@ const AcceptProject1 = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [appliedResponse, limitsResponse, acceptedResponse] =
+        const [appliedResponse, limitsResponse, acceptedResponse, removalResponse] =
           await Promise.all([
             axios.get("/api/v1/project1/get-applied-students"),
             axios.get("/api/v1/project1/get-limit"),
             axios.get("/api/v1/project1/get-accepted-students"),
+            axios.get("/api/v1/prof/group-removal-requests", { validateStatus: () => true }),
           ]);
 
         setAppliedStudents(appliedResponse.data.data || []);
         setLimits(limitsResponse.data.data);
         setAcceptedRecords(acceptedResponse.data.data || []);
-
-        setAcceptedRecords(acceptedResponse.data.data || []);
+        if (removalResponse.status === 200) {
+          setRemovalRequests(removalResponse.data?.data || []);
+        }
       } catch (err) {
         toast.error(err.response?.data?.message || "Failed to fetch data.");
       }
     };
     fetchData();
   }, [marks]);
+
+  const pendingRemovalGroupIds = (removalRequests || [])
+    .filter((r) => r.status === "pending" && r.groupType === "project1")
+    .map((r) => r.groupId);
 
   const handleAccept = async (recordId) => {
     const result = await Swal.fire({
@@ -292,6 +301,31 @@ const AcceptProject1 = () => {
                             <FaUsers className="mr-2" />
                             {selectedGroup === group._id ? "Hide" : "View"} Members
                           </button>
+                          {viewMode === "accepted" && (
+                            pendingRemovalGroupIds.includes(group.groupId) ? (
+                              <span className="flex items-center px-3 py-2 bg-amber-100 text-amber-800 rounded-lg text-xs font-semibold">
+                                ⏳ Removal Pending
+                              </span>
+                            ) : (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRequestGroupRemoval({
+                                    groupId: group.groupId,
+                                    groupType: "project1",
+                                    onSuccess: () => {
+                                      window.location.reload();
+                                    },
+                                  });
+                                }}
+                                className="flex items-center px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                                title="Request Batch Admin to remove this group"
+                              >
+                                <FaTrash className="mr-1.5 text-xs" />
+                                Remove Group
+                              </button>
+                            )
+                          )}
                           {viewMode === "applied" && (
                             <>
                               <button
