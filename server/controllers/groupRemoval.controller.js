@@ -199,6 +199,29 @@ export const getAdminRemovalRequests = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Admin retrieves the count of pending removal requests within their batch scope.
+ */
+export const getPendingRemovalCount = asyncHandler(async (req, res) => {
+  const admin = req.admin;
+  const filter = { status: "pending" };
+
+  if (admin.role !== "master") {
+    if (!admin.assignedBatches || admin.assignedBatches.length === 0) {
+      return res.status(200).json(
+        new ApiResponse(200, { count: 0 }, "No batches assigned to this admin")
+      );
+    }
+    filter.batch = { $in: admin.assignedBatches };
+  }
+
+  const count = await GroupRemovalRequest.countDocuments(filter);
+
+  return res.status(200).json(
+    new ApiResponse(200, { count }, "Pending removal requests count retrieved successfully")
+  );
+});
+
+/**
  * Admin accepts or rejects a group removal request.
  * If approved:
  *  - Deallocates the group from the professor

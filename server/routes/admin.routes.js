@@ -43,6 +43,7 @@ import {
 } from "../controllers/userImport.controller.js";
 import {
   getAdminRemovalRequests,
+  getPendingRemovalCount,
   reviewRemovalRequest,
 } from "../controllers/groupRemoval.controller.js";
 import { singleCSV } from "../middlewares/csvUpload.middleware.js";
@@ -85,6 +86,9 @@ router.route("/batch-stats").get(verifyAdmin, getBatchStats);
 router
   .route("/group-removal-requests")
   .get(verifyAdmin, getAdminRemovalRequests);
+router
+  .route("/group-removal-requests/pending-count")
+  .get(verifyAdmin, getPendingRemovalCount);
 router
   .route("/review-group-removal-request")
   .post(verifyAdmin, reviewRemovalRequest);
