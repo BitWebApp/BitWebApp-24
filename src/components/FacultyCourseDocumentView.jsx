@@ -11,6 +11,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import ScrollToTop from "./ScrollToTop";
+import { courseDocumentFileUrl } from "../utils/courseDocuments";
 
 const COURSES = [
   "MCA Minor Project",
@@ -62,6 +63,18 @@ export default function FacultyCourseDocumentView() {
     };
     fetchDocs();
   }, []);
+
+  // Opened from the side menu (no batch chosen): show the newest batch that
+  // has a document for this course rather than an empty default batch.
+  useEffect(() => {
+    if (batchParam || courseDocuments.length === 0) return;
+    const hasDoc = (b) =>
+      courseDocuments.some((d) => d.course === activeCourse && d.batch === b);
+    if (!hasDoc(activeBatch)) {
+      const newest = [...BATCHES].reverse().find(hasDoc);
+      if (newest) setActiveBatch(newest);
+    }
+  }, [courseDocuments, activeCourse, activeBatch, batchParam]);
 
   const handleBatchChange = (batch) => {
     setActiveBatch(batch);
@@ -177,7 +190,7 @@ export default function FacultyCourseDocumentView() {
             {/* Immediate Access Buttons */}
             <div className="flex items-center gap-3 w-full md:w-auto">
               <a
-                href={currentDoc.pdfUrl}
+                href={courseDocumentFileUrl(currentDoc)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 md:flex-initial flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-medium text-sm transition shadow-sm"
@@ -185,7 +198,7 @@ export default function FacultyCourseDocumentView() {
                 <ExternalLink className="w-4 h-4" /> Open PDF in New Window
               </a>
               <a
-                href={currentDoc.pdfUrl}
+                href={courseDocumentFileUrl(currentDoc, { download: true })}
                 download={currentDoc.originalFileName || `${activeCourse}_${activeBatch}.pdf`}
                 className="flex-1 md:flex-initial flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2.5 rounded-lg font-medium text-sm transition shadow-sm"
               >
@@ -197,7 +210,7 @@ export default function FacultyCourseDocumentView() {
           {/* Embedded PDF Viewer */}
           <div className="p-3 bg-gray-900">
             <iframe
-              src={currentDoc.pdfUrl}
+              src={courseDocumentFileUrl(currentDoc)}
               title={`${activeCourse} - Batch ${activeBatch}`}
               className="w-full h-[700px] rounded border border-gray-700 bg-white"
             />
