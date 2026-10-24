@@ -58,9 +58,9 @@ const facultyLinks = [
     to: "/faculty-db/accept-project1",
   },
   {
-    text: "Allotted Students",
+    text: "Additional Students",
     icon: <HiUserGroup />,
-    to: "/faculty-db/allotted-students",
+    to: "/faculty-db/additional-students",
   },
   {
     text: "Report Issues",

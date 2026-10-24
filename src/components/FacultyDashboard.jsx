@@ -1,10 +1,12 @@
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
+import { FaFileExcel } from "react-icons/fa";
 import { HiAcademicCap } from "react-icons/hi";
 import { toast, Toaster } from "react-hot-toast";
 import Dashboard from "./Dashboard";
 import FrozenMarksBadge from "./FrozenMarksBadge";
 import { categoryLabel } from "../utils/courses";
+import { exportMyStudents } from "../utils/exportMyStudents";
 import { PROGRAMS, programLabel } from "../utils/programs";
 import {
   sessionLabel,
@@ -223,6 +225,31 @@ const FacultyDashboard = () => {
                     {label}: {count}
                   </span>
                 ))}
+                <button
+                  type="button"
+                  onClick={() =>
+                    exportMyStudents(
+                      students,
+                      [
+                        filters.program === ALL
+                          ? "All_programs"
+                          : programLabel(filters.program),
+                        filters.batch === ALL
+                          ? "All_batches"
+                          : `K${filters.batch}`,
+                        filters.session === ALL
+                          ? "All_sessions"
+                          : sessionLabel(filters.session),
+                      ].join("_")
+                    ).catch(() =>
+                      toast.error("Could not create the Excel file")
+                    )
+                  }
+                  disabled={students.length === 0}
+                  className="ml-auto flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                >
+                  <FaFileExcel /> Download Excel
+                </button>
               </div>
 
               <div className="overflow-x-auto p-6">
