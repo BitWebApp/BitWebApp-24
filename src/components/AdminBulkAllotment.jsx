@@ -33,7 +33,7 @@ SummaryCard.propTypes = {
 };
 
 /**
- * Admin page to allot mentors to many MCA and M.Tech students at once from
+ * Admin page to allot mentors to many registered students (any program) at once from
  * an Excel (or CSV) file: download the template, fill it in, check it, then
  * import. Coordinators can only allot students of their own batches.
  */
@@ -172,8 +172,8 @@ const AdminBulkAllotment = () => {
             <HiCloudUpload /> Bulk Allotment
           </h1>
           <p className="mt-1 text-gray-600">
-            Allot mentors to MCA and M.Tech students from an Excel file.
-            Students must already be onboarded (User Onboarding).
+            Allot mentors to any registered students (B.Tech, MCA or M.Tech)
+            from an Excel file. Students must already be registered.
             {options.assignedBatches && (
               <>
                 {" "}
@@ -205,16 +205,16 @@ const AdminBulkAllotment = () => {
             Required columns:{" "}
             <code className="rounded bg-gray-100 px-1">rollNumber</code>,{" "}
             <code className="rounded bg-gray-100 px-1">course</code> (
-            {options.courses
-              .filter((c) => c.program !== "BTECH")
-              .map((c) => c.label)
-              .join(", ")}
+            {options.courses.map((c) => c.label).join(", ")}
             ), <code className="rounded bg-gray-100 px-1">mentorId</code>{" "}
             (faculty ID or email). Optional:{" "}
             <code className="rounded bg-gray-100 px-1">session</code>,{" "}
-            <code className="rounded bg-gray-100 px-1">remarks</code>. The
-            template lists the faculty IDs. Up to 500 rows per file, .xlsx or
-            .csv.
+            <code className="rounded bg-gray-100 px-1">type</code> (Regular or
+            Back Paper; Regular when empty),{" "}
+            <code className="rounded bg-gray-100 px-1">remarks</code>. A B.Tech
+            student whose group already has a mentor for the course can only be
+            added as Back Paper. The template lists the faculty IDs. Up to 500
+            rows per file, .xlsx or .csv.
           </p>
           <div className="mb-4 flex flex-wrap items-center gap-3">
             <label
@@ -346,6 +346,7 @@ const AdminBulkAllotment = () => {
                     <th className="px-4 py-3">Course</th>
                     <th className="px-4 py-3">Mentor</th>
                     <th className="px-4 py-3">Session</th>
+                    <th className="px-4 py-3">Type</th>
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3">Details</th>
                   </tr>
@@ -383,6 +384,9 @@ const AdminBulkAllotment = () => {
                         {row.data.session
                           ? sessionLabel(row.data.session)
                           : "—"}
+                      </td>
+                      <td className="px-4 py-3">
+                        {row.data.categoryLabel || "—"}
                       </td>
                       <td className="px-4 py-3">
                         <span
