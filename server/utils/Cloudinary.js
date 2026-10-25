@@ -181,4 +181,32 @@ const deleteFromCloudinary = async (publicId) => {
   }
 };
 
-export { uploadOnCloudinary, deleteFromCloudinary };
+/**
+ * Signed, API-authenticated download link for a file stored on Cloudinary.
+ * Works even when the account blocks public delivery of PDF files (the
+ * default for new Cloudinary accounts). Returns null when Cloudinary is not
+ * configured or the URL is not a Cloudinary upload URL.
+ * @param {string} fileUrl e.g. https://res.cloudinary.com/<cloud>/image/upload/v1/bitacademia/x.pdf
+ * @param {string} publicId
+ * @returns {string|null}
+ */
+const getSignedDownloadUrl = (fileUrl, publicId) => {
+  if (!isCloudinaryConfigured() || !publicId) return null;
+  const match =
+    /res\.cloudinary\.com\/[^/]+\/(image|raw|video)\/(upload|private|authenticated)\//.exec(
+      fileUrl || ""
+    );
+  if (!match) return null;
+  // Raw files keep their extension in the public ID; images (where PDFs
+  // usually land with resource_type "auto") need it as the format.
+  const format =
+    match[1] === "raw"
+      ? ""
+      : (fileUrl.split("?")[0].match(/\.([a-z0-9]+)$/i) || [])[1] || "pdf";
+  return getCloudinaryClient().utils.private_download_url(publicId, format, {
+    resource_type: match[1],
+    type: match[2],
+  });
+};
+
+export { uploadOnCloudinary, deleteFromCloudinary, getSignedDownloadUrl };

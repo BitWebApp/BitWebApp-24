@@ -12,6 +12,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import ScrollToTop from "./ScrollToTop";
+import { courseDocumentFileUrl } from "../utils/courseDocuments";
 
 const COURSES = [
   "MCA Minor Project",
@@ -240,7 +241,7 @@ export default function AdminCourseDocsUpload() {
                 </span>
               </div>
               <a
-                href={getDoc(selectedCourse, selectedBatch)?.pdfUrl}
+                href={courseDocumentFileUrl(getDoc(selectedCourse, selectedBatch))}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-700 hover:underline font-semibold flex items-center gap-1 ml-4"
@@ -325,7 +326,7 @@ export default function AdminCourseDocsUpload() {
                       </span>
                       {doc ? (
                         <a
-                          href={doc.pdfUrl}
+                          href={courseDocumentFileUrl(doc)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1 text-blue-700 bg-blue-50 px-2 py-0.5 rounded font-semibold hover:bg-blue-100 border border-blue-200"
@@ -420,7 +421,7 @@ export default function AdminCourseDocsUpload() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
                       <div className="flex items-center justify-center gap-3">
                         <a
-                          href={doc.pdfUrl}
+                          href={courseDocumentFileUrl(doc)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium text-xs"
