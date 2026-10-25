@@ -165,6 +165,11 @@ export default function Header() {
         to: "/admin-db/bulk-allotment",
       },
       {
+        text: "Application Status",
+        icon: <HiUser />,
+        to: "/admin-db/application-status",
+      },
+      {
         text: "Removal Requests",
         icon: <HiTrash />,
         to: "/admin-db/group-removal-requests",

@@ -67,6 +67,7 @@ import AdminCourseDocsUpload from "./components/AdminCourseDocsUpload";
 import FacultyCourseDocumentView from "./components/FacultyCourseDocumentView";
 import AdminBackPaperAllotment from "./components/AdminBackPaperAllotment";
 import AdminBulkAllotment from "./components/AdminBulkAllotment";
+import AdminApplicationStatus from "./components/AdminApplicationStatus";
 import AdminEditAllotment from "./components/AdminEditAllotment";
 import FacultyAllottedStudents from "./components/FacultyAllottedStudents";
 import FacultyDashboard from "./components/FacultyDashboard";
@@ -224,6 +225,7 @@ export default function App() {
           <Route path="back-paper-allotment" element={<AdminBackPaperAllotment />} />
           <Route path="edit-allotment" element={<AdminEditAllotment />} />
           <Route path="bulk-allotment" element={<AdminBulkAllotment />} />
+          <Route path="application-status" element={<AdminApplicationStatus />} />
           <Route path="group-removal-requests" element={<AdminGroupRemovalRequests />} />
         </Route>
 

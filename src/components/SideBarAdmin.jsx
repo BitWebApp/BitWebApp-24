@@ -8,6 +8,7 @@ import {
     HiBadgeCheck,
     HiBeaker,
     HiBriefcase,
+    HiClipboardList,
     HiDocumentReport,
     HiHome,
     HiOutlineBriefcase,
@@ -146,6 +147,11 @@ export default function Sidebar() {
       text: "Bulk Allotment",
       icon: <HiUpload />,
       to: "/admin-db/bulk-allotment",
+    },
+    {
+      text: "Application Status",
+      icon: <HiClipboardList />,
+      to: "/admin-db/application-status",
     },
     {
       text: "Removal Requests",

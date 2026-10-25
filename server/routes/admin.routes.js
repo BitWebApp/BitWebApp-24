@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { getApplicationStatus } from "../controllers/applicationStatus.controller.js";
 import {
   createBatchAdmin,
   deleteAdmin,
@@ -81,6 +82,8 @@ router.route("/assign-company").post(verifyAdmin, assignCompany);
 router.route("/get-minor-projects").get(verifyAdmin, getAllMinorProjects);
 router.route("/get-major-projects").get(verifyAdmin, getAllMajorProjects);
 router.route("/batch-stats").get(verifyAdmin, getBatchStats);
+// Students not applied / not allotted yet, with faculty preferences
+router.route("/application-status").get(verifyAdmin, getApplicationStatus);
 
 // Group removal requests (Batch Admin & Master Admin)
 router
