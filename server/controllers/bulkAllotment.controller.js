@@ -5,7 +5,14 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { COURSES, getCourse, parseCourse } from "../utils/courses.js";
+import {
+  ALLOTMENT_CATEGORIES,
+  COURSES,
+  categoryLabel,
+  getCourse,
+  parseCourse,
+} from "../utils/courses.js";
+import { getGroupProject } from "../utils/groupProjects.js";
 import { DEFAULT_PROGRAM, programLabel } from "../utils/programs.js";
 import {
   getCurrentSession,
@@ -17,8 +24,23 @@ import { createAllotment } from "./allotment.controller.js";
 
 const MAX_ROWS = 500;
 
-/** Bulk uploads are for the PG programs; B.Tech uses the group flow. */
-const BULK_COURSES = COURSES.filter((c) => c.program !== DEFAULT_PROGRAM);
+/**
+ * "Regular", "Back Paper", "back_paper", ... -> stored category, or null.
+ * An empty cell means a regular allotment.
+ */
+const parseCategory = (raw) => {
+  const key = String(raw ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+  if (!key) return "regular";
+  return (
+    ALLOTMENT_CATEGORIES.find(
+      (c) =>
+        c.value === key || c.label.toLowerCase().replace(/\s+/g, "_") === key
+    )?.value || null
+  );
+};
 
 const HEADER_ALIASES = {
   rollnumber: "rollNumber",
@@ -43,6 +65,9 @@ const HEADER_ALIASES = {
   supervisor: "mentor",
   session: "session",
   remarks: "remarks",
+  type: "category",
+  category: "category",
+  "allotment type": "category",
   remark: "remarks",
   notes: "remarks",
 };
@@ -106,7 +131,7 @@ const analyseSheet = async (file, admin, defaultSession) => {
 
   const rolls = parsed.map((r) => (r.input.rollNumber || "").toUpperCase());
   const students = await User.find({ rollNumber: { $in: rolls } }).select(
-    "fullName rollNumber program batch"
+    "fullName rollNumber program batch group MinorGroup MajorGroup project1"
   );
   const studentByRoll = new Map(
     students.map((s) => [s.rollNumber.toUpperCase(), s])
@@ -127,6 +152,35 @@ const analyseSheet = async (file, admin, defaultSession) => {
     student: { $in: students.map((s) => s._id) },
   }).populate("professor", "fullName");
 
+  // B.Tech students already mentored through a group for a course: a
+  // regular allotment for that course would give them a second mentor.
+  const groupMentorOf = new Map();
+  const groupCourses = [
+    ...new Set(
+      parsed
+        .map((r) => parseCourse(r.input.course))
+        .filter((c) => c && getGroupProject(c))
+    ),
+  ];
+  for (const course of groupCourses) {
+    const project = getGroupProject(course);
+    const groupIds = students.map((s) => s[project.groupField]).filter(Boolean);
+    const groups = await project.groupModel
+      .find({ _id: { $in: groupIds }, [project.mentorField]: { $ne: null } })
+      .select(`groupId ${project.mentorField}`)
+      .populate(project.mentorField, "fullName");
+    groups.forEach((g) => {
+      students
+        .filter((s) => s[project.groupField]?.equals(g._id))
+        .forEach((s) =>
+          groupMentorOf.set(`${s._id}|${course}`, {
+            groupId: g.groupId,
+            mentor: g[project.mentorField]?.fullName || "a mentor",
+          })
+        );
+    });
+  }
+
   const seen = new Map();
   const rows = parsed.map(({ rowNumber, lineNumber, input }) => {
     const errors = [];
@@ -138,6 +192,7 @@ const analyseSheet = async (file, admin, defaultSession) => {
     const session = input.session
       ? parseSession(input.session)
       : defaultSession;
+    const category = parseCategory(input.category);
 
     if (!rollNumber) errors.push("rollNumber is required");
     else if (!student)
@@ -146,12 +201,11 @@ const analyseSheet = async (file, admin, defaultSession) => {
     if (!input.course) errors.push("course is required");
     else if (!courseInfo) {
       errors.push(
-        `course "${input.course}" is not one of ${BULK_COURSES.map((c) => c.label).join(", ")}`
+        `course "${input.course}" is not one of ${COURSES.map((c) => c.label).join(", ")}`
       );
-    } else if (courseInfo.program === DEFAULT_PROGRAM) {
-      errors.push(
-        `${courseInfo.label} is a B.Tech course; bulk allotment is for MCA and M.Tech courses`
-      );
+    }
+    if (!category) {
+      errors.push(`type "${input.category}" must be Regular or Back Paper`);
     }
 
     if (!input.mentor) errors.push("mentor (faculty ID or email) is required");
@@ -164,10 +218,7 @@ const analyseSheet = async (file, admin, defaultSession) => {
 
     if (student && courseInfo) {
       const studentProgram = student.program || DEFAULT_PROGRAM;
-      if (
-        courseInfo.program !== DEFAULT_PROGRAM &&
-        courseInfo.program !== studentProgram
-      ) {
+      if (courseInfo.program !== studentProgram) {
         errors.push(
           `${courseInfo.label} is for ${programLabel(courseInfo.program)} students, but ${student.rollNumber} is in ${programLabel(studentProgram)}`
         );
@@ -195,6 +246,12 @@ const analyseSheet = async (file, admin, defaultSession) => {
           `already allotted to ${clash.professor?.fullName || "a mentor"} for ${courseInfo.label} in ${sessionLabel(session)}`
         );
       }
+      const viaGroup = groupMentorOf.get(`${student._id}|${course}`);
+      if (viaGroup && category === "regular") {
+        errors.push(
+          `already has ${viaGroup.mentor} for ${courseInfo.label} through group ${viaGroup.groupId}; change it with Edit Allotment, or set type to Back Paper for a repeat`
+        );
+      }
     }
 
     return {
@@ -211,6 +268,8 @@ const analyseSheet = async (file, admin, defaultSession) => {
         mentorName: mentor?.fullName || "",
         mentorIdNumber: mentor?.idNumber || input.mentor || "",
         session,
+        category,
+        categoryLabel: category ? categoryLabel(category) : input.category,
         remarks: input.remarks || "",
       },
       errors,
@@ -244,6 +303,7 @@ const downloadBulkTemplate = asyncHandler(async (req, res) => {
     { header: "course", key: "course", width: 22 },
     { header: "mentorId", key: "mentorId", width: 14 },
     { header: "session", key: "session", width: 10 },
+    { header: "type", key: "type", width: 12 },
     { header: "remarks", key: "remarks", width: 28 },
   ];
   sheet.getRow(1).font = { bold: true };
@@ -253,6 +313,7 @@ const downloadBulkTemplate = asyncHandler(async (req, res) => {
     course: "MCA Minor Project",
     mentorId: "FAC001",
     session: getCurrentSession(),
+    type: "Regular",
     remarks:
       "Optional; leave session empty to use the session chosen on the page",
   });
@@ -262,7 +323,17 @@ const downloadBulkTemplate = asyncHandler(async (req, res) => {
     course: "MTech Thesis 1",
     mentorId: "FAC002",
     session: "",
+    type: "",
     remarks: "",
+  });
+  sheet.addRow({
+    rollNumber: "BTECH/10003/22",
+    fullName: "Back Paper Student",
+    course: "Minor Project",
+    mentorId: "FAC003",
+    session: "",
+    type: "Back Paper",
+    remarks: "Repeating the course; type is Regular when left empty",
   });
 
   const courses = workbook.addWorksheet("Courses");
@@ -272,7 +343,7 @@ const downloadBulkTemplate = asyncHandler(async (req, res) => {
     { header: "maxMarks", key: "maxMarks", width: 10 },
   ];
   courses.getRow(1).font = { bold: true };
-  BULK_COURSES.forEach((c) =>
+  COURSES.forEach((c) =>
     courses.addRow({ ...c, program: programLabel(c.program) })
   );
 
@@ -348,7 +419,7 @@ const importBulkAllotment = asyncHandler(async (req, res) => {
         professorId: row.data.mentorId,
         course: row.data.course,
         session: row.data.session,
-        category: "regular",
+        category: row.data.category,
         remarks: row.data.remarks,
         source: "bulk",
       });
