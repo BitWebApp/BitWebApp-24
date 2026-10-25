@@ -79,7 +79,7 @@ const FacultyAllottedStudents = () => {
       <div className="mx-auto max-w-7xl overflow-hidden rounded-2xl bg-white shadow-xl">
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
           <h1 className="flex items-center justify-center gap-2 text-center text-3xl font-bold md:text-4xl">
-            <HiUserGroup /> Allotted Students
+            <HiUserGroup /> Additional Students
           </h1>
           <p className="mt-2 text-center text-blue-100">
             Students allotted to you by the department outside the group
@@ -118,7 +118,7 @@ const FacultyAllottedStudents = () => {
             <p className="py-10 text-center text-gray-500">Loading...</p>
           ) : allotments.length === 0 ? (
             <p className="py-10 text-center text-gray-500">
-              No students are allotted to you for this session.
+              No additional students are allotted to you for this session.
             </p>
           ) : (
             <table className="min-w-full divide-y divide-gray-200 text-sm">

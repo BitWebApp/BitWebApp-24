@@ -243,6 +243,8 @@ export default function App() {
           <Route path="accept-minor-project" element={<AcceptMinorProject />} />
           <Route path="accept-major-project" element={<AcceptMajorProject />} />
           <Route path="course-document" element={<FacultyCourseDocumentView />} />
+          <Route path="additional-students" element={<FacultyAllottedStudents />} />
+          {/* Earlier name of the same page */}
           <Route path="allotted-students" element={<FacultyAllottedStudents />} />
           <Route path="major-project" element={<MajorProject />} />
           <Route path="minor-project" element={<MajorProject />} />
