@@ -426,7 +426,7 @@ const getProject1AppliedStudents = asyncHandler(async (req, res) => {
     populate: {
       path: "members",
       select:
-        "fullName rollNumber email linkedin codingProfiles cgpa section branch image",
+        "fullName rollNumber email linkedin codingProfiles cgpa section branch batch image",
     },
   });
 

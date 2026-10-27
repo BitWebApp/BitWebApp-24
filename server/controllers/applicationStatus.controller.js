@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { User } from "../models/user.model.js";
+import { getArchivedBatchKeys } from "./batch.controller.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -21,7 +22,9 @@ const FACULTY_FIELDS = "fullName idNumber email";
  * Batch to open on: the one doing the project this year, else the batch
  * with the most groups for the project, else the newest.
  */
-const defaultBatch = async (project, projectBatch, batches) => {
+const defaultBatch = async (project, projectBatch, allBatches, archived) => {
+  // Archived (passed out) batches are only shown when chosen explicitly.
+  const batches = allBatches.filter((b) => !archived.includes(b));
   if (projectBatch !== null && batches.includes(projectBatch)) {
     return projectBatch;
   }
@@ -35,7 +38,7 @@ const defaultBatch = async (project, projectBatch, batches) => {
     counts[u.batch] = (counts[u.batch] || 0) + 1;
   });
   const busiest = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
-  return busiest ? Number(busiest[0]) : batches[0];
+  return busiest ? Number(busiest[0]) : (batches[0] ?? allBatches[0]);
 };
 
 const facultyList = (list = []) =>
@@ -82,10 +85,14 @@ const getApplicationStatus = asyncHandler(async (req, res) => {
       : allBatches.filter((b) => (admin.assignedBatches || []).includes(b))
   ).sort((a, b) => b - a);
 
+  const archivedKeys = await getArchivedBatchKeys();
+  const archivedBatches = batches.filter((b) =>
+    archivedKeys.has(`${DEFAULT_PROGRAM}|${b}`)
+  );
   const projectBatch = getProjectBatch(course);
   let batch = req.query.batch
     ? Number(String(req.query.batch).replace(/^[kK]/, ""))
-    : await defaultBatch(project, projectBatch, batches);
+    : await defaultBatch(project, projectBatch, batches, archivedBatches);
   if (req.query.batch && Number.isNaN(batch)) {
     throw new ApiError(400, "Batch must look like 23 or K23");
   }
@@ -102,6 +109,7 @@ const getApplicationStatus = asyncHandler(async (req, res) => {
     courseLabel: courseLabel(course),
     batch: batch ?? null,
     batches,
+    archivedBatches,
     projectBatch,
     summary: { students: 0, notApplied: 0, waiting: 0, allotted: 0 },
     notApplied: [],

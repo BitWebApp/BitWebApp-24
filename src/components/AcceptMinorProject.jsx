@@ -13,6 +13,12 @@ import {
 } from "react-icons/fa";
 import Swal from "sweetalert2";
 import ChatBox from "./ChatBox";
+import BatchFilter from "./BatchFilter";
+import {
+  CURRENT_BATCHES,
+  matchesBatchFilter,
+  useBatches,
+} from "../utils/batches";
 import FrozenMarksBadge from "./FrozenMarksBadge";
 import { confirmFinalMarks, isMarksFrozen, MARKS_TYPES } from "../utils/marks";
 import { exportMentoredGroups } from "../utils/exportMentoredGroups";
@@ -32,6 +38,9 @@ const AcceptMinorProject = () => {
   const [discussionLogs, setDiscussionLogs] = useState([]);
   const [viewMode, setViewMode] = useState("applied");
   const [searchTerm, setSearchTerm] = useState("");
+  // Passed-out (archived) batches are hidden unless chosen.
+  const [batchFilter, setBatchFilter] = useState(CURRENT_BATCHES);
+  const { isArchived } = useBatches();
   const [marks, setMarks] = useState({});
   const [showMarksInputFor, setShowMarksInputFor] = useState(null);
 
@@ -74,7 +83,7 @@ const AcceptMinorProject = () => {
           member.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           member.rollNumber.toLowerCase().includes(searchTerm.toLowerCase()),
       ),
-  );
+  ).filter((group) => matchesBatchFilter(group, batchFilter, isArchived));
 
   const handleGiveMarks = async (member) => {
     const studentId = member._id;
@@ -279,6 +288,12 @@ const AcceptMinorProject = () => {
               </div>
             </div>
             <div className="flex space-x-2">
+              <BatchFilter
+                groups={[...appliedGroups, ...acceptedGroups]}
+                value={batchFilter}
+                onChange={setBatchFilter}
+                isArchived={isArchived}
+              />
               <select
                 value={viewMode}
                 onChange={(e) => setViewMode(e.target.value)}

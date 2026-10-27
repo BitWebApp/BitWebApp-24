@@ -403,6 +403,7 @@ const AdminApplicationStatus = () => {
                 <option key={b} value={String(b)}>
                   K{b}
                   {b === data?.projectBatch ? ` (doing ${projectLabel})` : ""}
+                  {data?.archivedBatches?.includes(b) ? " (archived)" : ""}
                 </option>
               ))}
             </select>

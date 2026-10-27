@@ -94,6 +94,9 @@ app.use("/api/v1/course-docs", courseDocRouter);
 import allotmentRouter from "./routes/allotment.routes.js";
 app.use("/api/v1/allotments", allotmentRouter);
 
+import batchRouter from "./routes/batch.routes.js";
+app.use("/api/v1/batches", batchRouter);
+
 // Import error handlers
 import {
   errorHandler,

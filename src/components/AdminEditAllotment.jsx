@@ -2,6 +2,7 @@ import axios from "axios";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { HiPencilAlt, HiRefresh } from "react-icons/hi";
 import Swal from "sweetalert2";
+import { CURRENT_BATCHES, useBatches } from "../utils/batches";
 import { categoryLabel } from "../utils/courses";
 import { programLabel } from "../utils/programs";
 import { sessionLabel } from "../utils/sessions";
@@ -44,7 +45,9 @@ const AdminEditAllotment = () => {
   const [kind, setKind] = useState(KINDS[0].value);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [batch, setBatch] = useState(ALL);
+  // Archived (passed-out) batches are hidden unless chosen.
+  const [batch, setBatch] = useState(CURRENT_BATCHES);
+  const { isArchived } = useBatches();
   const [session, setSession] = useState(ALL);
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState(null);
@@ -85,7 +88,7 @@ const AdminEditAllotment = () => {
 
   useEffect(() => {
     setEditingId(null);
-    setBatch(ALL);
+    setBatch(CURRENT_BATCHES);
     setSession(ALL);
     load();
   }, [load]);
@@ -106,7 +109,10 @@ const AdminEditAllotment = () => {
     const term = search.trim().toLowerCase();
     return rows.filter(
       (r) =>
-        (batch === ALL || r.batches.includes(Number(batch))) &&
+        (batch === ALL ||
+          (batch === CURRENT_BATCHES
+            ? r.members.some((m) => !isArchived(m.program, m.batch))
+            : r.batches.includes(Number(batch)))) &&
         (session === ALL || r.session === session) &&
         (!term ||
           r.groupId.toLowerCase().includes(term) ||
@@ -116,7 +122,7 @@ const AdminEditAllotment = () => {
               m.fullName.toLowerCase().includes(term)
           ))
     );
-  }, [rows, batch, session, search]);
+  }, [rows, batch, session, search, isArchived]);
 
   const startEdit = (row) => {
     setEditingId(row.id);
@@ -218,12 +224,20 @@ const AdminEditAllotment = () => {
               onChange={(e) => setBatch(e.target.value)}
               className={inputClass}
             >
-              <option value={ALL}>All batches</option>
+              <option value={CURRENT_BATCHES}>Current batches</option>
               {batchChoices.map((b) => (
                 <option key={b} value={String(b)}>
                   K{b}
+                  {rows.some((r) =>
+                    r.members.some(
+                      (m) => m.batch === b && isArchived(m.program, m.batch)
+                    )
+                  )
+                    ? " (archived)"
+                    : ""}
                 </option>
               ))}
+              <option value={ALL}>All batches (incl. archived)</option>
             </select>
             <select
               aria-label="Session"

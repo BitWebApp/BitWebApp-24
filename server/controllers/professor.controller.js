@@ -523,7 +523,7 @@ const getAppliedGroups = asyncHandler(async (req, res) => {
       populate: {
         path: "members org",
         select:
-          "fullName rollNumber email linkedin codingProfiles cgpa section branch image companyName",
+          "fullName rollNumber email linkedin codingProfiles cgpa section branch batch image companyName",
       },
     });
 
@@ -1115,7 +1115,7 @@ const getMinorAppliedGroups = asyncHandler(async (req, res) => {
       populate: {
         path: "members",
         select:
-          "fullName rollNumber email linkedin codingProfiles cgpa section branch image companyName",
+          "fullName rollNumber email linkedin codingProfiles cgpa section branch batch image companyName",
       },
     });
 
@@ -1482,7 +1482,7 @@ const getMajorAppliedGroups = asyncHandler(async (req, res) => {
         {
           path: "members",
           select:
-            "fullName rollNumber email linkedin codingProfiles cgpa section branch image companyName",
+            "fullName rollNumber email linkedin codingProfiles cgpa section branch batch image companyName",
         },
         {
           path: "org",

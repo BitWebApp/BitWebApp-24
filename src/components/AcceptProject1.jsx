@@ -12,6 +12,12 @@ import {
 } from "react-icons/fa";
 import Swal from "sweetalert2";
 import ChatBox from "./ChatBox";
+import BatchFilter from "./BatchFilter";
+import {
+  CURRENT_BATCHES,
+  matchesBatchFilter,
+  useBatches,
+} from "../utils/batches";
 import FrozenMarksBadge from "./FrozenMarksBadge";
 import { confirmFinalMarks, isMarksFrozen, MARKS_TYPES } from "../utils/marks";
 import { exportMentoredGroups } from "../utils/exportMentoredGroups";
@@ -26,6 +32,9 @@ const AcceptProject1 = () => {
   const [remark, setRemark] = useState("");
   const [viewMode, setViewMode] = useState("applied");
   const [searchTerm, setSearchTerm] = useState("");
+  // Passed-out (archived) batches are hidden unless chosen.
+  const [batchFilter, setBatchFilter] = useState(CURRENT_BATCHES);
+  const { isArchived } = useBatches();
   const [marks, setMarks] = useState({});
   const [showMarksInputFor, setShowMarksInputFor] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -175,6 +184,7 @@ const AcceptProject1 = () => {
   };
 
   const filteredApplied = appliedStudents.filter((rec) => {
+    if (!matchesBatchFilter(rec, batchFilter, isArchived)) return false;
     if (!searchTerm) return true;
     const q = searchTerm.toLowerCase();
     return rec.members?.some(
@@ -185,6 +195,7 @@ const AcceptProject1 = () => {
   });
 
   const filteredAccepted = acceptedRecords.filter((rec) => {
+    if (!matchesBatchFilter(rec, batchFilter, isArchived)) return false;
     if (!searchTerm) return true;
     const q = searchTerm.toLowerCase();
     return rec.members?.some(
@@ -254,8 +265,14 @@ const AcceptProject1 = () => {
               </div>
 
               {/* Search */}
-              <div className="mb-6">
-                <div className="relative">
+              <div className="mb-6 flex flex-col gap-3 md:flex-row">
+                <BatchFilter
+                  groups={[...appliedStudents, ...acceptedRecords]}
+                  value={batchFilter}
+                  onChange={setBatchFilter}
+                  isArchived={isArchived}
+                />
+                <div className="relative flex-1">
                   <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
