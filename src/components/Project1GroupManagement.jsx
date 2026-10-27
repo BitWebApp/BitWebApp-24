@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
 import { getStudentYear } from "../utils/studentYear";
+import { PROJECT1_YEAR, yearLabel } from "../utils/projectEligibility";
 
 const handleError = (error, defaultMessage) => {
   let message = error.response?.data?.message || defaultMessage;
@@ -63,8 +64,8 @@ const Project1GroupManagement = () => {
   useEffect(() => {
     if (currentUser && !currentUser.project1) {
       const year = getStudentYear(currentUser.batch);
-      if (year !== 3) {
-        toast.error(`Registration for Project 1 is open for 3rd year students only. Process not started for batch K${currentUser.batch}.`, {
+      if (year !== PROJECT1_YEAR) {
+        toast.error(`Registration for Project 1 is open for ${yearLabel(PROJECT1_YEAR)} students only. Process not started for batch K${currentUser.batch}.`, {
           id: "project1-group-batch-error-toast",
         });
       }
@@ -177,7 +178,7 @@ const Project1GroupManagement = () => {
   // Show "Process Not Started" doodle if wrong batch and no existing project1
   if (currentUser && !currentUser.project1) {
     const year = getStudentYear(currentUser.batch);
-    if (year !== 3) {
+    if (year !== PROJECT1_YEAR) {
       return (
         <>
           <Toaster position="top-right" />
@@ -192,7 +193,7 @@ const Project1GroupManagement = () => {
                 Process Not Started
               </h1>
               <p className="text-gray-600 mb-6 leading-relaxed">
-                Registration for Project 1 is currently open for <strong className="text-blue-600 font-semibold">3rd year</strong> students only.
+                Registration for Project 1 is currently open for <strong className="text-blue-600 font-semibold">{yearLabel(PROJECT1_YEAR)}</strong> students only.
               </p>
               <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-5 mb-2 inline-block w-full border border-gray-200/60 shadow-inner">
                 <p className="text-sm text-gray-700">

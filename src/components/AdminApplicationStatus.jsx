@@ -214,7 +214,11 @@ const AdminApplicationStatus = () => {
             <select
               aria-label="Project"
               value={course}
-              onChange={(e) => setCourse(e.target.value)}
+              onChange={(e) => {
+                setCourse(e.target.value);
+                // Let the server pick the batch doing this project.
+                setBatch("");
+              }}
               className={inputClass}
             >
               {PROJECTS.map((p) => (
@@ -232,6 +236,7 @@ const AdminApplicationStatus = () => {
               {(data?.batches || []).map((b) => (
                 <option key={b} value={String(b)}>
                   K{b}
+                  {b === data?.projectBatch ? ` (doing ${projectLabel})` : ""}
                 </option>
               ))}
             </select>
@@ -243,6 +248,21 @@ const AdminApplicationStatus = () => {
               className={`${inputClass} md:col-span-2`}
             />
           </div>
+
+          {data?.projectBatch && data.batch !== data.projectBatch && (
+            <p className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800">
+              K{data.batch} is not doing {projectLabel} this year;{" "}
+              {projectLabel} is done by{" "}
+              <button
+                type="button"
+                onClick={() => setBatch(String(data.projectBatch))}
+                className="font-semibold underline"
+              >
+                K{data.projectBatch}
+              </button>
+              . The counts below are for K{data.batch}.
+            </p>
+          )}
 
           {data && (
             <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">

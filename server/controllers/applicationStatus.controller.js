@@ -4,11 +4,33 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { courseLabel } from "../utils/courses.js";
 import { getGroupProject } from "../utils/groupProjects.js";
+import { getProjectBatch } from "../utils/projectEligibility.js";
 import { DEFAULT_PROGRAM, programQuery } from "../utils/programs.js";
 
 const STUDENT_FIELDS =
   "fullName rollNumber email mobileNumber branch section batch";
 const FACULTY_FIELDS = "fullName idNumber email";
+
+/**
+ * Batch to open on: the one doing the project this year, else the batch
+ * with the most groups for the project, else the newest.
+ */
+const defaultBatch = async (project, projectBatch, batches) => {
+  if (projectBatch !== null && batches.includes(projectBatch)) {
+    return projectBatch;
+  }
+  const leaders = await project.groupModel.distinct("leader");
+  const leaderBatches = await User.find({
+    _id: { $in: leaders },
+    batch: { $in: batches },
+  }).select("batch");
+  const counts = {};
+  leaderBatches.forEach((u) => {
+    counts[u.batch] = (counts[u.batch] || 0) + 1;
+  });
+  const busiest = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+  return busiest ? Number(busiest[0]) : batches[0];
+};
 
 const facultyList = (list = []) =>
   list
@@ -29,7 +51,9 @@ const facultyList = (list = []) =>
  *   the ones who declined;
  * - allotted: count of students who already have a mentor.
  *
- * Without a batch, the newest batch the admin can see is used. Batch
+ * Without a batch, the batch doing the project this year is used (K23 for
+ * Minor Project and K24 for Project 1 in 2026-27). For projects not tied
+ * to a year here, the batch with the most groups is used. Batch
  * coordinators only get their own batches.
  */
 const getApplicationStatus = asyncHandler(async (req, res) => {
@@ -52,9 +76,10 @@ const getApplicationStatus = asyncHandler(async (req, res) => {
       : allBatches.filter((b) => (admin.assignedBatches || []).includes(b))
   ).sort((a, b) => b - a);
 
+  const projectBatch = getProjectBatch(course);
   let batch = req.query.batch
     ? Number(String(req.query.batch).replace(/^[kK]/, ""))
-    : batches[0];
+    : await defaultBatch(project, projectBatch, batches);
   if (req.query.batch && Number.isNaN(batch)) {
     throw new ApiError(400, "Batch must look like 23 or K23");
   }
@@ -71,6 +96,7 @@ const getApplicationStatus = asyncHandler(async (req, res) => {
     courseLabel: courseLabel(course),
     batch: batch ?? null,
     batches,
+    projectBatch,
     summary: { students: 0, notApplied: 0, waiting: 0, allotted: 0 },
     notApplied: [],
     notAllotted: [],

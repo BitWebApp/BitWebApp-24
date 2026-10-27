@@ -3,6 +3,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { toast, Toaster } from "react-hot-toast";
 import { getStudentYear } from "../utils/studentYear";
+import { PROJECT1_YEAR, yearLabel } from "../utils/projectEligibility";
 
 const handleError = (error, defaultMessage) => {
   let message =
@@ -217,7 +218,7 @@ const Project1Apply = () => {
   if (!project1) {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     const studentYear = getStudentYear(user?.batch);
-    const isEligible = studentYear === 3;
+    const isEligible = studentYear === PROJECT1_YEAR;
 
     if (!isEligible) {
       return (
@@ -234,7 +235,7 @@ const Project1Apply = () => {
                 Process Not Started
               </h1>
               <p className="text-gray-600 mb-6 leading-relaxed">
-                Registration for Project 1 is currently open for <strong className="text-blue-600 font-semibold">3rd year</strong> students only.
+                Registration for Project 1 is currently open for <strong className="text-blue-600 font-semibold">{yearLabel(PROJECT1_YEAR)}</strong> students only.
               </p>
               <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-5 mb-2 inline-block w-full border border-gray-200/60 shadow-inner">
                 <p className="text-sm text-gray-700">

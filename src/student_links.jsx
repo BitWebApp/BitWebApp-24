@@ -13,6 +13,7 @@ import {
   FolderGit2,
 } from "lucide-react";
 import { getStudentYear } from "./utils/studentYear";
+import { PROJECT1_YEAR } from "./utils/projectEligibility";
 
 export const studentLinks = [
   {
@@ -74,13 +75,13 @@ export const studentLinks = [
     text: "Project 1 Group",
     icon: <Users className="w-5 h-5 shrink-0" />,
     to: "/db/project1-group",
-    minYear: 3,
+    minYear: PROJECT1_YEAR,
   },
   {
     text: "Apply to Project 1",
     icon: <Presentation className="w-5 h-5 shrink-0" />,
     to: "/db/apply-project1",
-    minYear: 3,
+    minYear: PROJECT1_YEAR,
   },
   {
     text: "Report Issues",
