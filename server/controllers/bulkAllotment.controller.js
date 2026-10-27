@@ -12,6 +12,7 @@ import {
   getCourse,
   parseCourse,
 } from "../utils/courses.js";
+import { allotGroupMentor } from "../utils/groupAllotment.js";
 import { getGroupProject } from "../utils/groupProjects.js";
 import { DEFAULT_PROGRAM, programLabel } from "../utils/programs.js";
 import {
@@ -152,9 +153,10 @@ const analyseSheet = async (file, admin, defaultSession) => {
     student: { $in: students.map((s) => s._id) },
   }).populate("professor", "fullName");
 
-  // B.Tech students already mentored through a group for a course: a
-  // regular allotment for that course would give them a second mentor.
-  const groupMentorOf = new Map();
+  // Group of each B.Tech student per group project, read from the groups.
+  // A regular row allots the student's whole group, as if the mentor had
+  // accepted it.
+  const groupOf = new Map();
   const groupCourses = [
     ...new Set(
       parsed
@@ -164,22 +166,16 @@ const analyseSheet = async (file, admin, defaultSession) => {
   ];
   for (const course of groupCourses) {
     const project = getGroupProject(course);
-    const groupIds = students.map((s) => s[project.groupField]).filter(Boolean);
     const groups = await project.groupModel
-      .find({ _id: { $in: groupIds }, [project.mentorField]: { $ne: null } })
-      .select(`groupId ${project.mentorField}`)
-      .populate(project.mentorField, "fullName");
-    groups.forEach((g) => {
-      students
-        .filter((s) => s[project.groupField]?.equals(g._id))
-        .forEach((s) =>
-          groupMentorOf.set(`${s._id}|${course}`, {
-            groupId: g.groupId,
-            mentor: g[project.mentorField]?.fullName || "a mentor",
-          })
-        );
-    });
+      .find({ members: { $in: students.map((s) => s._id) } })
+      .select(`groupId members ${project.mentorField}`)
+      .populate(project.mentorField, "fullName")
+      .populate("members", "batch");
+    groups.forEach((g) =>
+      g.members.forEach((m) => groupOf.set(`${m._id}|${course}`, g))
+    );
   }
+  const groupRows = new Map();
 
   const seen = new Map();
   const rows = parsed.map(({ rowNumber, lineNumber, input }) => {
@@ -246,13 +242,61 @@ const analyseSheet = async (file, admin, defaultSession) => {
           `already allotted to ${clash.professor?.fullName || "a mentor"} for ${courseInfo.label} in ${sessionLabel(session)}`
         );
       }
-      const viaGroup = groupMentorOf.get(`${student._id}|${course}`);
-      if (viaGroup && category === "regular") {
+    }
+
+    // How the row will be allotted: B.Tech group projects (regular) go to
+    // the student's group; back paper and MCA / M.Tech rows are individual.
+    let plan = { kind: "individual" };
+    const project = course ? getGroupProject(course) : null;
+    if (student && project && category === "regular") {
+      const group = groupOf.get(`${student._id}|${course}`);
+      if (group?.[project.mentorField]) {
         errors.push(
-          `already has ${viaGroup.mentor} for ${courseInfo.label} through group ${viaGroup.groupId}; change it with Edit Allotment, or set type to Back Paper for a repeat`
+          `already has ${group[project.mentorField].fullName || "a mentor"} for ${courseInfo.label} through group ${group.groupId}; change it with Edit Allotment, or set type to Back Paper for a repeat`
         );
+      } else if (group) {
+        const outside = [...new Set(group.members.map((m) => m.batch))].filter(
+          (b) => !canManageBatch(admin, b)
+        );
+        if (outside.length) {
+          errors.push(
+            `group ${group.groupId} has students of batch ${outside.map((b) => `K${b}`).join(", ")}, which you don't have access to`
+          );
+        }
+        const earlier = groupRows.get(String(group._id));
+        if (earlier && mentor && !earlier.mentorId.equals(mentor._id)) {
+          errors.push(
+            `same group ${group.groupId} as row ${earlier.rowNumber}, but a different mentor`
+          );
+        }
+        plan = earlier
+          ? {
+              kind: "same-group",
+              groupId: group.groupId,
+              row: earlier.rowNumber,
+            }
+          : {
+              kind: "group",
+              groupRef: group._id,
+              groupId: group.groupId,
+              size: group.members.length,
+            };
+        if (!earlier && mentor && errors.length === 0) {
+          groupRows.set(String(group._id), { rowNumber, mentorId: mentor._id });
+        }
+      } else {
+        plan = { kind: "new-group" };
       }
     }
+    const action = {
+      individual:
+        category === "back_paper"
+          ? "Back paper allotment"
+          : "Individual allotment",
+      group: `Allot group ${plan.groupId} (${plan.size} student${plan.size === 1 ? "" : "s"})`,
+      "new-group": "Create a one-person group and allot it",
+      "same-group": `With group ${plan.groupId} (row ${plan.row})`,
+    }[plan.kind];
 
     return {
       rowNumber,
@@ -271,10 +315,13 @@ const analyseSheet = async (file, admin, defaultSession) => {
         category,
         categoryLabel: category ? categoryLabel(category) : input.category,
         remarks: input.remarks || "",
+        // What will happen to the row; nothing when it can't be allotted.
+        action: errors.length ? "" : action,
       },
       errors,
       status: errors.length ? "invalid" : "ready",
       student,
+      plan,
     };
   });
 
@@ -287,7 +334,7 @@ const summarise = (rows) => ({
   invalid: rows.filter((r) => r.status === "invalid").length,
 });
 
-const publicRow = ({ student, ...row }) => row;
+const publicRow = ({ student, plan, ...row }) => row;
 
 /**
  * GET /api/v1/allotments/admin/bulk/template
@@ -405,6 +452,7 @@ const importBulkAllotment = asyncHandler(async (req, res) => {
   const rows = await analyseSheet(req.file, req.admin, session);
 
   const results = [];
+  const allottedRows = new Set();
   for (const row of rows) {
     const result = { ...publicRow(row), message: row.errors.join("; ") };
     if (row.status !== "ready") {
@@ -413,6 +461,29 @@ const importBulkAllotment = asyncHandler(async (req, res) => {
       continue;
     }
     try {
+      if (row.plan.kind === "same-group") {
+        if (!allottedRows.has(row.plan.row)) {
+          throw new ApiError(409, `row ${row.plan.row} was not allotted`);
+        }
+        result.status = "created";
+        result.message = `Allotted with group ${row.plan.groupId} (row ${row.plan.row})`;
+        results.push(result);
+        continue;
+      }
+      if (row.plan.kind === "group" || row.plan.kind === "new-group") {
+        const { message } = await allotGroupMentor({
+          course: row.data.course,
+          groupRef: row.plan.groupRef,
+          studentId: row.student._id,
+          professorId: row.data.mentorId,
+          session: row.data.session,
+        });
+        allottedRows.add(row.rowNumber);
+        result.status = "created";
+        result.message = message;
+        results.push(result);
+        continue;
+      }
       await createAllotment({
         admin: req.admin,
         student: row.student,

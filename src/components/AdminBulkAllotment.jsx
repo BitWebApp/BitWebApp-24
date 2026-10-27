@@ -211,10 +211,13 @@ const AdminBulkAllotment = () => {
             <code className="rounded bg-gray-100 px-1">session</code>,{" "}
             <code className="rounded bg-gray-100 px-1">type</code> (Regular or
             Back Paper; Regular when empty),{" "}
-            <code className="rounded bg-gray-100 px-1">remarks</code>. A B.Tech
-            student whose group already has a mentor for the course can only be
-            added as Back Paper. The template lists the faculty IDs. Up to 500
-            rows per file, .xlsx or .csv.
+            <code className="rounded bg-gray-100 px-1">remarks</code>. For a
+            B.Tech project (Regular), the student&apos;s whole group gets the
+            mentor, exactly as if the mentor had accepted it; a student who is
+            not in a group gets a one-person group (others can still join it). A
+            student whose group already has a mentor can only be added as Back
+            Paper. The template lists the faculty IDs. Up to 500 rows per file,
+            .xlsx or .csv.
           </p>
           <div className="mb-4 flex flex-wrap items-center gap-3">
             <label
@@ -347,6 +350,7 @@ const AdminBulkAllotment = () => {
                     <th className="px-4 py-3">Mentor</th>
                     <th className="px-4 py-3">Session</th>
                     <th className="px-4 py-3">Type</th>
+                    <th className="px-4 py-3">Action</th>
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3">Details</th>
                   </tr>
@@ -388,6 +392,9 @@ const AdminBulkAllotment = () => {
                       <td className="px-4 py-3">
                         {row.data.categoryLabel || "—"}
                       </td>
+                      <td className="px-4 py-3 text-gray-700">
+                        {row.data.action || "—"}
+                      </td>
                       <td className="px-4 py-3">
                         <span
                           className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${
@@ -398,7 +405,7 @@ const AdminBulkAllotment = () => {
                           {row.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">
+                      <td className="min-w-[16rem] px-4 py-3 text-gray-600">
                         {result ? row.message : row.errors.join("; ") || "—"}
                       </td>
                     </tr>

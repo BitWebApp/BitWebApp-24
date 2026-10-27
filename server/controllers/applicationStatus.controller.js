@@ -1,8 +1,14 @@
+import mongoose from "mongoose";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { courseLabel } from "../utils/courses.js";
+import {
+  allotGroupMentor,
+  groupBatches,
+  undoGroupRejection,
+} from "../utils/groupAllotment.js";
 import { getGroupProject } from "../utils/groupProjects.js";
 import { getProjectBatch } from "../utils/projectEligibility.js";
 import { DEFAULT_PROGRAM, programQuery } from "../utils/programs.js";
@@ -147,6 +153,8 @@ const getApplicationStatus = asyncHandler(async (req, res) => {
       notApplied.push({
         ...studentRow(s),
         groupId: "",
+        groupRef: null,
+        declined: [],
         reason: "Not in a group",
       });
       return;
@@ -165,6 +173,8 @@ const getApplicationStatus = asyncHandler(async (req, res) => {
     notApplied.push({
       ...studentRow(s),
       groupId: group.groupId,
+      groupRef: group._id,
+      declined: facultyList(group.deniedProf),
       reason: (group.deniedProf || []).length
         ? "Every faculty chosen has declined"
         : "In a group, no faculty chosen yet",
@@ -203,4 +213,87 @@ const getApplicationStatus = asyncHandler(async (req, res) => {
   );
 });
 
-export { getApplicationStatus };
+/** Coordinators may only act on students of their own batches. */
+const requireBatchAccess = (admin, batches) => {
+  if (admin.role === "master") return;
+  const outside = batches.filter(
+    (b) => !(admin.assignedBatches || []).includes(b)
+  );
+  if (outside.length) {
+    throw new ApiError(
+      403,
+      `You don't have access to batch ${outside.map((b) => `K${b}`).join(", ")}`
+    );
+  }
+};
+
+/**
+ * Batches touched by an action on a group (groupRef) or on a student who is
+ * not in a group yet (studentId).
+ */
+const targetBatches = async (project, { groupRef, studentId }) => {
+  if (groupRef) {
+    if (!mongoose.Types.ObjectId.isValid(groupRef)) {
+      throw new ApiError(400, "Invalid group");
+    }
+    const group = await project.groupModel.findById(groupRef).select("members");
+    if (!group) throw new ApiError(404, "Group not found");
+    return groupBatches(group);
+  }
+  if (!mongoose.Types.ObjectId.isValid(studentId)) {
+    throw new ApiError(400, "Choose a group or a student");
+  }
+  const student = await User.findById(studentId).select("batch program");
+  if (!student) throw new ApiError(404, "Student not found");
+  if ((student.program || DEFAULT_PROGRAM) !== DEFAULT_PROGRAM) {
+    throw new ApiError(400, "Group projects are for B.Tech students");
+  }
+  return [student.batch];
+};
+
+/**
+ * POST /api/v1/admin/application-status/allot
+ * Body: { course, groupRef | studentId, professorId }
+ *
+ * Admin allots a mentor to a group that has none, e.g. after a professor
+ * rejected it by mistake; a student not in a group gets a one-person group.
+ */
+const allotMentorFromStatus = asyncHandler(async (req, res) => {
+  const { course, groupRef, studentId, professorId } = req.body;
+  const project = getGroupProject(course);
+  if (!project) throw new ApiError(400, "Unknown project");
+  requireBatchAccess(
+    req.admin,
+    await targetBatches(project, { groupRef, studentId })
+  );
+  const { group, message } = await allotGroupMentor({
+    course,
+    groupRef,
+    studentId: groupRef ? undefined : studentId,
+    professorId,
+  });
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { groupRef: group._id }, message));
+});
+
+/**
+ * POST /api/v1/admin/application-status/undo-rejection
+ * Body: { course, groupRef, professorId }
+ */
+const undoRejectionFromStatus = asyncHandler(async (req, res) => {
+  const { course, groupRef, professorId } = req.body;
+  const project = getGroupProject(course);
+  if (!project) throw new ApiError(400, "Unknown project");
+  requireBatchAccess(req.admin, await targetBatches(project, { groupRef }));
+  const { group, message } = await undoGroupRejection({
+    course,
+    groupRef,
+    professorId,
+  });
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { groupRef: group._id }, message));
+});
+
+export { allotMentorFromStatus, getApplicationStatus, undoRejectionFromStatus };
