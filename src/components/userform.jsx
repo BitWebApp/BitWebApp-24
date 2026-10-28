@@ -26,7 +26,7 @@ export default function UserForm() {
   const [user, setUser] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [profilePicture, setProfilePicture] = useState(null);
-  const [availableSections, setAvailableSections] = useState([]);
+  const [availableSections, setAvailableSections] = useState(SECTIONS);
   const [graduationYear, setGraduationYear] = useState("");
   const [workExperiences, setWorkExperiences] = useState([]);
   const [alternateEmail, setAlternateEmail] = useState("");
@@ -35,19 +35,21 @@ export default function UserForm() {
   const [motherName, setMotherName] = useState("");
   const [residentialAddress, setResidentialAddress] = useState("");
   const [profilePreview, setProfilePreview] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    axios.get("/api/v1/users/get-user")
+    axios.get("/api/v1/users/get-user", { withCredentials: true })
       .then(response => {
-        const userData = response.data.data;
-        setFullName(userData.fullName);
-        setEmail(userData.email);
-        setBranch(userData.branch);
+        const userData = response.data?.data;
+        if (!userData) return;
+        setFullName(userData.fullName || "");
+        setEmail(userData.email || "");
+        setBranch(userData.branch || "");
         setSection(userData.section || SECTIONS[0]);
-        setMobileNumber(userData.mobileNumber);
-        setSemester(userData.semester);
-        setCgpa(userData.cgpa);
-        setabcId(userData.abcId);
+        setMobileNumber(userData.mobileNumber || "");
+        setSemester(userData.semester || "");
+        setCgpa(userData.cgpa || "");
+        setabcId(userData.abcId || "");
         setlinkedin(userData.linkedin || "");
         setCodingProfiles({
           github: userData.codingProfiles?.github || "",
@@ -56,11 +58,11 @@ export default function UserForm() {
           codechef: userData.codingProfiles?.codechef || "",
           atcoder: userData.codingProfiles?.atcoder || "",
         });
-        setUser (userData);
+        setUser(userData);
         setAvailableSectionsBasedOnBranch(userData.branch);
         if (userData.semester === "Graduated") {
-          setGraduationYear(userData.graduationYear || "");
-          setWorkExperiences(userData.workExperiences || []);
+          setGraduationYear(userData.graduationYear ? (new Date(userData.graduationYear).getFullYear() ? new Date(userData.graduationYear).getFullYear().toString() : userData.graduationYear) : "");
+          setWorkExperiences(userData.workExp || userData.workExperiences || []);
         }
         setAlternateEmail(userData.alternateEmail || "");
         setFatherName(userData.fatherName || "");
@@ -71,103 +73,160 @@ export default function UserForm() {
         setProfilePreview(userData.image || "");
       })
       .catch(error => {
+        console.error("Failed to load user data:", error);
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'Failed to load user data'
+          text: error.response?.data?.message || 'Failed to load user data'
         });
       });
   }, []);
 
-  const setAvailableSectionsBasedOnBranch = (branch) => {
-    if (branch === "artificial intelligence and machine learning") {
+  const setAvailableSectionsBasedOnBranch = (branchVal) => {
+    if (branchVal === "artificial intelligence and machine learning") {
       setAvailableSections([SECTIONS[0]]);
     } else {
       setAvailableSections(SECTIONS);
     }
   };
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
+    try {
+      setSaving(true);
+      const formData = new FormData();
+      formData.append("fullName", fullName || "");
+      formData.append("email", email || "");
+      formData.append("branch", branch || "");
+      formData.append("section", section || "");
+      formData.append("mobileNumber", mobileNumber || "");
+      formData.append("semester", semester || "");
+      formData.append("cgpa", cgpa || "");
+      formData.append("abcId", abcId || "");
+      formData.append("linkedin", linkedin || "");
+      formData.append("github", codingProfiles.github || "");
+      formData.append("leetcode", codingProfiles.leetcode || "");
+      formData.append("codeforces", codingProfiles.codeforces || "");
+      formData.append("atcoder", codingProfiles.atcoder || "");
+      formData.append("codechef", codingProfiles.codechef || "");
 
-    const formData = new FormData();
-    formData.append("fullName", fullName);
-    formData.append("email", email);
-    formData.append("branch", branch);
-    formData.append("section", section);
-    formData.append("mobileNumber", mobileNumber);
-    formData.append("semester", semester);
-    formData.append("cgpa", cgpa);
-    formData.append("abcId", abcId);
-    formData.append("linkedin", linkedin);
-    formData.append("github", codingProfiles.github);
-    formData.append("leetcode", codingProfiles.leetcode);
-    formData.append("codeforces", codingProfiles.codeforces);
-    formData.append("atcoder", codingProfiles.atcoder);
-    formData.append("codechef", codingProfiles.codechef);
-    if (resume) {
-      formData.append("resume", resume);
-    }
-    if (profilePicture) {
-      formData.append("image", profilePicture);
-    }
-    if (semester === "Graduated") {
-      formData.append("graduationYear", graduationYear);
-      formData.append("workExperiences", JSON.stringify(workExperiences));
-    }
-    formData.append("alternateEmail", alternateEmail);
-    formData.append("fatherName", fatherName);
-    formData.append("fatherMobileNumber", fatherMobileNumber);
-    formData.append("motherName", motherName);
-    formData.append("residentialAddress", residentialAddress);
+      if (resume instanceof File) {
+        formData.append("resume", resume);
+      }
+      if (profilePicture instanceof File) {
+        formData.append("image", profilePicture);
+      }
+      if (semester === "Graduated") {
+        formData.append("graduationYear", graduationYear || "");
+        formData.append("workExp", JSON.stringify(workExperiences || []));
+        formData.append("workExperiences", JSON.stringify(workExperiences || []));
+      }
+      formData.append("alternateEmail", alternateEmail || "");
+      formData.append("fatherName", fatherName || "");
+      formData.append("fatherMobileNumber", fatherMobileNumber || "");
+      formData.append("motherName", motherName || "");
+      formData.append("residentialAddress", residentialAddress || "");
 
-    axios.patch(`/api/v1/users/update`, formData, {
-      headers: {
-        ' Content-Type': 'multipart/form-data',
-      },
-    })
-      .then(response => {
-        Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          text: response.data.message
-        });
-      })
-      .catch(error => {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: error.response.data.message
-        });
+      // Do NOT set manual Content-Type header so Axios generates multipart/form-data with boundary!
+      const response = await axios.patch(`/api/v1/users/update`, formData, {
+        withCredentials: true,
       });
-    setIsEditMode(false);
+
+      const updatedUser = response.data?.data;
+      if (updatedUser) {
+        setUser(updatedUser);
+        setFullName(updatedUser.fullName || "");
+        setEmail(updatedUser.email || "");
+        setBranch(updatedUser.branch || "");
+        setSection(updatedUser.section || SECTIONS[0]);
+        setMobileNumber(updatedUser.mobileNumber || "");
+        setSemester(updatedUser.semester || "");
+        setCgpa(updatedUser.cgpa || "");
+        setabcId(updatedUser.abcId || "");
+        setlinkedin(updatedUser.linkedin || "");
+        setCodingProfiles({
+          github: updatedUser.codingProfiles?.github || "",
+          leetcode: updatedUser.codingProfiles?.leetcode || "",
+          codeforces: updatedUser.codingProfiles?.codeforces || "",
+          codechef: updatedUser.codingProfiles?.codechef || "",
+          atcoder: updatedUser.codingProfiles?.atcoder || "",
+        });
+        if (updatedUser.image) {
+          setProfilePreview(updatedUser.image);
+        }
+        if (updatedUser.resume) {
+          setResume(updatedUser.resume);
+        }
+        setProfilePicture(null);
+        setAlternateEmail(updatedUser.alternateEmail || "");
+        setFatherName(updatedUser.fatherName || "");
+        setFatherMobileNumber(updatedUser.fatherMobileNumber || "");
+        setMotherName(updatedUser.motherName || "");
+        setResidentialAddress(updatedUser.residentialAddress || "");
+        if (updatedUser.semester === "Graduated") {
+          setGraduationYear(updatedUser.graduationYear ? (new Date(updatedUser.graduationYear).getFullYear() ? new Date(updatedUser.graduationYear).getFullYear().toString() : updatedUser.graduationYear) : "");
+          setWorkExperiences(updatedUser.workExp || updatedUser.workExperiences || []);
+        }
+
+        // Keep localStorage user in sync if present
+        try {
+          const stored = localStorage.getItem("user");
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            localStorage.setItem("user", JSON.stringify({ ...parsed, ...updatedUser }));
+          }
+        } catch (e) {
+          // ignore localStorage errors
+        }
+      }
+
+      setIsEditMode(false);
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: response.data?.message || 'Profile updated successfully'
+      });
+    } catch (error) {
+      console.error("Update error:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.response?.data?.message || error.message || 'Failed to update profile'
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancelEdit = () => {
-    setFullName(user.fullName);
-    setEmail(user.email);
-    setBranch(user.branch);
-    setSection(user.section);
-    setMobileNumber(user.mobileNumber);
-    setSemester(user.semester);
-    setCgpa(user.cgpa);
-    setabcId(user.abcId);
-    setlinkedin(user.linkedin || "");
-    setCodingProfiles({
-      github: user.codingProfiles?.github || "",
-      leetcode: user.codingProfiles?.leetcode || "",
-      codeforces: user.codingProfiles?.codeforces || "",
-      codechef: user.codingProfiles?.codechef || "",
-      atcoder: user.codingProfiles?.atcoder || ""
-    });
-    setResume(null);
-    setProfilePicture(null);
-    setGraduationYear("");
-    setWorkExperiences([]);
-    setAlternateEmail(user.alternateEmail || "");
-    setFatherName(user.fatherName || "");
-    setFatherMobileNumber(user.fatherMobileNumber || "");
-    setMotherName(user.motherName || "");
-    setResidentialAddress(user.residentialAddress || "");
+    if (user) {
+      setFullName(user.fullName || "");
+      setEmail(user.email || "");
+      setBranch(user.branch || "");
+      setSection(user.section || SECTIONS[0]);
+      setMobileNumber(user.mobileNumber || "");
+      setSemester(user.semester || "");
+      setCgpa(user.cgpa || "");
+      setabcId(user.abcId || "");
+      setlinkedin(user.linkedin || "");
+      setCodingProfiles({
+        github: user.codingProfiles?.github || "",
+        leetcode: user.codingProfiles?.leetcode || "",
+        codeforces: user.codingProfiles?.codeforces || "",
+        codechef: user.codingProfiles?.codechef || "",
+        atcoder: user.codingProfiles?.atcoder || ""
+      });
+      setResume(user.resume || null);
+      setProfilePicture(null);
+      setProfilePreview(user.image || "");
+      setGraduationYear(user.graduationYear ? (new Date(user.graduationYear).getFullYear() ? new Date(user.graduationYear).getFullYear().toString() : user.graduationYear) : "");
+      setWorkExperiences(user.workExp || user.workExperiences || []);
+      setAlternateEmail(user.alternateEmail || "");
+      setFatherName(user.fatherName || "");
+      setFatherMobileNumber(user.fatherMobileNumber || "");
+      setMotherName(user.motherName || "");
+      setResidentialAddress(user.residentialAddress || "");
+      setAvailableSectionsBasedOnBranch(user.branch);
+    }
     setIsEditMode(false);
   };
 
@@ -204,13 +263,15 @@ export default function UserForm() {
                 <>
                   <button 
                     onClick={handleUpdate}
-                    className="flex items-center bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
+                    disabled={saving}
+                    className="flex items-center bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    <FaSave className="mr-2" /> Save
+                    <FaSave className="mr-2" /> {saving ? "Saving..." : "Save"}
                   </button>
                   <button 
                     onClick={handleCancelEdit}
-                    className="flex items-center bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
+                    disabled={saving}
+                    className="flex items-center bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
                   >
                     <FaTimes className="mr-2" /> Cancel
                   </button>
@@ -333,6 +394,11 @@ export default function UserForm() {
                       <option value="">Select Branch</option>
                       <option value="computer science and engineering">Computer Science</option>
                       <option value="artificial intelligence and machine learning">AI and ML</option>
+                      {branch && 
+                       branch !== "computer science and engineering" && 
+                       branch !== "artificial intelligence and machine learning" && (
+                        <option value={branch}>{branch}</option>
+                      )}
                     </select>
                   </div>
                   <div>
@@ -514,7 +580,7 @@ export default function UserForm() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Resume (.pdf,.doc,.docx)
-                      {resume && (
+                      {resume && typeof resume === 'string' && (
                         <a 
                           href={resume} 
                           target="_blank" 
@@ -523,6 +589,11 @@ export default function UserForm() {
                         >
                           <FaFilePdf className="mr-1" /> View Current Resume
                         </a>
+                      )}
+                      {resume && typeof resume !== 'string' && (
+                        <span className="ml-2 text-sm text-green-600 font-medium">
+                          Selected: {resume.name}
+                        </span>
                       )}
                     </label>
                     <div className="flex items-center">
@@ -569,7 +640,7 @@ export default function UserForm() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
                           <input
                             type="text"
-                            value={exp.companyName}
+                            value={exp.companyName || exp.company || ""}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md"
                             onChange={(e) => handleExperienceChange(index, 'companyName', e.target.value)}
                             disabled={!isEditMode}
@@ -579,7 +650,7 @@ export default function UserForm() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
                           <input
                             type="text"
-                            value={exp.role}
+                            value={exp.role || ""}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md"
                             onChange={(e) => handleExperienceChange(index, 'role', e.target.value)}
                             disabled={!isEditMode}
@@ -589,7 +660,7 @@ export default function UserForm() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">Start Year</label>
                           <input
                             type="text"
-                            value={exp.startYear}
+                            value={exp.startYear || (exp.startDate ? new Date(exp.startDate).getFullYear().toString() : "")}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md"
                             onChange={(e) => handleExperienceChange(index, 'startYear', e.target.value)}
                             disabled={!isEditMode}
@@ -599,7 +670,7 @@ export default function UserForm() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">End Year</label>
                           <input
                             type="text"
-                            value={exp.endYear}
+                            value={exp.endYear || (exp.endDate ? new Date(exp.endDate).getFullYear().toString() : "")}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md"
                             onChange={(e) => handleExperienceChange(index, 'endYear', e.target.value)}
                             disabled={!isEditMode}
@@ -609,7 +680,7 @@ export default function UserForm() {
                       <div className="mt-3">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                         <textarea
-                          value={exp.description}
+                          value={exp.description || ""}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md"
                           rows="3"
                           onChange={(e) => handleExperienceChange(index, 'description', e.target.value)}

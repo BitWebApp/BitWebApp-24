@@ -94,7 +94,7 @@ const userSchema = new Schema(
         type: String,
         default: "",
         match: [
-          /^https?:\/\/(www\.)?leetcode\.com\/.+$/,
+          /^($|https?:\/\/(www\.)?leetcode\.com\/.+$)/,
           "Enter a valid LeetCode profile URL!",
         ],
       },
@@ -102,7 +102,7 @@ const userSchema = new Schema(
         type: String,
         default: "",
         match: [
-          /^https?:\/\/(www\.)?codeforces\.com\/profile\/.+$/,
+          /^($|https?:\/\/(www\.)?codeforces\.com\/profile\/.+$)/,
           "Enter a valid Codeforces profile URL!",
         ],
       },
@@ -110,7 +110,7 @@ const userSchema = new Schema(
         type: String,
         default: "",
         match: [
-          /^https?:\/\/(www\.)?codechef\.com\/users\/.+$/,
+          /^($|https?:\/\/(www\.)?codechef\.com\/users\/.+$)/,
           "Enter a valid CodeChef profile URL!",
         ],
       },
@@ -118,7 +118,7 @@ const userSchema = new Schema(
         type: String,
         default: "",
         match: [
-          /^https?:\/\/(www\.)?atcoder\.jp\/users\/.+$/,
+          /^($|https?:\/\/(www\.)?atcoder\.jp\/users\/.+$)/,
           "Enter a valid AtCoder profile URL!",
         ],
       },
@@ -140,7 +140,7 @@ const userSchema = new Schema(
     },
     graduationYear: {
       type: Date,
-      default: "",
+      default: null,
     },
     workExp: [
       {

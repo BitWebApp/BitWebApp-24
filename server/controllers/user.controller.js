@@ -452,6 +452,7 @@ const updateUser1 = asyncHandler(async (req, res) => {
     abcId,
     graduationYear,
     workExp,
+    workExperiences,
     // New fields from req.body
     alternateEmail,
     fatherName,
@@ -492,39 +493,76 @@ const updateUser1 = asyncHandler(async (req, res) => {
     }
   }
 
-  // Define fields to update
-  const fieldsToUpdate = {
-    fullName,
-    rollNumber,
-    email,
-    branch,
-    section,
-    mobileNumber,
-    semester,
-    cgpa,
-    "codingProfiles.leetcode": leetcode,
-    "codingProfiles.codeforces": codeforces,
-    "codingProfiles.codechef": codechef,
-    "codingProfiles.atcoder": atcoder,
-    "codingProfiles.github": github,
-    linkedin,
-    abcId,
-    graduationYear,
-    workExp,
-    // New fields mapping
-    alternateEmail,
-    fatherName,
-    fatherMobileNumber,
-    motherName,
-    residentialAddress,
+  const normalizeUrl = (url) => {
+    if (url === undefined || url === null) return undefined;
+    const str = url.toString().trim();
+    if (!str) return "";
+    if (/^https?:\/\//i.test(str)) return str;
+    return `https://${str}`;
   };
 
-  // Add provided fields to updateFields
-  Object.keys(fieldsToUpdate).forEach((field) => {
-    if (fieldsToUpdate[field]) {
-      updateFields[field] = fieldsToUpdate[field];
+  if (fullName !== undefined) updateFields.fullName = fullName.trim();
+  if (branch !== undefined) updateFields.branch = branch.trim();
+  if (section !== undefined) updateFields.section = section.trim();
+  if (semester !== undefined) updateFields.semester = semester.trim();
+  if (cgpa !== undefined) updateFields.cgpa = cgpa.toString().trim();
+  if (abcId !== undefined) updateFields.abcId = abcId.trim();
+  if (alternateEmail !== undefined) updateFields.alternateEmail = alternateEmail.trim();
+  if (fatherName !== undefined) updateFields.fatherName = fatherName.trim();
+  if (fatherMobileNumber !== undefined) updateFields.fatherMobileNumber = fatherMobileNumber.trim();
+  if (motherName !== undefined) updateFields.motherName = motherName.trim();
+  if (residentialAddress !== undefined) updateFields.residentialAddress = residentialAddress.trim();
+
+  // Mobile number: update if provided (and validate 10 digits)
+  if (mobileNumber !== undefined) {
+    const trimmedMobile = mobileNumber.toString().trim();
+    if (trimmedMobile) {
+      if (!/^\d{10}$/.test(trimmedMobile)) {
+        throw new ApiError(400, "Mobile number must be exactly 10 digits");
+      }
+      updateFields.mobileNumber = trimmedMobile;
     }
-  });
+  }
+
+  // Coding profiles and social links
+  if (linkedin !== undefined) updateFields.linkedin = normalizeUrl(linkedin);
+  if (github !== undefined) updateFields["codingProfiles.github"] = normalizeUrl(github);
+  if (leetcode !== undefined) updateFields["codingProfiles.leetcode"] = normalizeUrl(leetcode);
+  if (codeforces !== undefined) updateFields["codingProfiles.codeforces"] = normalizeUrl(codeforces);
+  if (codechef !== undefined) updateFields["codingProfiles.codechef"] = normalizeUrl(codechef);
+  if (atcoder !== undefined) updateFields["codingProfiles.atcoder"] = normalizeUrl(atcoder);
+
+  // Graduation year: handle string year, date or null
+  if (graduationYear !== undefined) {
+    const trimmedGradYear = graduationYear.toString().trim();
+    if (trimmedGradYear) {
+      const parsedDate = new Date(trimmedGradYear);
+      if (!isNaN(parsedDate.getTime())) {
+        updateFields.graduationYear = parsedDate;
+      }
+    } else {
+      updateFields.graduationYear = null;
+    }
+  }
+
+  // Work experience (supports both workExp and workExperiences from FormData)
+  const rawWorkExp = workExp || workExperiences;
+  if (rawWorkExp !== undefined) {
+    try {
+      const parsedWorkExp = typeof rawWorkExp === "string" ? JSON.parse(rawWorkExp) : rawWorkExp;
+      if (Array.isArray(parsedWorkExp)) {
+        updateFields.workExp = parsedWorkExp.map((exp) => ({
+          company: exp.company || exp.companyName || "",
+          role: exp.role || "",
+          startDate: exp.startDate ? new Date(exp.startDate) : (exp.startYear ? new Date(exp.startYear) : undefined),
+          endDate: exp.endDate ? new Date(exp.endDate) : (exp.endYear ? new Date(exp.endYear) : undefined),
+          description: exp.description || "",
+        }));
+      }
+    } catch (e) {
+      console.error("Failed to parse workExp:", e);
+    }
+  }
 
   // Ensure at least one field is provided for update
   if (Object.keys(updateFields).length === 0) {
@@ -547,7 +585,16 @@ const updateUser1 = asyncHandler(async (req, res) => {
       .status(200)
       .json(new ApiResponse(200, user, "User details updated successfully!"));
   } catch (error) {
-    throw new ApiError(500, `Internal server error: ${error.message}`);
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors || {})
+        .map((e) => e.message)
+        .join(", ");
+      throw new ApiError(400, messages || error.message);
+    }
+    if (error.code === 11000) {
+      throw new ApiError(400, "A user with this unique detail already exists");
+    }
+    throw new ApiError(error.statusCode || 500, error.message || "Internal server error");
   }
 });
 
