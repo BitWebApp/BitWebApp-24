@@ -76,8 +76,22 @@ const downloadExcel = async (fileName, columns, rows) => {
  * the faculty they chose in preference order. Coordinators only see their
  * own batches.
  */
+const escapeHtml = (value) =>
+  String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        char
+      ]
+  );
+
 const AdminApplicationStatus = () => {
   const [course, setCourse] = useState(PROJECTS[0].value);
+  const [professors, setProfessors] = useState([]);
+  // Row whose "Allot mentor" picker is open, and the mentor chosen in it.
+  const [allotFor, setAllotFor] = useState(null);
+  const [allotMentor, setAllotMentor] = useState("");
+  const [acting, setActing] = useState(false);
   const [batch, setBatch] = useState("");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -109,6 +123,158 @@ const AdminApplicationStatus = () => {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    axios
+      .get("/api/v1/allotments/admin/options")
+      .then((response) => setProfessors(response.data.data.professors))
+      .catch(() => setProfessors([]));
+  }, []);
+
+  /**
+   * Admin allots a mentor to a group (groupRef) or, for a student not in a
+   * group, to a new one-person group (studentId).
+   */
+  const handleAllot = async ({ groupRef, studentId, what }) => {
+    const mentor = professors.find((p) => p._id === allotMentor);
+    if (!mentor) return;
+    const confirmed = await Swal.fire({
+      icon: "question",
+      title: "Allot this mentor?",
+      html: `${what} will be allotted to <b>${escapeHtml(mentor.fullName)}</b> for ${escapeHtml(
+        projectLabel
+      )}, as if the mentor had accepted. Any pending application of the group is withdrawn.`,
+      showCancelButton: true,
+      confirmButtonText: "Yes, allot",
+      confirmButtonColor: "#2563eb",
+    });
+    if (!confirmed.isConfirmed) return;
+    try {
+      setActing(true);
+      const response = await axios.post(
+        "/api/v1/admin/application-status/allot",
+        { course, groupRef, studentId, professorId: allotMentor }
+      );
+      Swal.fire({
+        icon: "success",
+        title: "Mentor allotted",
+        text: response.data.message,
+      });
+      setAllotFor(null);
+      load();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Could not allot the mentor",
+        text: readApiError(err, "Failed to allot the mentor."),
+      });
+    } finally {
+      setActing(false);
+    }
+  };
+
+  /** Undo a professor's (accidental) rejection of a group. */
+  const handleUndo = async ({ groupRef, groupId, professor }) => {
+    const confirmed = await Swal.fire({
+      icon: "question",
+      title: "Undo this rejection?",
+      html: `<b>${escapeHtml(professor.fullName)}</b> will be taken off group ${escapeHtml(
+        groupId
+      )}'s declined list and the application goes back to them, so they can accept it.`,
+      showCancelButton: true,
+      confirmButtonText: "Yes, undo",
+      confirmButtonColor: "#2563eb",
+    });
+    if (!confirmed.isConfirmed) return;
+    try {
+      setActing(true);
+      const response = await axios.post(
+        "/api/v1/admin/application-status/undo-rejection",
+        { course, groupRef, professorId: professor._id }
+      );
+      Swal.fire({
+        icon: "success",
+        title: "Rejection undone",
+        text: response.data.message,
+      });
+      load();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Could not undo the rejection",
+        text: readApiError(err, "Failed to undo the rejection."),
+      });
+    } finally {
+      setActing(false);
+    }
+  };
+
+  const allotCell = (key, target) =>
+    allotFor === key ? (
+      <div className="flex min-w-[17rem] items-center gap-2">
+        <select
+          aria-label="Mentor to allot"
+          value={allotMentor}
+          onChange={(e) => setAllotMentor(e.target.value)}
+          className="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm"
+        >
+          <option value="">Choose mentor</option>
+          {professors.map((p) => (
+            <option key={p._id} value={p._id}>
+              {p.fullName} ({p.idNumber})
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          disabled={!allotMentor || acting}
+          onClick={() => handleAllot(target)}
+          className="rounded-lg bg-blue-600 px-3 py-2 text-sm text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+        >
+          Allot
+        </button>
+        <button
+          type="button"
+          onClick={() => setAllotFor(null)}
+          className="rounded-lg bg-gray-200 px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-300"
+        >
+          Cancel
+        </button>
+      </div>
+    ) : (
+      <button
+        type="button"
+        onClick={() => {
+          setAllotFor(key);
+          setAllotMentor(target.defaultMentor || "");
+        }}
+        className="whitespace-nowrap rounded-lg border border-blue-600 px-3 py-1.5 text-sm text-blue-700 transition hover:bg-blue-50"
+      >
+        Allot mentor
+      </button>
+    );
+
+  const declinedList = (declined, groupRef, groupId) =>
+    declined.length ? (
+      <ul className="space-y-1">
+        {declined.map((p) => (
+          <li key={p._id} className="flex items-center gap-2">
+            <span>{p.fullName}</span>
+            <button
+              type="button"
+              disabled={acting}
+              onClick={() => handleUndo({ groupRef, groupId, professor: p })}
+              className="rounded border border-amber-500 px-1.5 py-0.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-50"
+              title="Undo this rejection"
+            >
+              Undo
+            </button>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      "—"
+    );
 
   const term = search.trim().toLowerCase();
   const matches = (s) =>
@@ -214,7 +380,11 @@ const AdminApplicationStatus = () => {
             <select
               aria-label="Project"
               value={course}
-              onChange={(e) => setCourse(e.target.value)}
+              onChange={(e) => {
+                setCourse(e.target.value);
+                // Let the server pick the batch doing this project.
+                setBatch("");
+              }}
               className={inputClass}
             >
               {PROJECTS.map((p) => (
@@ -232,6 +402,8 @@ const AdminApplicationStatus = () => {
               {(data?.batches || []).map((b) => (
                 <option key={b} value={String(b)}>
                   K{b}
+                  {b === data?.projectBatch ? ` (doing ${projectLabel})` : ""}
+                  {data?.archivedBatches?.includes(b) ? " (archived)" : ""}
                 </option>
               ))}
             </select>
@@ -243,6 +415,21 @@ const AdminApplicationStatus = () => {
               className={`${inputClass} md:col-span-2`}
             />
           </div>
+
+          {data?.projectBatch && data.batch !== data.projectBatch && (
+            <p className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800">
+              K{data.batch} is not doing {projectLabel} this year;{" "}
+              {projectLabel} is done by{" "}
+              <button
+                type="button"
+                onClick={() => setBatch(String(data.projectBatch))}
+                className="font-semibold underline"
+              >
+                K{data.projectBatch}
+              </button>
+              . The counts below are for K{data.batch}.
+            </p>
+          )}
 
           {data && (
             <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -333,13 +520,15 @@ const AdminApplicationStatus = () => {
                     <th className="px-4 py-3">Mobile</th>
                     <th className="px-4 py-3">Group</th>
                     <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Declined by</th>
+                    <th className="px-4 py-3"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {notApplied.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={9}
                         className="px-4 py-8 text-center text-gray-500"
                       >
                         Every student of this batch has applied.
@@ -361,6 +550,27 @@ const AdminApplicationStatus = () => {
                             {s.reason}
                           </span>
                         </td>
+                        <td className="px-4 py-3 text-gray-600">
+                          {declinedList(
+                            s.declined || [],
+                            s.groupRef,
+                            s.groupId
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          {allotCell(
+                            `student-${s._id}`,
+                            s.groupRef
+                              ? {
+                                  groupRef: s.groupRef,
+                                  what: `Group <b>${escapeHtml(s.groupId)}</b>`,
+                                }
+                              : {
+                                  studentId: s._id,
+                                  what: `<b>${escapeHtml(s.rollNumber)}</b> is not in a group, so a one-person group will be created and`,
+                                }
+                          )}
+                        </td>
                       </tr>
                     ))
                   )}
@@ -377,13 +587,14 @@ const AdminApplicationStatus = () => {
                     </th>
                     <th className="px-4 py-3">Declined by</th>
                     <th className="px-4 py-3">With current faculty since</th>
+                    <th className="px-4 py-3"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {notAllotted.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={6}
                         className="px-4 py-8 text-center text-gray-500"
                       >
                         No group of this batch is waiting for a faculty.
@@ -441,12 +652,17 @@ const AdminApplicationStatus = () => {
                           </ol>
                         </td>
                         <td className="px-4 py-3 text-gray-600">
-                          {g.declined.length
-                            ? g.declined.map((p) => p.fullName).join(", ")
-                            : "—"}
+                          {declinedList(g.declined, g._id, g.groupId)}
                         </td>
                         <td className="px-4 py-3">
                           {formatDate(g.waitingSince)}
+                        </td>
+                        <td className="px-4 py-3">
+                          {allotCell(`group-${g._id}`, {
+                            groupRef: g._id,
+                            what: `Group <b>${escapeHtml(g.groupId)}</b>`,
+                            defaultMentor: g.preferences[0]?._id,
+                          })}
                         </td>
                       </tr>
                     ))

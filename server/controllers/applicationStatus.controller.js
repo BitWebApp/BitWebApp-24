@@ -1,14 +1,45 @@
+import mongoose from "mongoose";
 import { User } from "../models/user.model.js";
+import { getArchivedBatchKeys } from "./batch.controller.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { courseLabel } from "../utils/courses.js";
+import {
+  allotGroupMentor,
+  groupBatches,
+  undoGroupRejection,
+} from "../utils/groupAllotment.js";
 import { getGroupProject } from "../utils/groupProjects.js";
+import { getProjectBatch } from "../utils/projectEligibility.js";
 import { DEFAULT_PROGRAM, programQuery } from "../utils/programs.js";
 
 const STUDENT_FIELDS =
   "fullName rollNumber email mobileNumber branch section batch";
 const FACULTY_FIELDS = "fullName idNumber email";
+
+/**
+ * Batch to open on: the one doing the project this year, else the batch
+ * with the most groups for the project, else the newest.
+ */
+const defaultBatch = async (project, projectBatch, allBatches, archived) => {
+  // Archived (passed out) batches are only shown when chosen explicitly.
+  const batches = allBatches.filter((b) => !archived.includes(b));
+  if (projectBatch !== null && batches.includes(projectBatch)) {
+    return projectBatch;
+  }
+  const leaders = await project.groupModel.distinct("leader");
+  const leaderBatches = await User.find({
+    _id: { $in: leaders },
+    batch: { $in: batches },
+  }).select("batch");
+  const counts = {};
+  leaderBatches.forEach((u) => {
+    counts[u.batch] = (counts[u.batch] || 0) + 1;
+  });
+  const busiest = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+  return busiest ? Number(busiest[0]) : (batches[0] ?? allBatches[0]);
+};
 
 const facultyList = (list = []) =>
   list
@@ -29,7 +60,9 @@ const facultyList = (list = []) =>
  *   the ones who declined;
  * - allotted: count of students who already have a mentor.
  *
- * Without a batch, the newest batch the admin can see is used. Batch
+ * Without a batch, the batch doing the project this year is used (K23 for
+ * Minor Project and K24 for Project 1 in 2026-27). For projects not tied
+ * to a year here, the batch with the most groups is used. Batch
  * coordinators only get their own batches.
  */
 const getApplicationStatus = asyncHandler(async (req, res) => {
@@ -52,9 +85,14 @@ const getApplicationStatus = asyncHandler(async (req, res) => {
       : allBatches.filter((b) => (admin.assignedBatches || []).includes(b))
   ).sort((a, b) => b - a);
 
+  const archivedKeys = await getArchivedBatchKeys();
+  const archivedBatches = batches.filter((b) =>
+    archivedKeys.has(`${DEFAULT_PROGRAM}|${b}`)
+  );
+  const projectBatch = getProjectBatch(course);
   let batch = req.query.batch
     ? Number(String(req.query.batch).replace(/^[kK]/, ""))
-    : batches[0];
+    : await defaultBatch(project, projectBatch, batches, archivedBatches);
   if (req.query.batch && Number.isNaN(batch)) {
     throw new ApiError(400, "Batch must look like 23 or K23");
   }
@@ -71,6 +109,8 @@ const getApplicationStatus = asyncHandler(async (req, res) => {
     courseLabel: courseLabel(course),
     batch: batch ?? null,
     batches,
+    archivedBatches,
+    projectBatch,
     summary: { students: 0, notApplied: 0, waiting: 0, allotted: 0 },
     notApplied: [],
     notAllotted: [],
@@ -121,6 +161,8 @@ const getApplicationStatus = asyncHandler(async (req, res) => {
       notApplied.push({
         ...studentRow(s),
         groupId: "",
+        groupRef: null,
+        declined: [],
         reason: "Not in a group",
       });
       return;
@@ -139,6 +181,8 @@ const getApplicationStatus = asyncHandler(async (req, res) => {
     notApplied.push({
       ...studentRow(s),
       groupId: group.groupId,
+      groupRef: group._id,
+      declined: facultyList(group.deniedProf),
       reason: (group.deniedProf || []).length
         ? "Every faculty chosen has declined"
         : "In a group, no faculty chosen yet",
@@ -177,4 +221,87 @@ const getApplicationStatus = asyncHandler(async (req, res) => {
   );
 });
 
-export { getApplicationStatus };
+/** Coordinators may only act on students of their own batches. */
+const requireBatchAccess = (admin, batches) => {
+  if (admin.role === "master") return;
+  const outside = batches.filter(
+    (b) => !(admin.assignedBatches || []).includes(b)
+  );
+  if (outside.length) {
+    throw new ApiError(
+      403,
+      `You don't have access to batch ${outside.map((b) => `K${b}`).join(", ")}`
+    );
+  }
+};
+
+/**
+ * Batches touched by an action on a group (groupRef) or on a student who is
+ * not in a group yet (studentId).
+ */
+const targetBatches = async (project, { groupRef, studentId }) => {
+  if (groupRef) {
+    if (!mongoose.Types.ObjectId.isValid(groupRef)) {
+      throw new ApiError(400, "Invalid group");
+    }
+    const group = await project.groupModel.findById(groupRef).select("members");
+    if (!group) throw new ApiError(404, "Group not found");
+    return groupBatches(group);
+  }
+  if (!mongoose.Types.ObjectId.isValid(studentId)) {
+    throw new ApiError(400, "Choose a group or a student");
+  }
+  const student = await User.findById(studentId).select("batch program");
+  if (!student) throw new ApiError(404, "Student not found");
+  if ((student.program || DEFAULT_PROGRAM) !== DEFAULT_PROGRAM) {
+    throw new ApiError(400, "Group projects are for B.Tech students");
+  }
+  return [student.batch];
+};
+
+/**
+ * POST /api/v1/admin/application-status/allot
+ * Body: { course, groupRef | studentId, professorId }
+ *
+ * Admin allots a mentor to a group that has none, e.g. after a professor
+ * rejected it by mistake; a student not in a group gets a one-person group.
+ */
+const allotMentorFromStatus = asyncHandler(async (req, res) => {
+  const { course, groupRef, studentId, professorId } = req.body;
+  const project = getGroupProject(course);
+  if (!project) throw new ApiError(400, "Unknown project");
+  requireBatchAccess(
+    req.admin,
+    await targetBatches(project, { groupRef, studentId })
+  );
+  const { group, message } = await allotGroupMentor({
+    course,
+    groupRef,
+    studentId: groupRef ? undefined : studentId,
+    professorId,
+  });
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { groupRef: group._id }, message));
+});
+
+/**
+ * POST /api/v1/admin/application-status/undo-rejection
+ * Body: { course, groupRef, professorId }
+ */
+const undoRejectionFromStatus = asyncHandler(async (req, res) => {
+  const { course, groupRef, professorId } = req.body;
+  const project = getGroupProject(course);
+  if (!project) throw new ApiError(400, "Unknown project");
+  requireBatchAccess(req.admin, await targetBatches(project, { groupRef }));
+  const { group, message } = await undoGroupRejection({
+    course,
+    groupRef,
+    professorId,
+  });
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { groupRef: group._id }, message));
+});
+
+export { allotMentorFromStatus, getApplicationStatus, undoRejectionFromStatus };

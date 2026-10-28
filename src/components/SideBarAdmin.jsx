@@ -245,6 +245,10 @@ export default function Sidebar() {
         icon: <FileText className="w-5 h-5" />,
         to: "/admin-db/upload-course-docs",
       }, {
+        text: "Batches",
+        icon: <HiArchive />,
+        to: "/admin-db/batches",
+      }, {
         text: "Manage Admins",
         icon: <HiUser />,
         to: "/admin-db/manage-admins",

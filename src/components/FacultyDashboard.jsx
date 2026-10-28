@@ -6,6 +6,7 @@ import { toast, Toaster } from "react-hot-toast";
 import Dashboard from "./Dashboard";
 import FrozenMarksBadge from "./FrozenMarksBadge";
 import { categoryLabel } from "../utils/courses";
+import { useBatches } from "../utils/batches";
 import { exportMyStudents } from "../utils/exportMyStudents";
 import { PROGRAMS, programLabel } from "../utils/programs";
 import {
@@ -18,6 +19,8 @@ const selectClass =
   "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
 
 const ALL = "all";
+// "All batches" leaves out archived (passed-out) batches; this one doesn't.
+const EVERYTHING = "everything";
 
 /** Batches (newest first) that have students for a program and session. */
 const batchesFor = (combinations, program, session) =>
@@ -55,6 +58,7 @@ const defaultFilters = (options) => {
  */
 const FacultyDashboard = () => {
   const [data, setData] = useState(null);
+  const { isArchived } = useBatches();
   const [filters, setFilters] = useState(null);
 
   useEffect(() => {
@@ -95,10 +99,16 @@ const FacultyDashboard = () => {
     return data.students.filter(
       (s) =>
         (filters.program === ALL || s.program === filters.program) &&
-        (filters.batch === ALL || String(s.batch) === filters.batch) &&
+        (filters.batch === EVERYTHING ||
+          (filters.batch === ALL
+            ? !isArchived(s.program, s.batch)
+            : String(s.batch) === filters.batch)) &&
         (filters.session === ALL || s.session === filters.session)
     );
-  }, [data, filters]);
+  }, [data, filters, isArchived]);
+
+  const batchArchived = (batch) =>
+    isArchived(filters?.program === ALL ? "BTECH" : filters?.program, batch);
 
   const courseCounts = useMemo(() => {
     const counts = {};
@@ -119,7 +129,11 @@ const FacultyDashboard = () => {
           next.program,
           next.session
         );
-        if (next.batch !== ALL && !batches.includes(Number(next.batch))) {
+        if (
+          next.batch !== ALL &&
+          next.batch !== EVERYTHING &&
+          !batches.includes(Number(next.batch))
+        ) {
           next.batch = batches.length ? String(batches[0]) : ALL;
         }
       }
@@ -184,9 +198,13 @@ const FacultyDashboard = () => {
                     {batchChoices.map((b) => (
                       <option key={b} value={String(b)}>
                         K{b}
+                        {batchArchived(b) ? " (archived)" : ""}
                       </option>
                     ))}
-                    <option value={ALL}>All batches</option>
+                    <option value={ALL}>All current batches</option>
+                    <option value={EVERYTHING}>
+                      All batches (incl. archived)
+                    </option>
                   </select>
                 </div>
                 <div>
@@ -235,8 +253,10 @@ const FacultyDashboard = () => {
                           ? "All_programs"
                           : programLabel(filters.program),
                         filters.batch === ALL
-                          ? "All_batches"
-                          : `K${filters.batch}`,
+                          ? "All_current_batches"
+                          : filters.batch === EVERYTHING
+                            ? "All_batches"
+                            : `K${filters.batch}`,
                         filters.session === ALL
                           ? "All_sessions"
                           : sessionLabel(filters.session),
@@ -259,7 +279,9 @@ const FacultyDashboard = () => {
                     {filters.program === ALL
                       ? "any program"
                       : programLabel(filters.program)}
-                    {filters.batch === ALL ? "" : `, K${filters.batch}`}
+                    {filters.batch === ALL || filters.batch === EVERYTHING
+                      ? ""
+                      : `, K${filters.batch}`}
                     {filters.session === ALL
                       ? ""
                       : ` in ${sessionLabel(filters.session)}`}

@@ -1,9 +1,9 @@
 // Academic programs a student can be enrolled in. `value` is what is stored
 // on the User model; roll numbers start with the same code (BTECH/10001/22).
 export const PROGRAMS = [
-  { value: "BTECH", label: "B.Tech" },
-  { value: "MCA", label: "MCA" },
-  { value: "MTECH", label: "M.Tech" },
+  { value: "BTECH", label: "B.Tech", years: 4 },
+  { value: "MCA", label: "MCA", years: 2 },
+  { value: "MTECH", label: "M.Tech", years: 2 },
 ];
 
 export const PROGRAM_VALUES = PROGRAMS.map((program) => program.value);
@@ -34,6 +34,11 @@ export const programFromRollNumber = (rollNumber) => {
   const prefix = String(rollNumber ?? "").split("/")[0];
   return parseProgram(prefix);
 };
+
+/** Length of a program in years (B.Tech 4, MCA and M.Tech 2). */
+export const programYears = (value) =>
+  PROGRAMS.find((program) => program.value === value)?.years ||
+  PROGRAMS.find((program) => program.value === DEFAULT_PROGRAM).years;
 
 export const programLabel = (value) =>
   PROGRAMS.find((program) => program.value === value)?.label ||

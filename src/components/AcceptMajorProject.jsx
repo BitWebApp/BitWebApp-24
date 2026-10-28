@@ -4,6 +4,12 @@ import { toast, Toaster } from "react-hot-toast";
 import { FaUsers, FaCheckCircle, FaTimesCircle, FaPlus, FaEdit, FaTrash, FaSearch, FaFileExcel } from "react-icons/fa";
 import Swal from "sweetalert2";
 import ChatBox from "./ChatBox";
+import BatchFilter from "./BatchFilter";
+import {
+  CURRENT_BATCHES,
+  matchesBatchFilter,
+  useBatches,
+} from "../utils/batches";
 import FrozenMarksBadge from "./FrozenMarksBadge";
 import { confirmFinalMarks, isMarksFrozen, MARKS_TYPES } from "../utils/marks";
 import { exportMentoredGroups } from "../utils/exportMentoredGroups";
@@ -24,6 +30,9 @@ const AcceptMajorProject = () => {
   const [discussionLogs, setDiscussionLogs] = useState([]);
   const [viewMode, setViewMode] = useState("applied");
   const [searchTerm, setSearchTerm] = useState("");
+  // Passed-out (archived) batches are hidden unless chosen.
+  const [batchFilter, setBatchFilter] = useState(CURRENT_BATCHES);
+  const { isArchived } = useBatches();
   const [marks, setMarks] = useState({});
   const [showMarksInputFor, setShowMarksInputFor] = useState(null);
 
@@ -67,7 +76,7 @@ const AcceptMajorProject = () => {
       member.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.rollNumber.toLowerCase().includes(searchTerm.toLowerCase())
     )
-  );
+  ).filter((group) => matchesBatchFilter(group, batchFilter, isArchived));
 
   const handleGiveMarks = async (member) => {
     const studentId = member._id;
@@ -331,6 +340,12 @@ const AcceptMajorProject = () => {
               </div>
             </div>
             <div className="flex space-x-2">
+              <BatchFilter
+                groups={[...appliedGroups, ...acceptedGroups]}
+                value={batchFilter}
+                onChange={setBatchFilter}
+                isArchived={isArchived}
+              />
               <select
                 value={viewMode}
                 onChange={(e) => setViewMode(e.target.value)}
