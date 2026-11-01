@@ -957,20 +957,39 @@ const searchStudentForRemoval = asyncHandler(async (req, res) => {
     throw new ApiError(404, `No student found with roll number "${cleanRoll}"`);
   }
 
-  // Find active group associations
+  // Find active group associations (prioritizing the student's active group reference)
   const [summerGroup, minorGroup, majorGroup, project1Group] = await Promise.all([
-    Group.findOne({ members: student._id })
-      .populate("summerAllocatedProf", "fullName email idNumber")
-      .select("groupId typeOfSummer summerAllocatedProf members leader projectTitle"),
-    Minor.findOne({ members: student._id })
-      .populate("minorAllocatedProf", "fullName email idNumber")
-      .select("groupId minorAllocatedProf members leader projectTitle"),
-    Major.findOne({ members: student._id })
-      .populate("majorAllocatedProf", "fullName email idNumber")
-      .select("groupId type majorAllocatedProf members leader projectTitle"),
-    Project1.findOne({ members: student._id })
-      .populate("allocatedProf", "fullName email idNumber")
-      .select("groupId allocatedProf members leader projectTitle"),
+    student.group
+      ? Group.findById(student.group)
+          .populate("summerAllocatedProf", "fullName email idNumber")
+          .select("groupId typeOfSummer summerAllocatedProf members leader projectTitle")
+      : Group.findOne({ members: student._id })
+          .populate("summerAllocatedProf", "fullName email idNumber")
+          .select("groupId typeOfSummer summerAllocatedProf members leader projectTitle"),
+
+    student.MinorGroup
+      ? Minor.findById(student.MinorGroup)
+          .populate("minorAllocatedProf", "fullName email idNumber")
+          .select("groupId minorAllocatedProf members leader projectTitle")
+      : Minor.findOne({ members: student._id })
+          .populate("minorAllocatedProf", "fullName email idNumber")
+          .select("groupId minorAllocatedProf members leader projectTitle"),
+
+    student.MajorGroup
+      ? Major.findById(student.MajorGroup)
+          .populate("majorAllocatedProf", "fullName email idNumber")
+          .select("groupId type majorAllocatedProf members leader projectTitle")
+      : Major.findOne({ members: student._id })
+          .populate("majorAllocatedProf", "fullName email idNumber")
+          .select("groupId type majorAllocatedProf members leader projectTitle"),
+
+    student.project1
+      ? Project1.findById(student.project1)
+          .populate("allocatedProf", "fullName email idNumber")
+          .select("groupId allocatedProf members leader projectTitle")
+      : Project1.findOne({ members: student._id })
+          .populate("allocatedProf", "fullName email idNumber")
+          .select("groupId allocatedProf members leader projectTitle"),
   ]);
 
   // Count records in related collections to show impact
