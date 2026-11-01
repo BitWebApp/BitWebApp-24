@@ -250,7 +250,7 @@ export default function Sidebar() {
         to: "/admin-db/batches",
       }, {
         text: "Remove Student Record",
-        icon: <HiTrash className="text-red-400" />,
+        icon: <HiTrash />,
         to: "/admin-db/remove-student",
       }, {
         text: "Manage Admins",
