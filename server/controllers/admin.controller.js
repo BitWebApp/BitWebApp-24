@@ -5,6 +5,26 @@ import { Major } from "../models/major.model.js";
 import { Minor } from "../models/minor.model.js";
 import { User } from "../models/user.model.js";
 import { Professor } from "../models/professor.model.js";
+import { Group } from "../models/group.model.js";
+import { Project1 } from "../models/project1.model.js";
+import { Internship } from "../models/internship.model.js";
+import { Academics } from "../models/academic.model.js";
+import { Award } from "../models/award.model.js";
+import { Exam } from "../models/exam.model.js";
+import { Placement } from "../models/placement.model.js";
+import { Project } from "../models/project.model.js";
+import { HigherEducation } from "../models/higher-education.model.js";
+import { Allotment } from "../models/allotment.model.js";
+import { RequestProj } from "../models/requestProj.model.js";
+import { ClassroomBooking } from "../models/classroom.model.js";
+import { Alumni } from "../models/alumni.model.js";
+import { InterviewExp } from "../models/interviewExp.model.js";
+import { Review } from "../models/review.model.js";
+import { BugTracker } from "../models/bugtracker.model.js";
+import { PeCourse } from "../models/peCourse.model.js";
+import { GroupRemovalRequest } from "../models/groupRemovalRequest.model.js";
+import { Chat } from "../models/chat.model.js";
+import { Otp } from "../models/otp.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -243,8 +263,6 @@ const getCurrendAdmin = asyncHandler(async (req, res) => {
   if (!admin) throw new ApiError(404, "admin not found");
   res.status(200).json(new ApiResponse(200, admin, "admin fetched"));
 });
-
-import { Otp } from "../models/otp.model.js";
 
 export const rejectUser = asyncHandler(async (req, res) => {
   const { userId, reason } = req.body;
@@ -912,6 +930,442 @@ const reassignMajorMentor = asyncHandler(async (req, res) => {
   }
 });
 
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * Master Admin: Search student by roll number to inspect full profile,
+ * project/group memberships, mentor allocations, and associated records
+ * before removing the record.
+ */
+const searchStudentForRemoval = asyncHandler(async (req, res) => {
+  const roll = req.query.rollNumber || req.body?.rollNumber || req.params?.rollNumber;
+
+  if (!roll || typeof roll !== "string" || !roll.trim()) {
+    throw new ApiError(400, "Roll number is required");
+  }
+
+  const cleanRoll = roll.trim();
+  const student = await User.findOne({
+    rollNumber: { $regex: new RegExp(`^${escapeRegex(cleanRoll)}$`, "i") },
+  })
+    .select("-password -refreshToken")
+    .populate("summerAllocatedProf", "fullName email idNumber")
+    .populate("minorAllocatedProf", "fullName email idNumber")
+    .populate("majorAllocatedProf", "fullName email idNumber");
+
+  if (!student) {
+    throw new ApiError(404, `No student found with roll number "${cleanRoll}"`);
+  }
+
+  // Find active group associations
+  const [summerGroup, minorGroup, majorGroup, project1Group] = await Promise.all([
+    Group.findOne({ members: student._id })
+      .populate("summerAllocatedProf", "fullName email idNumber")
+      .select("groupId typeOfSummer summerAllocatedProf members leader projectTitle"),
+    Minor.findOne({ members: student._id })
+      .populate("minorAllocatedProf", "fullName email idNumber")
+      .select("groupId minorAllocatedProf members leader projectTitle"),
+    Major.findOne({ members: student._id })
+      .populate("majorAllocatedProf", "fullName email idNumber")
+      .select("groupId type majorAllocatedProf members leader projectTitle"),
+    Project1.findOne({ members: student._id })
+      .populate("allocatedProf", "fullName email idNumber")
+      .select("groupId allocatedProf members leader projectTitle"),
+  ]);
+
+  // Count records in related collections to show impact
+  const [
+    academicsCount,
+    awardsCount,
+    examsCount,
+    internshipsCount,
+    projectsCount,
+    higherEdCount,
+    allotmentsCount,
+    bookingsCount,
+    peCoursesCount,
+  ] = await Promise.all([
+    Academics.countDocuments({ name: student._id }),
+    Award.countDocuments({ student: student._id }),
+    Exam.countDocuments({ name: student._id }),
+    Internship.countDocuments({ student: student._id }),
+    Project.countDocuments({ name: student._id }),
+    HigherEducation.countDocuments({ name: student._id }),
+    Allotment.countDocuments({ student: student._id }),
+    ClassroomBooking.countDocuments({ student: student._id }),
+    PeCourse.countDocuments({ students: student._id }),
+  ]);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        student: {
+          _id: student._id,
+          fullName: student.fullName,
+          rollNumber: student.rollNumber,
+          email: student.email,
+          branch: student.branch,
+          batch: student.batch,
+          program: student.program,
+          section: student.section,
+          isVerified: student.isVerified,
+          cgpa: student.cgpa,
+          mobileNumber: student.mobileNumber,
+        },
+        groups: {
+          summer: summerGroup
+            ? {
+                groupId: summerGroup.groupId,
+                projectTitle: summerGroup.projectTitle,
+                isLeader: summerGroup.leader?.equals(student._id),
+                membersCount: summerGroup.members?.length || 0,
+                allocatedProf: summerGroup.summerAllocatedProf,
+              }
+            : null,
+          minor: minorGroup
+            ? {
+                groupId: minorGroup.groupId,
+                projectTitle: minorGroup.projectTitle,
+                isLeader: minorGroup.leader?.equals(student._id),
+                membersCount: minorGroup.members?.length || 0,
+                allocatedProf: minorGroup.minorAllocatedProf,
+              }
+            : null,
+          major: majorGroup
+            ? {
+                groupId: majorGroup.groupId,
+                projectTitle: majorGroup.projectTitle,
+                isLeader: majorGroup.leader?.equals(student._id),
+                membersCount: majorGroup.members?.length || 0,
+                allocatedProf: majorGroup.majorAllocatedProf,
+              }
+            : null,
+          project1: project1Group
+            ? {
+                groupId: project1Group.groupId,
+                projectTitle: project1Group.projectTitle,
+                isLeader: project1Group.leader?.equals(student._id),
+                membersCount: project1Group.members?.length || 0,
+                allocatedProf: project1Group.allocatedProf,
+              }
+            : null,
+        },
+        recordsCount: {
+          academics: academicsCount,
+          awards: awardsCount,
+          exams: examsCount,
+          internships: internshipsCount,
+          projects: projectsCount,
+          higherEducation: higherEdCount,
+          allotments: allotmentsCount,
+          classroomBookings: bookingsCount,
+          peCourses: peCoursesCount,
+        },
+      },
+      "Student details retrieved successfully"
+    )
+  );
+});
+
+/**
+ * Master Admin: Remove student record when student leaves the Institute.
+ * Cleans up all group memberships, releases allocated mentor capacities,
+ * deletes all student-related sub-records, and removes user record.
+ * 
+ * Includes strict cross-verification safeguards:
+ * - Validates rollNumber and optional studentId
+ * - Aborts on ambiguity
+ * - Verifies studentId matches rollNumber
+ * - Targets only records belonging strictly to this student's ObjectId
+ */
+const removeStudentRecord = asyncHandler(async (req, res) => {
+  const roll = req.body?.rollNumber || req.query.rollNumber || req.params?.rollNumber;
+  const providedStudentId = req.body?.studentId || req.query.studentId;
+
+  if (!roll || typeof roll !== "string" || !roll.trim()) {
+    throw new ApiError(400, "Roll number is required");
+  }
+
+  const cleanRoll = roll.trim();
+
+  let student = null;
+
+  // If studentId was provided by the client, use strict ID lookup with roll number verification
+  if (providedStudentId) {
+    if (!mongoose.Types.ObjectId.isValid(providedStudentId)) {
+      throw new ApiError(400, "Invalid studentId provided");
+    }
+    student = await User.findById(providedStudentId);
+    if (!student) {
+      throw new ApiError(404, "Student record not found for the provided ID");
+    }
+    if (student.rollNumber.trim().toUpperCase() !== cleanRoll.toUpperCase()) {
+      throw new ApiError(
+        400,
+        "Safety mismatch: Roll number does not match student record ID"
+      );
+    }
+  } else {
+    // Exact full-string case-insensitive match
+    const matches = await User.find({
+      rollNumber: { $regex: new RegExp(`^${escapeRegex(cleanRoll)}$`, "i") },
+    });
+
+    if (!matches || matches.length === 0) {
+      throw new ApiError(404, `No student found with roll number "${cleanRoll}"`);
+    }
+
+    if (matches.length > 1) {
+      throw new ApiError(
+        409,
+        `Ambiguous roll number: multiple records found for "${cleanRoll}". Aborting to prevent accidental deletion.`
+      );
+    }
+
+    student = matches[0];
+  }
+
+  const studentId = student._id;
+  const studentEmail = student.email;
+
+  if (!studentId || !mongoose.Types.ObjectId.isValid(studentId)) {
+    throw new ApiError(500, "Invalid student identifier");
+  }
+
+  // 1. Summer Training Group Cleanup
+  const summerGroups = await Group.find({ members: studentId });
+  for (const group of summerGroups) {
+    group.members.pull(studentId);
+    if (group.discussion && group.discussion.length > 0) {
+      for (const d of group.discussion) {
+        if (d.absent && d.absent.length > 0) {
+          d.absent.pull(studentId);
+        }
+      }
+    }
+
+    const allocatedProfId = group.summerAllocatedProf;
+    if (allocatedProfId) {
+      const prof = await Professor.findById(allocatedProfId);
+      if (prof) {
+        prof.currentCount.summer_training = Math.max(
+          0,
+          (prof.currentCount.summer_training || 0) - 1
+        );
+        if (group.members.length === 0) {
+          prof.students.summer_training.pull(group._id);
+        }
+        await prof.save({ validateBeforeSave: false });
+      }
+    }
+
+    if (group.members.length === 0) {
+      if (group.summerAppliedProfs && group.summerAppliedProfs.length > 0) {
+        for (const profId of group.summerAppliedProfs) {
+          const prof = await Professor.findById(profId);
+          if (prof) {
+            prof.appliedGroups?.summer_training?.pull(group._id);
+            await prof.save({ validateBeforeSave: false });
+          }
+        }
+      }
+      await GroupRemovalRequest.deleteMany({ groupRef: group._id });
+      await Chat.deleteOne({ groupId: group.groupId });
+      await group.deleteOne();
+    } else {
+      if (group.leader?.equals(studentId)) {
+        group.leader = group.members[0];
+      }
+      await group.save({ validateBeforeSave: false });
+    }
+  }
+
+  // 2. Minor Project Group Cleanup
+  const minorGroups = await Minor.find({ members: studentId });
+  for (const group of minorGroups) {
+    group.members.pull(studentId);
+    if (group.discussion && group.discussion.length > 0) {
+      for (const d of group.discussion) {
+        if (d.absent && d.absent.length > 0) {
+          d.absent.pull(studentId);
+        }
+      }
+    }
+
+    const allocatedProfId = group.minorAllocatedProf;
+    if (allocatedProfId) {
+      const prof = await Professor.findById(allocatedProfId);
+      if (prof) {
+        prof.currentCount.minor_project = Math.max(
+          0,
+          (prof.currentCount.minor_project || 0) - 1
+        );
+        if (group.members.length === 0) {
+          prof.students.minor_project.pull(group._id);
+        }
+        await prof.save({ validateBeforeSave: false });
+      }
+    }
+
+    if (group.members.length === 0) {
+      if (group.minorAppliedProfs && group.minorAppliedProfs.length > 0) {
+        for (const profId of group.minorAppliedProfs) {
+          const prof = await Professor.findById(profId);
+          if (prof) {
+            prof.appliedGroups?.minor_project?.pull(group._id);
+            await prof.save({ validateBeforeSave: false });
+          }
+        }
+      }
+      await GroupRemovalRequest.deleteMany({ groupRef: group._id });
+      await group.deleteOne();
+    } else {
+      if (group.leader?.equals(studentId)) {
+        group.leader = group.members[0];
+      }
+      await group.save({ validateBeforeSave: false });
+    }
+  }
+
+  // 3. Major Project Group Cleanup
+  const majorGroups = await Major.find({ members: studentId });
+  for (const group of majorGroups) {
+    group.members.pull(studentId);
+    if (group.discussion && group.discussion.length > 0) {
+      for (const d of group.discussion) {
+        if (d.absent && d.absent.length > 0) {
+          d.absent.pull(studentId);
+        }
+      }
+    }
+
+    const allocatedProfId = group.majorAllocatedProf;
+    if (allocatedProfId) {
+      const prof = await Professor.findById(allocatedProfId);
+      if (prof) {
+        prof.currentCount.major_project = Math.max(
+          0,
+          (prof.currentCount.major_project || 0) - 1
+        );
+        if (group.members.length === 0) {
+          prof.students.major_project.pull(group._id);
+        }
+        await prof.save({ validateBeforeSave: false });
+      }
+    }
+
+    if (group.members.length === 0) {
+      if (group.majorAppliedProfs && group.majorAppliedProfs.length > 0) {
+        for (const profId of group.majorAppliedProfs) {
+          const prof = await Professor.findById(profId);
+          if (prof) {
+            prof.appliedGroups?.major_project?.pull(group._id);
+            await prof.save({ validateBeforeSave: false });
+          }
+        }
+      }
+      await GroupRemovalRequest.deleteMany({ groupRef: group._id });
+      await group.deleteOne();
+    } else {
+      if (group.leader?.equals(studentId)) {
+        group.leader = group.members[0];
+      }
+      await group.save({ validateBeforeSave: false });
+    }
+  }
+
+  // 4. Project 1 Group Cleanup
+  const project1Groups = await Project1.find({ members: studentId });
+  for (const group of project1Groups) {
+    group.members.pull(studentId);
+    if (group.discussion && group.discussion.length > 0) {
+      for (const d of group.discussion) {
+        if (d.absent && d.absent.length > 0) {
+          d.absent.pull(studentId);
+        }
+      }
+    }
+
+    const allocatedProfId = group.allocatedProf;
+    if (allocatedProfId) {
+      const prof = await Professor.findById(allocatedProfId);
+      if (prof) {
+        prof.currentCount.project1 = Math.max(
+          0,
+          (prof.currentCount.project1 || 0) - 1
+        );
+        if (group.members.length === 0) {
+          prof.students.project1.pull(group._id);
+        }
+        await prof.save({ validateBeforeSave: false });
+      }
+    }
+
+    if (group.members.length === 0) {
+      if (group.appliedProfs && group.appliedProfs.length > 0) {
+        for (const profId of group.appliedProfs) {
+          const prof = await Professor.findById(profId);
+          if (prof) {
+            prof.appliedGroups?.project1?.pull(group._id);
+            await prof.save({ validateBeforeSave: false });
+          }
+        }
+      }
+      await GroupRemovalRequest.deleteMany({ groupRef: group._id });
+      await group.deleteOne();
+    } else {
+      if (group.leader?.equals(studentId)) {
+        group.leader = group.members[0];
+      }
+      await group.save({ validateBeforeSave: false });
+    }
+  }
+
+  // 5. Clean up associated collections strictly matching studentId
+  const cleanupTasks = [
+    Academics.deleteMany({ name: studentId }),
+    Award.deleteMany({ student: studentId }),
+    Exam.deleteMany({ name: studentId }),
+    Internship.deleteMany({ student: studentId }),
+    Placement.deleteMany({ student: studentId }),
+    Project.deleteMany({ name: studentId }),
+    HigherEducation.deleteMany({ name: studentId }),
+    Allotment.deleteMany({ student: studentId }),
+    RequestProj.deleteMany({ studentId: studentId }),
+    ClassroomBooking.deleteMany({ student: studentId }),
+    Alumni.deleteMany({ user: studentId }),
+    InterviewExp.deleteMany({ student: studentId }),
+    Review.deleteMany({ user: studentId, userModel: "User" }),
+    BugTracker.deleteMany({ "reporter.id": studentId, "reporter.kind": "User" }),
+    PeCourse.updateMany({ students: studentId }, { $pull: { students: studentId } }),
+    Group.updateMany(
+      { "typeChangeRequests.initiatedBy": studentId },
+      { $pull: { typeChangeRequests: { initiatedBy: studentId } } }
+    ),
+  ];
+
+  if (studentEmail && typeof studentEmail === "string" && studentEmail.trim().length > 0) {
+    cleanupTasks.push(Otp.deleteMany({ email: studentEmail.trim().toLowerCase() }));
+  }
+
+  await Promise.all(cleanupTasks);
+
+  // 6. Delete User document strictly matching both _id and rollNumber
+  await User.deleteOne({ _id: studentId, rollNumber: student.rollNumber });
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        rollNumber: student.rollNumber,
+        fullName: student.fullName,
+      },
+      `Student record for ${student.fullName} (${student.rollNumber}) has been permanently removed`
+    )
+  );
+});
+
 export {
   createBatchAdmin,
   deleteAdmin,
@@ -929,4 +1383,6 @@ export {
   updateAdmin,
   verifyUser,
   resetSummerTrainingSeats,
+  searchStudentForRemoval,
+  removeStudentRecord,
 };
