@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FaFileExcel } from "react-icons/fa";
 import { HiClipboardList, HiRefresh } from "react-icons/hi";
+import { useSearchParams } from "react-router-dom";
 import Swal from "sweetalert2";
 
 const PROJECTS = [
@@ -86,13 +87,21 @@ const escapeHtml = (value) =>
   );
 
 const AdminApplicationStatus = () => {
-  const [course, setCourse] = useState(PROJECTS[0].value);
+  // Links from other pages can open a project and batch: ?course=…&batch=23
+  const [searchParams] = useSearchParams();
+  const [course, setCourse] = useState(() =>
+    PROJECTS.some((p) => p.value === searchParams.get("course"))
+      ? searchParams.get("course")
+      : PROJECTS[0].value
+  );
   const [professors, setProfessors] = useState([]);
   // Row whose "Allot mentor" picker is open, and the mentor chosen in it.
   const [allotFor, setAllotFor] = useState(null);
   const [allotMentor, setAllotMentor] = useState("");
   const [acting, setActing] = useState(false);
-  const [batch, setBatch] = useState("");
+  const [batch, setBatch] = useState(
+    () => searchParams.get("batch")?.replace(/^[kK]/, "") || ""
+  );
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState("notApplied");

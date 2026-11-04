@@ -8,6 +8,7 @@ import {
     HiBadgeCheck,
     HiBeaker,
     HiBriefcase,
+    HiChartBar,
     HiClipboardList,
     HiDocumentReport,
     HiHome,
@@ -47,6 +48,11 @@ export default function Sidebar() {
       text: "Dashboard", 
       icon: <HiHome />, 
       to: "/admin-db" 
+    },
+    {
+      text: "Platform Summary",
+      icon: <HiChartBar />,
+      to: "/admin-db/platform-summary",
     },
     { 
       text: "Student Details", 
