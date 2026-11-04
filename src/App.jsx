@@ -63,6 +63,7 @@ import MajorProject from "./components/MajorProject";
 import MajorProjectTable from "./components/MajorProjectTable";
 import ReassignMajorMentor from "./components/ReassignMajorMentor";
 import MasterAdminDashboard from "./components/MasterAdminDashboard";
+import RemoveStudentRecord from "./components/RemoveStudentRecord";
 import AdminCourseDocsUpload from "./components/AdminCourseDocsUpload";
 import FacultyCourseDocumentView from "./components/FacultyCourseDocumentView";
 import AdminBackPaperAllotment from "./components/AdminBackPaperAllotment";
@@ -222,6 +223,7 @@ export default function App() {
           <Route path="bug-tracker/:bugId" element={<AdminBugTrackerDetails />} />
           <Route path="academicanalysis" element ={<Academicanalysis />} />
           <Route path="manage-admins" element={<MasterAdminDashboard />} />
+          <Route path="remove-student" element={<RemoveStudentRecord />} />
           <Route path="upload-course-docs" element={<AdminCourseDocsUpload />} />
           <Route path="back-paper-allotment" element={<AdminBackPaperAllotment />} />
           <Route path="edit-allotment" element={<AdminEditAllotment />} />

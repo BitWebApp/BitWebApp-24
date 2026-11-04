@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { Link } from 'react-router-dom';
 import { FileText } from 'lucide-react';
 import ScrollToTop from './ScrollToTop';
+import RemoveStudentRecord from './RemoveStudentRecord';
 
 const api = axios.create({
   baseURL: '/api/v1/admin',
@@ -227,6 +228,11 @@ const MasterAdminDashboard = () => {
           </button>
         </div>
       </div>
+      {/* Remove Student Record (Left Institute) Section */}
+      <div className="mb-8">
+        <RemoveStudentRecord isEmbedded={true} />
+      </div>
+
       {/* Course Documents (PG Projects & Thesis) Section */}
       <div className="mb-8 bg-white rounded-lg shadow-md border border-gray-200 p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

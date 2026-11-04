@@ -22,6 +22,8 @@ import {
   updateAdmin,
   verifyUser,
   resetSummerTrainingSeats,
+  searchStudentForRemoval,
+  removeStudentRecord,
 } from "../controllers/admin.controller.js";
 import { addbacklogSubject } from "../controllers/backlog.controller.js";
 import {
@@ -129,5 +131,15 @@ router.route("/admins/:adminId").delete(verifyMasterAdmin, deleteAdmin);
 router.route("/reset-summer-seats").post(verifyMasterAdmin, resetSummerTrainingSeats);
 router.route("/get-all-professors").get(verifyMasterAdmin, getAllProfessors);
 router.route("/reassign-major-mentor").post(verifyMasterAdmin, reassignMajorMentor);
+
+// Student record removal (when student leaves institute)
+router
+  .route("/students/search")
+  .get(verifyMasterAdmin, searchStudentForRemoval)
+  .post(verifyMasterAdmin, searchStudentForRemoval);
+router
+  .route("/students/remove")
+  .delete(verifyMasterAdmin, removeStudentRecord)
+  .post(verifyMasterAdmin, removeStudentRecord);
 
 export default router;

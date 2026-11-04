@@ -249,6 +249,10 @@ export default function Sidebar() {
         icon: <HiArchive />,
         to: "/admin-db/batches",
       }, {
+        text: "Remove Student Record",
+        icon: <HiTrash />,
+        to: "/admin-db/remove-student",
+      }, {
         text: "Manage Admins",
         icon: <HiUser />,
         to: "/admin-db/manage-admins",
