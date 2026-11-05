@@ -4,6 +4,7 @@ import {
   getApplicationStatus,
   undoRejectionFromStatus,
 } from "../controllers/applicationStatus.controller.js";
+import { getPlatformSummary } from "../controllers/platformSummary.controller.js";
 import {
   createBatchAdmin,
   deleteAdmin,
@@ -88,6 +89,7 @@ router.route("/assign-company").post(verifyAdmin, assignCompany);
 router.route("/get-minor-projects").get(verifyAdmin, getAllMinorProjects);
 router.route("/get-major-projects").get(verifyAdmin, getAllMajorProjects);
 router.route("/batch-stats").get(verifyAdmin, getBatchStats);
+router.route("/platform-summary").get(verifyAdmin, getPlatformSummary);
 // Students not applied / not allotted yet, with faculty preferences
 router.route("/application-status").get(verifyAdmin, getApplicationStatus);
 router
