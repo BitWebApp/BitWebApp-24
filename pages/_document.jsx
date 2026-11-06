@@ -69,6 +69,12 @@ export default function Document() {
             `,
           }}
         />
+
+        {/* BIT AI Assistant chatbot*/}
+        <script
+          async
+          src="https://chatbot.vinaiak.com/public/bit-mesra/link.js"
+        />
       </Head>
       <body>
         <Main />
